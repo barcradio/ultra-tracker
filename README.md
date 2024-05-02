@@ -5,17 +5,25 @@ ultra marathons.
 
 ## Recommended IDE Setup
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- [VSCode](https://code.visualstudio.com/) +
+  [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) +
+  [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 
 ## Project Setup
 
-### Install
+This project uses `pnpm` as the package manager. It is a much faster version of
+`npm` and is a drop-in replacement.
+
+To install, go to the [pnpm website](https://pnpm.io/installation) and follow
+the instructions.
+
+### Install Dependencies
 
 ```bash
 $ pnpm install
 ```
 
-### Development
+### Local Development
 
 ```bash
 $ pnpm dev
