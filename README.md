@@ -41,3 +41,15 @@ $ pnpm build:mac
 # For Linux
 $ pnpm build:linux
 ```
+
+### Linting
+
+```bash
+# View lint errors
+$ pnpm lint
+```
+
+```bash
+# View lint errors and automatically fix when possible
+$ pnpm lint:fix
+```
