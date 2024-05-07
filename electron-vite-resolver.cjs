@@ -88,11 +88,14 @@ const parseViteConfig = (file, viteConfig, log) => {
   const basedir = path.dirname(file);
 
   if (viteModule === null) {
-    return { alias: {}, resolveOptions: { extensions: defaultExtensions, basedir } };
+    return {
+      alias: {},
+      resolveOptions: { extensions: defaultExtensions, basedir }
+    };
   }
 
   const { alias, extensions = defaultExtensions } = viteModule.resolve ?? {};
-  const resolveOptions = { basedir: path.dirname(file), extensions };
+  const resolveOptions = { basedir, extensions };
 
   return { alias, resolveOptions, viteModule };
 };
@@ -108,7 +111,7 @@ const logFactory = (options) => {
   return (label, message) => {
     let str = `${label}: `;
     if (str.length < MIN_LABEL_LENGTH) str += " ".repeat(MIN_LABEL_LENGTH - str.length);
-    execSync(`echo $'${str}${message}'`, { stdio: "inherit" });
+    execSync(`echo $'${str}${message ?? ""}'`, { stdio: "inherit" });
   };
 };
 
@@ -182,7 +185,7 @@ const resolvePath = (source, file, options) => {
     }
   }
 
-  log("ERROR: UNABLE TO RESOLVE");
+  log("ERROR", "UNABLE TO RESOLVE");
   return { found: false };
 };
 
