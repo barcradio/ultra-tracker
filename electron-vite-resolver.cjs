@@ -3,6 +3,19 @@ const resolve = require("resolve");
 const { execSync } = require("child_process");
 const path = require("path");
 
+/**
+ * @typedef ResolverOptions
+ * @type {Object}
+ * @property {string} viteConfigPath - The path to the Vite configuration file.
+ * @property {boolean} [debug] - Whether to enable logging.
+ */
+
+/**
+ * Handle the replacement of path parts with configured aliases.
+ * @param {Object | Object[]} alias - The alias configuration.
+ * @param {string} source - The source path to process.
+ * @returns {string} The processed source.
+ */
 const processAlias = (alias, source) => {
   if (alias) {
     const pathParts = path.normalize(source).split(path.sep);
@@ -28,17 +41,30 @@ const processAlias = (alias, source) => {
   return source;
 };
 
+/**
+ * Check if the child path is a descendent of the parent path.
+ * @returns {boolean}
+ */
 const isParent = (parentPath, childPath) => {
   const relativePath = path.relative(parentPath, childPath);
   return relativePath && !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
 };
 
+/**
+ * Paths to Electron modules, keyed by module type.
+ */
 const ELECTRON_MODULE_PATHS = {
   main: path.resolve(__dirname, "src/main"),
   preload: path.resolve(__dirname, "src/preload"),
   renderer: path.resolve(__dirname, "src/renderer")
 };
 
+/**
+ * Finds the Vite configuration module that corresponds to the given file.
+ * @param {string} file - The file path to find the Vite configuration module for.
+ * @param {Object} viteConfig - The full Vite configuration object.
+ * @returns {Object | null} The Vite configuration module, or null if the file does not correspond to any module type.
+ */
 const getViteConfigModule = (file, viteConfig) => {
   if (isParent(ELECTRON_MODULE_PATHS.main, file)) {
     return viteConfig.main;
@@ -50,92 +76,117 @@ const getViteConfigModule = (file, viteConfig) => {
   return null;
 };
 
-const logFactory = (options) => {
-  if (!options.debug) {
-    return () => {};
+/**
+ * Parses the Vite configuration file for necessary resolver information.
+ * @param {string} file - The file path to find the Vite configuration module for.
+ * @param {Object} viteConfig - The full Vite configuration object.
+ */
+const parseViteConfig = (file, viteConfig, log) => {
+  const viteModule = getViteConfigModule(file, viteConfig);
+
+  const defaultExtensions = [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"];
+  const basedir = path.dirname(file);
+
+  if (viteModule === null) {
+    return { alias: {}, resolveOptions: { extensions: defaultExtensions, basedir } };
   }
 
-  return (...messages) => {
-    execSync(`echo ${messages.join(" ")}`, {
-      stdio: "inherit"
-    });
+  const { alias, extensions = defaultExtensions } = viteModule.resolve ?? {};
+  const resolveOptions = { basedir: path.dirname(file), extensions };
+
+  return { alias, resolveOptions, viteModule };
+};
+
+/**
+ * Create a logging function.
+ * @param {ResolverOptions} options - The options object for the resolver.
+ */
+const logFactory = (options) => {
+  const MIN_LABEL_LENGTH = 35;
+
+  if (!options.debug) return () => {};
+  return (label, message) => {
+    let str = `${label}: `;
+    if (str.length < MIN_LABEL_LENGTH) str += " ".repeat(MIN_LABEL_LENGTH - str.length);
+    execSync(`echo $'${str}${message}'`, { stdio: "inherit" });
   };
 };
 
+/**
+ * Resolve the given source path.
+ * @param {string} source - The source path to resolve.
+ * @param {string} file - The file path that is importing the source.
+ * @param {ResolverOptions} options - The options object for the resolver.
+ */
 const resolvePath = (source, file, options) => {
   const log = logFactory(options);
 
   const resolveSync = (source, resolveOptions, label) => {
-    log("resolving: ", ` ${label} `, source);
+    log(`RESOLVING ${label}`, source);
     const resolvedPath = resolve.sync(source, resolveOptions);
-    log("resolved: ", resolvedPath);
+    log(`RESOLVED`, resolvedPath);
     return { found: true, path: resolvedPath };
   };
 
-  log("in file: ", file);
+  log("\nIN FILE", ` ${file}`);
 
   if (isCore(source)) {
-    log("resolved: ", source);
+    log("RESOLVED", source);
     return { found: true, path: null };
   }
 
-  if (!options.viteConfigPath) {
-    throw new Error("viteConfigPath is required");
-  }
+  if (!options.viteConfigPath) throw new Error("viteConfigPath is required");
 
-  const fullViteConfig = require(options.viteConfigPath);
-
-  const viteConfig = getViteConfigModule(file, fullViteConfig);
-
-  const defaultExtensions = [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"];
-  const { alias, extensions = defaultExtensions } = viteConfig.resolve ?? {};
-  const resolveOptions = { basedir: path.dirname(file), extensions };
+  const viteConfig = require(options.viteConfigPath);
+  const { alias, resolveOptions, viteModule } = parseViteConfig(file, viteConfig, log);
 
   // Remove Vite static asset mark
   source = source.replace(/\?.*$/, "");
 
   // try to resolve the source as is
   try {
-    return resolveSync(source, resolveOptions, "as is");
+    return resolveSync(source, resolveOptions, "AS IS");
   } catch (err) {
-    log(err);
+    log("COULD NOT RESOLVE AS IS", source);
   }
 
   // try to resolve the source with alias
   const parsedSource = processAlias(alias, source);
   if (parsedSource !== source) {
     try {
-      return resolveSync(parsedSource, resolveOptions, "with alias");
+      return resolveSync(parsedSource, resolveOptions, "WITH ALIAS");
     } catch (err) {
-      log(err);
+      log("COULD NOT RESOVE WITH ALIAS", source);
     }
   }
 
   // try to resolve the source if it is an absolute path
   if (path.isAbsolute(parsedSource)) {
-    const root = viteConfig.root ?? process.cwd();
+    const root = viteModule.root ?? path.resolve(__dirname);
     const absoluteSource = path.join(path.resolve(root), parsedSource);
     try {
-      return resolveSync(absoluteSource, resolveOptions, "absolute path");
+      return resolveSync(absoluteSource, resolveOptions, "AS ABSOLUTE PATH");
     } catch (err) {
-      log(err);
+      log("COULD NOT RESOLVE AS ABSOLUTE PATH", source);
     }
   }
 
-  // try to resolve the source in public directory if all above failed
-  if (viteConfig.publicDir !== false) {
-    const publicDir = viteConfig.publicDir ?? "public";
+  // try to resolve the source in public resources directory if all above failed
+  if (viteModule.publicDir !== false) {
+    const publicDir = viteModule.publicDir ?? "resources";
     const publicSource = path.join(path.resolve(publicDir), parsedSource);
     try {
-      return resolveSync(publicSource, resolveOptions, "in public directory");
+      return resolveSync(publicSource, resolveOptions, "IN PUBLIC DIRECTORY");
     } catch (err) {
-      log(err);
+      log("COULD NOT RESOLVE IN PUBLIC DIR", source);
     }
   }
 
-  log("ERROR: ", "Unable to resolve");
+  log("ERROR: UNABLE TO RESOLVE");
   return { found: false };
 };
+
+// Export
 
 exports.interfaceVersion = 2;
 exports.resolve = resolvePath;
