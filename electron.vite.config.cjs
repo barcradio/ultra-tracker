@@ -7,18 +7,24 @@ module.exports = defineConfig({
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
-        $resources: resolve("./resources")
+        $resources: resolve(__dirname, "resources"),
+        $renderer: resolve(__dirname, "src/renderer/src")
       }
     }
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        $resources: resolve("./resources"),
+        $renderer: resolve(__dirname, "src/renderer/src")
+      }
+    }
   },
   renderer: {
     resolve: {
       alias: {
-        $renderer: resolve(__dirname, "src/renderer/src"),
-        $components: resolve(__dirname, "src/renderer/src/components")
+        "~": resolve(__dirname, "src/renderer/src")
       }
     },
     plugins: [react()]

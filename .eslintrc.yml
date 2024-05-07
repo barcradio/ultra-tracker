@@ -60,14 +60,23 @@ rules:
   # Import Sorting
   import/order:
     - warn
-    - groups:
-        - external
+    - newlines-between: never
+      distinctGroup: false
+      alphabetize:
+        order: asc
+        caseInsensitive: true
+      groups:
         - builtin
+        - external
         - internal
         - sibling
         - parent
         - type
         - index
-      alphabetize:
-        order: asc
-        caseInsensitive: true
+      pathGroups:
+        - pattern: ~/**
+          group: internal
+          position: before
+        - pattern: $*
+          group: internal
+          position: before

@@ -1,5 +1,5 @@
-import { Versions } from "$components/Versions";
-import electronLogo from "./assets/electron.svg";
+import electronLogo from "~/assets/electron.svg";
+import { Versions } from "~/components/Versions";
 
 export function App() {
   const ipcHandle = (): void => window.electron.ipcRenderer.send("ping");
