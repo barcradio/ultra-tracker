@@ -1,6 +1,7 @@
+const { resolve } = require("path");
 const react = require("@vitejs/plugin-react");
 const { defineConfig, externalizeDepsPlugin } = require("electron-vite");
-const { resolve } = require("path");
+const { TanStackRouterVite } = require("@tanstack/router-vite-plugin");
 
 module.exports = defineConfig({
   main: {
@@ -27,6 +28,12 @@ module.exports = defineConfig({
         "~": resolve(__dirname, "src/renderer/src")
       }
     },
-    plugins: [react()]
+    plugins: [
+      react(),
+      TanStackRouterVite({
+        routesDirectory: resolve(__dirname, "src/renderer/src/routes"),
+        generatedRouteTree: resolve(__dirname, "src/renderer/src/routeTree.gen.ts")
+      })
+    ]
   }
 });
