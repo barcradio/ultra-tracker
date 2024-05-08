@@ -1,10 +1,9 @@
+import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
 import electronLogo from "~/assets/electron.svg";
-import { Versions } from "~/components/Versions";
+import { Versions } from "~/common/components/Versions";
 
-export function App() {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send("ping");
-
-  return (
+export const Route = createRootRoute({
+  component: () => (
     <>
       <img alt="logo" className="logo" src={electronLogo} />
       <div className="creator">Powered by electron-vite</div>
@@ -17,17 +16,16 @@ export function App() {
       </p>
       <div className="actions">
         <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
+          <Link to="/">Goto Documentation</Link>
         </div>
         <div className="action">
-          <button type="button" onClick={ipcHandle}>
-            Send IPC
-          </button>
+          <Link to="/ipc">Goto IPC Demo</Link>
         </div>
       </div>
-      <Versions></Versions>
+      <div className="actions">
+        <Outlet />
+      </div>
+      <Versions />
     </>
-  );
-}
+  )
+});

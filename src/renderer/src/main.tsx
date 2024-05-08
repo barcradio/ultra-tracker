@@ -1,11 +1,26 @@
 import "./assets/main.css";
-
-import { StrictMode } from "react";
+import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
+import { StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./App";
+import { routeTree } from "./routeTree.gen";
 
-createRoot(document.getElementById("root") as HTMLElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+const hashHistory = createHashHistory();
+const router = createRouter({ routeTree, history: hashHistory });
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+const rootElement = document.getElementById("root");
+
+if (!rootElement?.innerHTML) {
+  createRoot(rootElement as HTMLElement).render(
+    <StrictMode>
+      <Suspense fallback={null}>
+        <RouterProvider router={router} />
+      </Suspense>
+    </StrictMode>
+  );
+}
