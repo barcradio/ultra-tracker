@@ -1,4 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
+import { Button } from "~/common/components/Button";
 
 export const Route = createLazyFileRoute("/ipc")({
   component: IpcPage
@@ -7,11 +8,5 @@ export const Route = createLazyFileRoute("/ipc")({
 function IpcPage() {
   const ipcHandle = (): void => window.electron.ipcRenderer.send("ping");
 
-  return (
-    <div className="action">
-      <button type="button" onClick={ipcHandle}>
-        Send IPC
-      </button>
-    </div>
-  );
+  return <Button onClick={ipcHandle}>Send IPC</Button>;
 }

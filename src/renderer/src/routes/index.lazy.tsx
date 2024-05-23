@@ -1,4 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
+import { Link } from "~/common/components/Link";
 
 export const Route = createLazyFileRoute("/")({
   component: DocumentationPage
@@ -6,10 +7,8 @@ export const Route = createLazyFileRoute("/")({
 
 function DocumentationPage() {
   return (
-    <div className="action">
-      <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-        Documentation
-      </a>
-    </div>
+    <Link to="https://electron-vite.org/" target="_blank">
+      Documentation
+    </Link>
   );
 }
