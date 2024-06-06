@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.nodrag {
+  -webkit-user-drag: none;
+}
+
