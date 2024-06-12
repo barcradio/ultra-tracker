@@ -1,6 +1,6 @@
 import { classed } from "~/lib/classed";
 
-export const TextInput = classed("input", {
+export const TextInput = classed.input({
   base: "border-b-2 border-gray-400 p-2  text-slate-800 outline-none focus:border-gray-900",
   variants: {
     outline: {

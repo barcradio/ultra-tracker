@@ -1,6 +1,4 @@
-import { Button } from "~/common/components/Button";
-import { Stack } from "~/common/components/Stack";
-import { TextInput } from "~/common/components/TextInput";
+import { Stack, Button, TextInput } from "~/components";
 
 export function BibForm() {
   return (

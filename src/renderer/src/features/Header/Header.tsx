@@ -1,4 +1,4 @@
-import { Stack } from "~/common/components/Stack";
+import { Stack } from "~/components";
 import { BibForm } from "./BibForm";
 import { Clock } from "./Clock";
 

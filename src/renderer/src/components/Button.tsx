@@ -1,7 +1,7 @@
 import { classed } from "~/lib/classed";
 
-export const Button = classed("button", {
-  base: "font-display cursor-pointer rounded-md text-center font-bold uppercase transition-all duration-150 ease-in-out",
+export const Button = classed.button({
+  base: "cursor-pointer rounded-md text-center font-display font-bold uppercase transition-all duration-150 ease-in-out",
   variants: {
     color: {
       primary: "bg-blue-600 text-white hover:bg-blue-700",

@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { useCurrentTime } from "~/common/hooks/useCurrentTime";
+import { useCurrentTime } from "~/hooks/useCurrentTime";
 
 export function Clock() {
   const [currentTime] = useCurrentTime();

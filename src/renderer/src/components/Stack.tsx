@@ -1,6 +1,6 @@
 import { classed } from "~/lib/classed";
 
-export const Stack = classed("div", {
+export const Stack = classed.div({
   base: "flex",
   variants: {
     direction: {
