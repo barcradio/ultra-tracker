@@ -1,6 +1,6 @@
 import "./assets/main.css";
-import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
 import { StrictMode, Suspense } from "react";
+import { createHashHistory, createRouter, RouterProvider } from "@tanstack/react-router";
 import { createRoot } from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
 

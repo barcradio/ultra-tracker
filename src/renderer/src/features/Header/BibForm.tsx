@@ -1,22 +1,19 @@
 import { Button } from "~/common/components/Button";
+import { Stack } from "~/common/components/Stack";
+import { TextInput } from "~/common/components/TextInput";
 
 export function BibForm() {
   return (
-    <div className="flex flex-row">
-      <input
-        className="m-1.5 w-32 rounded-md border border-gray-400 p-2 text-3xl text-slate-800"
-        type="number"
-        placeholder="Bib"
-      />
-
-      <div className="flex flex-col">
-        <Button onClick={() => console.log("In")} className="m-1.5 mb-0 bg-green-600">
+    <Stack align="stretch">
+      <TextInput className="m-1.5 w-32" type="number" placeholder="Bib #" size="lg" outline />
+      <Stack direction="col">
+        <Button className="min-w-24 m-1.5 mb-0" color="success" size="lg">
           In
         </Button>
-        <Button onClick={() => console.log("Out")} className="m-1.5 bg-red-600">
+        <Button className="min-w-24 m-1.5" color="error" size="lg">
           Out
         </Button>
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }
