@@ -1,11 +1,15 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { Footer } from "~/features/Footer/Footer";
 import { Header } from "~/features/Header/Header";
 
 export const Route = createRootRoute({
   component: () => (
     <>
       <Header />
-      <Outlet />
+      <div className="grow">
+        <Outlet />
+      </div>
+      <Footer />
     </>
   )
 });
