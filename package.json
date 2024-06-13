@@ -26,7 +26,10 @@
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
     "@tanstack/react-router": "^1.31.23",
-    "electron-updater": "^6.1.7"
+    "@tw-classed/react": "^1.7.0",
+    "date-fns": "^3.6.0",
+    "electron-updater": "^6.1.7",
+    "tailwind-merge": "^2.3.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",

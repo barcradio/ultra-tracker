@@ -74,9 +74,14 @@ rules:
         - type
         - index
       pathGroups:
+        - pattern: react
+          group: external
+          position: before
         - pattern: ~/**
           group: internal
           position: before
         - pattern: $*
           group: internal
           position: before
+      pathGroupsExcludedImportTypes:
+        - react

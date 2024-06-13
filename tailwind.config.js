@@ -5,7 +5,11 @@ module.exports = {
     "./src/renderer/**/*.{ts,tsx}"
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'display': ['Kanit', 'sans-serif'],
+      }
+    },
   },
   plugins: [],
 }
