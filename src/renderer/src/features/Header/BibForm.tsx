@@ -1,12 +1,15 @@
 import { Stack, Button, TextInput } from "~/components";
 import { usePingPongMutation } from "~/hooks/usePingPongMutation";
+import { useToasts } from "../Toasts/useToasts";
 
 export function BibForm() {
   const clickInMutation = usePingPongMutation();
+  const { createToast } = useToasts();
 
-  const clickInHandler = () => clickInMutation.mutate("ping from the renderer!");
-
-  console.log(clickInMutation.data);
+  const clickInHandler = () => {
+    createToast({ message: "Sending ping...", type: "info" });
+    clickInMutation.mutate("ping from the renderer!");
+  };
 
   return (
     <Stack align="stretch">
