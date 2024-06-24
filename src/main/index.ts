@@ -50,24 +50,23 @@ app.whenReady().then(() => {
   });
 
   // IPC test
-  ipcMain.on("ping", () => console.log("pong"));
+  ipcMain.handle("ping-pong", async (_, message) => {
+    console.log("ping-pong", message);
+    return "pong: Message from main process";
+  });
 
   createWindow();
 
   app.on("activate", function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    // On macOS it's common to re-create a window in the app when // dock icon is clicked and there are no other windows open. if (BrowserWindow.getAllWindows().length === 0) createWindow(); }); Quit all closed, except on macOS. There, it's common
+    // for applications and their menu bar to stay active until the user quits
+    // explicitly with Cmd + Q.
+    app.on("window-all-closed", () => {
+      if (process.platform !== "darwin") {
+        app.quit();
+      }
+    });
   });
-});
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
 });
 
 // In this file you can include the rest of your app"s specific main process
