@@ -14,6 +14,9 @@ importers:
       '@electron-toolkit/utils':
         specifier: ^3.0.0
         version: 3.0.0(electron@28.3.1)
+      '@tanstack/react-query':
+        specifier: ^5.45.1
+        version: 5.45.1(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.31.23
         version: 1.31.23(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -873,6 +876,14 @@ packages:
   '@tanstack/history@1.31.16':
     resolution: {integrity: sha512-rahAZXlR879P7dngDH7BZwGYiODA9D5Hqo6nUHn9GAURcqZU5IW0ZiT54dPtV5EPES7muZZmknReYueDHs7FFQ==}
     engines: {node: '>=12'}
+
+  '@tanstack/query-core@5.45.0':
+    resolution: {integrity: sha512-RVfIZQmFUTdjhSAAblvueimfngYyfN6HlwaJUPK71PKd7yi43Vs1S/rdimmZedPWX/WGppcq/U1HOj7O7FwYxw==}
+
+  '@tanstack/react-query@5.45.1':
+    resolution: {integrity: sha512-mYYfJujKg2kxmkRRjA6nn4YKG3ITsKuH22f1kteJ5IuVQqgKUgbaSQfYwVP0gBS05mhwxO03HVpD0t7BMN7WOA==}
+    peerDependencies:
+      react: ^18.0.0
 
   '@tanstack/react-router@1.31.23':
     resolution: {integrity: sha512-cbax5q5XAfZwFXj8D/wJsZSRJ+rWi+lXvTOcgefTGi5+b+2vdM+VRUik3/zEoNjqGibi5FroEQYUz7yno8yBbw==}
@@ -4020,6 +4031,13 @@ snapshots:
       defer-to-connect: 2.0.1
 
   '@tanstack/history@1.31.16': {}
+
+  '@tanstack/query-core@5.45.0': {}
+
+  '@tanstack/react-query@5.45.1(react@18.3.1)':
+    dependencies:
+      '@tanstack/query-core': 5.45.0
+      react: 18.3.1
 
   '@tanstack/react-router@1.31.23(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
