@@ -3,15 +3,17 @@ import { createContext } from "react";
 export interface Toast {
   message: string;
   type: "info" | "success" | "error";
+  timeoutMs?: number;
 }
 
-export interface InternalToast extends Toast {
-  id: number;
+export interface InternalToast extends WithRequired<Toast, "timeoutMs"> {
+  id: string;
+  epoch: Date;
 }
 
 export interface ToastsContextType {
   createToast: (toast: Toast) => void;
-  removeToast: (id: number) => void;
+  removeToast: (id: string) => void;
 }
 
 export const ToastsContext = createContext<ToastsContextType>({

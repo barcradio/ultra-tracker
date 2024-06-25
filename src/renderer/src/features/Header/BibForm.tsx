@@ -7,7 +7,7 @@ export function BibForm() {
   const { createToast } = useToasts();
 
   const clickInHandler = () => {
-    createToast({ message: "Sending ping...", type: "info" });
+    createToast({ message: "Sending ping...", type: "error" });
     clickInMutation.mutate("ping from the renderer!");
   };
 

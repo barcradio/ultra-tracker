@@ -10,10 +10,11 @@ module.exports = {
         'display': ['Kanit', 'sans-serif'],
       },
       animation: {
-        "bounce-right": "ease-in-out bounce-right 0.75s",
+        "bounce-right-in": "ease-in-out bounce-right-in 0.75s",
+        "bounce-right-out": "ease-in-out bounce-right-out 0.75s",
       },
       keyframes: {
-        "bounce-right": {
+        "bounce-right-in": {
           "0%": {
             opacity: 0,
             transform: 'translate3d(3000px, 0, 0) scaleX(3)'
@@ -32,6 +33,16 @@ module.exports = {
             transform: 'translate3d(0, 0, 0)'
           }
         },
+        "bounce-right-out": {
+          "20%": {
+            opacity: 1,
+            transform: 'translate3d(-20px, 0, 0)'
+          },
+          "100%": {
+            opacity: 0,
+            transform: 'translate3d(2000px, 0, 0)'
+          }
+        }
       }
     },
   },
