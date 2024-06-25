@@ -1,5 +1,6 @@
 import BarcLogo from "~/assets/barc.svg";
 import { Button, Stack } from "~/components";
+import { ButtonLink } from "~/components/ButtonLink";
 import { Stats } from "./Stats";
 
 export function Footer() {
@@ -9,7 +10,9 @@ export function Footer() {
         <Stats />
         <Stack direction="col">
           <Button className="mt-2 min-w-24">Help</Button>
-          <Button className="mt-2 min-w-24">Settings</Button>
+          <ButtonLink to="/settings" className="mt-2 min-w-24">
+            Settings
+          </ButtonLink>
         </Stack>
       </Stack>
 
