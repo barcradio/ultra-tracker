@@ -29,7 +29,7 @@ export function ToastProvider(props: { children: ReactNode }) {
   };
 
   return (
-    <ToastsContext.Provider value={{ createToast, removeToast }}>
+    <ToastsContext.Provider value={{ createToast }}>
       {props.children}
       {toasts.length > 0 &&
         createPortal(
@@ -37,7 +37,7 @@ export function ToastProvider(props: { children: ReactNode }) {
             {toasts
               .sort((a, b) => compareAsc(a.epoch, b.epoch))
               .map((toast) => (
-                <ToastComponent key={toast.id} toast={toast} />
+                <ToastComponent key={toast.id} toast={toast} removeToast={removeToast} />
               ))}
           </div>,
           portalRoot

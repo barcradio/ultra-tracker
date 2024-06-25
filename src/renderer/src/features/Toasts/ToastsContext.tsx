@@ -13,14 +13,10 @@ export interface InternalToast extends WithRequired<Toast, "timeoutMs"> {
 
 export interface ToastsContextType {
   createToast: (toast: Toast) => void;
-  removeToast: (id: string) => void;
 }
 
 export const ToastsContext = createContext<ToastsContextType>({
   createToast: () => {
-    throw new Error("ToastsContext is not provided!");
-  },
-  removeToast: () => {
     throw new Error("ToastsContext is not provided!");
   }
 });

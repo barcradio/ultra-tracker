@@ -1,11 +1,11 @@
 import { differenceInMilliseconds } from "date-fns";
 import { useCurrentTime } from "~/hooks/useCurrentTime";
 import { classed } from "~/lib/classed";
-import { useToasts } from "./useToasts";
 import type { InternalToast } from "./ToastsContext";
 
 interface Props {
   toast: InternalToast;
+  removeToast: (id: string) => void;
 }
 
 const ToastWrapper = classed.div({
@@ -30,8 +30,7 @@ function useProgress(toast: InternalToast) {
   return Math.min(Math.max(progress, 0), 1);
 }
 
-export function ToastComponent({ toast }: Props) {
-  const { removeToast } = useToasts();
+export function ToastComponent({ toast, removeToast }: Props) {
   const progress = useProgress(toast);
   const animationEvent = progress === 1 ? () => removeToast(toast.id) : undefined;
 
