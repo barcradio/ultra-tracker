@@ -2,6 +2,15 @@ import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { app, shell, BrowserWindow, ipcMain } from "electron";
 import icon from "$resources/icon.png?asset";
+import Database from 'better-sqlite3';
+import global from '../shared/global';
+
+let db: Database;
+let dbPath = global.shared.dbPath;
+let dbFullPath = global.shared.dbFullPath;
+
+const fs = require("fs");
+
 
 function createWindow(): void {
   // Create the browser window.
@@ -34,6 +43,15 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
 }
+
+app.on('ready', () => {
+  console.log("Application execution path: " + app.getAppPath());
+
+  if (fs.existsSync(dbPath)) {
+    db = new Database(dbFullPath);
+    console.log('Connected to SQLite Database: ' + dbFullPath);
+  }
+})
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
