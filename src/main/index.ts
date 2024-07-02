@@ -69,7 +69,11 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.handle("ping-pong", async (_, message) => {
+    let mybib: number = 56;
     console.log("ping-pong", message);
+    const myRunner = db.prepare(`SELECT * FROM StartList WHERE Bib = ?`).get(mybib);
+    console.log ("Runner Found: "+ myRunner.FirstName, myRunner.LastName, myRunner.City);
+
     return "pong: Message from main process";
   });
 
