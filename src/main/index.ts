@@ -48,7 +48,7 @@ app.on('ready', () => {
   console.log("Application execution path: " + app.getAppPath());
 
   if (fs.existsSync(dbPath)) {
-    db = new Database(dbFullPath);
+    db = global.shared.dbConnection = new Database(dbFullPath);
     console.log('Connected to SQLite Database: ' + dbFullPath);
   }
 })
