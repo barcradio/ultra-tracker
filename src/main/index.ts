@@ -4,6 +4,7 @@ import { app, shell, BrowserWindow, ipcMain } from "electron";
 import icon from "$resources/icon.png?asset";
 import Database from 'better-sqlite3';
 import global from '../shared/global';
+import ipc from './ipc';
 
 let db: Database;
 let dbPath = global.shared.dbPath;
@@ -49,6 +50,7 @@ app.on('ready', () => {
 
   if (fs.existsSync(dbPath)) {
     db = global.shared.dbConnection = new Database(dbFullPath);
+    db.pragma('journal_mode = WAL');
     console.log('Connected to SQLite Database: ' + dbFullPath);
   }
 })
@@ -67,15 +69,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  // IPC test
-  ipcMain.handle("ping-pong", async (_, message) => {
-    let mybib: number = 56;
-    console.log("ping-pong", message);
-    const myRunner = db.prepare(`SELECT * FROM StartList WHERE Bib = ?`).get(mybib);
-    console.log ("Runner Found: "+ myRunner.FirstName, myRunner.LastName, myRunner.City);
-
-    return "pong: Message from main process";
-  });
+  ipc.init();
 
   createWindow();
 
