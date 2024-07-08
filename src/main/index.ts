@@ -5,6 +5,8 @@ import icon from "$resources/icon.png?asset";
 import Database from 'better-sqlite3';
 import global from '../shared/global';
 import settingsIPC from './ipc/settings-ipc';
+import headerIPC from './ipc/header-ipc';
+
 
 let db: Database;
 let dbPath = global.shared.dbPath;
@@ -69,6 +71,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
+  headerIPC.init();
   settingsIPC.init();
 
   createWindow();

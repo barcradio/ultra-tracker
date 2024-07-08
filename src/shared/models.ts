@@ -1,3 +1,6 @@
+/**
+ * Custom models (types) for ultra-tracker
+ */
 export type Runner = {
     index: number
     bib: number
@@ -9,19 +12,24 @@ export type Runner = {
     state: string
     emPhone: string
     emName: string
-    dns: Boolean
-    dnf: Boolean
-    dnfStation: number
-    dnfDateTime: Date
+    dns: boolean | undefined
+    dnf: boolean | undefined
+    dnfStation: number | undefined
+    dnfDateTime: Date | undefined
 }
 
 export type TimingRecord = {
     bib: number
     datetime: Date
-    in: Boolean
-    out: Boolean
+    type: RecordType
     note: string
 }
+
+export enum RecordType {
+    In,
+    Out,
+    InOut
+  }
 
 export type Station = {
     name: string
