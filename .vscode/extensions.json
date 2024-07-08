@@ -4,6 +4,7 @@
     "bradlc.vscode-tailwindcss",
     "github.vscode-pull-request-github",
     "esbenp.prettier-vscode",
-    "eamodio.gitlens"
+    "eamodio.gitlens",
+    "sinclair.react-developer-tools"
   ]
 }
