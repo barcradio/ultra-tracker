@@ -4,7 +4,7 @@ import { app, shell, BrowserWindow, ipcMain } from "electron";
 import icon from "$resources/icon.png?asset";
 import Database from 'better-sqlite3';
 import global from '../shared/global';
-import ipc from './ipc';
+import settingsIPC from './ipc/settings-ipc';
 
 let db: Database;
 let dbPath = global.shared.dbPath;
@@ -69,7 +69,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  ipc.init();
+  settingsIPC.init();
 
   createWindow();
 

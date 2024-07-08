@@ -1,5 +1,6 @@
 import { ipcMain, dialog } from "electron";
-import { Database } from 'better-sqlite3';
+import { Runner } from "../../shared/models";
+import * as dbAPI from '../database/main-db'
 
 
 const init = () => {
@@ -8,16 +9,19 @@ const init = () => {
      * This is where we use native/server-side platform APIs (like NodeJS modules)
      */
 
-    let db: Database = global.shared.dbConnection;
-
-    // IPC test
     ipcMain.handle("ping-pong", async (_, message) => {
-        let mybib: number = 56;
+        let mybib: number = randomIntFromInterval(1, 371);
+        let result: string;
+        let runner: Runner | undefined;
+
         console.log("ping-pong", message);
-        const myRunner = db.prepare(`SELECT * FROM StartList WHERE Bib = ?`).get(mybib);
-        console.log ("Runner Found: "+ myRunner.FirstName, myRunner.LastName, myRunner.City);
-        return "pong: Message from main process";
+
+        [runner, result] = dbAPI.LookupStartListRunnerByBib(mybib);
+
+        console.log (result);
+        return `pong: ${result}`;
     });
+
 
     ipcMain.handle("dialog:open", async (_, args) => {
         const result = await dialog.showOpenDialog({ properties: ["openFile"] });
@@ -25,6 +29,10 @@ const init = () => {
     });
 
 };
+
+function randomIntFromInterval(min, max) { // min and max included 
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
 export default {
     init,
