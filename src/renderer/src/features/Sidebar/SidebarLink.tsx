@@ -1,13 +1,17 @@
-import { ReactNode } from "react";
-import { LinkProps } from "@tanstack/react-router";
-import { Stack } from "~/components";
+import { Link, LinkProps } from "@tanstack/react-router";
+import { useIsActiveRoute } from "~/hooks/useIsActiveRoute";
+import { SidebarButton, SidebarItemProps } from "./SidebarButton";
 
-interface Props {
+interface OurLinkProps extends SidebarItemProps {
   to: LinkProps["to"];
-  children: ReactNode;
-  icon: ReactNode;
 }
 
-export function SidebarLink(props: Props) {
-  return <Stack direction="row">{props.children}</Stack>;
+export function SidebarLink(props: OurLinkProps) {
+  const active = useIsActiveRoute(props.to);
+
+  return (
+    <Link to={props.to}>
+      <SidebarButton {...props} active={active} />
+    </Link>
+  );
 }
