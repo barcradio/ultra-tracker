@@ -1,7 +1,7 @@
 import { classed } from "~/lib/classed";
 
 export const TextInput = classed.input({
-  base: "border-b-2 border-gray-400 p-2  text-slate-800 outline-none focus:border-gray-900",
+  base: "p-2 border-b-2 border-gray-400 outline-none text-on-primary focus:border-surface",
   variants: {
     outline: {
       true: "rounded-md border-2"

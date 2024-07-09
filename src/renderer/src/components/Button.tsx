@@ -4,9 +4,9 @@ export const Button = classed.button({
   base: "font-bold text-center uppercase rounded-md transition-all duration-150 ease-in-out cursor-pointer font-display",
   variants: {
     color: {
-      primary: "bg-yellow-400 hover:bg-yellow-500 text-slate-800",
-      error: "bg-red-600 hover:bg-red-700 text-slate-100",
-      success: "bg-green-600 hover:bg-green-700 text-slate-100"
+      primary: "bg-primary text-on-primary hover:bg-primary-low",
+      error: "bg-error text-on-surface hover:bg-error-low",
+      success: "bg-success text-on-surface hover:bg-success-low"
     },
     size: {
       sm: "py-0.5 px-1 text-base",
