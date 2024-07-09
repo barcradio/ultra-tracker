@@ -22,7 +22,7 @@ settings:
 rules:
   # General Rules
   camelcase: warn
-  endOfLine: auto
+  endOfLine: off
   "@typescript-eslint/explicit-function-return-type": "off"
   # React Rules
   react/button-has-type: warn
