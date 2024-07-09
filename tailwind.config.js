@@ -1,3 +1,5 @@
+const { createThemes } = require('tw-colors')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -78,6 +80,41 @@ module.exports = {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    createThemes({
+      dark: {
+        surface: {
+          lowest: "#060B0D",
+          low: "#0C1317",
+          DEFAULT: "#1D2529",
+          high: "#1E2528",
+          highest: "#393F43"
+        },
+        "on-surface": {
+          low: "#7E8A8F",
+          DEFAULT: "#CFDEE5",
+          high:"#DDDDDD",
+        },
+        "on-primary": {
+          DEFAULT: "#1D2529",
+        },
+        primary: {
+          low: "#FFA000",
+          DEFAULT: "#FBBE00",
+          high: "#FFD54F",
+        },
+        success: {
+          low: "#0A7F00",
+          DEFAULT: "#0C9600",
+          high: "#0EB000"
+        },
+        error: {
+          low: "#A30000",
+          DEFAULT: "#F30707",
+          high: "#FF4C4C"
+        },
+      }
+    })
+  ],
 }
 
