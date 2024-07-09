@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'display': ['Kanit', 'sans-serif'],
+        'display': ['IBM Plex Mono', 'sans-serif'],
       },
       animation: {
         "bounce-right-in": "ease-in-out bounce-right-in 0.75s",
