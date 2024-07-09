@@ -16,13 +16,13 @@ export function Sidebar() {
           <SidebarLink to="/" icon={RunnerIcon}>
             Stats
           </SidebarLink>
-          <SidebarLink to="/" icon={SearchIcon}>
+          <SidebarLink to="/search" icon={SearchIcon}>
             Search
           </SidebarLink>
-          <SidebarLink to="/" icon={LogsIcon}>
+          <SidebarLink to="/logs" icon={LogsIcon}>
             Logs
           </SidebarLink>
-          <SidebarLink to="/" icon={DatabaseIcon}>
+          <SidebarLink to="/database" icon={DatabaseIcon}>
             Database
           </SidebarLink>
         </div>
@@ -31,7 +31,7 @@ export function Sidebar() {
           <SidebarLink to="/settings" icon={SettingsIcon}>
             Settings
           </SidebarLink>
-          <SidebarLink to="/" icon={HelpIcon}>
+          <SidebarLink to="/help" icon={HelpIcon}>
             Help
           </SidebarLink>
         </div>
