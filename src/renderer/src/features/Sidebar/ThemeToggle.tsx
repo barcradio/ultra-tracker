@@ -7,6 +7,7 @@ export function ThemeToggle() {
     html.classList.toggle("dark");
     html.classList.toggle("light");
   };
+
   return (
     <SidebarButton icon={ThemeIcon} onClick={toggleTheme}>
       Theme

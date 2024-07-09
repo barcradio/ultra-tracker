@@ -20,7 +20,7 @@ const SidebarStack = classed(
       active: {
         true: "border-r-4 border-primary text-primary [&>svg]:fill-primary",
         false:
-          "hover:border-r-4 *:hover:fill-on-surface [&>svg]:fill-on-surface-low hover:border-on-surface-low hover:text-on-surface"
+          "hover:border-r-4 *:hover:fill-on-surface [&>svg]:fill-on-surface-low hover:border-on-surface hover:text-on-surface"
       }
     },
     defaultVariants: {
