@@ -55,7 +55,8 @@ module.exports = {
           lowest: "#060B0D",
           low: "#0C1317",
           DEFAULT: "#1D2529",
-          high: "#1E2528",
+          high: "#212A2F",
+          higher: "#273035",
           highest: "#393F43"
         },
         "on-surface": {
