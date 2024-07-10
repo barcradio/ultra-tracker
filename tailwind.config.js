@@ -68,7 +68,10 @@ module.exports = {
           hover: "#CDD0D1"
         },
         on: {
-          surface: "#1D2529",
+          surface: {
+            DEFAULT:"#1D2529",
+            hover: "#060B0D"
+          },
           primary: "#CDD0D1",
           success: "#1D2529",
           danger: "#1D2529",
@@ -99,7 +102,10 @@ module.exports = {
           hover: "#393F43"
         },
         on: {
-          surface: "#7E8A8F",
+          surface: {
+            DEFAULT: "#7E8A8F",
+            hover: "#CFDEE5"
+          },
           primary: "#1D2529",
           success: "#1D2529",
           danger: "#1D2529",
