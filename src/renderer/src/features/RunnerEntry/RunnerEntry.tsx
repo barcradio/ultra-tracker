@@ -1,4 +1,4 @@
-import { ColumnDef, DataGrid } from "~/components/DataGrid";
+import { DataGrid, ColumnDef } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 
 interface Runner {
@@ -131,7 +131,7 @@ export function RunnerEntry() {
   ];
 
   return (
-    <div className="m-4">
+    <div className="m-4 mt-0 h-full">
       <DataGrid data={FakeData} columns={columns} />
     </div>
   );
