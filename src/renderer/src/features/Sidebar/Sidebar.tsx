@@ -10,7 +10,7 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export function Sidebar() {
   return (
-    <div className="mt-8 w-56 bg-surface-lowest">
+    <div className="pt-4 w-56 bg-surface-secondary">
       <Stack direction="col" justify="between" className="h-full">
         <div className="">
           <SidebarLink to="/" icon={RunnerIcon}>

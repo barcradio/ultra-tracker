@@ -1,5 +1,6 @@
 const { createThemes } = require('tw-colors')
 
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -54,39 +55,70 @@ module.exports = {
   },
   plugins: [
     createThemes({
-      dark: {
+      light: {
         surface: {
-          lowest: "#060B0D",
-          low: "#0C1317",
-          DEFAULT: "#1D2529",
-          high: "#212A2F",
-          higher: "#273035",
-          highest: "#393F43"
+          DEFAULT: "#CFCFCF",
+          secondary: "#AAB0B3",
+          tertiary: "#CBD3D6"
         },
-        "on-surface": {
-          low: "#7E8A8F",
-          DEFAULT: "#CFDEE5",
-          high:"#DDDDDD",
+        component: {
+          DEFAULT: "#EAEAEA",
+          secondary: "#E3E4E5",
+          strong: "#AAB0B3",
+          hover: "#CDD0D1"
         },
-        "on-primary": {
-          DEFAULT: "#1D2529",
+        on: {
+          surface: "#1D2529",
+          primary: "#CDD0D1",
+          success: "#1D2529",
+          danger: "#1D2529",
         },
         primary: {
-          low: "#FFA000",
-          DEFAULT: "#FBBE00",
-          high: "#FFD54F",
+          DEFAULT: "#0871A6",
+          hover: "#0E8FCC",
         },
         success: {
-          low: "#0A7F00",
-          DEFAULT: "#0C9600",
-          high: "#0EB000"
+          DEFAULT: "#0EAA00",
+          hover: "#0A7F00",
         },
-        error: {
-          low: "#A30000",
+        danger: {
           DEFAULT: "#F30707",
-          high: "#FF4C4C"
+          hover: "#A30000",
         },
-      }
+      },
+      dark: {
+        surface: {
+          DEFAULT: "#1D2529",
+          secondary: "#060B0D",
+          tertiary: "#0D1519"
+        },
+        component: {
+          DEFAULT: "#1D2529",
+          secondary: "#222A2E",
+          strong: "#283034",
+          hover: "#393F43"
+        },
+        on: {
+          surface: "#7E8A8F",
+          primary: "#1D2529",
+          success: "#1D2529",
+          danger: "#1D2529",
+        },
+        primary: {
+          hover: "#FFA000",
+          DEFAULT: "#FBBE00",
+        },
+        success: {
+          DEFAULT: "#0EAA00",
+          hover: "#0A7F00",
+        },
+        danger: {
+          DEFAULT: "#F30707",
+          hover: "#A30000",
+        },
+      },
+    }, {
+      strict: true
     })
   ],
 }

@@ -5,7 +5,7 @@ import { Stats } from "./Stats";
 
 export function Footer() {
   return (
-    <Stack justify="between" align="center" className="p-4 m-4 bg-surface text-on-surface">
+    <Stack justify="between" align="center" className="p-4 m-4 bg-component text-on-surface">
       <Stack align="center">
         <Stats />
         <Stack direction="col">

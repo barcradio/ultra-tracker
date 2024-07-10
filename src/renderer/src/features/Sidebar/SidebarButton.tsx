@@ -14,13 +14,13 @@ export interface SidebarButtonProps extends SidebarItemProps {
 //
 const SidebarStack = classed(
   Stack,
-  "py-2 my-0.5 ml-4 text-lg font-bold uppercase border-r-4 border-transparent transition-all duration-100 *:transition-all *:duration-100 text-on-surface-low [&>svg]:mr-4 [&>svg]:ml-1",
+  "py-2 my-0.5 ml-4 text-lg font-bold uppercase border-r-4 border-transparent transition-all duration-100 *:transition-all *:duration-100 text-on-surface [&>svg]:mr-4 [&>svg]:ml-1",
   {
     variants: {
       active: {
         true: "border-r-4 border-primary text-primary [&>svg]:fill-primary",
         false:
-          "hover:border-r-4 *:hover:fill-on-surface [&>svg]:fill-on-surface-low hover:border-on-surface hover:text-on-surface"
+          "hover:border-r-4 *:hover:fill-on-surface [&>svg]:fill-on-surface hover:border-on-surface hover:text-on-surface"
       }
     },
     defaultVariants: {

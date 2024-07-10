@@ -2,7 +2,7 @@ import { createContext } from "react";
 
 export interface Toast {
   message: string;
-  type: "info" | "success" | "error";
+  type: "info" | "success" | "danger";
   timeoutMs?: number;
 }
 

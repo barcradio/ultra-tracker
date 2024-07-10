@@ -56,7 +56,7 @@ export function Headers<T extends WithId>(props: Props<T>) {
         <th
           key={column.name}
           style={{ width: width(column.width) }}
-          className="relative rounde-s bg-surface-higher"
+          className="relative rounde-s bg-component-strong"
         >
           <HeaderButton
             align={column.align ?? "left"}
@@ -69,7 +69,7 @@ export function Headers<T extends WithId>(props: Props<T>) {
               active={isActive(column.field)}
               ascending={props.sortState.ascending}
               align={column.align ?? "left"}
-              className="fill-on-surface-low"
+              className="fill-on-surface"
               height={18}
             />
             {column.name}

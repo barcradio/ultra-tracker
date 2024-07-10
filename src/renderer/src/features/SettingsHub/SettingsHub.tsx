@@ -7,7 +7,7 @@ export function SettingsHub() {
   const { createToast } = useToasts();
 
   const handleClick = () => {
-    createToast({ message: "Sending ping...", type: "error" });
+    createToast({ message: "Sending ping...", type: "danger" });
     clickInMutation.mutate("ping from the renderer!");
   };
 

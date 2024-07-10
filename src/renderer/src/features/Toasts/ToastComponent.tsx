@@ -9,16 +9,16 @@ interface Props {
 }
 
 const ToastWrapper = classed.div({
-  base: "m-2 font-bold rounded-md fill-forward",
+  base: "m-2 font-medium rounded-md fill-forward",
   variants: {
     show: {
       true: "animate-bounce-right-in",
       false: "animate-bounce-right-out"
     },
     type: {
-      info: "bg-primary text-on-primary",
-      success: "bg-success text-on-surface",
-      error: "bg-error text-on-surface"
+      info: "bg-primary text-on-primary [&>span]:bg-on-primary",
+      success: "bg-success text-on-success [&>span]:bg-on-success",
+      danger: "bg-danger text-on-danger [&>span]:bg-on-danger"
     }
   }
 });
@@ -36,9 +36,9 @@ export function ToastComponent({ toast, removeToast }: Props) {
 
   return (
     <ToastWrapper type={toast.type} show={progress < 1} onAnimationEnd={animationEvent}>
-      <div className="py-4 px-6">{toast.message}</div>
-      <div
-        className="bottom-0 left-0 h-1.5 rounded-bl-md opacity-70 transition-all origin-left bg-on-surface"
+      <div className="py-4 px-6 font-bold">{toast.message}</div>
+      <span
+        className="block bottom-0 left-0 h-1.5 rounded-bl-md opacity-70 transition-all origin-left"
         style={{ transform: `scaleX(${1 - progress})` }}
       />
     </ToastWrapper>
