@@ -8,9 +8,9 @@ const HeaderButton = classed.button(
   "flex justify-between items-center py-2.5 w-full text-xl font-bold text-left",
   {
     variants: {
-      number: {
-        true: "flex-row-reverse pr-8",
-        false: "flex-row"
+      align: {
+        right: "flex-row-reverse pr-8",
+        left: "flex-row"
       }
     }
   }
@@ -25,10 +25,13 @@ const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200", {
       true: "opacity-100",
       false: "opacity-0"
     },
-    left: {
-      true: "left-0",
-      false: "right-0"
+    align: {
+      right: "left-0",
+      left: "right-0"
     }
+  },
+  defaultVariants: {
+    align: "right"
   }
 });
 
@@ -40,7 +43,6 @@ interface Props<T extends WithId> {
 }
 
 export function Headers<T extends WithId>(props: Props<T>) {
-  const isNumber = (key: keyof T) => typeof props.data[0][key] === "number";
   const isActive = (field: keyof T) => props.sortState.field === field;
 
   const width = (width: Column<T>["width"]) => {
@@ -57,7 +59,7 @@ export function Headers<T extends WithId>(props: Props<T>) {
           className="relative rounde-s bg-surface-higher"
         >
           <HeaderButton
-            number={isNumber(column.field)}
+            align={column.align ?? "left"}
             onClick={() => props.setSortField(column.field)}
             disabled={column.sortable === false}
             type="button"
@@ -66,7 +68,7 @@ export function Headers<T extends WithId>(props: Props<T>) {
             <SortIcon
               active={isActive(column.field)}
               ascending={props.sortState.ascending}
-              left={isNumber(column.field)}
+              align={column.align ?? "left"}
               className="fill-on-surface-low"
               height={18}
             />

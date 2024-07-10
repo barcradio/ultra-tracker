@@ -109,11 +109,13 @@ export function RunnerEntry() {
     {
       field: "sequence",
       name: "Sequence",
+      align: "right",
       width: 200
     },
     {
       field: "runner",
       name: "Runner",
+      align: "right",
       width: 200
     },
     {

@@ -8,6 +8,7 @@ export interface Column<T extends WithId> {
   width?: number | string;
   sortable?: boolean;
   render?: (row: T) => ReactNode;
+  align?: "left" | "right";
 }
 
 export type ColumnDef<T extends WithId> = Column<T>[];
