@@ -1,20 +1,30 @@
 import { classed } from "~/lib/classed";
 import { Headers } from "./Headers";
+import { InitialSortState, useSortState } from "./hooks/useSortState";
 import { TableContent } from "./TableContent";
-import { Column, WithId } from "./types";
+import { ColumnDef, WithId } from "./types";
 
 interface Props<T extends WithId> {
   data: T[];
-  columns: Column<T>[];
+  columns: ColumnDef<T>;
+  initialSort?: InitialSortState<T>;
 }
 
 const Table = classed.table("w-full font-display", {});
 
 export function DataGrid<T extends WithId>(props: Props<T>) {
+  const [compareFn, setSortField, sortState] = useSortState<T>(props.initialSort);
+  const sortedData = [...props.data].sort(compareFn);
+
   return (
     <Table>
-      <Headers data={props.data} columns={props.columns} />
-      <TableContent data={props.data} columns={props.columns} />
+      <Headers<T>
+        data={props.data}
+        columns={props.columns}
+        setSortField={setSortField}
+        sortState={sortState}
+      />
+      <TableContent<T> data={sortedData} columns={props.columns} />
     </Table>
   );
 }

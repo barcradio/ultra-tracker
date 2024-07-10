@@ -1,6 +1,6 @@
 import { classed } from "~/lib/classed";
 
-export const Row = classed.tr("transition-all duration-75 hover:bg-surface-highest", {
+export const Row = classed.tr("transition-all duration-75", {
   variants: {
     even: {
       true: "bg-surface",

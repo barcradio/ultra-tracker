@@ -108,31 +108,43 @@ export function RunnerEntry() {
   const columns: ColumnDef<Runner> = [
     {
       field: "sequence",
-      name: "Sequence"
+      name: "Sequence",
+      width: 200
     },
     {
       field: "runner",
-      name: "Runner"
+      name: "Runner",
+      width: 200
     },
     {
       field: "in",
       name: "In Time",
-      render: (row) => formatDate(row.out)
+      render: (row) => formatDate(row.out),
+      width: 225
     },
     {
       field: "out",
       name: "Out Time",
-      render: (row) => formatDate(row.out)
+      render: (row) => formatDate(row.out),
+      width: 225
     },
     {
       field: "notes",
-      name: "Notes"
+      name: "Notes",
+      sortable: false
     }
   ];
 
   return (
     <div className="m-4 mt-0 h-full">
-      <DataGrid data={FakeData} columns={columns} />
+      <DataGrid<Runner>
+        data={FakeData}
+        columns={columns}
+        initialSort={{
+          field: "sequence",
+          ascending: false
+        }}
+      />
     </div>
   );
 }

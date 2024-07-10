@@ -7,6 +7,10 @@ module.exports = {
     "./src/renderer/**/*.{ts,tsx}"
   ],
   theme: {
+    colors: {
+      transparent: 'transparent',
+      current: 'currentColor',
+    },
     extend: {
       fontFamily: {
         'display': ['IBM Plex Mono', 'sans-serif'],
