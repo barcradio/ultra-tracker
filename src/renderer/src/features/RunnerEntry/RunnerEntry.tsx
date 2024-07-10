@@ -137,7 +137,7 @@ export function RunnerEntry() {
 
   return (
     <div className="m-4 mt-0 h-full">
-      <DataGrid<Runner>
+      <DataGrid
         data={FakeData}
         columns={columns}
         initialSort={{
