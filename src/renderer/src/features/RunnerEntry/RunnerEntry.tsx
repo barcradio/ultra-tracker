@@ -138,7 +138,7 @@ export function RunnerEntry() {
   ];
 
   return (
-    <div className="m-4 mt-0 h-full bg-component">
+    <div className="m-4 mt-0 h-full bg-component text-on-component">
       <DataGrid
         data={FakeData}
         columns={columns}

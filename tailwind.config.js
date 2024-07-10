@@ -106,6 +106,7 @@ module.exports = {
             DEFAULT: "#7E8A8F",
             hover: "#CFDEE5"
           },
+          component: "#CDD0D1",
           primary: "#1D2529",
           success: "#1D2529",
           danger: "#1D2529",
