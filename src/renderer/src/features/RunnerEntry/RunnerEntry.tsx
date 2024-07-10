@@ -119,7 +119,7 @@ export function RunnerEntry() {
     {
       field: "in",
       name: "In Time",
-      render: (row) => formatDate(row.out),
+      render: (row) => formatDate(row.in),
       width: 225
     },
     {
