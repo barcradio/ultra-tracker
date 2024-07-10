@@ -3,7 +3,7 @@ import { compareAsc } from "date-fns";
 import { createPortal } from "react-dom";
 import { v4 as uuid } from "uuid";
 import { ToastComponent } from "./ToastComponent";
-import { ToastsContext, Toast, InternalToast } from "./ToastsContext";
+import { InternalToast, Toast, ToastsContext } from "./ToastsContext";
 
 const DEFAULT_TIMEOUT = 5000;
 

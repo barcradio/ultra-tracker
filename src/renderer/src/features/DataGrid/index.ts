@@ -1,4 +1,4 @@
-import { DataGrid, ColumnDef } from "./DataGrid";
+import { ColumnDef, DataGrid } from "./DataGrid";
 
 export type { ColumnDef };
 export { DataGrid };

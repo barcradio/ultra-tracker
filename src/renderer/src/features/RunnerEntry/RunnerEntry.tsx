@@ -1,4 +1,4 @@
-import { DataGrid, ColumnDef } from "~/features/DataGrid";
+import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 
 interface Runner {
