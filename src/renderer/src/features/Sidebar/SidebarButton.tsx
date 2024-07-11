@@ -14,7 +14,7 @@ export interface SidebarButtonProps extends SidebarItemProps {
 //
 const SidebarStack = classed(
   Stack,
-  "py-2 my-0.5 ml-4 text-lg font-bold uppercase border-r-4 border-transparent transition-all duration-100 cursor-pointer *:transition-all *:duration-100 text-on-surface [&>svg]:mr-4 [&>svg]:ml-1",
+  "py-2 my-0.5 ml-4 text-lg font-bold uppercase border-r-4 border-transparent transition-all duration-100 cursor-pointer font-display *:transition-all *:duration-100 text-on-surface [&>svg]:mr-4 [&>svg]:ml-1",
   {
     variants: {
       active: {

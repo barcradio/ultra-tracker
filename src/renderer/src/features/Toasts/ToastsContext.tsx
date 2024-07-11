@@ -4,6 +4,7 @@ export interface Toast {
   message: string;
   type: "info" | "success" | "danger";
   timeoutMs?: number;
+  noIcon?: boolean;
 }
 
 export interface InternalToast extends WithRequired<Toast, "timeoutMs"> {

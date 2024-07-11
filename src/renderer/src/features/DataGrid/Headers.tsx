@@ -16,7 +16,7 @@ const HeaderButton = classed.button(
   }
 );
 
-const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200", {
+const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200 text-on-surface", {
   variants: {
     ascending: {
       false: "transform rotate-180"
@@ -69,7 +69,6 @@ export function Headers<T extends WithId>(props: Props<T>) {
               active={isActive(column.field)}
               ascending={props.sortState.ascending}
               align={column.align ?? "left"}
-              className="fill-on-surface"
               height={18}
             />
             {column.name}
