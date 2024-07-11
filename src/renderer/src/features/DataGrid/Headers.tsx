@@ -16,7 +16,7 @@ const HeaderButton = classed.button(
   }
 );
 
-const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200 text-on-surface", {
+const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200 fill-on-surface", {
   variants: {
     ascending: {
       false: "transform rotate-180"
