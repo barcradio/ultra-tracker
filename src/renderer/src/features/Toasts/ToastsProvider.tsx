@@ -2,13 +2,14 @@ import { ReactNode, useState } from "react";
 import { compareAsc } from "date-fns";
 import { createPortal } from "react-dom";
 import { v4 as uuid } from "uuid";
+import { usePortalRoot } from "~/hooks/usePortalRoot";
 import { ToastComponent } from "./ToastComponent";
 import { InternalToast, Toast, ToastsContext } from "./ToastsContext";
 
 const DEFAULT_TIMEOUT = 5000;
 
 export function ToastProvider(props: { children: ReactNode }) {
-  const portalRoot = document.getElementById("portal-root") as HTMLElement;
+  const rootRef = usePortalRoot();
 
   const [toasts, setToasts] = useState<InternalToast[]>([]);
 
@@ -40,7 +41,7 @@ export function ToastProvider(props: { children: ReactNode }) {
                 <ToastComponent key={toast.id} toast={toast} removeToast={removeToast} />
               ))}
           </div>,
-          portalRoot
+          rootRef.current
         )}
     </ToastsContext.Provider>
   );
