@@ -58,21 +58,23 @@ export function Headers<T extends WithId>(props: Props<T>) {
           style={{ width: width(column.width) }}
           className="relative rounde-s bg-component-strong"
         >
-          <HeaderButton
-            align={column.align ?? "left"}
-            onClick={() => props.setSortField(column.field)}
-            disabled={column.sortable === false}
-            type="button"
-            className="uppercase"
-          >
-            <SortIcon
-              active={isActive(column.field)}
-              ascending={props.sortState.ascending}
+          {column.field !== null && (
+            <HeaderButton
               align={column.align ?? "left"}
-              height={18}
-            />
-            {column.name}
-          </HeaderButton>
+              onClick={() => props.setSortField(column.field as keyof T)}
+              disabled={column.sortable === false}
+              type="button"
+              className="uppercase"
+            >
+              <SortIcon
+                active={isActive(column.field)}
+                ascending={props.sortState.ascending}
+                align={column.align ?? "left"}
+                height={18}
+              />
+              {column.name}
+            </HeaderButton>
+          )}
         </th>
       ))}
     </Row>

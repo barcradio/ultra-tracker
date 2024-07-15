@@ -20,13 +20,19 @@ export function TableContent<T extends WithId>(props: Props<T>) {
   const isEven = (index: number) => index % 2 === 0;
   const isLast = (index: number) => index === props.data.length - 1;
 
+  const renderCell = (column: Column<T>, row: T) => {
+    if (column.render) return column.render(row);
+    if (column.field === null) return "";
+    return String(row[column.field]);
+  };
+
   return (
     <>
       {props.data.map((row, rowIndex) => (
         <Row key={row.id} even={isEven(rowIndex)} last={isLast(rowIndex)}>
           {props.columns.map((column) => (
             <Cell key={column.name} align={column.align ?? "left"}>
-              {column.render ? column.render(row) : String(row[column.field])}
+              {renderCell(column, row)}
             </Cell>
           ))}
         </Row>
