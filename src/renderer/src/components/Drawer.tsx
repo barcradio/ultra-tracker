@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef } from "react";
 import FocusTrap from "focus-trap-react";
 import { createPortal } from "react-dom";
+import CloseIcon from "~/assets/icons/xmark.svg?react";
 import { usePortalRoot } from "~/hooks/usePortalRoot";
 import { classed } from "~/lib/classed";
 import { Button } from "./Button";
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const DrawerElement = classed.div(
-  "overflow-auto fixed z-50 transition-transform duration-200 ease-in-out bg-component",
+  "overflow-auto fixed z-50 transition-transform duration-200 ease-in-out bg-component text-on-component",
   {
     variants: {
       position: {
@@ -92,15 +93,19 @@ export function Drawer(props: Props) {
 
   return createPortal(
     <FocusTrap active={open}>
-      <div>
+      <div aria-hidden={!open}>
         <DrawerElement
           position={position ?? "left"}
           role="dialog"
           open={open}
           className={props.className}
         >
+          <div className="fixed top-0 right-0 p-0.4">
+            <Button onClick={() => props.setOpen(false)} variant="ghost" color="default">
+              <CloseIcon width={18} height={18} />
+            </Button>
+          </div>
           {children}
-          <Button onClick={() => props.setOpen(false)}>Close</Button>
         </DrawerElement>
         <Backdrop open={open} />
       </div>
