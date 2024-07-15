@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
 import { SortState } from "./hooks/useSortState";
@@ -5,11 +6,11 @@ import { Row } from "./Row";
 import { Column, WithId } from "./types";
 
 const HeaderButton = classed.button(
-  "flex justify-between items-center py-2.5 w-full text-xl font-bold text-left",
+  "flex justify-between items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase",
   {
     variants: {
       align: {
-        right: "flex-row-reverse pr-8",
+        right: "flex-row-reverse",
         left: "flex-row"
       }
     }
@@ -40,6 +41,8 @@ interface Props<T extends WithId> {
   columns: Column<T>[];
   sortState: SortState<T>;
   setSortField: (field: keyof T) => void;
+  actionButtons?: (row: T) => ReactNode;
+  className?: string;
 }
 
 export function Headers<T extends WithId>(props: Props<T>) {
@@ -60,11 +63,11 @@ export function Headers<T extends WithId>(props: Props<T>) {
         >
           {column.field !== null && (
             <HeaderButton
+              className={props.className}
               align={column.align ?? "left"}
               onClick={() => props.setSortField(column.field as keyof T)}
               disabled={column.sortable === false}
               type="button"
-              className="uppercase"
             >
               <SortIcon
                 active={isActive(column.field)}
@@ -77,7 +80,7 @@ export function Headers<T extends WithId>(props: Props<T>) {
           )}
         </th>
       ))}
-      <th className="relative bg-component-strong" />
+      {props.actionButtons && <th className="relative bg-component-strong" />}
     </Row>
   );
 }

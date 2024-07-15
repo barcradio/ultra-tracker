@@ -3,10 +3,10 @@ import { classed } from "~/lib/classed";
 import { Row } from "./Row";
 import { Column, WithId } from "./types";
 
-const Cell = classed.td("py-1 h-full text-sm font-medium text-end", {
+const Cell = classed.td("py-1 px-4 h-full text-sm font-medium text-end", {
   variants: {
     align: {
-      right: "pr-8 text-right",
+      right: "text-right",
       left: "text-left"
     }
   }

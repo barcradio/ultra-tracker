@@ -10,21 +10,25 @@ interface Props<T extends WithId> {
   columns: ColumnDef<T>;
   initialSort?: InitialSortState<T>;
   actionButtons?: (row: T) => ReactNode;
+  className?: string;
+  headerClassName?: string;
 }
 
-const Table = classed.table("w-full font-display", {});
+const Table = classed.table("w-full font-display text-on-component", {});
 
 export function DataGrid<T extends WithId>(props: Props<T>) {
   const [compareFn, setSortField, sortState] = useSortState<T>(props.initialSort);
   const sortedData = [...props.data].sort(compareFn);
 
   return (
-    <Table>
+    <Table className={props.className}>
       <Headers<T>
         data={props.data}
         columns={props.columns}
         setSortField={setSortField}
         sortState={sortState}
+        actionButtons={props.actionButtons}
+        className={props.headerClassName}
       />
       <TableContent<T>
         data={sortedData}
