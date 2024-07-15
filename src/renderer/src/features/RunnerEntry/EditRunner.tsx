@@ -10,6 +10,11 @@ interface Props {
 
 export function EditRunner(props: Props) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
   return (
     <>
       <Button variant="ghost" color="primary" onClick={() => setIsOpen(true)}>
@@ -17,7 +22,7 @@ export function EditRunner(props: Props) {
       </Button>
       <Drawer
         open={isOpen}
-        setOpen={setIsOpen}
+        handleClose={handleClose}
         position="right"
         className="w-96 font-display"
         showCloseIcon={false}
