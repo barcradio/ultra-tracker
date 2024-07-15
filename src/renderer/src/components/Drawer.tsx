@@ -12,6 +12,7 @@ interface Props {
   setOpen: (open: boolean) => void;
   position?: "left" | "right" | "top" | "bottom";
   className?: string;
+  showCloseIcon?: boolean;
 }
 
 const DrawerElement = classed.div(
@@ -100,11 +101,13 @@ export function Drawer(props: Props) {
           open={open}
           className={props.className}
         >
-          <div className="fixed top-0 right-0 p-0.4">
-            <Button onClick={() => props.setOpen(false)} variant="ghost" color="default">
-              <CloseIcon width={18} height={18} />
-            </Button>
-          </div>
+          {props.showCloseIcon !== false && (
+            <div className="fixed top-0 right-0 p-2">
+              <Button onClick={() => props.setOpen(false)} variant="ghost" color="neutral">
+                <CloseIcon width={22} height={22} />
+              </Button>
+            </div>
+          )}
           {children}
         </DrawerElement>
         <Backdrop open={open} />
