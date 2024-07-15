@@ -2,7 +2,7 @@ import { Stack } from "~/components";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 import { EditRunner } from "./EditRunner";
-import { Stats } from "./Stats";
+import { RunnerFormStats } from "./RunnerFormStats";
 import { useFakeData } from "./useFakeData";
 import type { Runner } from "./useFakeData";
 
@@ -14,25 +14,25 @@ export function RunnerEntry() {
       field: "sequence",
       name: "Sequence",
       align: "right",
-      width: 200
+      width: 180
     },
     {
       field: "runner",
       name: "Runner",
       align: "right",
-      width: 200
+      width: 180
     },
     {
       field: "in",
       name: "In Time",
       render: (row) => formatDate(row.in),
-      width: 225
+      width: 200
     },
     {
       field: "out",
       name: "Out Time",
       render: (row) => formatDate(row.out),
-      width: 225
+      width: 200
     },
     {
       field: "notes",
@@ -42,9 +42,9 @@ export function RunnerEntry() {
   ];
 
   return (
-    <Stack className="m-4 mt-0 h-full">
-      <Stats />
-      <div className="flex-grow h-full bg-component">
+    <Stack className="m-4 mt-0 h-full" justify="stretch" align="stretch">
+      <RunnerFormStats />
+      <div className="h-full bg-component grow">
         <DataGrid
           data={FakeData}
           columns={columns}

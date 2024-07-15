@@ -23,7 +23,7 @@ function useFakeStats() {
       value: 311
     },
     {
-      id: "In Aid Station",
+      id: "Currently In Aid Station",
       value: 1
     },
     {
@@ -64,9 +64,5 @@ export function Stats() {
     }
   ];
 
-  return (
-    <div className="mr-4 w-72 h-full bg-component">
-      <DataGrid data={stats} columns={Columns} headerClassName="text-primary" />
-    </div>
-  );
+  return <DataGrid data={stats} columns={Columns} headerClassName="text-primary" />;
 }

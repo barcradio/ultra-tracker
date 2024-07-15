@@ -1,7 +1,6 @@
 import { useState } from "react";
 import EditIcon from "~/assets/icons/edit.svg?react";
-import { Button, Stack } from "~/components";
-import { Drawer } from "~/components/Drawer";
+import { Button, Drawer, Stack } from "~/components";
 import { Runner } from "./useFakeData";
 import { useToasts } from "../Toasts/useToasts";
 
