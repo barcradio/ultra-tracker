@@ -1,8 +1,9 @@
+import { ReactNode } from "react";
 import { classed } from "~/lib/classed";
 import { Row } from "./Row";
 import { Column, WithId } from "./types";
 
-const Cell = classed.td("py-0.5 text-sm font-medium text-end", {
+const Cell = classed.td("py-1 h-full text-sm font-medium text-end", {
   variants: {
     align: {
       right: "pr-8 text-right",
@@ -14,6 +15,7 @@ const Cell = classed.td("py-0.5 text-sm font-medium text-end", {
 interface Props<T extends WithId> {
   data: T[];
   columns: Column<T>[];
+  actionButtons?: (row: T) => ReactNode;
 }
 
 export function TableContent<T extends WithId>(props: Props<T>) {
@@ -35,6 +37,13 @@ export function TableContent<T extends WithId>(props: Props<T>) {
               {renderCell(column, row)}
             </Cell>
           ))}
+          {props.actionButtons && (
+            <Cell align="right" className="p-0 h-inherit">
+              <div className="hidden h-full transition-none group-hover:block">
+                {props.actionButtons(row)}
+              </div>
+            </Cell>
+          )}
         </Row>
       ))}
     </>

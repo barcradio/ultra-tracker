@@ -36,12 +36,6 @@ export function RunnerEntry() {
       field: "notes",
       name: "Notes",
       sortable: false
-    },
-    {
-      field: null,
-      name: "",
-      width: 24,
-      render: (row) => <EditRunner runner={row} />
     }
   ];
 
@@ -50,6 +44,7 @@ export function RunnerEntry() {
       <DataGrid
         data={FakeData}
         columns={columns}
+        actionButtons={(row) => <EditRunner runner={row} runners={FakeData} />}
         initialSort={{
           field: "sequence",
           ascending: false

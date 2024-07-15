@@ -56,7 +56,7 @@ export function Headers<T extends WithId>(props: Props<T>) {
         <th
           key={column.name}
           style={{ width: width(column.width) }}
-          className="relative rounde-s bg-component-strong"
+          className="relative rounded-s bg-component-strong"
         >
           {column.field !== null && (
             <HeaderButton
@@ -77,6 +77,7 @@ export function Headers<T extends WithId>(props: Props<T>) {
           )}
         </th>
       ))}
+      <th className="relative bg-component-strong" />
     </Row>
   );
 }

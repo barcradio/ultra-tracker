@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { classed } from "~/lib/classed";
 import { Headers } from "./Headers";
 import { InitialSortState, useSortState } from "./hooks/useSortState";
@@ -8,6 +9,7 @@ interface Props<T extends WithId> {
   data: T[];
   columns: ColumnDef<T>;
   initialSort?: InitialSortState<T>;
+  actionButtons?: (row: T) => ReactNode;
 }
 
 const Table = classed.table("w-full font-display", {});
@@ -24,7 +26,11 @@ export function DataGrid<T extends WithId>(props: Props<T>) {
         setSortField={setSortField}
         sortState={sortState}
       />
-      <TableContent<T> data={sortedData} columns={props.columns} />
+      <TableContent<T>
+        data={sortedData}
+        columns={props.columns}
+        actionButtons={props.actionButtons}
+      />
     </Table>
   );
 }
