@@ -2,6 +2,7 @@ import { differenceInMilliseconds } from "date-fns";
 import CheckIcon from "~/assets/icons/check-circle.svg?react";
 import DangerIcon from "~/assets/icons/error-octagon.svg?react";
 import InfoIcon from "~/assets/icons/info-circle.svg?react";
+import WarningIcon from "~/assets/icons/warning-circle.svg?react";
 import { Stack } from "~/components";
 import { useCurrentTime } from "~/hooks/useCurrentTime";
 import { classed } from "~/lib/classed";
@@ -22,6 +23,7 @@ const ToastWrapper = classed.div({
     type: {
       info: "[&>span]:bg-primary",
       success: "[&>span]:bg-success",
+      warning: "[&>span]:bg-warning",
       danger: "[&>span]:bg-danger"
     }
   }
@@ -40,6 +42,8 @@ function getToastIcon(type: InternalToast["type"]) {
       return <InfoIcon height={18} width={18} className="fill-primary" />;
     case "success":
       return <CheckIcon height={18} width={18} className="fill-success" />;
+    case "warning":
+      return <WarningIcon height={18} width={18} className="fill-warning" />;
     case "danger":
       return <DangerIcon height={18} width={18} className="fill-danger" />;
   }

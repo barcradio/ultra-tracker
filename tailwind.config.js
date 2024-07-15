@@ -84,6 +84,10 @@ module.exports = {
           DEFAULT: "#0EAA00",
           hover: "#0A7F00",
         },
+        warning: {
+          DEFAULT: "#F75C14",
+          hover: "#D44A0B"
+        },
         danger: {
           DEFAULT: "#F30707",
           hover: "#A30000",
@@ -121,6 +125,10 @@ module.exports = {
         success: {
           DEFAULT: "#0EAA00",
           hover: "#0A7F00",
+        },
+        warning: {
+          DEFAULT: "#F75C14",
+          hover: "#D44A0B"
         },
         danger: {
           DEFAULT: "#F30707",

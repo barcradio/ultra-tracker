@@ -6,6 +6,7 @@ export const Button = classed.button({
     color: {
       primary: "",
       danger: "",
+      warning: "",
       success: "",
       neutral: ""
     },
@@ -33,6 +34,11 @@ export const Button = classed.button({
       className: "text-on-danger bg-danger hover:bg-danger-hover"
     },
     {
+      color: "warning",
+      variant: "solid",
+      className: "text-on-warning bg-warning hover:bg-warning-hover"
+    },
+    {
       color: "success",
       variant: "solid",
       className: "text-on-success bg-success hover:bg-success-hover"
@@ -47,6 +53,11 @@ export const Button = classed.button({
       color: "danger",
       variant: "ghost",
       className: "text-danger hover:text-danger-hover"
+    },
+    {
+      color: "warning",
+      variant: "ghost",
+      className: "text-warning hover:text-warning-hover"
     },
     {
       color: "success",
@@ -68,6 +79,11 @@ export const Button = classed.button({
       color: "danger",
       variant: "outlined",
       className: "text-danger hover:text-danger-hover hover:border-danger-hover"
+    },
+    {
+      color: "warning",
+      variant: "outlined",
+      className: "text-warning hover:text-warning-hover hover:border-warning-hover"
     },
     {
       color: "success",
