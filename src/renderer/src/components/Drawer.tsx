@@ -16,7 +16,7 @@ interface Props {
 }
 
 const DrawerElement = classed.div(
-  "overflow-auto fixed z-50 transition-transform duration-200 ease-in-out bg-component text-on-component",
+  "overflow-auto fixed z-40 transition-transform duration-200 ease-in-out bg-component text-on-component",
   {
     variants: {
       position: {
