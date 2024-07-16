@@ -11,7 +11,7 @@ export function SidebarLink(props: OurLinkProps) {
 
   return (
     <Link to={props.to}>
-      <SidebarButton {...props} active={active ? active : undefined} />
+      <SidebarButton {...props} active={active} />
     </Link>
   );
 }

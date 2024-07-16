@@ -22,9 +22,6 @@ const SidebarStack = classed(
         false:
           "hover:border-r-4 *:hover:fill-on-surface-hover [&>svg]:fill-on-surface hover:border-on-surface-hover hover:text-on-surface-hover"
       }
-    },
-    defaultVariants: {
-      active: false
     }
   }
 );
@@ -32,7 +29,7 @@ const SidebarStack = classed(
 export function SidebarButton(props: SidebarButtonProps) {
   return (
     <button className="w-full" type="button" onClick={props.onClick}>
-      <SidebarStack direction="row" align="center" active={props.active}>
+      <SidebarStack direction="row" align="center" active={props.active ?? false}>
         {props.icon({
           title: props.children,
           height: 28,

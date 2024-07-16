@@ -54,33 +54,35 @@ export function Headers<T extends WithId>(props: Props<T>) {
   };
 
   return (
-    <Row>
-      {props.columns.map((column) => (
-        <th
-          key={column.name}
-          style={{ width: width(column.width) }}
-          className="relative rounded-s bg-component-strong"
-        >
-          {column.field !== null && (
-            <HeaderButton
-              className={props.className}
-              align={column.align ?? "left"}
-              onClick={() => props.setSortField(column.field as keyof T)}
-              disabled={column.sortable === false}
-              type="button"
-            >
-              <SortIcon
-                active={isActive(column.field)}
-                ascending={props.sortState.ascending}
+    <thead>
+      <Row>
+        {props.columns.map((column) => (
+          <th
+            key={column.name}
+            style={{ width: width(column.width) }}
+            className="relative rounded-s bg-component-strong"
+          >
+            {column.field !== null && (
+              <HeaderButton
+                className={props.className}
                 align={column.align ?? "left"}
-                height={18}
-              />
-              {column.name}
-            </HeaderButton>
-          )}
-        </th>
-      ))}
-      {props.actionButtons && <th className="relative bg-component-strong" />}
-    </Row>
+                onClick={() => props.setSortField(column.field as keyof T)}
+                disabled={column.sortable === false}
+                type="button"
+              >
+                <SortIcon
+                  active={isActive(column.field)}
+                  ascending={props.sortState.ascending}
+                  align={column.align ?? "left"}
+                  height={18}
+                />
+                {column.name}
+              </HeaderButton>
+            )}
+          </th>
+        ))}
+        {props.actionButtons && <th className="relative bg-component-strong" />}
+      </Row>
+    </thead>
   );
 }

@@ -60,7 +60,7 @@ export function Stats() {
       name: "",
       sortable: false,
       align: "right",
-      render: (row) => <span className="font-medium text-primary">{row.value}</span>
+      render: (value) => <span className="font-medium text-primary">{value}</span>
     }
   ];
 

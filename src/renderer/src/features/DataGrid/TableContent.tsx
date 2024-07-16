@@ -23,13 +23,13 @@ export function TableContent<T extends WithId>(props: Props<T>) {
   const isLast = (index: number) => index === props.data.length - 1;
 
   const renderCell = (column: Column<T>, row: T) => {
-    if (column.render) return column.render(row);
+    if (column.render) return column.render(row[column.field], row);
     if (column.field === null) return "";
     return String(row[column.field]);
   };
 
   return (
-    <>
+    <tbody>
       {props.data.map((row, rowIndex) => (
         <Row key={row.id} even={isEven(rowIndex)} last={isLast(rowIndex)}>
           {props.columns.map((column) => (
@@ -46,6 +46,6 @@ export function TableContent<T extends WithId>(props: Props<T>) {
           )}
         </Row>
       ))}
-    </>
+    </tbody>
   );
 }

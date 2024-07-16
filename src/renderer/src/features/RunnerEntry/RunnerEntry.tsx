@@ -25,13 +25,13 @@ export function RunnerEntry() {
     {
       field: "in",
       name: "In Time",
-      render: (row) => formatDate(row.in),
+      render: formatDate,
       width: 200
     },
     {
       field: "out",
       name: "Out Time",
-      render: (row) => formatDate(row.out),
+      render: formatDate,
       width: 200
     },
     {
