@@ -53,7 +53,7 @@ rules:
   import/no-useless-path-segments: error
   import/consistent-type-specifier-style:
     - error
-    - prefer-top-level
+    - prefer-inline
   import/first: warn
   import/newline-after-import:
     - warn

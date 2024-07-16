@@ -3,8 +3,7 @@ import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { useFakeData } from "./useFakeData";
-import type { Runner } from "./useFakeData";
+import { type Runner, useFakeData } from "./useFakeData";
 
 export function RunnerEntry() {
   const FakeData: Runner[] = useFakeData();

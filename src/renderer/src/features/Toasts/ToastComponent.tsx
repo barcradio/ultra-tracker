@@ -6,7 +6,7 @@ import WarningIcon from "~/assets/icons/warning-circle.svg?react";
 import { Stack } from "~/components";
 import { useCurrentTime } from "~/hooks/useCurrentTime";
 import { classed } from "~/lib/classed";
-import type { InternalToast } from "./ToastsContext";
+import { type InternalToast } from "./ToastsContext";
 
 interface Props {
   toast: InternalToast;
