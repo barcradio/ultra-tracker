@@ -16,7 +16,7 @@ const init = () => {
 
         console.log("ping-pong", message);
 
-        [runner, result] = dbAPI.LookupStartListRunnerByBib(mybib);
+        [runner, result] = dbAPI.ReadStartListRunnerByBib(mybib);
 
         console.log (result);
         return `pong: ${result}`;
