@@ -12,7 +12,7 @@ export type Runner = {
     dns: Boolean
     dnf: Boolean
     dnfStation: number
-    dnfDateTime: Date
+    // dnfDateTime: Date
 }
 
 export type TimingRecord = {
