@@ -48,11 +48,7 @@ function createWindow(): void {
 app.on('ready', () => {
   console.log("Application execution path: " + app.getAppPath());
 
-  if (fs.existsSync(dbPath)) {
-    db = global.shared.dbConnection = new Database(dbFullPath);
-    db.pragma('journal_mode = WAL');
-    console.log('Connected to SQLite Database: ' + dbFullPath);
-  }
+  db.ConnectToDB();
 })
 
 // This method will be called when Electron has finished
