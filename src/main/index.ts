@@ -4,6 +4,7 @@ import { app, shell, BrowserWindow, ipcMain } from "electron";
 import icon from "$resources/icon.png?asset";
 import global from '../shared/global';
 import settingsIPC from './ipc/settings-ipc';
+import headerIPC from './ipc/header-ipc';
 import { dblocal as db } from './database/main-db';
 
 
@@ -59,6 +60,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
+  headerIPC.init();
   settingsIPC.init();
 
   createWindow();
