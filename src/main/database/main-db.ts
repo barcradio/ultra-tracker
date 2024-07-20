@@ -10,16 +10,22 @@ export abstract class dblocal {
     let dbPath = global.shared.dbPath;
     let dbFullPath = global.shared.dbFullPath;
 
-    if (fs.existsSync(dbPath)) {
+        if(!fs.existsSync(dbPath))
+            fs.mkdirSync(dbPath);
+
+        try {
         db = global.shared.dbConnection = new Database(dbFullPath);
         db.pragma('journal_mode = WAL');
         console.log('Connected to SQLite Database: ' + dbFullPath);
-    }
-    else {
-        db = global.shared.dbConnection = new Database(dbFullPath);
-        db.pragma('journal_mode = WAL');
-        console.log('Created local SQLite Database: ' + dbFullPath);
+        } catch (e: any) {
+            console.log(`Unable to connect to or create database: ${e.message}`);
+        }
 
+        let result: any;
+        const tables = db.prepare(`SELECT count(*) FROM sqlite_master WHERE type='table'`);
+        result = tables.get();
+        
+        if(result["count(*)"] == 0) {
         CreateTables();
         }
     }
