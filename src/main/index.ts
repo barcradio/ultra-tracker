@@ -2,6 +2,16 @@ import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { app, shell, BrowserWindow, ipcMain } from "electron";
 import icon from "$resources/icon.png?asset";
+import Database from 'better-sqlite3';
+import global from '../shared/global';
+import settingsIPC from './ipc/settings-ipc';
+
+let db: Database;
+let dbPath = global.shared.dbPath;
+let dbFullPath = global.shared.dbFullPath;
+
+const fs = require("fs");
+
 
 function createWindow(): void {
   // Create the browser window.
@@ -35,6 +45,12 @@ function createWindow(): void {
   }
 }
 
+app.on('ready', () => {
+  console.log("Application execution path: " + app.getAppPath());
+
+  db.ConnectToDB();
+})
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -49,11 +65,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  // IPC test
-  ipcMain.handle("ping-pong", async (_, message) => {
-    console.log("ping-pong", message);
-    return "pong: Message from main process";
-  });
+  settingsIPC.init();
 
   createWindow();
 
