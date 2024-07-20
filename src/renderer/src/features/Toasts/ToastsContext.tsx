@@ -2,8 +2,9 @@ import { createContext } from "react";
 
 export interface Toast {
   message: string;
-  type: "info" | "success" | "error";
+  type: "info" | "success" | "danger" | "warning";
   timeoutMs?: number;
+  noIcon?: boolean;
 }
 
 export interface InternalToast extends WithRequired<Toast, "timeoutMs"> {

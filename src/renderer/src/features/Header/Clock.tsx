@@ -1,13 +1,9 @@
-import { format } from "date-fns";
 import { useCurrentTime } from "~/hooks/useCurrentTime";
+import { formatDate } from "~/lib/datetimes";
 
 export function Clock() {
   const [currentTime] = useCurrentTime();
-  const formatted = format(currentTime, "kk:mm:ss");
+  const formatted = formatDate(currentTime);
 
-  return (
-    <h1 className="min-w-80 p-6 font-display text-6xl font-semibold text-yellow-400">
-      {formatted}
-    </h1>
-  );
+  return <h1 className="p-2 text-7xl font-bold text-primary in-w-80 font-display">{formatted}</h1>;
 }

@@ -9,7 +9,7 @@ export function SettingsHub() {
   const foundRunner = useRunnerLookup();
 
   const onClick_Ping = () => {
-    createToast({ message: "Runner Lookup", type: "error" });
+    createToast({ message: "Runner Lookup", type: "info" });
     clickInMutation.mutate("ping from the renderer!");
   };
 

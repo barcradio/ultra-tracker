@@ -15,6 +15,7 @@ export const Stack = classed.div({
       stretch: "items-stretch"
     },
     justify: {
+      stretch: "justify-stretch",
       start: "justify-start",
       center: "justify-center",
       end: "justify-end",

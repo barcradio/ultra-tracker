@@ -1,17 +1,21 @@
-import { Stack, Button, TextInput } from "~/components";
+import { useState } from "react";
+import { Button, Stack, TextInput } from "~/components";
+import { Stats } from "./Stats";
+import { RecordType, TimingRecord } from '../../../../shared/models';
 import { useTimingRecord } from "~/hooks/useTimingRecord";
-import { TimingRecord, RecordType } from '../../../../shared/models';
 import { useToasts } from "../Toasts/useToasts";
 
 
-export function BibForm() {
+export function RunnerFormStats() {
+  const [bibNumber, setBibNumber] = useState(0);
   const { createToast } = useToasts();
+
   let lastGoodValue: number = -1;
 
   const onClick_CreateRecord = (type: RecordType) => {
     let record: TimingRecord | null = BuildTimingRecord(type)
     if (record == null) {
-       createToast({ message: "Cannot build timing record: bad input", type: "error" });
+       createToast({ message: "Cannot build timing record: bad input", type: "danger" });
     }
     else {
       useTimingRecord(record);
@@ -101,21 +105,37 @@ export function BibForm() {
     element.focus();
   }
 
+  const handleIn = () =>
+    createToast({ message: `Runner ${bibNumber} has entered the aid station`, type: "success" });
+
+  const handleOut = () =>
+    createToast({ message: `Runner ${bibNumber} has exited the aid station`, type: "success" });
+
   return (
-    <Stack align="stretch">
-      <TextInput name="textInput_Bib" className="m-1.5 w-32" type="number" inputMode="numeric" placeholder="Bib #" size="lg" outline 
+    <Stack direction="col" align="stretch" className="mr-4 w-1/5">
+      <TextInput
+        //onChange={(e) => setBibNumber(parseInt(e.target.value))}
+        name="textInput_Bib"
         onKeyDownCapture={handleOnKeyDownCapture}
-        onKeyUp={handleOnKeyUp} />
-      <Stack direction="col">
-        <Button name="button_In" className="m-1.5 mb-0 min-w-24" color="success" size="lg" 
+        onKeyUp={handleOnKeyUp}
+        className="h-32 text-center border-component"
+        placeholder="BIB#"
+        size="xl"
+        type="number"
+      />
+      <Stack direction="row" align="stretch" className="mt-2 mb-4 w-full h-12" justify="stretch">
+        <Button name="button_In" variant="solid" color="success" className="mr-1 w-1/2" 
           onClick={(event) => onClick_CreateRecord(RecordType.In)}>
           In
         </Button>
-        <Button name="button_In" className="m-1.5 min-w-24" color="error" size="lg" 
+        <Button name="button_Out" variant="solid" color="danger" className="ml-1 w-1/2" 
           onClick={(event) => onClick_CreateRecord(RecordType.Out)}>
           Out
         </Button>
       </Stack>
+      <div className="w-full grow bg-component">
+        <Stats />
+      </div>
     </Stack>
   );
 }
