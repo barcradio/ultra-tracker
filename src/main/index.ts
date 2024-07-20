@@ -2,15 +2,9 @@ import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { app, shell, BrowserWindow, ipcMain } from "electron";
 import icon from "$resources/icon.png?asset";
-import Database from 'better-sqlite3';
 import global from '../shared/global';
 import settingsIPC from './ipc/settings-ipc';
-
-let db: Database;
-let dbPath = global.shared.dbPath;
-let dbFullPath = global.shared.dbFullPath;
-
-const fs = require("fs");
+import { dblocal as db } from './database/main-db';
 
 
 function createWindow(): void {

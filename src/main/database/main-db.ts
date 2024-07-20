@@ -3,7 +3,9 @@ import global from '../../shared/global';
 import { Runner } from '../../shared/models';
 import fs from 'fs';
 
-export function ConnectToDB () {
+export abstract class dblocal {
+
+    public static ConnectToDB () {
     let db: Database;
     let dbPath = global.shared.dbPath;
     let dbFullPath = global.shared.dbFullPath;
@@ -19,6 +21,7 @@ export function ConnectToDB () {
         console.log('Created local SQLite Database: ' + dbFullPath);
 
         CreateTables();
+        }
     }
 }
 
