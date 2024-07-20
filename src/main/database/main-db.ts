@@ -6,17 +6,18 @@ import fs from 'fs';
 export abstract class dblocal {
 
     public static ConnectToDB () {
-    let db: Database;
-    let dbPath = global.shared.dbPath;
-    let dbFullPath = global.shared.dbFullPath;
-
+        let db: Database;
+        let dbPath = global.shared.dbPath;
+        let dbFullPath = global.shared.dbFullPath;
+        const tableCount: number = 5;
+        
         if(!fs.existsSync(dbPath))
             fs.mkdirSync(dbPath);
 
         try {
-        db = global.shared.dbConnection = new Database(dbFullPath);
-        db.pragma('journal_mode = WAL');
-        console.log('Connected to SQLite Database: ' + dbFullPath);
+            db = global.shared.dbConnection = new Database(dbFullPath);
+            db.pragma('journal_mode = WAL');
+            console.log('Connected to SQLite Database: ' + dbFullPath);
         } catch (e: any) {
             console.log(`Unable to connect to or create database: ${e.message}`);
         }
@@ -25,8 +26,8 @@ export abstract class dblocal {
         const tables = db.prepare(`SELECT count(*) FROM sqlite_master WHERE type='table'`);
         result = tables.get();
         
-        if(result["count(*)"] == 0) {
-        CreateTables();
+        if(result["count(*)"] < tableCount) {
+            CreateTables();
         }
     }
 }
@@ -77,7 +78,7 @@ export function ReadStartListRunnerByBib( bibNumber: number): [Runner | undefine
 export function CreateTables( ): string{
     let db: Database = global.shared.dbConnection;
     let result: string;
-    let CmdResult: string;
+    let CmdResult: any;
 
     //Create each of the tables
     try{
@@ -88,12 +89,14 @@ export function CreateTables( ): string{
         time_in DATETIME,
         time_out DATETIME,
         last_changed TEXT,
-        sent BOOLEAN DEFAULT (FALSE))`);
+        sent BOOLEAN DEFAULT (FALSE)
+        )`);
         
-        result = db.exec();
+        result = CmdResult.run();
     }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
+        console.log(`Failed to create 'Runners' table ${result}`);
         return result;
     }
 
@@ -106,12 +109,14 @@ export function CreateTables( ): string{
         time_in DATETIME,
         time_out DATETIME,
         last_changed TEXT,
-        sent BOOLEAN DEFAULT (FALSE))`);
+        sent BOOLEAN DEFAULT (FALSE)
+        )`);
         
-        result = db.exec();
+        result = CmdResult.run();
     }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
+        console.log(`Failed to create 'Events' table ${result}`);
         return result;
     }
 
@@ -127,12 +132,14 @@ export function CreateTables( ): string{
         City TEXT,
         State TEXT,
         EmergencyPhone INTEGER,
-        EmergencyName TEXT`);
+        EmergencyName TEXT
+        )`);
         
-        result = db.exec();
+        result = CmdResult.run();
    }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
+        console.log(`Failed to create 'StartList' table ${result}`);
         return result;
     }
 
@@ -141,12 +148,14 @@ export function CreateTables( ): string{
         CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Stations (
         "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         StaName TEXT,
-        Last_changed DATETIME`);
+        Last_changed DATETIME
+        )`);
         
-        result = db.exec();
+        result = CmdResult.run();
     }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
+        console.log(`Failed to create 'Stations' table ${result}`);
         return result;
     }
 
@@ -197,12 +206,14 @@ export function CreateTables( ): string{
         Sta20_out DATETIME,
         Dnf BOOLEAN,
         Dns BOOLEAN,
-        Last_changed DATETIME`);
+        Last_changed DATETIME
+        )`);
         
-        result = db.exec();
+        result = CmdResult.run();
     }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
+        console.log(`Failed to create 'Output' table ${result}`);
         return result;
     }
 
@@ -211,81 +222,82 @@ export function CreateTables( ): string{
 
 export function ClearStartListTable( ): boolean{
     let db: Database = global.shared.dbConnection;
-    let CmdResult: string;   
+    let CmdResult: any;   
     let result: boolean;
 
     try{
         CmdResult = db.prepare(`DELETE * FROM StartList`);
-        result = db.exec();
+        result = CmdResult.run();
         return result;
     }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
         return false;
     }
 }
 
 export function ClearEventsTable( ): boolean{
     let db: Database = global.shared.dbConnection;
-    let CmdResult: string;
+    let CmdResult: any;
     let result: boolean;
 
     try{
         CmdResult = db.prepare(`DELETE * FROM Events`);
-        result = db.exec();
+        result = CmdResult.run();
         
         result = true;
         return result;
     }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
         return false;
     }
 }
 
 export function ClearRunnersTable( ): boolean{
     let db: Database = global.shared.dbConnection;
-    let CmdResult: string;
+    let CmdResult: any;
     let result: boolean;
-    try{
+    try {
         CmdResult = db.prepare(`DELETE * FROM Runners`);
-            result = db.exec();
-            return result;
-        }
-        catch(e: any){
-            result = e.message; 
-            return false;
-        }
+        result = CmdResult.run();
+
+        return result;
+    }
+    catch(e: any){
+        result = e.message;
+        return false;
+    }
 }
 
 export function ClearStationsTable( ): boolean{
     let db: Database = global.shared.dbConnection;
-    let CmdResult: string;
-    // let result: boolean;
+    let CmdResult: any;
+    let result: boolean;
 
     try{
         CmdResult = db.prepare(`DELETE * FROM Stations`);
-        CmdResult = db.exec();
+        result = CmdResult.run();
         return true;
     }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
         return false;
     }
 }  
 
 export function ClearOutputTable( ): boolean{
     let db: Database = global.shared.dbConnection;
-    let CmdResult: string;
-     let result: string;
+    let CmdResult: any;
+    let result: string;
 
     try{
         CmdResult = db.prepare(`DELETE * FROM Output`);
-        result = db.exec();
+        result = CmdResult.run();
         return true;
     }
     catch(e: any){
-        result = e.message; 
+        result = e.message;
         return false;
     }    
 }
