@@ -13,7 +13,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"~/*": ["src/renderer/src/*"],
-			"@shared/*": [ "src/shared/*" ]
+			"$shared/*": ["src/shared/*"]
 		}
 	}
 }

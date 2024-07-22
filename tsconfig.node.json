@@ -12,7 +12,7 @@
 		"paths": {
 			"$resources/*": ["./resources/*"],
 			"$renderer/*": ["./src/renderer/src/*"],
-			"@shared/*": ["./src/shared/*"]
+			"$shared/*": ["./src/shared/*"]
 		},
 		"baseUrl": "."
 	}
