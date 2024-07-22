@@ -1,135 +1,96 @@
-import { useState } from "react";
+import { KeyboardEvent, useRef, useState } from "react";
 import { Button, Stack, TextInput } from "~/components";
+import { useCreateTiming } from "~/hooks/useCreateTiming";
 import { Stats } from "./Stats";
-import { RecordType, TimingRecord } from '../../../../shared/models';
-import { useTimingRecord } from "~/hooks/useTimingRecord";
-import { useToasts } from "../Toasts/useToasts";
-
+import { RecordType } from "../../../../shared/models";
 
 export function RunnerFormStats() {
-  const [bibNumber, setBibNumber] = useState(0);
-  const { createToast } = useToasts();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [bibNumber, setBibNumber] = useState("");
+  const createTiming = useCreateTiming();
 
-  let lastGoodValue: number = -1;
+  const createRecord = (type: RecordType) => {
+    if (bibNumber.length === 0) return;
 
-  const onClick_CreateRecord = (type: RecordType) => {
-    let record: TimingRecord | null = BuildTimingRecord(type)
-    if (record == null) {
-       createToast({ message: "Cannot build timing record: bad input", type: "danger" });
-    }
-    else {
-      useTimingRecord(record);
-    }
+    createTiming.mutate({
+      bib: parseInt(bibNumber),
+      datetime: new Date(),
+      type,
+      note: ""
+    });
 
-    ClearInput();
+    clearInput();
   };
 
-  const handleOnKeyUp = (event) => {
-    console.log('Key pressed: ' + event.code);
-    switch (event.code) {
-      case 'Enter':
-      case 'NumpadEnter':
-      case 'Equal':
-      case 'NumpadAdd': {
-        onClick_CreateRecord(RecordType.In);
-        break;
-      };
+  const clearInput = () => {
+    if (!inputRef.current) return;
+    inputRef.current.value = "";
+    inputRef.current?.focus();
+    setBibNumber("");
+  };
 
-      case 'Minus':
-      case 'NumpadSubtract': {
-        onClick_CreateRecord(RecordType.Out);
-        break;
-      };
-      
-      case 'Slash':
-      case 'Backslash':
-      case 'NumpadDivide': {
-        onClick_CreateRecord(RecordType.InOut);
-        break;
-      };
-    }
-  }
-
-  // if the numeric field sees a Plus or Minus and tries to validate its own value, it clears the entire value.
-  // preserve the value as it changes to evaluate and recover later
-  const handleOnKeyDownCapture = (event) => {
-    let result: number = ParseInput(event.target.value);
-
-    if((result != undefined) &&
-       (result != null) &&
-       (!Number.isNaN(result)) &&
-       (result > 0) ) {
-      lastGoodValue = result;
-    }
-  }
-
-
-  function BuildTimingRecord( type: RecordType) : TimingRecord | null {
-    let bibInput: string | undefined = document.querySelector<HTMLInputElement>('input[name="textInput_Bib"]')?.value;
-    let bib: number;
-
-    if(bibInput == undefined) {
-      console.log(`Cannot resolve input value.`);
-      return null;
-    }
-
-    if(bibInput == '' || lastGoodValue > 0) {
-      bib = lastGoodValue;
-    }
-    else {
-      bib = ParseInput(bibInput);
-    }
- 
-    const record: TimingRecord = {
-      bib: bib,
-      datetime: new Date(),
-      type: type,
-      note: ''
-    }
-  
-    return record;
-  }
-  
-  function ParseInput(userInput: string): number {
-    let cleanBib = userInput.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, "");
-    return parseInt(cleanBib);
-  }
-  
-  function ClearInput() {
-    let element: HTMLInputElement | null = document.querySelector<HTMLInputElement>('input[name="textInput_Bib"]');
-    
-    if(element == null)
+  const handleChange = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key.match(/\+|-/)) {
+      event.preventDefault();
       return;
-  
-    element.value = '';
-    element.focus();
-  }
+    }
+    const cleaned = event.currentTarget.value.replace(/\D/g, "");
+    setBibNumber(cleaned);
+  };
 
-  const handleIn = () =>
-    createToast({ message: `Runner ${bibNumber} has entered the aid station`, type: "success" });
+  const handleKeyboardShortcuts = (event: KeyboardEvent<HTMLInputElement>) => {
+    switch (event.code) {
+      case "Enter":
+      case "NumpadEnter":
+      case "Equal":
+      case "NumpadAdd": {
+        createRecord(RecordType.In);
+        break;
+      }
 
-  const handleOut = () =>
-    createToast({ message: `Runner ${bibNumber} has exited the aid station`, type: "success" });
+      case "Minus":
+      case "NumpadSubtract": {
+        createRecord(RecordType.Out);
+        break;
+      }
+
+      case "Slash":
+      case "Backslash":
+      case "NumpadDivide": {
+        createRecord(RecordType.InOut);
+        break;
+      }
+    }
+  };
 
   return (
     <Stack direction="col" align="stretch" className="mr-4 w-1/5">
       <TextInput
-        //onChange={(e) => setBibNumber(parseInt(e.target.value))}
-        name="textInput_Bib"
-        onKeyDownCapture={handleOnKeyDownCapture}
-        onKeyUp={handleOnKeyUp}
+        ref={inputRef}
+        onKeyDown={handleChange}
+        onKeyUp={handleKeyboardShortcuts}
         className="h-32 text-center border-component"
         placeholder="BIB#"
         size="xl"
         type="number"
       />
       <Stack direction="row" align="stretch" className="mt-2 mb-4 w-full h-12" justify="stretch">
-        <Button name="button_In" variant="solid" color="success" className="mr-1 w-1/2" 
-          onClick={(event) => onClick_CreateRecord(RecordType.In)}>
+        <Button
+          name="button_In"
+          variant="solid"
+          color="success"
+          className="mr-1 w-1/2"
+          onClick={() => createRecord(RecordType.In)}
+        >
           In
         </Button>
-        <Button name="button_Out" variant="solid" color="danger" className="ml-1 w-1/2" 
-          onClick={(event) => onClick_CreateRecord(RecordType.Out)}>
+        <Button
+          name="button_Out"
+          variant="solid"
+          color="danger"
+          className="ml-1 w-1/2"
+          onClick={() => createRecord(RecordType.Out)}
+        >
           Out
         </Button>
       </Stack>
