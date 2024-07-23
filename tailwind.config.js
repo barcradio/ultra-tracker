@@ -54,6 +54,7 @@ module.exports = {
     },
   },
   plugins: [
+    require("tailwindcss-animate"),
     createThemes({
       light: {
         surface: {
