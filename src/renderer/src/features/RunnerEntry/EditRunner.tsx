@@ -47,7 +47,7 @@ export function EditRunner(props: Props) {
         className="w-96 font-display"
         showCloseIcon={false}
       >
-        <div className="px-6 pt-8">
+        <Stack className="gap-6 px-6 pt-8" direction="col">
           <h1 className="w-full text-4xl font-bold text-center uppercase font-display">
             Sequence {editingRunner.sequence}
           </h1>
@@ -70,7 +70,8 @@ export function EditRunner(props: Props) {
               {"NEXT >"}
             </Button>
           </Stack>
-        </div>
+
+        </Stack>
       </Drawer>
     </>
   );

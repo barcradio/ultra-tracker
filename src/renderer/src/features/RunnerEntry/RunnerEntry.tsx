@@ -41,7 +41,7 @@ export function RunnerEntry() {
   ];
 
   return (
-    <Stack className="m-4 mt-0 h-full" justify="stretch" align="stretch">
+    <Stack className="gap-4 m-4 mt-0 h-full" justify="stretch" align="stretch">
       <RunnerFormStats />
       <div className="h-full bg-component grow">
         <DataGrid

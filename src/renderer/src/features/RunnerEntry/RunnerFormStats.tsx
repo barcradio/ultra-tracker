@@ -30,10 +30,13 @@ export function RunnerFormStats() {
   };
 
   const handleChange = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (handleKeyboardShortcuts(event)) return;
+
     if (event.key.match(/\+|-/)) {
       event.preventDefault();
       return;
     }
+
     const cleaned = event.currentTarget.value.replace(/\D/g, "");
     setBibNumber(cleaned);
   };
@@ -45,36 +48,33 @@ export function RunnerFormStats() {
       case "Equal":
       case "NumpadAdd": {
         createRecord(RecordType.In);
-        break;
+        return true;
       }
-
       case "Minus":
       case "NumpadSubtract": {
         createRecord(RecordType.Out);
-        break;
+        return true;
       }
-
       case "Slash":
       case "Backslash":
       case "NumpadDivide": {
         createRecord(RecordType.InOut);
-        break;
+        return true;
       }
     }
+    return false;
   };
 
   return (
-    <Stack direction="col" align="stretch" className="mr-4 w-1/5">
+    <Stack direction="col" align="stretch" className="gap-2 w-1/5">
       <TextInput
         ref={inputRef}
         onKeyDown={handleChange}
-        onKeyUp={handleKeyboardShortcuts}
-        className="h-32 text-center border-component"
+        className="h-32 text-8xl text-center border-component"
         placeholder="BIB#"
-        size="xl"
         type="number"
       />
-      <Stack direction="row" align="stretch" className="mt-2 mb-4 w-full h-12" justify="stretch">
+      <Stack direction="row" align="stretch" className="mb-2 w-full h-12" justify="stretch">
         <Button
           name="button_In"
           variant="solid"
