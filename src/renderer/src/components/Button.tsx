@@ -100,8 +100,5 @@ export const Button = classed.button({
     variant: "solid",
     color: "primary",
     size: "md"
-  },
-  defaultProps: {
-    type: "button"
   }
 });
