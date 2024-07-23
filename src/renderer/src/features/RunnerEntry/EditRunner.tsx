@@ -1,6 +1,6 @@
 import { useState } from "react";
 import EditIcon from "~/assets/icons/edit.svg?react";
-import { Button, Drawer, Stack } from "~/components";
+import { Button, Drawer, Stack, TextInput } from "~/components";
 import { Runner } from "./useFakeData";
 import { useToasts } from "../Toasts/useToasts";
 
@@ -71,6 +71,31 @@ export function EditRunner(props: Props) {
             </Button>
           </Stack>
 
+          <Stack className="gap-4 w-full" direction="col">
+            <TextInput label="Runner" placeholder="Runner" name="runner" value={editingRunner.id} />
+            <TextInput
+              label="In Time"
+              placeholder="In Time"
+              name="in"
+              value={editingRunner.in.toLocaleString()}
+            />
+            <TextInput
+              label="Out Time"
+              placeholder="Out Time"
+              name="out"
+              value={editingRunner.out.toLocaleString()}
+            />
+            <TextInput label="Notes" placeholder="Notes" name="notes" value={editingRunner.notes} />
+          </Stack>
+
+          <Stack className="w-full" justify="end" align="center" direction="row">
+            <Button variant="ghost" color="neutral" onClick={handleClose} size="lg">
+              Cancel
+            </Button>
+            <Button variant="solid" color="primary" size="lg">
+              Apply
+            </Button>
+          </Stack>
         </Stack>
       </Drawer>
     </>
