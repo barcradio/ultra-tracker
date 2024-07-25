@@ -12,26 +12,22 @@ export function RunnerEntry() {
     {
       field: "sequence",
       name: "Sequence",
-      align: "right",
-      width: 180
+      align: "right"
     },
     {
       field: "runner",
       name: "Runner",
-      align: "right",
-      width: 180
+      align: "right"
     },
     {
       field: "in",
       name: "In Time",
-      render: formatDate,
-      width: 200
+      render: formatDate
     },
     {
       field: "out",
       name: "Out Time",
-      render: formatDate,
-      width: 200
+      render: formatDate
     },
     {
       field: "notes",

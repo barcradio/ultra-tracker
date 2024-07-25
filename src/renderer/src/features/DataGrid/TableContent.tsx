@@ -38,10 +38,8 @@ export function TableContent<T extends WithId>(props: Props<T>) {
             </Cell>
           ))}
           {props.actionButtons && (
-            <Cell align="right" className="p-0 h-inherit">
-              <div className="hidden h-full transition-none group-hover:block">
-                {props.actionButtons(row)}
-              </div>
+            <Cell align="right" className="p-0 opacity-0 group-hover:opacity-100 h-inherit">
+              {props.actionButtons(row)}
             </Cell>
           )}
         </Row>
