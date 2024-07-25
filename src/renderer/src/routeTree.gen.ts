@@ -17,6 +17,10 @@ import { Route as rootRoute } from './routes/__root'
 // Create Virtual Routes
 
 const SettingsLazyImport = createFileRoute('/settings')()
+const SearchLazyImport = createFileRoute('/search')()
+const LogsLazyImport = createFileRoute('/logs')()
+const HelpLazyImport = createFileRoute('/help')()
+const DatabaseLazyImport = createFileRoute('/database')()
 const IndexLazyImport = createFileRoute('/')()
 
 // Create/Update Routes
@@ -25,6 +29,26 @@ const SettingsLazyRoute = SettingsLazyImport.update({
   path: '/settings',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
+
+const SearchLazyRoute = SearchLazyImport.update({
+  path: '/search',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/search.lazy').then((d) => d.Route))
+
+const LogsLazyRoute = LogsLazyImport.update({
+  path: '/logs',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/logs.lazy').then((d) => d.Route))
+
+const HelpLazyRoute = HelpLazyImport.update({
+  path: '/help',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/help.lazy').then((d) => d.Route))
+
+const DatabaseLazyRoute = DatabaseLazyImport.update({
+  path: '/database',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/database.lazy').then((d) => d.Route))
 
 const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
@@ -42,6 +66,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexLazyImport
       parentRoute: typeof rootRoute
     }
+    '/database': {
+      id: '/database'
+      path: '/database'
+      fullPath: '/database'
+      preLoaderRoute: typeof DatabaseLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -56,6 +108,10 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
+  DatabaseLazyRoute,
+  HelpLazyRoute,
+  LogsLazyRoute,
+  SearchLazyRoute,
   SettingsLazyRoute,
 })
 
@@ -68,11 +124,27 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/database",
+        "/help",
+        "/logs",
+        "/search",
         "/settings"
       ]
     },
     "/": {
       "filePath": "index.lazy.tsx"
+    },
+    "/database": {
+      "filePath": "database.lazy.tsx"
+    },
+    "/help": {
+      "filePath": "help.lazy.tsx"
+    },
+    "/logs": {
+      "filePath": "logs.lazy.tsx"
+    },
+    "/search": {
+      "filePath": "search.lazy.tsx"
     },
     "/settings": {
       "filePath": "settings.lazy.tsx"

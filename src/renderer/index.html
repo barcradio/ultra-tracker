@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html class="dark">
   <head>
     <meta charset="UTF-8" />
     <title>Electron</title>
@@ -16,8 +16,10 @@
   </head>
 
   <body class="nodrag">
-    <div id="root" class="flex h-screen flex-col"></div>
-    <div id="portal-root"></div>
+    <div
+      id="root"
+      class="flex h-screen flex-row bg-surface-tertiary text-on-surface transition-colors duration-200"
+    ></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

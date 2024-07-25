@@ -2,6 +2,7 @@ const { resolve } = require("path");
 const react = require("@vitejs/plugin-react");
 const { defineConfig, externalizeDepsPlugin } = require("electron-vite");
 const { TanStackRouterVite } = require("@tanstack/router-vite-plugin");
+const svgr = require("vite-plugin-svgr").default;
 
 module.exports = defineConfig({
   main: {
@@ -25,11 +26,13 @@ module.exports = defineConfig({
   renderer: {
     resolve: {
       alias: {
-        "~": resolve(__dirname, "src/renderer/src")
+        "~": resolve(__dirname, "src/renderer/src"),
+        $shared: resolve(__dirname, "src/shared")
       }
     },
     plugins: [
       react(),
+      svgr(),
       TanStackRouterVite({
         routesDirectory: resolve(__dirname, "src/renderer/src/routes"),
         generatedRouteTree: resolve(__dirname, "src/renderer/src/routeTree.gen.ts")

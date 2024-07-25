@@ -23,6 +23,9 @@ rules:
   # General Rules
   camelcase: warn
   endOfLine: auto
+  "sort-imports":
+    - error
+    - ignoreDeclarationSort: true
   "@typescript-eslint/explicit-function-return-type": "off"
   # React Rules
   react/button-has-type: warn
@@ -50,7 +53,7 @@ rules:
   import/no-useless-path-segments: error
   import/consistent-type-specifier-style:
     - error
-    - prefer-top-level
+    - prefer-inline
   import/first: warn
   import/newline-after-import:
     - warn

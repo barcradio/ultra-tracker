@@ -1,14 +1,16 @@
 import "./assets/main.css";
 import { StrictMode, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createHashHistory, createRouter, RouterProvider } from "@tanstack/react-router";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { createRoot } from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
 
 const queryClient = new QueryClient();
 
-const hashHistory = createHashHistory();
-const router = createRouter({ routeTree, history: hashHistory });
+const router = createRouter({
+  routeTree,
+  defaultPreload: "intent"
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
