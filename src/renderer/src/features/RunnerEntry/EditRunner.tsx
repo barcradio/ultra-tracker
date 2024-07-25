@@ -75,6 +75,7 @@ export function EditRunner(props: Props) {
 
           <Stack align="center" justify="between" className="w-full">
             <Button
+              type="button"
               variant="ghost"
               color="primary"
               className="text-xl underline"
@@ -83,6 +84,7 @@ export function EditRunner(props: Props) {
               {"< PREV"}
             </Button>
             <Button
+              type="button"
               variant="ghost"
               color="primary"
               className="text-xl underline"
