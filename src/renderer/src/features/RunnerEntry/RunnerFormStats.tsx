@@ -1,4 +1,4 @@
-import { KeyboardEvent, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
 import { Button, Stack, TextInput } from "~/components";
 import { useCreateTiming } from "~/hooks/useCreateTiming";
 import { Stats } from "./Stats";
@@ -11,6 +11,8 @@ export function RunnerFormStats() {
 
   const createRecord = (type: RecordType) => {
     if (bibNumber.length === 0) return;
+
+    console.log(bibNumber);
 
     createTiming.mutate({
       bib: parseInt(bibNumber),
@@ -29,10 +31,10 @@ export function RunnerFormStats() {
     setBibNumber("");
   };
 
-  const handleChange = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (handleKeyboardShortcuts(event)) return;
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
 
-    if (event.key.match(/\+|-/)) {
+    if (value.match(/\+|-/)) {
       event.preventDefault();
       return;
     }
@@ -48,17 +50,20 @@ export function RunnerFormStats() {
       case "Equal":
       case "NumpadAdd": {
         createRecord(RecordType.In);
+        event.preventDefault();
         return true;
       }
       case "Minus":
       case "NumpadSubtract": {
         createRecord(RecordType.Out);
+        event.preventDefault();
         return true;
       }
       case "Slash":
       case "Backslash":
       case "NumpadDivide": {
         createRecord(RecordType.InOut);
+        event.preventDefault();
         return true;
       }
     }
@@ -69,7 +74,8 @@ export function RunnerFormStats() {
     <Stack direction="col" align="stretch" className="gap-2 w-1/5">
       <TextInput
         ref={inputRef}
-        onKeyDown={handleChange}
+        onKeyDown={handleKeyboardShortcuts}
+        onChange={handleChange}
         className="h-32 text-8xl text-center border-component"
         placeholder="BIB#"
         type="number"
