@@ -12,8 +12,6 @@ export function RunnerFormStats() {
   const createRecord = (type: RecordType) => {
     if (bibNumber.length === 0) return;
 
-    console.log(bibNumber);
-
     createTiming.mutate({
       bib: parseInt(bibNumber),
       datetime: new Date(),

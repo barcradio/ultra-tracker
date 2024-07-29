@@ -86,7 +86,13 @@ export function Drawer(props: Props) {
     const escapeListener = (event: KeyboardEvent) => {
       if (event.key === "Escape") handleClose();
     };
-    if (open) window.addEventListener("keyup", escapeListener);
+
+    if (open) {
+      window.addEventListener("keyup", escapeListener);
+    } else {
+      window.removeEventListener("keyup", escapeListener);
+    }
+
     return () => window.removeEventListener("keyup", escapeListener);
   }, [open, handleClose]);
 
