@@ -22,7 +22,6 @@ settings:
 rules:
   # General Rules
   camelcase: warn
-  endOfLine: auto
   "sort-imports":
     - error
     - ignoreDeclarationSort: true
