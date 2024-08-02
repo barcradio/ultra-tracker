@@ -1,12 +1,10 @@
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { BrowserWindow, app, ipcMain, shell } from "electron";
+import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
-import global from '../shared/global';
-import settingsIPC from './ipc/settings-ipc';
-import headerIPC from './ipc/header-ipc';
-import { dblocal as db } from './database/main-db';
-
+import { dblocal as db } from "./database/main-db";
+import headerIPC from "./ipc/header-ipc";
+import settingsIPC from "./ipc/settings-ipc";
 
 function createWindow(): void {
   // Create the browser window.
@@ -40,11 +38,11 @@ function createWindow(): void {
   }
 }
 
-app.on('ready', () => {
+app.on("ready", () => {
   console.log("Application execution path: " + app.getAppPath());
 
   db.ConnectToDB();
-})
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

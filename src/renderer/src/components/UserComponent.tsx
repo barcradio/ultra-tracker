@@ -1,5 +1,5 @@
-import * as React from 'react';
-import Database from 'better-sqlite3';
+import * as React from "react";
+import Database from "better-sqlite3";
 
 interface User {
   id: number;
@@ -14,7 +14,7 @@ class UserComponent extends React.Component<{}, { users: User[] }> {
   }
 
   componentDidMount() {
-    Database.get('SELECT * FROM users', (err, rows) => {
+    Database.get("SELECT * FROM users", (err, rows) => {
       if (err) {
         console.error(err);
         return;

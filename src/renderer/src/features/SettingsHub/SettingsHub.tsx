@@ -1,12 +1,10 @@
 import { Button } from "~/components";
-import { usePingPongMutation } from "~/hooks/usePingPongMutation";
+import { UseRunnerLookup } from "~/hooks/useRunnerLookup";
 import { useToasts } from "../Toasts/useToasts";
-import { useRunnerLookup } from "~/hooks/useRunnerLookup";
 
 export function SettingsHub() {
-  const clickInMutation = usePingPongMutation();
+  const clickInMutation = UseRunnerLookup();
   const { createToast } = useToasts();
-  const foundRunner = useRunnerLookup();
 
   const onClick_Ping = () => {
     createToast({ message: "Runner Lookup", type: "info" });
@@ -15,9 +13,10 @@ export function SettingsHub() {
 
   return (
     <div>
-      <h1><b>Settings Hub</b></h1>
-      <Button onClick={onClick_Ping}>Ping</Button>
-      {foundRunner}
+      <h1>
+        <b>Settings Hub</b>
+      </h1>
+      <Button onClick={onClick_Ping}>Random Runner</Button>
     </div>
   );
 }
