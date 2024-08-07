@@ -6,7 +6,7 @@ export function SettingsHub() {
   const clickInMutation = UseRunnerLookup();
   const { createToast } = useToasts();
 
-  const onClick_Ping = () => {
+  const onClick_RandomRunner = () => {
     createToast({ message: "Runner Lookup", type: "info" });
     clickInMutation.mutate("ping from the renderer!");
   };
@@ -16,7 +16,7 @@ export function SettingsHub() {
       <h1>
         <b>Settings Hub</b>
       </h1>
-      <Button onClick={onClick_Ping}>Random Runner</Button>
+      <Button onClick={onClick_RandomRunner}>Random Runner</Button>
     </div>
   );
 }
