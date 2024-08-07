@@ -38,6 +38,7 @@ export function InsertOrUpdateTimingRecord(record: TimingRecord) {
 
   const stationID: number = global.shared.myStationID as number;
   const dateISO: string = record.datetime.toISOString();
+  const note: string = record.note;
   const sent: number = 0;
 
   const query = db.prepare(`SELECT * FROM Runners WHERE bib_id = ?`).get(record.bib);
@@ -45,19 +46,19 @@ export function InsertOrUpdateTimingRecord(record: TimingRecord) {
     switch (record.type) {
       case RecordType.In: {
         update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
+          `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', last_changed = '${dateISO}', note ='${note}' WHERE bib_id = ?`
         );
         break;
       }
       case RecordType.Out: {
         update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_out = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
+          `UPDATE Runners SET station_id = '${stationID}', time_out = '${dateISO}', last_changed = '${dateISO}', note ='${note}' WHERE bib_id = ?`
         );
         break;
       }
       case RecordType.InOut: {
         update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', time_out = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
+          `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', time_out = '${dateISO}', last_changed = '${dateISO}', note ='${note}' WHERE bib_id = ?`
         );
         break;
       }
@@ -65,20 +66,20 @@ export function InsertOrUpdateTimingRecord(record: TimingRecord) {
     update.run(record.bib);
   } else {
     insert = db.prepare(
-      `INSERT INTO Runners (bib_id, station_id, time_in, time_out, last_changed, sent) VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Runners (bib_id, station_id, time_in, time_out, last_changed, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
 
     switch (record.type) {
       case RecordType.In: {
-        insert.run(record.bib, stationID, dateISO, null, dateISO, sent);
+        insert.run(record.bib, stationID, dateISO, null, dateISO, note, sent);
         break;
       }
       case RecordType.Out: {
-        insert.run(record.bib, stationID, null, dateISO, dateISO, sent);
+        insert.run(record.bib, stationID, null, dateISO, dateISO, note, sent);
         break;
       }
       case RecordType.InOut: {
-        insert.run(record.bib, stationID, dateISO, dateISO, dateISO, sent);
+        insert.run(record.bib, stationID, dateISO, dateISO, dateISO, note, sent);
         break;
       }
     }
@@ -139,6 +140,7 @@ export function CreateTables(): boolean {
         time_in DATETIME,
         time_out DATETIME,
         last_changed TEXT,
+        note TEXT,
         sent BOOLEAN DEFAULT (FALSE)
         )`);
 
@@ -160,6 +162,7 @@ export function CreateTables(): boolean {
         time_in DATETIME,
         time_out DATETIME,
         last_changed TEXT,
+        note TEXT,
         sent BOOLEAN DEFAULT (FALSE)
         )`);
 
