@@ -19,7 +19,7 @@ export function useGetRunnerData(): Array<Runner> {
     return GetRunnerData(dataset);
   });
 
-  return runnerData;
+  return runnerData; // this only executes on page load, not with the hook
 }
 
 export function useUpdateRunnerData(): Array<Runner> {
@@ -29,7 +29,7 @@ export function useUpdateRunnerData(): Array<Runner> {
     return GetRunnerData(dataset);
   });
 
-  return runnerData;
+  return runnerData; // this only executes on page load, not with the hook
 }
 
 function GetRunnerData(dataset: Array<object>): Array<Runner> {
