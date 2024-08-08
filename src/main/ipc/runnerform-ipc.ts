@@ -1,19 +1,22 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
+import { RunnerDB, TimingRecord } from "../../shared/models";
 import * as dbRunner from "../database/runners-db";
+import * as dbTimings from "../database/timingRecordsDb";
+import { Handler } from "../types";
 
-export const init = () => {
-  ipcMain.handle("get-runners-table", async (_, dataset: Array<object>) => {
-    dataset = dbRunner.ReadRunnersTable();
-    return dataset;
-  });
-
-  ipcMain.on("on-update-runners-table", async (_, dataset: Array<object>) => {
-    dataset = dbRunner.ReadRunnersTable();
-    return dataset;
-  });
+const getRunnersTable: Handler<RunnerDB[]> = () => {
+  return dbRunner.readRunnersTable();
 };
 
-export default {
-  init
+const addTimingRecord: Handler<TimingRecord, string> = (_, record) => {
+  const logMessage = dbTimings.insertOrUpdateTimingRecord(record);
+  if (!logMessage) return "";
+  console.log(logMessage);
+  return logMessage;
+};
+
+export const initRunnerFormHandlers = () => {
+  ipcMain.handle("get-runners-table", getRunnersTable);
+  ipcMain.handle("add-timing-record", addTimingRecord);
 };

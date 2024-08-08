@@ -1,46 +1,38 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
-import { Runner } from "../../shared/models";
 import * as dbAPI from "../database/main-db";
+import { Handler } from "../types";
 
-export const init = () => {
-  /**
-   * IPC API
-   * This is where we use native/server-side platform APIs (like NodeJS modules)
-   */
+const runnerLookup: Handler = () => {
+  const randomBib = randomIntFromInterval(1, 371);
 
-  ipcMain.handle("runner-lookup", async (_, message) => {
-    const bibNumber: number = randomIntFromInterval(1, 371);
-    let result: string;
-    let runner: Runner | undefined;
+  let message: string = "";
 
-    console.log("ping-pong", message);
-
-    try {
-      runner = dbAPI.LookupStartListRunnerByBib(bibNumber);
-    } catch (e: unknown) {
-      if (e instanceof Error) result = e.message;
+  try {
+    const runner = dbAPI.LookupStartListRunnerByBib(randomBib);
+    if (!runner) {
+      message = `Bib #${randomBib} not found!`;
+    } else {
+      message = `Found #${runner.bib} ${runner.firstname} ${runner.lastname} ${runner.city}`;
     }
+  } catch (e) {
+    if (e instanceof Error) message = e.message;
+  }
 
-    if (runner == undefined) return `Bib #${bibNumber} not found!`;
-
-    result = `Found #${runner.bib} ${runner.firstname} ${runner.lastname} ${runner.city}`;
-    console.log(result);
-
-    return result;
-  });
-
-  // ipcMain.handle("dialog:open", async (_, args) => {
-  //   const result = await dialog.showOpenDialog({ properties: ["openFile"] });
-  //   return result;
-  // });
+  console.log(message);
+  return message;
 };
 
-function randomIntFromInterval(min, max) {
+export const initSettingsHandlers = () => {
+  ipcMain.handle("runner-lookup", runnerLookup);
+};
+
+// ipcMain.handle("dialog:open", async (_, args) => {
+//   const result = await dialog.showOpenDialog({ properties: ["openFile"] });
+//   return result;
+// });
+
+function randomIntFromInterval(min: number, max: number) {
   // min and max included
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
-
-export default {
-  init
-};

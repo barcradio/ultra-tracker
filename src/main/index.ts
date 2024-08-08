@@ -3,8 +3,7 @@ import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
 import { dblocal as db } from "./database/main-db";
-import headerIPC from "./ipc/header-ipc";
-import settingsIPC from "./ipc/settings-ipc";
+import { initializeIpcHandlers } from "./ipc/initIpc";
 
 function createWindow(): void {
   // Create the browser window.
@@ -39,8 +38,7 @@ function createWindow(): void {
 }
 
 app.on("ready", () => {
-  console.log("Application execution path: " + app.getAppPath());
-
+  console.log("Application execution path:" + app.getAppPath());
   db.ConnectToDB();
 });
 
@@ -58,9 +56,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  headerIPC.init();
-  settingsIPC.init();
-
+  initializeIpcHandlers();
   createWindow();
 
   app.on("activate", function () {
