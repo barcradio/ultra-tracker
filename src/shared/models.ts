@@ -1,6 +1,16 @@
 /**
  * Custom models (types) for ultra-tracker
  */
+export interface RunnerDB {
+  index: number;
+  bib_id: number;
+  station_id: number;
+  time_in: Date;
+  time_out: Date;
+  last_changed: Date;
+  sent: boolean;
+}
+
 export type Runner = {
   index: number;
   bib: number;

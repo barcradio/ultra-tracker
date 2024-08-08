@@ -3,10 +3,10 @@ import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { type Runner, useUpdateRunnerData } from "../../hooks/useRunnerData";
+import { type Runner, useRunnerData } from "../../hooks/useRunnerData";
 
 export function RunnerEntry() {
-  const RunnerData: Array<Runner> = useUpdateRunnerData();
+  const { data: runnerData } = useRunnerData();
 
   const columns: ColumnDef<Runner> = [
     {
@@ -41,9 +41,9 @@ export function RunnerEntry() {
       <RunnerFormStats />
       <div className="h-full bg-component grow">
         <DataGrid
-          data={RunnerData}
+          data={runnerData ?? []}
           columns={columns}
-          actionButtons={(row) => <EditRunner runner={row} runners={RunnerData} />}
+          actionButtons={(row) => <EditRunner runner={row} runners={runnerData ?? []} />}
           initialSort={{
             field: "sequence",
             ascending: false
