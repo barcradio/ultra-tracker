@@ -1,11 +1,11 @@
 import fs from "fs";
 import Database, { Statement } from "better-sqlite3";
 import global from "../../shared/global";
-import { RecordType, Runner, TimingRecord } from "../../shared/models";
+import { Runner } from "../../shared/models";
 
 export abstract class dblocal {
   public static ConnectToDB() {
-    let db: Database;
+    let db: Database.Database;
     const dbPath = global.shared.dbPath;
     const dbFullPath = global.shared.dbFullPath;
     const tableCount: number = 5;
@@ -15,84 +15,29 @@ export abstract class dblocal {
     try {
       db = global.shared.dbConnection = new Database(dbFullPath);
       db.pragma("journal_mode = WAL");
-      console.log("Connected to SQLite Database: " + dbFullPath);
+      console.log("Connected to SQLite Database:" + dbFullPath);
+
+      const query = db.prepare(`SELECT count(*) FROM sqlite_master WHERE type='table'`);
+      const result = query.get() as Record<string, number>;
+
+      if (result["count(*)"] < tableCount) CreateTables();
     } catch (e: unknown) {
       if (e instanceof Error) {
-        console.log(`Unable to connect to or create database: ${e.message}`);
+        console.log(`Unable to connect or create database: ${e.message}`);
         return;
-      }
-    }
-
-    const tables: Statement = db.prepare(`SELECT count(*) FROM sqlite_master WHERE type='table'`);
-    const result: object = tables.get();
-
-    if (result["count(*)"] < tableCount) {
-      CreateTables();
-    }
-  }
-}
-
-export function InsertOrUpdateTimingRecord(record: TimingRecord) {
-  const db: Database = global.shared.dbConnection;
-  let insert: Statement, update: Statement;
-
-  const stationID: number = global.shared.myStationID as number;
-  const dateISO: string = record.datetime.toISOString();
-  const note: string = record.note;
-  const sent: number = 0;
-
-  const query = db.prepare(`SELECT * FROM Runners WHERE bib_id = ?`).get(record.bib);
-  if (query?.bib_id == record.bib) {
-    switch (record.type) {
-      case RecordType.In: {
-        update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', last_changed = '${dateISO}', note ='${note}' WHERE bib_id = ?`
-        );
-        break;
-      }
-      case RecordType.Out: {
-        update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_out = '${dateISO}', last_changed = '${dateISO}', note ='${note}' WHERE bib_id = ?`
-        );
-        break;
-      }
-      case RecordType.InOut: {
-        update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', time_out = '${dateISO}', last_changed = '${dateISO}', note ='${note}' WHERE bib_id = ?`
-        );
-        break;
-      }
-    }
-    update.run(record.bib);
-  } else {
-    insert = db.prepare(
-      `INSERT INTO Runners (bib_id, station_id, time_in, time_out, last_changed, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
-    );
-
-    switch (record.type) {
-      case RecordType.In: {
-        insert.run(record.bib, stationID, dateISO, null, dateISO, note, sent);
-        break;
-      }
-      case RecordType.Out: {
-        insert.run(record.bib, stationID, null, dateISO, dateISO, note, sent);
-        break;
-      }
-      case RecordType.InOut: {
-        insert.run(record.bib, stationID, dateISO, dateISO, dateISO, note, sent);
-        break;
       }
     }
   }
 }
 
 export function LookupStartListRunnerByBib(bibNumber: number): Runner | undefined {
-  const db: Database = global.shared.dbConnection;
+  const db: Database.Database = global.shared.dbConnection;
 
   let result: Runner | undefined;
 
   try {
-    const startListRunner = db.prepare(`SELECT * FROM StartList WHERE Bib = ?`).get(bibNumber);
+    const query = db.prepare(`SELECT * FROM StartList WHERE Bib = ?`);
+    const startListRunner = query.get(bibNumber);
 
     // neither of these checks seem to work that well
     if (startListRunner.Bib === undefined || typeof startListRunner.Bib !== "number")
@@ -127,11 +72,12 @@ export function LookupStartListRunnerByBib(bibNumber: number): Runner | undefine
 }
 
 export function CreateTables(): boolean {
-  const db: Database = global.shared.dbConnection;
-  let result: string;
+  const db: Database.Database = global.shared.dbConnection;
   let CmdResult: Statement;
 
   //Create each of the tables
+
+  //Create Runners table
   try {
     CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Runners (
         "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -140,15 +86,12 @@ export function CreateTables(): boolean {
         time_in DATETIME,
         time_out DATETIME,
         last_changed TEXT,
-        note TEXT,
         sent BOOLEAN DEFAULT (FALSE)
         )`);
-
-    result = CmdResult.run();
-  } catch (e: unknown) {
+    CmdResult.run();
+  } catch (e) {
     if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to create 'Runners' table ${result}`);
+      console.log(`Failed to create'Runners'table ${e.message}`);
       return false;
     }
   }
@@ -166,11 +109,10 @@ export function CreateTables(): boolean {
         sent BOOLEAN DEFAULT (FALSE)
         )`);
 
-    result = CmdResult.run();
-  } catch (e: unknown) {
+    CmdResult.run();
+  } catch (e) {
     if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to create 'Events' table ${result}`);
+      console.log(`Failed to create'Runners'table ${e.message}`);
       return false;
     }
   }
@@ -190,11 +132,10 @@ export function CreateTables(): boolean {
         EmergencyName TEXT
         )`);
 
-    result = CmdResult.run();
-  } catch (e: unknown) {
+    CmdResult.run();
+  } catch (e) {
     if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to create 'StartList' table ${result}`);
+      console.log(`Failed to create'Runners'table ${e.message}`);
       return false;
     }
   }
@@ -207,11 +148,10 @@ export function CreateTables(): boolean {
         Last_changed DATETIME
         )`);
 
-    result = CmdResult.run();
-  } catch (e: unknown) {
+    CmdResult.run();
+  } catch (e) {
     if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to create 'Stations' table ${result}`);
+      console.log(`Failed to create'Runners'table ${e.message}`);
       return false;
     }
   }
@@ -266,108 +206,32 @@ export function CreateTables(): boolean {
         Last_changed DATETIME
         )`);
 
-    result = CmdResult.run();
-  } catch (e: unknown) {
+    CmdResult.run();
+  } catch (e) {
     if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to create 'Output' table ${result}`);
+      console.log(`Failed to create'Runners'table ${e.message}`);
       return false;
     }
   }
+
   console.log(`Default tables were successfully created.`);
   return true;
 }
 
-export function ClearStartListTable(): boolean {
-  const db: Database = global.shared.dbConnection;
-  let CmdResult: Statement;
-  let result: string;
-
+function clearTable(tableName: string): boolean {
+  const db: Database.Database = global.shared.dbConnection;
   try {
-    CmdResult = db.prepare(`DELETE * FROM StartList`);
-    result = CmdResult.run();
-
+    const query = db.prepare(`DELETE * FROM ?`);
+    query.run(tableName);
     return true;
   } catch (e: unknown) {
-    if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to delete 'StartList' table ${result}`);
-    }
+    if (e instanceof Error) console.log(`Failed to delete'${tableName}'table: ${e.message}`);
     return false;
   }
 }
 
-export function ClearEventsTable(): boolean {
-  const db: Database = global.shared.dbConnection;
-  let CmdResult: Statement;
-  let result: string;
-
-  try {
-    CmdResult = db.prepare(`DELETE * FROM Events`);
-    result = CmdResult.run();
-
-    return true;
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to delete 'Events' table ${result}`);
-    }
-    return false;
-  }
-}
-
-export function ClearRunnersTable(): boolean {
-  const db: Database = global.shared.dbConnection;
-  let CmdResult: Statement;
-  let result: string;
-  try {
-    CmdResult = db.prepare(`DELETE * FROM Runners`);
-    result = CmdResult.run();
-
-    return true;
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to delete 'Runners' table ${result}`);
-    }
-    return false;
-  }
-}
-
-export function ClearStationsTable(): boolean {
-  const db: Database = global.shared.dbConnection;
-  let CmdResult: Statement;
-  let result: string;
-
-  try {
-    CmdResult = db.prepare(`DELETE * FROM Stations`);
-    result = CmdResult.run();
-
-    return true;
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to delete 'Stations' table ${result}`);
-    }
-    return false;
-  }
-}
-
-export function ClearOutputTable(): boolean {
-  const db: Database = global.shared.dbConnection;
-  let CmdResult: Statement;
-  let result: string;
-
-  try {
-    CmdResult = db.prepare(`DELETE * FROM Output`);
-    result = CmdResult.run();
-
-    return true;
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      result = e.message;
-      console.log(`Failed to delete 'Output' table ${result}`);
-    }
-    return false;
-  }
-}
+export const clearStartListTable = () => clearTable("StartList");
+export const clearEventsTable = () => clearTable("Events");
+export const clearRunnersTable = () => clearTable("Runners");
+export const clearStationsTable = () => clearTable("Stations");
+export const clearOutputTable = () => clearTable("Output");
