@@ -96,7 +96,7 @@ export function EditRunner(props: Props) {
 
           <Stack className="gap-4 w-full" direction="col">
             <TextInput
-              label="Runner"
+              label="Runner Bib"
               placeholder="Runner"
               error={form.formState.errors.runner}
               {...form.register("runner", {
@@ -130,6 +130,15 @@ export function EditRunner(props: Props) {
           </Stack>
 
           <Stack className="gap-2 w-full" justify="end" align="center" direction="row">
+            <Button
+              variant="ghost"
+              color="danger"
+              onClick={() => setIsOpen(false)}
+              size="lg"
+              type="button"
+            >
+              DELETE
+            </Button>
             <Button
               variant="ghost"
               color="neutral"
