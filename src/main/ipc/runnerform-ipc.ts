@@ -19,4 +19,5 @@ const addTimingRecord: Handler<TimingRecord, string> = (_, record) => {
 export const initRunnerFormHandlers = () => {
   ipcMain.handle("get-runners-table", getRunnersTable);
   ipcMain.handle("add-timing-record", addTimingRecord);
+  ipcMain.handle("edit-timing-record", addTimingRecord);
 };
