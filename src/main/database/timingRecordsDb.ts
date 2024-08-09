@@ -1,8 +1,9 @@
-import Database from "better-sqlite3";
 import { RecordType, TimingRecord } from "$shared/models";
+import { getDatabaseConnection } from "./connect";
+import { data } from "../../preload/data";
 
 export function insertOrUpdateTimingRecord(record: TimingRecord) {
-  const db: Database.Database = global.shared.dbConnection;
+  const db = getDatabaseConnection();
 
   const query = db.prepare(`SELECT * FROM Runners WHERE Bib_id = ?`);
   const result = query.get(record.bib);
@@ -15,15 +16,15 @@ export function insertOrUpdateTimingRecord(record: TimingRecord) {
 }
 
 function updateTimingRecord(record: TimingRecord) {
-  const db: Database.Database = global.shared.dbConnection;
+  const db = getDatabaseConnection();
   let queryString = "";
 
-  const stationID: number = global.shared.myStationID as number;
-  const dateISO: string = record.datetime.toISOString();
-  const note = "";
+  const stationID = data.station.id;
+  const note = record.note;
 
   switch (record.type) {
     case RecordType.In: {
+      const dateISO: string = record.datetime.toISOString();
       queryString = `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', last_changed = '${dateISO}', note = '${note}' WHERE bib_id = ?`;
       break;
     }
@@ -46,13 +47,14 @@ function updateTimingRecord(record: TimingRecord) {
       console.error(e.message);
       return e.message;
     }
+    return "";
   }
 }
 
 function insertTimingRecord(record: TimingRecord) {
-  const db: Database.Database = global.shared.dbConnection;
+  const db = getDatabaseConnection();
 
-  const stationID: number = global.shared.myStationID as number;
+  const stationID = data.station.id;
   const dateISO: string = record.datetime.toISOString();
   const sent: number = 0;
   const note = "";
@@ -81,5 +83,6 @@ function insertTimingRecord(record: TimingRecord) {
       console.error(e.message);
       return e.message;
     }
+    return "";
   }
 }

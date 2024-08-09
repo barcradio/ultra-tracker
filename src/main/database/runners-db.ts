@@ -1,8 +1,7 @@
-import { Database } from "better-sqlite3";
-import global from "../../shared/global";
+import { getDatabaseConnection } from "./connect";
 
 export function readRunnersTable() {
-  const db: Database = global.shared.dbConnection;
+  const db = getDatabaseConnection();
 
   try {
     const query = db.prepare(`SELECT * FROM Runners`);

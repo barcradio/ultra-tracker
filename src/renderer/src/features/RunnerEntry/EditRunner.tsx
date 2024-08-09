@@ -2,7 +2,6 @@ import { useState } from "react";
 import { FieldError, useForm } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
-import global from "$shared/global";
 import { RunnerDB } from "$shared/models";
 import { Runner } from "../../hooks/useRunnerData";
 import { useEditTiming } from "../../hooks/useTiming";
@@ -61,11 +60,11 @@ export function EditRunner(props: Props) {
     editTiming.mutate({
       index: -1,
       bib_id: data.id,
-      station_id: global.shared.myStationID,
+      station_id: window.data.station.id,
       time_in: data.in,
       time_out: data.out,
       last_changed: new Date(),
-      notes: data.notes,
+      note: data.notes,
       sent: false
     } as RunnerDB);
   };

@@ -2,7 +2,7 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
-import { dblocal as db } from "./database/main-db";
+import { createDatabaseConnection } from "./database/connect";
 import { initializeIpcHandlers } from "./ipc/initIpc";
 
 function createWindow(): void {
@@ -39,7 +39,7 @@ function createWindow(): void {
 
 app.on("ready", () => {
   console.log("Application execution path:" + app.getAppPath());
-  db.ConnectToDB();
+  createDatabaseConnection();
 });
 
 // This method will be called when Electron has finished
