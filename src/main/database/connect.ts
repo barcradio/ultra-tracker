@@ -42,9 +42,17 @@ export function CreateTables(): boolean {
 
   //Create Runners table
   try {
-    CmdResult = db.prepare(
-      `CREATE TABLE IF NOT EXISTS Runners ("index"INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, bib_id DEFAULT (0), station_id INTEGER, time_in DATETIME, time_out TEXT, sent BOOLEAN (FALSE) ) last_changed`
-    );
+    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Runners (
+        "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        bibId INTEGER DEFAULT (0),
+        stationId INTEGER,
+        timeIn DATETIME,
+        timeOut DATETIME,
+        timeModified DATETIME,
+        note TEXT,
+        sent BOOLEAN DEFAULT (FALSE)
+        )`);
+    CmdResult.run();
     CmdResult.run();
   } catch (e) {
     if (e instanceof Error) {
@@ -55,9 +63,16 @@ export function CreateTables(): boolean {
 
   //Create Events table
   try {
-    CmdResult = db.prepare(
-      `CREATE TABLE IF NOT EXISTS Events ("index"INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, bib_id DEFAULT (0), station_id INTEGER, time_in DATETIME, time_out TEXT, note sent BOOLEAN (FALSE) ) last_changed`
-    );
+    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Events (
+        "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        bibId INTEGER DEFAULT (0),
+        stationId INTEGER,
+        timeIn DATETIME,
+        timeOut DATETIME,
+        timeModified DATETIME,
+        note TEXT,
+        sent BOOLEAN DEFAULT (FALSE)
+        )`);
 
     CmdResult.run();
   } catch (e) {
@@ -69,9 +84,18 @@ export function CreateTables(): boolean {
 
   //Create StartList table
   try {
-    CmdResult = db.prepare(
-      `CREATE TABLE IF NOT EXISTS StartList ("index"INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Bib DEFAULT (0), FirstName TEXT, LastName gender Age City State EmergencyPhone INTEGER, EmergencyName TEXT )`
-    );
+    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS StartList (
+        "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        bibId INTEGER DEFAULT (0),
+        firstName TEXT,
+        lastName TEXT,
+        gender TEXT,
+        age INTEGER DEFAULT (0),
+        city TEXT,
+        state TEXT,
+        emergencyPhone INTEGER,
+        emergencyName TEXT
+        )`);
 
     CmdResult.run();
   } catch (e) {
@@ -83,9 +107,11 @@ export function CreateTables(): boolean {
 
   //Create Stations table
   try {
-    CmdResult = db.prepare(
-      `CREATE TABLE IF NOT EXISTS Stations ("index"INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, StaName TEXT, Last_changed DATETIME )`
-    );
+    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Stations (
+        "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        StationName TEXT,
+        Last_changed DATETIME
+        )`);
 
     CmdResult.run();
   } catch (e) {
@@ -97,9 +123,33 @@ export function CreateTables(): boolean {
 
   //Create Output table
   try {
-    CmdResult = db.prepare(
-      `CREATE TABLE IF NOT EXISTS Output ("index"INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Bib DEFAULT (0), Sta1_in DATETIME, Sta1_out Sta2_in Sta2_out Sta3_in Sta3_out Sta4_in Sta4_out Sta5_in Sta5_out Sta6_in Sta6_out Sta7_in Sta7_out Sta8_in Sta8_out Sta9_in Sta9_out Sta10_in Sta10_out Sta11_in Sta11_out Sta12_in Sta12_out Sta13_in Sta13_out Sta14_in Sta14_out Sta15_in Sta15_out Sta16_in Sta16_out Sta17_in Sta17_out Sta18_in Sta18_out Sta19_in Sta19_out Sta20_in Sta20_out Dnf BOOLEAN, Dns Last_changed DATETIME )`
-    );
+    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Output (
+        "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        bibId INTEGER DEFAULT (0),
+        Sta1_in DATETIME, Sta1_out DATETIME,
+        Sta2_in DATETIME, Sta2_out DATETIME,
+        Sta3_in DATETIME, Sta3_out DATETIME,
+        Sta4_in DATETIME, Sta4_out DATETIME,
+        Sta5_in DATETIME, Sta5_out DATETIME,
+        Sta6_in DATETIME, Sta6_out DATETIME,
+        Sta7_in DATETIME, Sta7_out DATETIME,
+        Sta8_in DATETIME, Sta8_out DATETIME,
+        Sta9_in DATETIME, Sta9_out DATETIME,
+        Sta10_in DATETIME, Sta10_out DATETIME,
+        Sta11_in DATETIME, Sta11_out DATETIME,
+        Sta12_in DATETIME, Sta12_out DATETIME,
+        Sta13_in DATETIME, Sta13_out DATETIME,
+        Sta14_in DATETIME, Sta14_out DATETIME,
+        Sta15_in DATETIME, Sta15_out DATETIME,
+        Sta16_in DATETIME, Sta16_out DATETIME,
+        Sta17_in DATETIME, Sta17_out DATETIME,
+        Sta18_in DATETIME, Sta18_out DATETIME,
+        Sta19_in DATETIME, Sta19_out DATETIME,
+        Sta20_in DATETIME, Sta20_out DATETIME,
+        Dnf BOOLEAN,
+        Dns BOOLEAN,
+        Last_changed DATETIME
+        )`);
 
     CmdResult.run();
   } catch (e) {
