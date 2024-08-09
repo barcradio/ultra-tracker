@@ -2,7 +2,6 @@ import { useState } from "react";
 import { FieldError, useForm } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
-import global from "$shared/global";
 import { RunnerDB } from "$shared/models";
 import { Runner } from "../../hooks/useRunnerData";
 import { useEditTiming } from "../../hooks/useTiming";
