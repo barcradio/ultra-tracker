@@ -32,7 +32,7 @@ export function useRunnerData() {
           runner.time_out == null
             ? formatDate(runner.time_out)
             : formatDate(new Date(runner.time_out)),
-        notes: "",
+        notes: runner.notes == null ? "" : runner.notes,
         name: ""
       }));
     }
