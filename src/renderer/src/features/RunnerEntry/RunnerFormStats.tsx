@@ -1,8 +1,8 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
 import { Button, Stack, TextInput } from "~/components";
-import { useCreateTiming } from "~/hooks/useCreateTiming";
+import { useCreateTiming } from "~/hooks/useTiming";
+import { RecordType } from "$shared/models";
 import { Stats } from "./Stats";
-import { RecordType } from "../../../../shared/models";
 
 export function RunnerFormStats() {
   const inputRef = useRef<HTMLInputElement>(null);
