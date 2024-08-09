@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FieldError, useForm } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
-import { Runner } from "./useFakeData";
+import { Runner } from "../../hooks/useRunnerData";
 import { useToasts } from "../Toasts/useToasts";
 
 interface Props {
