@@ -11,6 +11,7 @@ module.exports = defineConfig({
       alias: {
         $resources: resolve(__dirname, "resources"),
         $renderer: resolve(__dirname, "src/renderer/src"),
+        $preload: resolve(__dirname, "src/preload/src"),
         $shared: resolve(__dirname, "src/shared")
       }
     }

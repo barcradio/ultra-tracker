@@ -8,7 +8,7 @@ export interface RunnerDB {
   time_in: Date | null;
   time_out: Date | null;
   last_changed: Date | null;
-  notes: string;
+  note: string;
   sent: boolean;
 }
 

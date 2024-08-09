@@ -61,11 +61,11 @@ export function EditRunner(props: Props) {
     editTiming.mutate({
       index: -1,
       bib_id: data.id,
-      station_id: global.shared.myStationID,
+      station_id: window.data.station.id,
       time_in: data.in,
       time_out: data.out,
       last_changed: new Date(),
-      notes: data.notes,
+      note: data.notes,
       sent: false
     } as RunnerDB);
   };

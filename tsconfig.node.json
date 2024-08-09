@@ -12,7 +12,8 @@
 		"paths": {
 			"$resources/*": ["./resources/*"],
 			"$renderer/*": ["./src/renderer/src/*"],
-			"$shared/*": ["./src/shared/*"]
+			"$shared/*": ["./src/shared/*"],
+			"$preload/*": ["./src/preload/*"]
 		},
 		"baseUrl": "."
 	}
