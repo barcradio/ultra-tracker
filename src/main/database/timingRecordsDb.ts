@@ -22,8 +22,6 @@ function updateTimingRecord(record: TimingRecord) {
   const dateISO: string = record.datetime.toISOString();
   const note = "";
 
-
-
   switch (record.type) {
     case RecordType.In: {
       queryString = `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', last_changed = '${dateISO}', note = '${note}' WHERE bib_id = ?`;
