@@ -47,7 +47,8 @@ export function EditRunner(props: Props) {
 
       console.log(data);
       form.clearErrors();
-      createToast({ message: "Runner updated", type: "success" });
+      createToast({ message: "Runner updated", type: "success" }); // TODO: need to determine if successful
+      setIsOpen(false);
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -59,13 +60,13 @@ export function EditRunner(props: Props) {
   const updateRunner = (data: Runner) => {
     editTiming.mutate({
       index: -1,
-      bib_id: data.id,
-      station_id: window.data.station.id,
-      time_in: data.in,
-      time_out: data.out,
-      last_changed: new Date(),
+      bibId: data.runner,
+      stationId: window.data.station.id,
+      timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
+      timeOut: data.out?.toString() == "Invalid Date" ? null : data.out,
+      timeModified: new Date(),
       note: data.notes,
-      sent: false
+      sent: false // if updating record, sent should always reset flag to false
     } as RunnerDB);
   };
 
@@ -126,7 +127,7 @@ export function EditRunner(props: Props) {
               placeholder="In Time"
               error={form.formState.errors.in}
               {...form.register("in", {
-                required: "In Time is required",
+                //required: "In Time is required",
                 valueAsDate: true
               })}
             />
@@ -135,7 +136,7 @@ export function EditRunner(props: Props) {
               placeholder="Out Time"
               error={form.formState.errors.out}
               {...form.register("out", {
-                required: "Out Time is required",
+                //required: "Out Time is required",
                 valueAsDate: true
               })}
             />

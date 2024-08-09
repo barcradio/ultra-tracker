@@ -13,10 +13,14 @@ export function RunnerFormStats() {
     if (bibNumber.length === 0) return;
 
     createTiming.mutate({
-      bib: parseInt(bibNumber),
-      datetime: new Date(),
-      type,
-      note: ""
+      index: -1,
+      bibId: parseInt(bibNumber),
+      stationId: window.data.station.id,
+      timeIn: type == RecordType.In || type == RecordType.InOut ? new Date() : null,
+      timeOut: type == RecordType.Out || type == RecordType.InOut ? new Date() : null,
+      timeModified: new Date(),
+      note: "",
+      sent: false // when creating record, sent should always set flag to false
     });
 
     clearInput();

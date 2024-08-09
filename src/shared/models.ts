@@ -3,11 +3,11 @@
  */
 export interface RunnerDB {
   index: number;
-  bib_id: number;
-  station_id: number;
-  time_in: Date | null;
-  time_out: Date | null;
-  last_changed: Date | null;
+  bibId: number;
+  stationId: number;
+  timeIn: Date | null;
+  timeOut: Date | null;
+  timeModified: Date | null;
   note: string;
   sent: boolean;
 }

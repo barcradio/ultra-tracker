@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { RunnerDB, TimingRecord } from "$shared/models";
+import { RunnerDB } from "$shared/models";
 import { useIpcRenderer } from "./useIpcRenderer";
 
 export function useCreateTiming() {
@@ -7,8 +7,8 @@ export function useCreateTiming() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (timingRecord: TimingRecord) => {
-      return ipcRenderer.invoke("add-timing-record", timingRecord);
+    mutationFn: (timeRecord: RunnerDB) => {
+      return ipcRenderer.invoke("add-timing-record", timeRecord);
     },
     onSuccess: () => {
       // Invalidate the runners-table query to refetch the data,
@@ -23,8 +23,8 @@ export function useEditTiming() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (timingRecord: RunnerDB) => {
-      return ipcRenderer.invoke("edit-timing-record", timingRecord);
+    mutationFn: (timeRecord: RunnerDB) => {
+      return ipcRenderer.invoke("edit-timing-record", timeRecord);
     },
     onSuccess: () => {
       // Invalidate the runners-table query to refetch the data,

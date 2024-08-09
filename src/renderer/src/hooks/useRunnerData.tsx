@@ -23,16 +23,13 @@ export function useRunnerData() {
       return dataset.map((runner: RunnerDB) => ({
         id: runner.index,
         sequence: runner.index,
-        runner: runner.bib_id,
-        in:
-          runner.time_in == null
-            ? formatDate(runner.time_in)
-            : formatDate(new Date(runner.time_in)),
+        runner: runner.bibId,
+        in: runner.timeIn == null ? formatDate(runner.timeIn) : formatDate(new Date(runner.timeIn)),
         out:
-          runner.time_out == null
-            ? formatDate(runner.time_out)
-            : formatDate(new Date(runner.time_out)),
-        notes: runner.note == null ? "" : runner.note,
+          runner.timeOut == null
+            ? formatDate(runner.timeOut)
+            : formatDate(new Date(runner.timeOut)),
+        notes: runner.note,
         name: ""
       }));
     }
