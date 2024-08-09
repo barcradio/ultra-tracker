@@ -5,9 +5,10 @@ export interface RunnerDB {
   index: number;
   bib_id: number;
   station_id: number;
-  time_in: Date;
-  time_out: Date;
-  last_changed: Date;
+  time_in: Date | null;
+  time_out: Date | null;
+  last_changed: Date | null;
+  notes: string;
   sent: boolean;
 }
 
