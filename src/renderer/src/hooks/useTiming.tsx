@@ -33,3 +33,19 @@ export function useEditTiming() {
     }
   });
 }
+
+export function useDeleteTiming() {
+  const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (timeRecord: RunnerDB) => {
+      return ipcRenderer.invoke("delete-timing-record", timeRecord);
+    },
+    onSuccess: () => {
+      // Invalidate the runners-table query to refetch the data,
+      // so that the new/updated timing record is displayed
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+    }
+  });
+}

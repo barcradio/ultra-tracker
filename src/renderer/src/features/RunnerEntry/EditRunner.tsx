@@ -4,7 +4,7 @@ import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
 import { RunnerDB } from "$shared/models";
 import { Runner } from "../../hooks/useRunnerData";
-import { useEditTiming } from "../../hooks/useTiming";
+import { useDeleteTiming, useEditTiming } from "../../hooks/useTiming";
 import { useToasts } from "../Toasts/useToasts";
 
 interface Props {
@@ -24,6 +24,7 @@ export function EditRunner(props: Props) {
   const [editingRunner, setEditingRunner] = useState<Runner>(props.runner);
   const [isOpen, setIsOpen] = useState(false);
   const editTiming = useEditTiming();
+  const deleteTiming = useDeleteTiming();
 
   const form = useForm<Runner>({
     values: editingRunner
@@ -57,6 +58,10 @@ export function EditRunner(props: Props) {
     }
   );
 
+  const handleDeleteRunner = () => {
+    deleteRunner(editingRunner);
+  };
+
   const updateRunner = (data: Runner) => {
     editTiming.mutate({
       index: -1,
@@ -67,6 +72,19 @@ export function EditRunner(props: Props) {
       timeModified: new Date(),
       note: data.notes,
       sent: false // if updating record, sent should always reset flag to false
+    } as RunnerDB);
+  };
+
+  const deleteRunner = (data: Runner) => {
+    deleteTiming.mutate({
+      index: -1,
+      bibId: data.runner,
+      stationId: window.data.station.id,
+      timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
+      timeOut: data.out?.toString() == "Invalid Date" ? null : data.out,
+      timeModified: new Date(),
+      note: data.notes,
+      sent: false
     } as RunnerDB);
   };
 
@@ -152,7 +170,7 @@ export function EditRunner(props: Props) {
             <Button
               variant="ghost"
               color="danger"
-              onClick={() => setIsOpen(false)}
+              onClick={() => handleDeleteRunner()}
               size="lg"
               type="button"
             >

@@ -16,8 +16,16 @@ const addTimeRecord: Handler<RunnerDB, string> = (_, record) => {
   return logMessage;
 };
 
+const deleteTimeRecord: Handler<RunnerDB, string> = (_, record) => {
+  const logMessage = dbTimings.deleteTimeRecord(record);
+  if (!logMessage) return "";
+  console.log(logMessage);
+  return logMessage;
+};
+
 export const initRunnerFormHandlers = () => {
   ipcMain.handle("get-runners-table", getRunnersTable);
   ipcMain.handle("add-timing-record", addTimeRecord);
   ipcMain.handle("edit-timing-record", addTimeRecord);
+  ipcMain.handle("delete-timing-record", deleteTimeRecord);
 };

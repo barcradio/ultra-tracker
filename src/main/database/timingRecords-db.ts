@@ -15,6 +15,24 @@ export function insertOrUpdateTimeRecord(record: RunnerDB) {
   }
 }
 
+export function deleteTimeRecord(record: RunnerDB) {
+  const db = getDatabaseConnection();
+  let queryString = "";
+
+  queryString = `DELETE FROM Runners WHERE bibId = ?`;
+  try {
+    const query = db.prepare(queryString);
+    query.run(record.bibId);
+    return `timing-record:delete ${record.bibId}`;
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return e.message;
+    }
+    return "";
+  }
+}
+
 function updateTimeRecord(record: RunnerDB) {
   const db = getDatabaseConnection();
   let queryString = "";
