@@ -20,9 +20,9 @@ export function useRunnerData() {
     queryKey: ["runners-table"],
     queryFn: async (): Promise<Runner[]> => {
       const dataset = await ipcRenderer.invoke("get-runners-table");
-      return dataset.map((runner: RunnerDB) => ({
+      return dataset.map((runner: RunnerDB, index) => ({
         id: runner.index,
-        sequence: runner.index,
+        sequence: index + 1,
         runner: runner.bibId,
         in: runner.timeIn == null ? formatDate(runner.timeIn) : formatDate(new Date(runner.timeIn)),
         out:
