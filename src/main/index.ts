@@ -2,15 +2,14 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
-import { dblocal as db } from "./database/main-db";
-import headerIPC from "./ipc/header-ipc";
-import settingsIPC from "./ipc/settings-ipc";
+import { createDatabaseConnection } from "./database/connect";
+import { initializeIpcHandlers } from "./ipc/initIpc";
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1440,
+    height: 1080,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === "linux" ? { icon } : {}),
@@ -39,9 +38,8 @@ function createWindow(): void {
 }
 
 app.on("ready", () => {
-  console.log("Application execution path: " + app.getAppPath());
-
-  db.ConnectToDB();
+  console.log("Application execution path:" + app.getAppPath());
+  createDatabaseConnection();
 });
 
 // This method will be called when Electron has finished
@@ -58,9 +56,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  headerIPC.init();
-  settingsIPC.init();
-
+  initializeIpcHandlers();
   createWindow();
 
   app.on("activate", function () {

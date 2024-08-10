@@ -1,6 +1,17 @@
 /**
  * Custom models (types) for ultra-tracker
  */
+export interface RunnerDB {
+  index: number;
+  bibId: number;
+  stationId: number;
+  timeIn: Date | null;
+  timeOut: Date | null;
+  timeModified: Date | null;
+  note: string;
+  sent: boolean;
+}
+
 export type Runner = {
   index: number;
   bib: number;
@@ -15,7 +26,7 @@ export type Runner = {
   dns: boolean | undefined;
   dnf: boolean | undefined;
   dnfStation: number | undefined;
-  dnfDateTime: Date | undefined;
+  dnfDateTime: Date | null;
 };
 
 export type TimingRecord = {

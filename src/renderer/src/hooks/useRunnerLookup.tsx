@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { useIpcRenderer } from "./useIpcRenderer";
 
-export function UseRunnerLookup() {
+export function useRunnerLookup() {
   const ipcRenderer = useIpcRenderer();
   const { createToast } = useToasts();
 
