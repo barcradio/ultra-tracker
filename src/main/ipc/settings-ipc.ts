@@ -17,7 +17,7 @@ export const init = () => {
     console.log("ping-pong", message);
 
     try {
-      runner = dbAPI.LookupStartListRunnerByBib(bibNumber);
+      runner = dbAPI.LookupAthletesRunnerByBib(bibNumber);
     } catch (e: unknown) {
       if (e instanceof Error) result = e.message;
     }

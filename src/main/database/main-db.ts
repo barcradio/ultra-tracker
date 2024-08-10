@@ -40,24 +40,24 @@ export function InsertOrUpdateTimingRecord(record: TimingRecord) {
   const dateISO: string = record.datetime.toISOString();
   const sent: number = 0;
 
-  const query = db.prepare(`SELECT * FROM Runners WHERE bib_id = ?`).get(record.bib);
+  const query = db.prepare(`SELECT * FROM StaEvents WHERE bib_id = ?`).get(record.bib);
   if (query?.bib_id == record.bib) {
     switch (record.type) {
       case RecordType.In: {
         update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
+          `UPDATE StaEvents SET station_id = '${stationID}', time_in = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
         );
         break;
       }
       case RecordType.Out: {
         update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_out = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
+          `UPDATE StaEvents SET station_id = '${stationID}', time_out = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
         );
         break;
       }
       case RecordType.InOut: {
         update = db.prepare(
-          `UPDATE Runners SET station_id = '${stationID}', time_in = '${dateISO}', time_out = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
+          `UPDATE StaEvents SET station_id = '${stationID}', time_in = '${dateISO}', time_out = '${dateISO}', last_changed = '${dateISO}' WHERE bib_id = ?`
         );
         break;
       }
@@ -65,7 +65,7 @@ export function InsertOrUpdateTimingRecord(record: TimingRecord) {
     update.run(record.bib);
   } else {
     insert = db.prepare(
-      `INSERT INTO Runners (bib_id, station_id, time_in, time_out, last_changed, sent) VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, lastChanged, sent) VALUES (?, ?, ?, ?, ?, ?)`
     );
 
     switch (record.type) {
@@ -85,29 +85,29 @@ export function InsertOrUpdateTimingRecord(record: TimingRecord) {
   }
 }
 
-export function LookupStartListRunnerByBib(bibNumber: number): Runner | undefined {
+export function LookupAthletesRunnerByBib(bibNumber: number): Runner | undefined {
   const db: Database = global.shared.dbConnection;
 
   let result: Runner | undefined;
 
   try {
-    const startListRunner = db.prepare(`SELECT * FROM StartList WHERE Bib = ?`).get(bibNumber);
+    const AthletesRunner = db.prepare(`SELECT * FROM Athletes WHERE Bib = ?`).get(bibNumber);
 
     // neither of these checks seem to work that well
-    if (startListRunner.Bib === undefined || typeof startListRunner.Bib !== "number")
+    if (AthletesRunner.Bib === undefined || typeof AthletesRunner.Bib !== "number")
       return undefined;
 
     const runner: Runner = {
-      index: startListRunner.index,
-      bib: startListRunner.Bib,
-      firstname: startListRunner.FirstName,
-      lastname: startListRunner.LastName,
-      gender: startListRunner.gender,
-      age: startListRunner.Age,
-      city: startListRunner.City,
-      state: startListRunner.State,
-      emPhone: startListRunner.EmergencyPhone,
-      emName: startListRunner.EmergencyName,
+      index: AthletesRunner.index,
+      bib: AthletesRunner.Bib,
+      firstname: AthletesRunner.FirstName,
+      lastname: AthletesRunner.LastName,
+      gender: AthletesRunner.gender,
+      age: AthletesRunner.Age,
+      city: AthletesRunner.city,
+      state: AthletesRunner.State,
+      emPhone: AthletesRunner.EmergencyPhone,
+      emName: AthletesRunner.EmergencyName,
       dns: false,
       dnf: false,
       dnfStation: 0,
@@ -132,13 +132,13 @@ export function CreateTables(): boolean {
 
   //Create each of the tables
   try {
-    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Runners (
+    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS StaEvents (
         "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        bib_id INTEGER DEFAULT (0),
-        station_id INTEGER,
-        time_in DATETIME,
-        time_out DATETIME,
-        last_changed TEXT,
+        bibId INTEGER DEFAULT (0),
+        stationId INTEGER,
+        timeIn DATETIME,
+        timeOut DATETIME,
+        lastChanged TEXT,
         sent BOOLEAN DEFAULT (FALSE)
         )`);
 
@@ -146,20 +146,22 @@ export function CreateTables(): boolean {
   } catch (e: unknown) {
     if (e instanceof Error) {
       result = e.message;
-      console.log(`Failed to create 'Runners' table ${result}`);
+      console.log(`Failed to create 'StaEvents' table ${result}`);
       return false;
     }
   }
 
-  //Create Events table
+  /* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
+    of all events to provide a searchable log in a */
+  //Create Eventlog table
   try {
-    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Events (
+    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Eventlog (
         "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        bib_id INTEGER DEFAULT (0),
-        station_id INTEGER,
-        time_in DATETIME,
-        time_out DATETIME,
-        last_changed TEXT,
+        bibId INTEGER DEFAULT (0),
+        stationId INTEGER,
+        timeIn DATETIME,
+        timeOut DATETIME,
+        lastChanged TEXT,
         sent BOOLEAN DEFAULT (FALSE)
         )`);
 
@@ -167,41 +169,53 @@ export function CreateTables(): boolean {
   } catch (e: unknown) {
     if (e instanceof Error) {
       result = e.message;
-      console.log(`Failed to create 'Events' table ${result}`);
+      console.log(`Failed to create 'Eventlog' table ${result}`);
       return false;
     }
   }
 
-  //Create StartList table
+  //Create Athletes table
+  /*  The Athletes table is used to store the data submitted before the 
+      start of the race listing all persons and their emergency contact information.
+
+      There is still the possibility that additional runners could be added after the start.
+  */
   try {
-    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS StartList (
+    CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Athletes (
         "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        Bib INTEGER DEFAULT (0),
-        FirstName TEXT,
-        LastName TEXT,
+        bibId INTEGER DEFAULT (0),
+        firstName TEXT,
+        lastName TEXT,
         gender TEXT,
-        Age INTEGER DEFAULT (0),
-        City TEXT,
-        State TEXT,
-        EmergencyPhone INTEGER,
-        EmergencyName TEXT
+        age INTEGER DEFAULT (0),
+        city TEXT,
+        state TEXT,
+        emergencyPhone INTEGER,
+        emergencyName TEXT
         )`);
 
     result = CmdResult.run();
   } catch (e: unknown) {
     if (e instanceof Error) {
       result = e.message;
-      console.log(`Failed to create 'StartList' table ${result}`);
+      console.log(`Failed to create 'Athletes' table ${result}`);
       return false;
     }
   }
 
   //Create Stations table
+  /*  
+  The Stations table is used to store the operators and the number of the runner station.
+  */
   try {
     CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Stations (
         "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        StaName TEXT,
-        Last_changed DATETIME
+        name TEXT,
+        description TEXT,
+        location BLOB,
+        operators BLOB,
+        distance REAL,
+        identifier TEXT
         )`);
 
     result = CmdResult.run();
@@ -214,52 +228,20 @@ export function CreateTables(): boolean {
   }
 
   //Create Output table
+  /*  
+  The Output table is used to store the final data that is displayed in the Adilas database and is
+  the combination of all stations data.  If another station sends a csv file of their report, that data
+  will be loaded into the table to indicate the overall progress of a given runner for display.
+    (space for up to 20 stations reports)
+  */
   try {
     CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Output (
         "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        Bib INTEGER DEFAULT (0),
-        Sta1_in DATETIME,
-        Sta1_out DATETIME,
-        Sta2_in DATETIME,
-        Sta2_out DATETIME,
-        Sta3_in DATETIME,
-        Sta3_out DATETIME,
-        Sta4_in DATETIME,
-        Sta4_out DATETIME,
-        Sta5_in DATETIME,
-        Sta5_out DATETIME,
-        Sta6_in DATETIME,
-        Sta6_out DATETIME,
-        Sta7_in DATETIME,
-        Sta7_out DATETIME,
-        Sta8_in DATETIME,
-        Sta8_out DATETIME,
-        Sta9_in DATETIME,
-        Sta9_out DATETIME,
-        Sta10_in DATETIME,
-        Sta10_out DATETIME,
-        Sta11_in DATETIME,
-        Sta11_out DATETIME,
-        Sta12_in DATETIME,
-        Sta12_out DATETIME,
-        Sta13_in DATETIME,
-        Sta13_out DATETIME,
-        Sta14_in DATETIME,
-        Sta14_out DATETIME,
-        Sta15_in DATETIME,
-        Sta15_out DATETIME,
-        Sta16_in DATETIME,
-        Sta16_out DATETIME,
-        Sta17_in DATETIME,
-        Sta17_out DATETIME,
-        Sta18_in DATETIME,
-        Sta18_out DATETIME,
-        Sta19_in DATETIME,
-        Sta19_out DATETIME,
-        Sta20_in DATETIME,
-        Sta20_out DATETIME,
-        Dnf BOOLEAN,
-        Dns BOOLEAN,
+        bibId INTEGER DEFAULT (0),
+        inJSON BLOB,
+        outJSON BLOB,
+        dnf BOOLEAN,
+        dns BOOLEAN,
         Last_changed DATETIME
         )`);
 
@@ -275,20 +257,20 @@ export function CreateTables(): boolean {
   return true;
 }
 
-export function ClearStartListTable(): boolean {
+export function ClearAthletesTable(): boolean {
   const db: Database = global.shared.dbConnection;
   let CmdResult: Statement;
   let result: string;
 
   try {
-    CmdResult = db.prepare(`DELETE * FROM StartList`);
+    CmdResult = db.prepare(`DELETE * FROM Athletes`);
     result = CmdResult.run();
 
     return true;
   } catch (e: unknown) {
     if (e instanceof Error) {
       result = e.message;
-      console.log(`Failed to delete 'StartList' table ${result}`);
+      console.log(`Failed to delete 'Athletes' table ${result}`);
     }
     return false;
   }
@@ -300,32 +282,32 @@ export function ClearEventsTable(): boolean {
   let result: string;
 
   try {
-    CmdResult = db.prepare(`DELETE * FROM Events`);
+    CmdResult = db.prepare(`DELETE * FROM EventLog`);
     result = CmdResult.run();
 
     return true;
   } catch (e: unknown) {
     if (e instanceof Error) {
       result = e.message;
-      console.log(`Failed to delete 'Events' table ${result}`);
+      console.log(`Failed to delete 'EventLog' table ${result}`);
     }
     return false;
   }
 }
 
-export function ClearRunnersTable(): boolean {
+export function ClearStaEventsTable(): boolean {
   const db: Database = global.shared.dbConnection;
   let CmdResult: Statement;
   let result: string;
   try {
-    CmdResult = db.prepare(`DELETE * FROM Runners`);
+    CmdResult = db.prepare(`DELETE * FROM StaEvents`);
     result = CmdResult.run();
 
     return true;
   } catch (e: unknown) {
     if (e instanceof Error) {
       result = e.message;
-      console.log(`Failed to delete 'Runners' table ${result}`);
+      console.log(`Failed to delete 'StaEvents' table ${result}`);
     }
     return false;
   }
