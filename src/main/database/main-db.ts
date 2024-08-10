@@ -350,3 +350,34 @@ export function ClearOutputTable(): boolean {
     return false;
   }
 }
+
+
+export function AthletesLoadTable(): boolean {
+  const db: Database = global.shared.dbConnection;
+  let CmdResult: Statement;
+  let result: string;
+  
+  // Read file via a browser
+  // fs.createReadStream()
+  // .readFileSync('foo.txt','utf8');
+
+  // Loop through the csv file
+  
+  //Get a line from the csv file (verify the column header names)
+
+  //Format/convert data from strings into loadable data
+
+  try {
+    CmdResult = db.prepare(`INSERT INTO Athletes ("bibId", "firstName", "lastName", "gender",
+      "age", "city", "state", "emergencyPhone", "emergencyName", )`);
+    result = CmdResult.run();
+
+    return true;
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      result = e.message;
+      console.log(`Failed to delete 'Output' table ${result}`);
+    }
+    return false;
+  }
+}
