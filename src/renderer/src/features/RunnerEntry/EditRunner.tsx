@@ -64,7 +64,7 @@ export function EditRunner(props: Props) {
 
   const updateRunner = (data: Runner) => {
     editTiming.mutate({
-      index: -1,
+      index: data.id,
       bibId: data.runner,
       stationId: window.data.station.id,
       timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
@@ -77,7 +77,7 @@ export function EditRunner(props: Props) {
 
   const deleteRunner = (data: Runner) => {
     deleteTiming.mutate({
-      index: -1,
+      index: data.id,
       bibId: data.runner,
       stationId: window.data.station.id,
       timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
