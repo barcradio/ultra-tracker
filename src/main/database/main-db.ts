@@ -7,24 +7,24 @@ export function LookupStartListRunnerByBib(bibNumber: number): Runner | undefine
   let result: Runner | undefined;
 
   try {
-    const query = db.prepare(`SELECT * FROM StartList WHERE Bib = ?`);
+    const query = db.prepare(`SELECT * FROM StartList WHERE bibId = ?`);
     const startListRunner = query.get(bibNumber);
 
     // neither of these checks seem to work that well
-    if (startListRunner.Bib === undefined || typeof startListRunner.Bib !== "number")
+    if (startListRunner.bibId === undefined || typeof startListRunner.bibId !== "number")
       return undefined;
 
     const runner: Runner = {
       index: startListRunner.index,
-      bib: startListRunner.Bib,
-      firstname: startListRunner.FirstName,
-      lastname: startListRunner.LastName,
+      bib: startListRunner.bibId,
+      firstname: startListRunner.firstName,
+      lastname: startListRunner.lastName,
       gender: startListRunner.gender,
-      age: startListRunner.Age,
-      city: startListRunner.City,
-      state: startListRunner.State,
-      emPhone: startListRunner.EmergencyPhone,
-      emName: startListRunner.EmergencyName,
+      age: startListRunner.age,
+      city: startListRunner.city,
+      state: startListRunner.state,
+      emPhone: startListRunner.emergencyPhone,
+      emName: startListRunner.emergencyName,
       dns: false,
       dnf: false,
       dnfStation: 0,
