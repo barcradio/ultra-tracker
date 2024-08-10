@@ -60,6 +60,9 @@ export function EditRunner(props: Props) {
 
   const handleDeleteRunner = () => {
     deleteRunner(editingRunner);
+    form.clearErrors();
+    createToast({ message: "Runner deleted", type: "success" }); // TODO: need to determine if successful
+    setIsOpen(false);
   };
 
   const updateRunner = (data: Runner) => {

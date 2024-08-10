@@ -76,14 +76,14 @@ export function deleteTimeRecord(record: RunnerDB) {
   const db = getDatabaseConnection();
   let queryString = "";
 
-  const searchResult = getTimeRecordbyBib(record);
+  const searchResult = getTimeRecordbyIndex(record);
 
-  if (searchResult != null && searchResult.bibId == record.bibId) {
-    queryString = `DELETE FROM Runners WHERE bibId = ?`;
+  if (searchResult != null) {
+    queryString = `DELETE FROM Runners WHERE "index" = ?`;
     try {
       const query = db.prepare(queryString);
-      query.run(record.bibId);
-      return `timing-record:delete ${record.bibId}`;
+      query.run(record.index);
+      return `timing-record:delete ${record.index}`;
     } catch (e) {
       if (e instanceof Error) {
         console.error(e.message);
@@ -104,6 +104,9 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB) {
   if (record.timeIn instanceof String) record.timeIn = null;
   if (record.timeOut instanceof String) record.timeOut = null;
   if (record.timeModified instanceof String) record.timeModified = null;
+
+  if (existingRecord.timeIn != null && record.timeIn == null) record.timeIn = new Date(existingRecord.timeIn);
+  if (existingRecord.timeOut != null && record.timeOut == null) record.timeOut = new Date(existingRecord.timeOut);
 
   //build the time record
   const stationID = data.station.id;
