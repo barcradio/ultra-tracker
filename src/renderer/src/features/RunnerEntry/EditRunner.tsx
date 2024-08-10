@@ -2,7 +2,9 @@ import { useState } from "react";
 import { FieldError, useForm } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
-import { Runner } from "./useFakeData";
+import { RunnerDB } from "$shared/models";
+import { Runner } from "../../hooks/useRunnerData";
+import { useDeleteTiming, useEditTiming } from "../../hooks/useTiming";
 import { useToasts } from "../Toasts/useToasts";
 
 interface Props {
@@ -21,6 +23,8 @@ export function EditRunner(props: Props) {
   const { createToast } = useToasts();
   const [editingRunner, setEditingRunner] = useState<Runner>(props.runner);
   const [isOpen, setIsOpen] = useState(false);
+  const editTiming = useEditTiming();
+  const deleteTiming = useDeleteTiming();
 
   const form = useForm<Runner>({
     values: editingRunner
@@ -40,9 +44,12 @@ export function EditRunner(props: Props) {
 
   const handleSaveRunner = form.handleSubmit(
     (data) => {
+      updateRunner(data);
+
       console.log(data);
       form.clearErrors();
-      createToast({ message: "Runner updated", type: "success" });
+      createToast({ message: `Runner #${data.runner} updated`, type: "success" }); // TODO: need to determine if successful
+      setIsOpen(false);
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -50,6 +57,39 @@ export function EditRunner(props: Props) {
       });
     }
   );
+
+  const handleDeleteRunner = () => {
+    deleteRunner(editingRunner);
+    form.clearErrors();
+    createToast({ message: "Runner deleted", type: "success" }); // TODO: need to determine if successful
+    setIsOpen(false);
+  };
+
+  const updateRunner = (data: Runner) => {
+    editTiming.mutate({
+      index: data.id,
+      bibId: data.runner,
+      stationId: window.data.station.id,
+      timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
+      timeOut: data.out?.toString() == "Invalid Date" ? null : data.out,
+      timeModified: new Date(),
+      note: data.notes,
+      sent: false // if updating record, sent should always reset flag to false
+    } as RunnerDB);
+  };
+
+  const deleteRunner = (data: Runner) => {
+    deleteTiming.mutate({
+      index: data.id,
+      bibId: data.runner,
+      stationId: window.data.station.id,
+      timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
+      timeOut: data.out?.toString() == "Invalid Date" ? null : data.out,
+      timeModified: new Date(),
+      note: data.notes,
+      sent: false
+    } as RunnerDB);
+  };
 
   return (
     <>
@@ -96,7 +136,7 @@ export function EditRunner(props: Props) {
 
           <Stack className="gap-4 w-full" direction="col">
             <TextInput
-              label="Runner"
+              label="Runner Bib"
               placeholder="Runner"
               error={form.formState.errors.runner}
               {...form.register("runner", {
@@ -108,7 +148,7 @@ export function EditRunner(props: Props) {
               placeholder="In Time"
               error={form.formState.errors.in}
               {...form.register("in", {
-                required: "In Time is required",
+                //required: "In Time is required",
                 valueAsDate: true
               })}
             />
@@ -117,7 +157,7 @@ export function EditRunner(props: Props) {
               placeholder="Out Time"
               error={form.formState.errors.out}
               {...form.register("out", {
-                required: "Out Time is required",
+                //required: "Out Time is required",
                 valueAsDate: true
               })}
             />
@@ -130,6 +170,15 @@ export function EditRunner(props: Props) {
           </Stack>
 
           <Stack className="gap-2 w-full" justify="end" align="center" direction="row">
+            <Button
+              variant="ghost"
+              color="danger"
+              onClick={() => handleDeleteRunner()}
+              size="lg"
+              type="button"
+            >
+              DELETE
+            </Button>
             <Button
               variant="ghost"
               color="neutral"

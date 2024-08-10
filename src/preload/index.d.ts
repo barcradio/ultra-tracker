@@ -4,5 +4,12 @@ declare global {
   interface Window {
     electron: ElectronAPI;
     api: unknown;
+    data: {
+      targetLanguage: string;
+      station: {
+        id: number;
+        name: string;
+      };
+    };
   }
 }
