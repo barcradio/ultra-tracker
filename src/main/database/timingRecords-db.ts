@@ -11,9 +11,11 @@ export function insertOrUpdateTimeRecord(record: RunnerDB) {
     return insertTimeRecord(record);
   }
 
-  //both exist and are equal, just updating normally
-  if (bibResult && indexResult && bibResult == indexResult) {
-    updateTimeRecord(record, indexResult);
+  //both queries succeed exist and are equal, but the incoming object is not, we are just updating normally
+  if (bibResult && indexResult && JSON.stringify(bibResult) === JSON.stringify(indexResult)) {
+    if (JSON.stringify(record) !== JSON.stringify(indexResult)) {
+      updateTimeRecord(record, indexResult);
+    }
   }
 
   // only record with index exists, probably updating bib number on correct record
