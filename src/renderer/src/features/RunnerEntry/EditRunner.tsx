@@ -48,7 +48,7 @@ export function EditRunner(props: Props) {
 
       console.log(data);
       form.clearErrors();
-      createToast({ message: "Runner updated", type: "success" }); // TODO: need to determine if successful
+      createToast({ message: `Runner #${data.runner} updated`, type: "success" }); // TODO: need to determine if successful
       setIsOpen(false);
     },
     (errors) => {
