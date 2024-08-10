@@ -4,9 +4,9 @@ export function readRunnersTable() {
   const db = getDatabaseConnection();
 
   try {
-    const query = db.prepare(`SELECT * FROM Runners`);
+    const query = db.prepare(`SELECT * FROM StaEvents`);
     const dataset = query.all();
-    console.log(`table Read Runners - records:${dataset.length}`);
+    console.log(`table Read StaEvents - records:${dataset.length}`);
     return dataset;
   } catch (e) {
     if (e instanceof Error) console.error(e.message);

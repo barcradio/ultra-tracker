@@ -26,7 +26,7 @@ export type Runner = {
   dns: boolean | undefined;
   dnf: boolean | undefined;
   dnfStation: number | undefined;
-  dnfDateTime: Date | undefined;
+  dnfDateTime: Date | null;
 };
 
 export type TimingRecord = {

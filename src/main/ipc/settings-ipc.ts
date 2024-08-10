@@ -9,7 +9,7 @@ const runnerLookup: Handler = () => {
   let message: string = "";
 
   try {
-    const runner = dbAPI.LookupStartListRunnerByBib(randomBib);
+    const runner = dbAPI.LookupAthleteByBib(randomBib);
     if (!runner) {
       message = `Bib #${randomBib} not found!`;
     } else {

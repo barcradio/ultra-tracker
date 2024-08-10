@@ -37,7 +37,7 @@ export function getTimeRecordbyBib(record: RunnerDB): RunnerDB | null {
   let queryString = "";
   let queryResult: RunnerDB | null = null;
 
-  queryString = `SELECT * FROM Runners WHERE bibId = ?`;
+  queryString = `SELECT * FROM StaEvents WHERE bibId = ?`;
   try {
     const query = db.prepare(queryString);
     queryResult = query.get(record.bibId);
@@ -59,7 +59,7 @@ export function getTimeRecordbyIndex(record: RunnerDB): RunnerDB | null {
   let queryString = "";
   let queryResult: RunnerDB | null = null;
 
-  queryString = `SELECT * FROM Runners WHERE "index" = ?`;
+  queryString = `SELECT * FROM StaEvents WHERE "index" = ?`;
   try {
     const query = db.prepare(queryString);
     queryResult = query.get(record.index);
@@ -81,7 +81,7 @@ export function deleteTimeRecord(record: RunnerDB) {
   const searchResult = getTimeRecordbyIndex(record);
 
   if (searchResult != null) {
-    queryString = `DELETE FROM Runners WHERE "index" = ?`;
+    queryString = `DELETE FROM StaEvents WHERE "index" = ?`;
     try {
       const query = db.prepare(queryString);
       query.run(record.index);
@@ -121,11 +121,11 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB) {
   try {
     // if bib number is changing, then update by index
     if (existingRecord != null && existingRecord.bibId != record.bibId) {
-      queryString = `UPDATE Runners SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE "index" = ?`;
+      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE "index" = ?`;
       const query = db.prepare(queryString);
       query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent, record.index);
     } else {
-      queryString = `UPDATE Runners SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE bibId = ?`;
+      queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE bibId = ?`;
       const query = db.prepare(queryString);
       query.run(stationID, timeInISO, timeOutISO, modifiedISO, note, sent, record.bibId);
     }
@@ -152,7 +152,7 @@ function insertTimeRecord(record: RunnerDB) {
 
   try {
     const query = db.prepare(
-      `INSERT INTO Runners (bibId, stationId, timeIn, timeOut, timeModified, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
     query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent);
 
