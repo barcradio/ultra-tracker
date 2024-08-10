@@ -6,7 +6,7 @@ export function readRunnersTable() {
   try {
     const query = db.prepare(`SELECT * FROM Runners`);
     const dataset = query.all();
-    console.log(`table Read Runners succeeded - records:${dataset.length}`);
+    console.log(`table Read Runners - records:${dataset.length}`);
     return dataset;
   } catch (e) {
     if (e instanceof Error) console.error(e.message);
