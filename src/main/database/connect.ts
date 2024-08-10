@@ -52,7 +52,7 @@ export function CreateTables(): boolean {
         note TEXT,
         sent BOOLEAN DEFAULT (FALSE)
         )`);
-    CmdResult.run();
+
     CmdResult.run();
   } catch (e) {
     if (e instanceof Error) {
