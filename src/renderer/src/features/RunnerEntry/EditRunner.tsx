@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FieldError, useForm } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
+import { useSelectRunner } from "./hooks/useSelectRunner";
 import { Runner, RunnerWithSequence } from "../../hooks/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "../../hooks/useTiming";
 import { useToasts } from "../Toasts/useToasts";
@@ -20,27 +21,15 @@ const getErrorMessage = (error: FieldError): string => {
 
 export function EditRunner(props: Props) {
   const { createToast } = useToasts();
-  const [editingRunner, setEditingRunner] = useState<RunnerWithSequence>(props.runner);
   const [isOpen, setIsOpen] = useState(false);
+  const selectedRunner = useSelectRunner(props.runner, props.runners);
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
 
   const form = useForm<Runner>({
     defaultValues: props.runner,
-    values: editingRunner
+    values: selectedRunner.state
   });
-
-  const handleChangeCurrent = (direction: "previous" | "next") => {
-    const sequence = editingRunner.sequence + (direction === "next" ? 1 : -1);
-    const nextRunner = props.runners.find((runner) => runner.sequence === sequence);
-
-    if (!nextRunner) {
-      createToast({ message: `No ${direction} runner`, type: "warning" });
-      return;
-    }
-
-    setEditingRunner(nextRunner);
-  };
 
   const handleSaveRunner = form.handleSubmit(
     (data) => {
@@ -60,7 +49,7 @@ export function EditRunner(props: Props) {
   );
 
   const handleDeleteRunner = () => {
-    deleteTiming.mutate(editingRunner);
+    deleteTiming.mutate(selectedRunner.state);
     createToast({ message: "Runner deleted", type: "success" }); // TODO: need to determine if successful
     handleClose();
   };
@@ -89,7 +78,7 @@ export function EditRunner(props: Props) {
       >
         <Stack className="gap-6 px-6 pt-8" direction="col" as="form" onSubmit={handleSaveRunner}>
           <h1 className="w-full text-4xl font-bold text-center uppercase font-display">
-            Sequence {editingRunner.sequence}
+            Sequence {selectedRunner.state.sequence}
           </h1>
 
           <Stack align="center" justify="between" className="w-full">
@@ -98,7 +87,7 @@ export function EditRunner(props: Props) {
               variant="ghost"
               color="primary"
               className="text-xl underline"
-              onClick={() => handleChangeCurrent("previous")}
+              onClick={() => selectedRunner.previous()}
             >
               {"< PREV"}
             </Button>
@@ -107,7 +96,7 @@ export function EditRunner(props: Props) {
               variant="ghost"
               color="primary"
               className="text-xl underline"
-              onClick={() => handleChangeCurrent("next")}
+              onClick={() => selectedRunner.next()}
             >
               {"NEXT >"}
             </Button>
