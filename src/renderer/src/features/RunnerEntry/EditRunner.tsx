@@ -26,6 +26,7 @@ export function EditRunner(props: Props) {
   const deleteTiming = useDeleteTiming();
 
   const form = useForm<Runner>({
+    defaultValues: props.runner,
     values: editingRunner
   });
 
@@ -43,8 +44,10 @@ export function EditRunner(props: Props) {
 
   const handleSaveRunner = form.handleSubmit(
     (data) => {
-      console.log(data);
-      form.clearErrors();
+      // Pass in our new runner to the reset function to update the defaultValues.
+      // We create a new object to avoid setting the defaults to our dynamic editingRunner state.
+      // In which case defaultValues would be the same as values, and resetting would do nothing.
+      form.reset({ ...data });
       editTiming.mutate(data);
       createToast({ message: `Runner #${data.runner} updated`, type: "success" }); // TODO: need to determine if successful
       setIsOpen(false);
@@ -57,10 +60,14 @@ export function EditRunner(props: Props) {
   );
 
   const handleDeleteRunner = () => {
-    form.clearErrors();
     deleteTiming.mutate(editingRunner);
     createToast({ message: "Runner deleted", type: "success" }); // TODO: need to determine if successful
+    handleClose();
+  };
+
+  const handleClose = () => {
     setIsOpen(false);
+    form.reset();
   };
 
   return (
@@ -75,7 +82,7 @@ export function EditRunner(props: Props) {
       </Button>
       <Drawer
         open={isOpen}
-        handleClose={() => setIsOpen(false)}
+        handleClose={handleClose}
         position="right"
         className="w-96 font-display"
         showCloseIcon={false}
@@ -151,13 +158,7 @@ export function EditRunner(props: Props) {
             >
               DELETE
             </Button>
-            <Button
-              variant="ghost"
-              color="neutral"
-              onClick={() => setIsOpen(false)}
-              size="lg"
-              type="button"
-            >
+            <Button variant="ghost" color="neutral" onClick={handleClose} size="lg" type="button">
               Cancel
             </Button>
             <Button variant="solid" color="primary" size="lg" type="submit">
