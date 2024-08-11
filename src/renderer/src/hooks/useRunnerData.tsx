@@ -5,12 +5,14 @@ import { useIpcRenderer } from "./useIpcRenderer";
 
 export interface Runner {
   id: number;
-  sequence: number;
   runner: number;
   in: Date | null;
   out: Date | null;
   note: string;
-  name: string;
+}
+
+export interface RunnerWithSequence extends Runner {
+  sequence: number;
 }
 
 export function useRunnerData() {
@@ -18,9 +20,9 @@ export function useRunnerData() {
 
   return useQuery({
     queryKey: ["runners-table"],
-    queryFn: async (): Promise<Runner[]> => {
+    queryFn: async (): Promise<RunnerWithSequence[]> => {
       const dataset = await ipcRenderer.invoke("get-runners-table");
-      return dataset.map((runner: RunnerDB, index) => ({
+      return dataset.map((runner: RunnerDB, index: number) => ({
         id: runner.index,
         sequence: index + 1,
         runner: runner.bibId,
@@ -29,8 +31,7 @@ export function useRunnerData() {
           runner.timeOut == null
             ? formatDate(runner.timeOut)
             : formatDate(new Date(runner.timeOut)),
-        note: runner.note,
-        name: ""
+        note: runner.note
       }));
     }
   });

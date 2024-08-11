@@ -2,14 +2,13 @@ import { useState } from "react";
 import { FieldError, useForm } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
-import { RunnerDB } from "$shared/models";
-import { Runner } from "../../hooks/useRunnerData";
+import { Runner, RunnerWithSequence } from "../../hooks/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "../../hooks/useTiming";
 import { useToasts } from "../Toasts/useToasts";
 
 interface Props {
-  runner: Runner;
-  runners: Runner[];
+  runner: RunnerWithSequence;
+  runners: RunnerWithSequence[];
 }
 
 const getErrorMessage = (error: FieldError): string => {
@@ -21,7 +20,7 @@ const getErrorMessage = (error: FieldError): string => {
 
 export function EditRunner(props: Props) {
   const { createToast } = useToasts();
-  const [editingRunner, setEditingRunner] = useState<Runner>(props.runner);
+  const [editingRunner, setEditingRunner] = useState<RunnerWithSequence>(props.runner);
   const [isOpen, setIsOpen] = useState(false);
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
@@ -30,7 +29,7 @@ export function EditRunner(props: Props) {
     values: editingRunner
   });
 
-  const handleChangeRunner = (direction: "previous" | "next") => {
+  const handleChangeCurrent = (direction: "previous" | "next") => {
     const sequence = editingRunner.sequence + (direction === "next" ? 1 : -1);
     const nextRunner = props.runners.find((runner) => runner.sequence === sequence);
 
@@ -44,10 +43,9 @@ export function EditRunner(props: Props) {
 
   const handleSaveRunner = form.handleSubmit(
     (data) => {
-      updateRunner(data);
-
       console.log(data);
       form.clearErrors();
+      editTiming.mutate(data);
       createToast({ message: `Runner #${data.runner} updated`, type: "success" }); // TODO: need to determine if successful
       setIsOpen(false);
     },
@@ -59,36 +57,10 @@ export function EditRunner(props: Props) {
   );
 
   const handleDeleteRunner = () => {
-    deleteRunner(editingRunner);
     form.clearErrors();
+    deleteTiming.mutate(editingRunner);
     createToast({ message: "Runner deleted", type: "success" }); // TODO: need to determine if successful
     setIsOpen(false);
-  };
-
-  const updateRunner = (data: Runner) => {
-    editTiming.mutate({
-      index: data.id,
-      bibId: data.runner,
-      stationId: window.data.station.id,
-      timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
-      timeOut: data.out?.toString() == "Invalid Date" ? null : data.out,
-      timeModified: new Date(),
-      note: data.note,
-      sent: false // if updating record, sent should always reset flag to false
-    } as RunnerDB);
-  };
-
-  const deleteRunner = (data: Runner) => {
-    deleteTiming.mutate({
-      index: data.id,
-      bibId: data.runner,
-      stationId: window.data.station.id,
-      timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
-      timeOut: data.out?.toString() == "Invalid Date" ? null : data.out,
-      timeModified: new Date(),
-      note: data.note,
-      sent: false
-    } as RunnerDB);
   };
 
   return (
@@ -119,7 +91,7 @@ export function EditRunner(props: Props) {
               variant="ghost"
               color="primary"
               className="text-xl underline"
-              onClick={() => handleChangeRunner("previous")}
+              onClick={() => handleChangeCurrent("previous")}
             >
               {"< PREV"}
             </Button>
@@ -128,7 +100,7 @@ export function EditRunner(props: Props) {
               variant="ghost"
               color="primary"
               className="text-xl underline"
-              onClick={() => handleChangeRunner("next")}
+              onClick={() => handleChangeCurrent("next")}
             >
               {"NEXT >"}
             </Button>
@@ -162,8 +134,8 @@ export function EditRunner(props: Props) {
               })}
             />
             <TextInput
-              label="note"
-              placeholder="note"
+              label="Note"
+              placeholder="Note"
               error={form.formState.errors.note}
               {...form.register("note")}
             />

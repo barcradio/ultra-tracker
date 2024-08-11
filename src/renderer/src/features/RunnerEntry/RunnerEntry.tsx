@@ -2,12 +2,12 @@ import { Stack } from "~/components";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { type Runner, useRunnerData } from "../../hooks/useRunnerData";
+import { RunnerWithSequence, useRunnerData } from "../../hooks/useRunnerData";
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
 
-  const columns: ColumnDef<Runner> = [
+  const columns: ColumnDef<RunnerWithSequence> = [
     {
       field: "sequence",
       name: "Sequence",
@@ -28,7 +28,7 @@ export function RunnerEntry() {
     },
     {
       field: "note",
-      name: "note",
+      name: "Note",
       sortable: false
     }
   ];
