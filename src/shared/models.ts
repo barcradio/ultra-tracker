@@ -12,7 +12,7 @@ export interface RunnerDB {
   sent: boolean;
 }
 
-export type Runner = {
+export type AthleteDB = {
   index: number;
   bib: number;
   firstname: string;

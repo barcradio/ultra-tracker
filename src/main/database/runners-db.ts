@@ -1,4 +1,4 @@
-import { getDatabaseConnection } from "./connect";
+import { getDatabaseConnection } from "./connect-db";
 
 export function readRunnersTable() {
   const db = getDatabaseConnection();
