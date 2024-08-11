@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { FieldError, useForm } from "react-hook-form";
+import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
-import { useSelectRunner } from "./hooks/useSelectRunner";
-import { Runner, RunnerWithSequence } from "../../hooks/useRunnerData";
+import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
+import { RunnerWithSequence } from "../../hooks/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "../../hooks/useTiming";
 import { useToasts } from "../Toasts/useToasts";
 
@@ -22,14 +22,10 @@ const getErrorMessage = (error: FieldError): string => {
 export function EditRunner(props: Props) {
   const { createToast } = useToasts();
   const [isOpen, setIsOpen] = useState(false);
-  const selectedRunner = useSelectRunner(props.runner, props.runners);
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
 
-  const form = useForm<Runner>({
-    defaultValues: props.runner,
-    values: selectedRunner.state
-  });
+  const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
   const handleSaveRunner = form.handleSubmit(
     (data) => {
@@ -37,9 +33,9 @@ export function EditRunner(props: Props) {
       // We create a new object to avoid setting the defaults to our dynamic editingRunner state.
       // In which case defaultValues would be the same as values, and resetting would do nothing.
       form.reset({ ...data });
+      setIsOpen(false);
       editTiming.mutate(data);
       createToast({ message: `Runner #${data.runner} updated`, type: "success" }); // TODO: need to determine if successful
-      setIsOpen(false);
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -55,8 +51,8 @@ export function EditRunner(props: Props) {
   };
 
   const handleClose = () => {
+    form.reset(props.runner); // Reset the form to the original runner
     setIsOpen(false);
-    form.reset();
   };
 
   return (
