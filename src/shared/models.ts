@@ -52,3 +52,14 @@ export type Operator = {
   callsign: string;
   phone: number;
 };
+
+// Status enums
+export enum DatabaseStatus {
+  Created,
+  Updated,
+  Deleted,
+  Duplicate,
+  NotFound,
+  Error,
+  Success
+}
