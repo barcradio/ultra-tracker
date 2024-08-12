@@ -30,6 +30,15 @@ export function insertOrUpdateTimeRecord(record: RunnerDB) {
 
   // both exist but not equal?! definitely creating a duplicate, should be solved in error checking
   //if (bibResult && indexResult && bibResult != indexResult)
+  return {
+    index: 0,
+    bibId: 0,
+    stationId: 0,
+    timeIn: null,
+    timeOut: null,
+    timeModified: null,
+    sent: false
+  } as RunnerDB;
 }
 
 export function getTimeRecordbyBib(record: RunnerDB): RunnerDB | null {
