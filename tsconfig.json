@@ -5,6 +5,8 @@
 		{ "path": "./tsconfig.web.json" }
 	],
 	"compilerOptions": {
-		"checkJs": true
+		"checkJs": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true
 	},
 }
