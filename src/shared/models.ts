@@ -42,15 +42,37 @@ export enum RecordType {
   InOut
 }
 
+export type StationDB = {
+  name: string;
+  identifier: string;
+  description: string;
+  location: string;
+  distance: number;
+  split: boolean;
+  operators: string;
+};
+
 export type Station = {
   name: string;
+  identifier: string;
+  description: string;
+  location: Location;
+  distance: number;
+  split: boolean;
   operators: Operator[];
+};
+
+export type Location = {
+  latitude: number;
+  longitude: number;
 };
 
 export type Operator = {
   fullname: string;
   callsign: string;
   phone: number;
+  shiftBegin: Date;
+  shiftEnd: Date;
 };
 
 // Status enums
