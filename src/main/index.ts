@@ -4,6 +4,7 @@ import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
 import { createDatabaseConnection } from "./database/connect";
 import { LoadStations } from "./database/stations-db";
+import { exportRunnersAsCSV } from "./database/runners-db";
 import { initializeIpcHandlers } from "./ipc/initIpc";
 
 function createWindow(): void {
@@ -42,6 +43,7 @@ app.on("ready", () => {
   console.log("Application execution path:" + app.getAppPath());
   createDatabaseConnection();
   LoadStations();
+  exportRunnersAsCSV();
 });
 
 // This method will be called when Electron has finished
