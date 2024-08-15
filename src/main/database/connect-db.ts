@@ -118,11 +118,12 @@ export function CreateTables(): boolean {
     CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Stations (
       "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       name TEXT,
+      identifier TEXT,
       description TEXT,
       location BLOB,
-      operators BLOB,
       distance REAL,
-      identifier TEXT
+      split REAL,
+      operators BLOB
       )`);
 
     CmdResult.run();

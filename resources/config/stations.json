@@ -1,0 +1,284 @@
+{
+    "stations": [
+        {
+            "name": "Start Line",
+            "identifier": "0-start-line",
+            "description": "Hyrum Gibbons/Mount Logan Park",
+            "location": {
+                "latitude": 41.72825,
+                "longitude": -111.79954
+            },
+            "distance": 0.0,
+            "split": false,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Logan Peak",
+            "identifier": "1-logan-peak",
+            "description": "[No Crew]",
+            "location": {
+                "latitude": 41.69347,
+                "longitude": -111.70273
+            },
+            "distance": 0.0,
+            "split": false,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Leatham Hollow",
+            "identifier": "2-leatham-hollow",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.64313,
+                "longitude": -111.70663
+            },
+            "distance": 0.0,
+            "split": false,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Upper Richards Hollow",
+            "identifier": "3-richards-hollow",
+            "description": "[No Crew]",
+            "location": {
+                "latitude": 41.72597,
+                "longitude": -111.63783
+            },
+            "distance": 0.0,
+            "split": false,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Right Hand Fork",
+            "identifier": "4-righthand-fork",
+            "description": "[Limited Crew]",
+            "location": {
+                "latitude": 41.77485,
+                "longitude": -111.61013
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Temple Fork",
+            "identifier": "5-temple-fork",
+            "description": "[Limited Crew]",
+            "location": {
+                "latitude": 41.83491,
+                "longitude": -111.59243
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Tony Grove",
+            "identifier": "6-tony-grove",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.89003,
+                "longitude": -111.63351
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Franklin Trailhead",
+            "identifier": "7-franklin-trailhead",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.93275,
+                "longitude": -111.56818
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Logan River",
+            "identifier": "8-logan-river",
+            "description": "[No Crew][No Pacer]",
+            "location": {
+                "latitude": 41.96022,
+                "longitude": -111.59105
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Beaver Mt. Lodge",
+            "identifier": "9-beaver-mtn",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.96857,
+                "longitude": -111.54152
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Gibson Basin",
+            "identifier": "10-gibson-basin",
+            "description": "[No Crew][No Pacer]",
+            "location": {
+                "latitude": 42.02714,
+                "longitude": -111.55552
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Beaver Creek Campground",
+            "identifier": "11-beaver-creek",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 42.02187,
+                "longitude": -111.52917
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Ranger Dip",
+            "identifier": "12-ranger-dip",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 42.00723,
+                "longitude": -111.48866
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        },
+        {
+            "name": "Finish Line",
+            "identifier": "13-finish-line",
+            "description": "Fish Haven ID (@ The Reserve)",
+            "location": {
+                "latitude": 42.04378,
+                "longitude": -111.39160
+            },
+            "distance": 0.0,
+            "split": true,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        }
+    ]
+}

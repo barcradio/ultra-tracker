@@ -3,32 +3,36 @@ import { ColumnDef, DataGrid } from "../DataGrid";
 function useFakeStats() {
   return [
     {
-      id: "Runners Registered",
+      id: "Registered Athletes",
       value: 350
-    },
-    {
-      id: "Total DNS",
-      value: 2
-    },
-    {
-      id: "Current Total DNF",
-      value: 37
-    },
-    {
-      id: "Finished Race",
-      value: 0
     },
     {
       id: "Pending Arrivals",
       value: 311
     },
     {
-      id: "Currently In Aid Station",
+      id: "In Station",
       value: 1
     },
     {
-      id: "Through Aid Station",
+      id: "Through Station",
       value: 3
+    },
+    {
+      id: "Finished Race",
+      value: 0
+    },
+    {
+      id: "Total DNS",
+      value: 2
+    },
+    {
+      id: "Station DNF",
+      value: 12
+    },
+    {
+      id: "Total DNF",
+      value: 37
     },
     {
       id: "Warnings",
@@ -36,7 +40,7 @@ function useFakeStats() {
     },
     {
       id: "Errors",
-      value: 1
+      value: 3
     }
   ];
 }

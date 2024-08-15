@@ -1,80 +1,82 @@
 import { getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
-import { RunnerDB } from "../../shared/models";
+import { DatabaseStatus, RunnerDB } from "../../shared/models";
 
-export function insertOrUpdateTimeRecord(record: RunnerDB) {
-  const bibResult = getTimeRecordbyBib(record);
-  const indexResult = getTimeRecordbyIndex(record);
+export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
+  let status: DatabaseStatus = DatabaseStatus.Error;
+  let message: string = "";
+
+  const bibResult = getTimeRecordbyBib(record)[0];
+  const indexResult = getTimeRecordbyIndex(record)[0];
 
   // new record
-  if (!bibResult && !indexResult) {
-    return insertTimeRecord(record);
-  }
+  if (!bibResult && !indexResult) [status, message] = insertTimeRecord(record);
+
+  // only record with index exists, probably updating bib number on correct record
+  if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult);
+
+  // only record with bib exists, could be duplicate
+  if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult);
 
   //both queries succeed exist and are equal, but the incoming object is not, we are just updating normally
   if (bibResult && indexResult && JSON.stringify(bibResult) === JSON.stringify(indexResult)) {
     if (JSON.stringify(record) !== JSON.stringify(indexResult)) {
-      updateTimeRecord(record, indexResult);
+      [status, message] = updateTimeRecord(record, indexResult);
     }
   }
-
-  // only record with index exists, probably updating bib number on correct record
-  if (!bibResult && indexResult) {
-    return updateTimeRecord(record, indexResult);
-  }
-
-  // only record with bib exists, could be duplicate
-  if (bibResult && !indexResult) {
-    return updateTimeRecord(record, bibResult);
-  }
-
-  // both exist but not equal?! definitely creating a duplicate, should be solved in error checking
-  //if (bibResult && indexResult && bibResult != indexResult)
+  console.log(message);
+  return [status, message];
 }
 
-export function getTimeRecordbyBib(record: RunnerDB): RunnerDB | null {
+export function getTimeRecordbyBib(record: RunnerDB): [RunnerDB | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryString = "";
   let queryResult: RunnerDB | null = null;
+  let message: string = "";
 
   queryString = `SELECT * FROM StaEvents WHERE bibId = ?`;
   try {
     const query = db.prepare(queryString);
     queryResult = query.get(record.bibId);
-
-    if (queryResult == null) return null;
-
-    if (queryResult.bibId == record.bibId) {
-      console.log(`timing-record:Found timeRecord with bib: ${queryResult.bibId}`);
-      return queryResult;
-    }
   } catch (e) {
-    if (e instanceof Error) console.error(e.message);
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, message];
+    }
   }
-  return queryResult;
+
+  if (queryResult == null || queryResult.bibId != record.bibId)
+    return [null, DatabaseStatus.NotFound, message];
+
+  message = `timing-record:Found timeRecord with bib: ${queryResult.bibId}`;
+  return [queryResult, DatabaseStatus.Success, message];
 }
 
-export function getTimeRecordbyIndex(record: RunnerDB): RunnerDB | null {
+export function getTimeRecordbyIndex(record: RunnerDB): [RunnerDB | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryString = "";
   let queryResult: RunnerDB | null = null;
+  let message: string = "";
 
   queryString = `SELECT * FROM StaEvents WHERE "index" = ?`;
   try {
     const query = db.prepare(queryString);
     queryResult = query.get(record.index);
-
-    if (queryResult == null) return null;
-
-    console.log(`timing-record:Found timeRecord with index: ${queryResult.index}`);
-    return queryResult;
   } catch (e) {
-    if (e instanceof Error) console.error(e.message);
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [queryResult, DatabaseStatus.Error, e.message];
+    }
   }
-  return queryResult;
+
+  if (queryResult == null) return [queryResult, DatabaseStatus.NotFound, message];
+
+  message = `timing-record:Found timeRecord with index: ${queryResult.index}`;
+  console.log(message);
+  return [queryResult, DatabaseStatus.Success, message];
 }
 
-export function deleteTimeRecord(record: RunnerDB) {
+export function deleteTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryString = "";
 
@@ -85,20 +87,19 @@ export function deleteTimeRecord(record: RunnerDB) {
     try {
       const query = db.prepare(queryString);
       query.run(record.index);
-      return `timing-record:delete ${record.index}`;
+      return [DatabaseStatus.Deleted, `timing-record:delete ${record.index}`];
     } catch (e) {
       if (e instanceof Error) {
         console.error(e.message);
-        return e.message;
+        return [DatabaseStatus.Error, e.message];
       }
-      return "";
     }
-  } else {
-    return `timing-record:delete Bib ${record.bibId} not found`;
   }
+
+  return [DatabaseStatus.NotFound, `timing-record:delete Bib ${record.bibId} not found`];
 }
 
-function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB) {
+function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryString = "";
 
@@ -129,18 +130,18 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB) {
       const query = db.prepare(queryString);
       query.run(stationID, timeInISO, timeOutISO, modifiedISO, note, sent, record.bibId);
     }
-
-    return `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
-      return e.message;
+      return [DatabaseStatus.Error, e.message];
     }
-    return "";
   }
+
+  const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+  return [DatabaseStatus.Updated, message];
 }
 
-function insertTimeRecord(record: RunnerDB) {
+function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
 
   const stationID = data.station.id;
@@ -155,13 +156,13 @@ function insertTimeRecord(record: RunnerDB) {
       `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
     query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent);
-
-    return `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
-      return e.message;
+      return [DatabaseStatus.Error, e.message];
     }
-    return "";
   }
+
+  const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+  return [DatabaseStatus.Created, message];
 }

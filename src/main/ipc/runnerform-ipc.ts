@@ -9,18 +9,18 @@ const getRunnersTable: Handler<RunnerDB[]> = () => {
   return dbRunner.readRunnersTable();
 };
 
-const addTimeRecord: Handler<RunnerDB, string> = (_, record) => {
-  const logMessage = dbTimings.insertOrUpdateTimeRecord(record);
-  if (!logMessage) return "";
-  console.log(logMessage);
-  return logMessage;
+const addTimeRecord: Handler<RunnerDB, string> = (_, record): string => {
+  const retValue = dbTimings.insertOrUpdateTimeRecord(record);
+  const message = retValue[1];
+  console.log(message);
+  return message;
 };
 
-const deleteTimeRecord: Handler<RunnerDB, string> = (_, record) => {
-  const logMessage = dbTimings.deleteTimeRecord(record);
-  if (!logMessage) return "";
-  console.log(logMessage);
-  return logMessage;
+const deleteTimeRecord: Handler<RunnerDB, string> = (_, record): string => {
+  const retValue = dbTimings.deleteTimeRecord(record);
+  const message = retValue[1];
+  console.log(message);
+  return message;
 };
 
 export const initRunnerFormHandlers = () => {

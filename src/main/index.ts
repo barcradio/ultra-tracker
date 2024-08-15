@@ -3,6 +3,7 @@ import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
 import { createDatabaseConnection } from "./database/connect-db";
+import { LoadStations } from "./database/stations-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 
 function createWindow(): void {
@@ -40,6 +41,7 @@ function createWindow(): void {
 app.on("ready", () => {
   console.log("Application execution path:" + app.getAppPath());
   createDatabaseConnection();
+  LoadStations();
 });
 
 // This method will be called when Electron has finished
