@@ -1,4 +1,4 @@
-import { getDatabaseConnection } from "./connect";
+import { getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
 import { DatabaseStatus, RunnerDB } from "../../shared/models";
 

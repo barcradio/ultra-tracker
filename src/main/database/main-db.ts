@@ -1,11 +1,11 @@
 import { Statement } from "better-sqlite3";
-import { getDatabaseConnection } from "./connect";
-import { Runner } from "../../shared/models";
+import { getDatabaseConnection } from "./connect-db";
+import { AthleteDB } from "../../shared/models";
 
-export function LookupAthleteByBib(bibNumber: number): Runner | undefined {
+export function LookupAthleteByBib(bibNumber: number): AthleteDB | undefined {
   const db = getDatabaseConnection();
 
-  let result: Runner | undefined;
+  let result: AthleteDB | undefined;
 
   try {
     const Athlete = db.prepare(`SELECT * FROM Athletes WHERE bibId = ?`).get(bibNumber);
@@ -13,7 +13,7 @@ export function LookupAthleteByBib(bibNumber: number): Runner | undefined {
     // neither of these checks seem to work that well
     if (Athlete.bibId === undefined || typeof Athlete.bibId !== "number") return undefined;
 
-    const runner: Runner = {
+    const runner: AthleteDB = {
       index: Athlete.index,
       bib: Athlete.bibId,
       firstname: Athlete.firstName,
