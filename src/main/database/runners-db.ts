@@ -1,7 +1,7 @@
 import { app } from "electron";
 import { formatDate } from "$renderer/lib/datetimes";
 import { Runner } from "$shared/models";
-import { getDatabaseConnection } from "./connect";
+import { getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
 
 export function readRunnersTable() {

@@ -2,10 +2,10 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
-import { createDatabaseConnection } from "./database/connect";
-import { LoadStations } from "./database/stations-db";
+import { createDatabaseConnection } from "./database/connect-db";
 import { exportRunnersAsCSV } from "./database/runners-db";
-import { initializeIpcHandlers } from "./ipc/initIpc";
+import { LoadStations } from "./database/stations-db";
+import { initializeIpcHandlers } from "./ipc/init-ipc";
 
 function createWindow(): void {
   // Create the browser window.

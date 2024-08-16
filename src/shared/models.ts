@@ -21,7 +21,7 @@ export interface Runner {
   notes: string;
 }
 
-export type Athlete = {
+export type AthleteDB = {
   index: number;
   bib: number;
   firstname: string;
