@@ -1,5 +1,5 @@
 import stationData from "$resources/config/stations.json";
-import { getDatabaseConnection } from "./connect";
+import { getDatabaseConnection } from "./connect-db";
 import { DatabaseStatus, Operator, Station, StationDB } from "../../shared/models";
 
 //TODO: we will need to set myStation, ought to create a settings table instaed of these hard-coded values

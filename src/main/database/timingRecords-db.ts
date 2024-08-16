@@ -108,14 +108,17 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
   if (record.timeOut instanceof String) record.timeOut = null;
   if (record.timeModified instanceof String) record.timeModified = null;
 
-  if (existingRecord.timeIn != null && record.timeIn == null) record.timeIn = new Date(existingRecord.timeIn);
-  if (existingRecord.timeOut != null && record.timeOut == null) record.timeOut = new Date(existingRecord.timeOut);
+  if (existingRecord.timeIn != null && record.timeIn == null)
+    record.timeIn = new Date(existingRecord.timeIn);
+  if (existingRecord.timeOut != null && record.timeOut == null)
+    record.timeOut = new Date(existingRecord.timeOut);
 
   //build the time record
   const stationID = data.station.id;
   const timeInISO: string | null = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO: string | null = record.timeOut == null ? null : record.timeOut.toISOString();
-  const modifiedISO: string | null = record.timeModified == null ? null : record.timeModified.toISOString();
+  const modifiedISO: string | null =
+    record.timeModified == null ? null : record.timeModified.toISOString();
   const sent: number = Number(record.sent);
   const note = record.note;
 
@@ -124,7 +127,16 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
     if (existingRecord != null && existingRecord.bibId != record.bibId) {
       queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE "index" = ?`;
       const query = db.prepare(queryString);
-      query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent, record.index);
+      query.run(
+        record.bibId,
+        stationID,
+        timeInISO,
+        timeOutISO,
+        modifiedISO,
+        note,
+        sent,
+        record.index
+      );
     } else {
       queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE bibId = ?`;
       const query = db.prepare(queryString);
@@ -147,7 +159,8 @@ function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   const stationID = data.station.id;
   const timeInISO: string | null = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO: string | null = record.timeOut == null ? null : record.timeOut.toISOString();
-  const modifiedISO: string | null = record.timeModified == null ? null : record.timeModified.toISOString();
+  const modifiedISO: string | null =
+    record.timeModified == null ? null : record.timeModified.toISOString();
   const sent: number = Number(record.sent);
   const note = record.note;
 
