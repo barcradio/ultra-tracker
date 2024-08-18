@@ -23,15 +23,15 @@ export interface Runner {
 
 export type AthleteDB = {
   index: number;
-  bib: number;
-  firstname: string;
-  lastname: string;
+  bibId: number;
+  firstName: string;
+  lastName: string;
   gender: string;
   age: number;
   city: string;
   state: string;
-  emPhone: string;
-  emName: string;
+  emergencyPhone: string;
+  emergencyName: string;
   dns: boolean | undefined;
   dnf: boolean | undefined;
   dnfStation: number | undefined;
