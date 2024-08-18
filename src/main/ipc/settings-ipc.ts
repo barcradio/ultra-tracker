@@ -13,7 +13,7 @@ const runnerLookup: Handler = () => {
     if (!runner) {
       message = `Bib #${randomBib} not found!`;
     } else {
-      message = `Found #${runner.bib} ${runner.firstname} ${runner.lastname} ${runner.city}`;
+      message = `Found #${runner.bibId} ${runner.firstName} ${runner.lastName} ${runner.city}`;
     }
   } catch (e) {
     if (e instanceof Error) message = e.message;
