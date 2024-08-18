@@ -55,5 +55,10 @@ const openFileDialog = (method, params) => {
 
 export function initUserDirectories() {
   const userDocs = path.join(app.getPath("documents"), app.name);
-  if (!fs.existsSync(userDocs)) fs.mkdir(userDocs);
+
+  //if (!fs.existsSync(app.getPath("documents"))) return;
+
+  if (!fs.existsSync(userDocs)) {
+    fs.mkdirSync(userDocs);
+  }
 }
