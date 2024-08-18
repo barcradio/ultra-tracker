@@ -28,6 +28,7 @@ enum SidebarMode {
 
 export function Sidebar() {
   // TODO: Implement this setting in the settings page / database
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [mode, setMode] = useState(SidebarMode.Auto);
   const [expand, setExpand] = useState(false);
   const expanded = mode === SidebarMode.Expand || (mode === SidebarMode.Auto && expand);

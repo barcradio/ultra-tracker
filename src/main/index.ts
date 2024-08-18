@@ -4,8 +4,8 @@ import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
 import { createDatabaseConnection } from "./database/connect-db";
 import { exportRunnersAsCSV } from "./database/runners-db";
-import { LoadStations } from "./database/stations-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
+import { initUserDirectories } from "./lib/file-dialogs";
 
 function createWindow(): void {
   // Create the browser window.
@@ -41,9 +41,6 @@ function createWindow(): void {
 
 app.on("ready", () => {
   console.log("Application execution path:" + app.getAppPath());
-  createDatabaseConnection();
-  LoadStations();
-  exportRunnersAsCSV();
 });
 
 // This method will be called when Electron has finished
@@ -60,7 +57,13 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
+  createDatabaseConnection();
   initializeIpcHandlers();
+  initUserDirectories();
+
+  // call backend functions for testing purposes
+  exportRunnersAsCSV();
+
   createWindow();
 
   app.on("activate", function () {

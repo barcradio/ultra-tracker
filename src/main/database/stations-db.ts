@@ -1,18 +1,27 @@
-import stationData from "$resources/config/stations.json";
 import { getDatabaseConnection } from "./connect-db";
 import { DatabaseStatus, Operator, Station, StationDB } from "../../shared/models";
+import { selectStationsFile } from "../lib/file-dialogs";
 
 //TODO: we will need to set myStation, ought to create a settings table instaed of these hard-coded values
 //import { data } from "../../preload/data";
 
-export function LoadStations() {
+export async function LoadStations() {
+  //const devStationData = require("$resources/config/stations.json");
+  const stationFilePath = await selectStationsFile();
+  const stationData = require(stationFilePath[0]); // natively imports JSON data to object
+
+  if (!stationData) return "Invalid JSON file.";
+
   for (const index in stationData) {
-    if (GetStations().length == stationData.stations.length) return;
+    if (GetStations().length == stationData.stations.length)
+      return `${stationData.stations.length} stations already loaded`; // TODO: clear tation list and reload from file
 
     for (const key in stationData[index]) {
       insertStation(stationData[index][key]);
     }
   }
+
+  return `${stationFilePath}\r\n${stationData.stations.length} stations imported`;
 }
 
 export function GetStations(): Station[] {

@@ -27,11 +27,6 @@ export const initSettingsHandlers = () => {
   ipcMain.handle("runner-lookup", runnerLookup);
 };
 
-// ipcMain.handle("dialog:open", async (_, args) => {
-//   const result = await dialog.showOpenDialog({ properties: ["openFile"] });
-//   return result;
-// });
-
 function randomIntFromInterval(min: number, max: number) {
   // min and max included
   return Math.floor(Math.random() * (max - min + 1) + min);

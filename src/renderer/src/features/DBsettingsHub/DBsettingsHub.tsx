@@ -1,14 +1,20 @@
-import { Button } from "~/components";
-import { useLoadAthletes } from "~/hooks/useLoadAthletes";
+import { Button, Stack } from "~/components";
+import { useLoadAthletes, useLoadStationsFile } from "~/hooks/useFileDialogs";
 import { useToasts } from "../Toasts/useToasts";
 
 export function DBsettingsHub() {
-  const clickInMutation = useLoadAthletes();
+  const loadAthletes = useLoadAthletes();
+  const loadStation = useLoadStationsFile();
   const { createToast } = useToasts();
 
-  const getAthletes = () => {
+  const getStationsFile = () => {
+    createToast({ message: "Loading Stations file", type: "info" });
+    loadStation.mutate("ping from the renderer!");
+  };
+
+  const getAthletesFile = () => {
     createToast({ message: "Getting Athletes", type: "info" });
-    clickInMutation.mutate("ping from the renderer!");
+    loadAthletes.mutate("ping from the renderer!");
   };
 
   return (
@@ -17,11 +23,27 @@ export function DBsettingsHub() {
         <b>DBpane Hub</b>
       </h1>
 
-      <Button color="danger" size="md" onClick={getAthletes}>
-        Load Start List
-      </Button>
-      <Button> Clear Database </Button>
-      <Button> Init Database </Button>
+      <Stack direction="row" align="stretch">
+        <Stack direction="col">
+          <b>Station Setup</b>
+          <Button color="primary" size="md" onClick={getStationsFile}>
+            Load Stations File
+          </Button>
+          <Button color="primary" size="md" onClick={getAthletesFile}>
+            Load Start List
+          </Button>
+        </Stack>
+        <Stack direction="col">
+          <b>Data Tools</b>
+          <Button>Export CSV</Button>
+        </Stack>
+        <Stack direction="col">
+          <b>Developer Tools</b>
+          <Button>Init Database</Button>
+          <Button>Clear Database</Button>
+          <Button>Reload Database from CSV </Button>
+        </Stack>
+      </Stack>
     </div>
   );
 }
