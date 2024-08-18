@@ -8,22 +8,24 @@ export function LookupAthleteByBib(bibNumber: number): AthleteDB | undefined {
   let result: AthleteDB | undefined;
 
   try {
-    const Athlete = db.prepare(`SELECT * FROM Athletes WHERE bibId = ?`).get(bibNumber);
+    const athlete = db
+      .prepare(`SELECT * FROM Athletes WHERE bibId = ?`)
+      .get(bibNumber) as AthleteDB;
 
     // neither of these checks seem to work that well
-    if (Athlete.bibId === undefined || typeof Athlete.bibId !== "number") return undefined;
+    if (athlete.bibId === undefined || typeof athlete.bibId !== "number") return undefined;
 
     const runner: AthleteDB = {
-      index: Athlete.index,
-      bib: Athlete.bibId,
-      firstname: Athlete.firstName,
-      lastname: Athlete.lastName,
-      gender: Athlete.gender,
-      age: Athlete.age,
-      city: Athlete.city,
-      state: Athlete.state,
-      emPhone: Athlete.emergencyPhone,
-      emName: Athlete.emergencyName,
+      index: athlete.index,
+      bibId: athlete.bibId,
+      firstName: athlete.firstName,
+      lastName: athlete.lastName,
+      gender: athlete.gender,
+      age: athlete.age,
+      city: athlete.city,
+      state: athlete.state,
+      emergencyPhone: athlete.emergencyPhone,
+      emergencyName: athlete.emergencyName,
       dns: false,
       dnf: false,
       dnfStation: 0,
