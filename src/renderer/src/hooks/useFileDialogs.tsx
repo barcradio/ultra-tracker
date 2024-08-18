@@ -23,3 +23,14 @@ export function useLoadAthletes() {
     onError: (error) => console.error(error)
   });
 }
+
+export function useExportRunnersToCSV() {
+  const ipcRenderer = useIpcRenderer();
+  const { createToast } = useToasts();
+
+  return useMutation({
+    mutationFn: (message: string) => ipcRenderer.invoke("export-runners-file", message),
+    onSuccess: (data) => createToast({ message: data, type: "success" }),
+    onError: (error) => console.error(error)
+  });
+}

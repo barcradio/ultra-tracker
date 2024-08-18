@@ -1,8 +1,8 @@
-import { app } from "electron";
 import { formatDate } from "$renderer/lib/datetimes";
 import { Runner } from "$shared/models";
 import { getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
+import { saveRunnersToCSV } from "../lib/file-dialogs"
 
 export function readRunnersTable() {
   const db = getDatabaseConnection();
@@ -18,20 +18,27 @@ export function readRunnersTable() {
   }
 }
 
-export function exportRunnersAsCSV() {
+export async function exportRunnersAsCSV() {
   const db = getDatabaseConnection();
 
   try {
     const stmt = db.prepare(`SELECT * FROM StaEvents`);
 
-    const filePath: string = app.getPath("downloads");
-    const path = require("path");
-    const filename: string = path.join(filePath, "Aid5times.csv");
+    //const filePath: string = app.getPath("downloads");
+    // const path = require("path");
+    // const filename: string = path.join(filePath[0], "Aid5times.csv");
+    const filename: string = await saveRunnersToCSV();
+
+    if (filename == undefined) return "Invalid file name";
 
     writeToCSV(filename, stmt);
   } catch (e) {
-    if (e instanceof Error) console.error(e.message);
+    if (e instanceof Error){
+      console.error(e.message);
+      return e.message;
+    }
   }
+  return "File Export Successful";
 }
 
 function* toRows(stmt) {

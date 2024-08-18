@@ -5,7 +5,6 @@ const { app, dialog } = require("electron");
 export const selectStationsFile = async (): Promise<string[]> => {
   const dialogConfig = {
     title: "Select a starting Stations file",
-    buttonLabel: "Select",
     defaultPath: path.join(app.getPath("documents"), app.name),
     filters: [
       { name: "Readable File Types", extensions: ["json"] },
@@ -30,7 +29,6 @@ export const selectStationsFile = async (): Promise<string[]> => {
 export const loadAthleteFile = () => {
   const dialogConfig = {
     title: "Select a starting athletes file",
-    buttonLabel: "Select",
     defaultPath: app.getPath("documents"),
     filters: [
       { name: "Readable File Types", extensions: ["csv", "json", "txt"] },
@@ -47,6 +45,29 @@ export const loadAthleteFile = () => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+export const saveRunnersToCSV = async (): Promise<string> => {
+  const dialogConfig = {
+    title: "Specify an export file",
+    defaultPath: path.join(app.getPath("documents"), app.name, "Aid0XTimes"),
+    filters: [
+      { name: "Comma-Separated Values", extensions: ["csv"] },
+      { name: "All Files", extensions: ["*"] }
+    ]
+  };
+
+  const result = await openFileDialog("showSaveDialog", dialogConfig)
+    .then((result) => {
+      console.log(result.canceled);
+      console.log(result.filePath);
+      return result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
+  return result.filePath as string;
 };
 
 const openFileDialog = (method, params) => {

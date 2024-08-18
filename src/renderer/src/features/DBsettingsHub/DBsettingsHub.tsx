@@ -1,10 +1,11 @@
 import { Button, Stack } from "~/components";
-import { useLoadAthletes, useLoadStationsFile } from "~/hooks/useFileDialogs";
+import { useExportRunnersToCSV, useLoadAthletes, useLoadStationsFile } from "~/hooks/useFileDialogs";
 import { useToasts } from "../Toasts/useToasts";
 
 export function DBsettingsHub() {
   const loadAthletes = useLoadAthletes();
   const loadStation = useLoadStationsFile();
+  const exportRunnersFile = useExportRunnersToCSV();
   const { createToast } = useToasts();
 
   const getStationsFile = () => {
@@ -15,6 +16,11 @@ export function DBsettingsHub() {
   const getAthletesFile = () => {
     createToast({ message: "Getting Athletes", type: "info" });
     loadAthletes.mutate("ping from the renderer!");
+  };
+
+  const createRunnerCSVFile = () => {
+    createToast({ message: "Exporting to CSV file", type: "info" });
+    exportRunnersFile.mutate("ping from the renderer!");
   };
 
   return (
@@ -35,7 +41,9 @@ export function DBsettingsHub() {
         </Stack>
         <Stack direction="col">
           <b>Data Tools</b>
-          <Button>Export CSV</Button>
+          <Button color="primary" size="md" onClick={createRunnerCSVFile}>
+            Export to CSV File
+          </Button>
         </Stack>
         <Stack direction="col">
           <b>Developer Tools</b>

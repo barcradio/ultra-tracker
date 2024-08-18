@@ -62,7 +62,6 @@ app.whenReady().then(() => {
   initUserDirectories();
 
   // call backend functions for testing purposes
-  exportRunnersAsCSV();
 
   createWindow();
 
