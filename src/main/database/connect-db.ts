@@ -98,8 +98,12 @@ export function CreateTables(): boolean {
         age INTEGER DEFAULT (0),
         city TEXT,
         state TEXT,
+        emergencyName TEXT,
         emergencyPhone INTEGER,
-        emergencyName TEXT
+        dns INTEGER,
+        dnf INTEGER,
+        dnfStation INTEGER,
+        dnfDateTime DATETIME
         )`);
 
     CmdResult.run();
@@ -122,7 +126,11 @@ export function CreateTables(): boolean {
       description TEXT,
       location BLOB,
       distance REAL,
-      split REAL,
+      dropbags INTEGER,
+      crewaccess INTEGER,
+      paceraccess INTEGER,
+      cutofftime DATETIME,
+      entrymode INTEGER,
       operators BLOB
       )`);
 
@@ -164,14 +172,25 @@ export function CreateTables(): boolean {
   return true;
 }
 
+export function ClearTables() {
+  const result =
+    clearStartListTable() &&
+    clearEventsTable() &&
+    clearRunnersTable() &&
+    clearStationsTable() &&
+    clearOutputTable();
+
+  return result ? `Database tables cleared; Reinitialize or Restart!` : `Database Clear Failed`;
+}
+
 function clearTable(tableName: string): boolean {
   const db = getDatabaseConnection();
   try {
-    const query = db.prepare(`DELETE * FROM ?`);
-    query.run(tableName);
+    db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
+    console.log(`Dropped '${tableName}' table`);
     return true;
   } catch (e: unknown) {
-    if (e instanceof Error) console.log(`Failed to delete'${tableName}'table: ${e.message}`);
+    if (e instanceof Error) console.log(`Failed to delete '${tableName}' table: ${e.message}`);
     return false;
   }
 }

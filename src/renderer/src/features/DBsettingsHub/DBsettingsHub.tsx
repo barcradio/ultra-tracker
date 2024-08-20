@@ -1,14 +1,45 @@
-import { Button } from "~/components";
-import { useLoadAthletes } from "~/hooks/useLoadAthletes";
+import { Button, Stack } from "~/components";
+import * as dbUtilHooks from "~/hooks/useDatabaseUtilities";
+import * as dialogHooks from "~/hooks/useFileDialogs";
 import { useToasts } from "../Toasts/useToasts";
 
 export function DBsettingsHub() {
-  const clickInMutation = useLoadAthletes();
+  const loadAthletes = dialogHooks.useLoadAthletes();
+  const loadStation = dialogHooks.useLoadStationsFile();
+  const initializeDatabaseMutation = dbUtilHooks.useInitializeDatabase();
+  const clearDatabaseMutation = dbUtilHooks.useClearDatabase();
+  const importRunnersFile = dialogHooks.useImportRunnersFromCSV();
+  const exportRunnersFile = dialogHooks.useExportRunnersToCSV();
   const { createToast } = useToasts();
 
-  const getAthletes = () => {
+  const getStationsFile = () => {
+    createToast({ message: "Loading Stations file", type: "info" });
+    loadStation.mutate("ping from the renderer!");
+  };
+
+  const getAthletesFile = () => {
     createToast({ message: "Getting Athletes", type: "info" });
-    clickInMutation.mutate("ping from the renderer!");
+    loadAthletes.mutate("ping from the renderer!");
+  };
+
+  const createRunnerCSVFile = () => {
+    createToast({ message: "Exporting to CSV file", type: "info" });
+    exportRunnersFile.mutate("ping from the renderer!");
+  };
+
+  const importRunnerCSVFile = () => {
+    createToast({ message: "Importing from CSV file", type: "info" });
+    importRunnersFile.mutate("ping from the renderer!");
+  };
+
+  const initializeDatabase = () => {
+    createToast({ message: "Initialize database", type: "info" });
+    initializeDatabaseMutation.mutate("ping from the renderer!");
+  };
+
+  const clearDatabase = () => {
+    createToast({ message: "Loading Stations file", type: "info" });
+    clearDatabaseMutation.mutate("ping from the renderer!");
   };
 
   return (
@@ -17,11 +48,35 @@ export function DBsettingsHub() {
         <b>DBpane Hub</b>
       </h1>
 
-      <Button color="danger" size="md" onClick={getAthletes}>
-        Load Start List
-      </Button>
-      <Button> Clear Database </Button>
-      <Button> Init Database </Button>
+      <Stack direction="row" align="stretch">
+        <Stack direction="col">
+          <b>Station Setup</b>
+          <Button color="primary" size="md" onClick={getStationsFile}>
+            Load Stations File
+          </Button>
+          <Button color="primary" size="md" onClick={getAthletesFile}>
+            Load Athletes File
+          </Button>
+        </Stack>
+        <Stack direction="col">
+          <b>Data Tools</b>
+          <Button color="primary" size="md" onClick={createRunnerCSVFile}>
+            Export to CSV File
+          </Button>
+        </Stack>
+        <Stack direction="col">
+          <b>Developer Tools</b>
+          <Button color="warning" variant="outlined" onClick={initializeDatabase}>
+            Init Database
+          </Button>
+          <Button color="warning" variant="outlined" onClick={clearDatabase}>
+            Clear Database
+          </Button>
+          <Button color="warning" variant="outlined" onClick={importRunnerCSVFile}>
+            Import from CSV File
+          </Button>
+        </Stack>
+      </Stack>
     </div>
   );
 }

@@ -12,17 +12,26 @@ export interface RunnerDB {
   sent: boolean;
 }
 
+export interface Runner {
+  id: number;
+  sequence: number;
+  runner: number;
+  in: Date | string;
+  out: Date | string;
+  notes: string;
+}
+
 export type AthleteDB = {
   index: number;
-  bib: number;
-  firstname: string;
-  lastname: string;
+  bibId: number;
+  firstName: string;
+  lastName: string;
   gender: string;
   age: number;
   city: string;
   state: string;
-  emPhone: string;
-  emName: string;
+  emergencyPhone: string;
+  emergencyName: string;
   dns: boolean | undefined;
   dnf: boolean | undefined;
   dnfStation: number | undefined;
@@ -48,7 +57,11 @@ export type StationDB = {
   description: string;
   location: string;
   distance: number;
-  split: boolean;
+  dropbags: boolean;
+  crewaccess: boolean;
+  paceraccess: boolean;
+  cutofftime: string;
+  entrymode: number;
   operators: string;
 };
 
@@ -58,13 +71,18 @@ export type Station = {
   description: string;
   location: Location;
   distance: number;
-  split: boolean;
+  dropbags: boolean;
+  crewaccess: boolean;
+  paceraccess: boolean;
+  cutofftime: Date;
+  entrymode: EntryMode;
   operators: Operator[];
 };
 
 export type Location = {
   latitude: number;
   longitude: number;
+  elevation: number;
 };
 
 export type Operator = {
@@ -84,4 +102,11 @@ export enum DatabaseStatus {
   NotFound,
   Error,
   Success
+}
+
+export enum EntryMode {
+  Normal,
+  Fast,
+  InOnly,
+  OutOnly
 }

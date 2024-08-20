@@ -1,6 +1,6 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
-import * as dbAPI from "../database/main-db";
+import * as dbAthlete from "../database/athlete-db";
 import { Handler } from "../types";
 
 const runnerLookup: Handler = () => {
@@ -9,11 +9,13 @@ const runnerLookup: Handler = () => {
   let message: string = "";
 
   try {
-    const runner = dbAPI.LookupAthleteByBib(randomBib);
+    const result = dbAthlete.GetAthleteByBib(randomBib);
+    const runner = result[0];
+
     if (!runner) {
       message = `Bib #${randomBib} not found!`;
     } else {
-      message = `Found #${runner.bib} ${runner.firstname} ${runner.lastname} ${runner.city}`;
+      message = `Found #${runner.bibId} ${runner.firstName} ${runner.lastName} ${runner.city}`;
     }
   } catch (e) {
     if (e instanceof Error) message = e.message;
@@ -26,11 +28,6 @@ const runnerLookup: Handler = () => {
 export const initSettingsHandlers = () => {
   ipcMain.handle("runner-lookup", runnerLookup);
 };
-
-// ipcMain.handle("dialog:open", async (_, args) => {
-//   const result = await dialog.showOpenDialog({ properties: ["openFile"] });
-//   return result;
-// });
 
 function randomIntFromInterval(min: number, max: number) {
   // min and max included

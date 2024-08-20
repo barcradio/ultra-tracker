@@ -31,7 +31,7 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, str
 export function getTimeRecordbyBib(record: RunnerDB): [RunnerDB | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryString = "";
-  let queryResult: RunnerDB | null = null;
+  let queryResult;
   let message: string = "";
 
   queryString = `SELECT * FROM StaEvents WHERE bibId = ?`;
@@ -48,6 +48,7 @@ export function getTimeRecordbyBib(record: RunnerDB): [RunnerDB | null, Database
   if (queryResult == null || queryResult.bibId != record.bibId)
     return [null, DatabaseStatus.NotFound, message];
 
+  queryResult = queryResult as RunnerDB;
   message = `timing-record:Found timeRecord with bib: ${queryResult.bibId}`;
   return [queryResult, DatabaseStatus.Success, message];
 }
@@ -55,7 +56,7 @@ export function getTimeRecordbyBib(record: RunnerDB): [RunnerDB | null, Database
 export function getTimeRecordbyIndex(record: RunnerDB): [RunnerDB | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryString = "";
-  let queryResult: RunnerDB | null = null;
+  let queryResult;
   let message: string = "";
 
   queryString = `SELECT * FROM StaEvents WHERE "index" = ?`;
@@ -71,6 +72,7 @@ export function getTimeRecordbyIndex(record: RunnerDB): [RunnerDB | null, Databa
 
   if (queryResult == null) return [queryResult, DatabaseStatus.NotFound, message];
 
+  queryResult = queryResult as RunnerDB;
   message = `timing-record:Found timeRecord with index: ${queryResult.index}`;
   console.log(message);
   return [queryResult, DatabaseStatus.Success, message];

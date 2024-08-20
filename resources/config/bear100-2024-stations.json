@@ -6,10 +6,15 @@
             "description": "Hyrum Gibbons/Mount Logan Park",
             "location": {
                 "latitude": 41.72825,
-                "longitude": -111.79954
+                "longitude": -111.79954,
+                "elevation": 4852
             },
             "distance": 0.0,
-            "split": false,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": false,
+            "cutofftime": "06:00:00 Sept 27",
+            "entrymode": 1,
             "operators": [
                 {
                     "name": "",
@@ -26,10 +31,15 @@
             "description": "[No Crew]",
             "location": {
                 "latitude": 41.69347,
-                "longitude": -111.70273
+                "longitude": -111.70273,
+                "elevation": 8538
             },
-            "distance": 0.0,
-            "split": false,
+            "distance": 10.5,
+            "dropbags": false,
+            "crewaccess": false,
+            "paceraccess": false,
+            "cutofftime": "10:15:00 Sept 27",
+            "entrymode": 1,
             "operators": [
                 {
                     "name": "",
@@ -46,10 +56,15 @@
             "description": "[Crew][Pacer Exchange]",
             "location": {
                 "latitude": 41.64313,
-                "longitude": -111.70663
+                "longitude": -111.70663,
+                "elevation": 5140
             },
-            "distance": 0.0,
-            "split": false,
+            "distance": 19.5,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": false,
+            "cutofftime": "13:00:00 Sept 27",
+            "entrymode": 1,
             "operators": [
                 {
                     "name": "",
@@ -66,10 +81,15 @@
             "description": "[No Crew]",
             "location": {
                 "latitude": 41.72597,
-                "longitude": -111.63783
+                "longitude": -111.63783,
+                "elevation": 7490
             },
-            "distance": 0.0,
-            "split": false,
+            "distance": 28.0,
+            "dropbags": true,
+            "crewaccess": false,
+            "paceraccess": false,
+            "cutofftime": "16:00:00 Sept 27",
+            "entrymode": 1,
             "operators": [
                 {
                     "name": "",
@@ -86,10 +106,15 @@
             "description": "[Limited Crew]",
             "location": {
                 "latitude": 41.77485,
-                "longitude": -111.61013
+                "longitude": -111.61013,
+                "elevation": 5551
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 37.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "19:00:00 Sept 27",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -106,10 +131,15 @@
             "description": "[Limited Crew]",
             "location": {
                 "latitude": 41.83491,
-                "longitude": -111.59243
+                "longitude": -111.59243,
+                "elevation": 5837
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 44.8,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "22:30:00 Sept 27",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -126,10 +156,15 @@
             "description": "[Crew][Pacer Exchange]",
             "location": {
                 "latitude": 41.89003,
-                "longitude": -111.63351
+                "longitude": -111.63351,
+                "elevation": 7980
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 51.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "01:00:00 Sept 28",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -146,10 +181,15 @@
             "description": "[Crew][Pacer Exchange]",
             "location": {
                 "latitude": 41.93275,
-                "longitude": -111.56818
+                "longitude": -111.56818,
+                "elevation": 6717
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 61.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "05:00:00 Sept 28",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -166,10 +206,15 @@
             "description": "[No Crew][No Pacer]",
             "location": {
                 "latitude": 41.96022,
-                "longitude": -111.59105
+                "longitude": -111.59105,
+                "elevation": 7280
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 69.0,
+            "dropbags": true,
+            "crewaccess": false,
+            "paceraccess": false,
+            "cutofftime": "08:30:00 Sept 28",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -186,10 +231,15 @@
             "description": "[Crew][Pacer Exchange]",
             "location": {
                 "latitude": 41.96857,
-                "longitude": -111.54152
+                "longitude": -111.54152,
+                "elevation": 7269
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 75.1,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "11:00:00 Sept 28",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -206,10 +256,15 @@
             "description": "[No Crew][No Pacer]",
             "location": {
                 "latitude": 42.02714,
-                "longitude": -111.55552
+                "longitude": -111.55552,
+                "elevation": 8287
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 80.5,
+            "dropbags": false,
+            "crewaccess": false,
+            "paceraccess": false,
+            "cutofftime": "12:45:00 Sept 28",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -223,13 +278,18 @@
         {
             "name": "Beaver Creek Campground",
             "identifier": "11-beaver-creek",
-            "description": "[Crew][Pacer Exchange]",
+            "description": "[Crew][Pacer Exchange]Rough Road",
             "location": {
                 "latitude": 42.02187,
-                "longitude": -111.52917
+                "longitude": -111.52917,
+                "elevation": 7792
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 84.7,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "14:15:00 Sept 28",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -243,13 +303,18 @@
         {
             "name": "Ranger Dip",
             "identifier": "12-ranger-dip",
-            "description": "[Crew][Pacer Exchange]",
+            "description": "[Crew][Pacer Exchange]Bumpy road",
             "location": {
                 "latitude": 42.00723,
-                "longitude": -111.48866
+                "longitude": -111.48866,
+                "elevation": 8431
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 91.8,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "16:15:00 Sept 28",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
@@ -266,10 +331,15 @@
             "description": "Fish Haven ID (@ The Reserve)",
             "location": {
                 "latitude": 42.04378,
-                "longitude": -111.39160
+                "longitude": -111.39160,
+                "elevation": 6079
             },
-            "distance": 0.0,
-            "split": true,
+            "distance": 100.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "18:00:00 Sept 28",
+            "entrymode": 0,
             "operators": [
                 {
                     "name": "",
