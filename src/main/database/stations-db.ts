@@ -42,7 +42,7 @@ export function GetStationByIdentifier(
   identifier: string
 ): [Station | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
-  let queryResult: StationDB | null = null;
+  let queryResult;
   let message: string = "";
 
   try {
@@ -55,6 +55,8 @@ export function GetStationByIdentifier(
   }
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  queryResult = queryResult as StationDB;
 
   const loc = JSON.parse(queryResult.location);
   const ops = JSON.parse(queryResult.operators);
