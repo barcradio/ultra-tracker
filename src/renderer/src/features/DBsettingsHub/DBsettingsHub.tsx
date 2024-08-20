@@ -1,18 +1,15 @@
 import { Button, Stack } from "~/components";
-import { useClearDatabase, useInitializeDatabase } from "~/hooks/useDatabaseUtilities";
-import {
-  useExportRunnersToCSV,
-  useLoadAthletes,
-  useLoadStationsFile
-} from "~/hooks/useFileDialogs";
+import * as dbUtilHooks from "~/hooks/useDatabaseUtilities";
+import * as dialogHooks from "~/hooks/useFileDialogs";
 import { useToasts } from "../Toasts/useToasts";
 
 export function DBsettingsHub() {
-  const loadAthletes = useLoadAthletes();
-  const loadStation = useLoadStationsFile();
-  const initializeDatabaseMutation = useInitializeDatabase();
-  const clearDatabaseMutation = useClearDatabase();
-  const exportRunnersFile = useExportRunnersToCSV();
+  const loadAthletes = dialogHooks.useLoadAthletes();
+  const loadStation = dialogHooks.useLoadStationsFile();
+  const initializeDatabaseMutation = dbUtilHooks.useInitializeDatabase();
+  const clearDatabaseMutation = dbUtilHooks.useClearDatabase();
+  const importRunnersFile = dialogHooks.useImportRunnersFromCSV();
+  const exportRunnersFile = dialogHooks.useExportRunnersToCSV();
   const { createToast } = useToasts();
 
   const getStationsFile = () => {
@@ -28,6 +25,11 @@ export function DBsettingsHub() {
   const createRunnerCSVFile = () => {
     createToast({ message: "Exporting to CSV file", type: "info" });
     exportRunnersFile.mutate("ping from the renderer!");
+  };
+
+  const importRunnerCSVFile = () => {
+    createToast({ message: "Importing from CSV file", type: "info" });
+    importRunnersFile.mutate("ping from the renderer!");
   };
 
   const initializeDatabase = () => {
@@ -53,7 +55,7 @@ export function DBsettingsHub() {
             Load Stations File
           </Button>
           <Button color="primary" size="md" onClick={getAthletesFile}>
-            Load Start List
+            Load Athletes File
           </Button>
         </Stack>
         <Stack direction="col">
@@ -64,9 +66,15 @@ export function DBsettingsHub() {
         </Stack>
         <Stack direction="col">
           <b>Developer Tools</b>
-          <Button onClick={initializeDatabase}>Init Database</Button>
-          <Button onClick={clearDatabase}>Clear Database</Button>
-          <Button>Reload Database from CSV </Button>
+          <Button color="warning" onClick={initializeDatabase}>
+            Init Database
+          </Button>
+          <Button color="warning" onClick={clearDatabase}>
+            Clear Database
+          </Button>
+          <Button color="warning" onClick={importRunnerCSVFile}>
+            Import from CSV File
+          </Button>
         </Stack>
       </Stack>
     </div>

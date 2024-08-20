@@ -1,8 +1,12 @@
+import fs from "fs";
+import { parse } from "csv-parse";
 import { formatDate } from "$renderer/lib/datetimes";
-import { Runner } from "$shared/models";
+import { Runner, RunnerDB } from "$shared/models";
 import { getDatabaseConnection } from "./connect-db";
+import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
-import { saveRunnersToCSV } from "../lib/file-dialogs";
+import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
+import { parseISO } from "date-fns";
 
 export function readRunnersTable() {
   const db = getDatabaseConnection();
@@ -16,6 +20,51 @@ export function readRunnersTable() {
     if (e instanceof Error) console.error(e.message);
     return [];
   }
+}
+
+export async function importRunnersFromCSV() {
+  const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "note"];
+  const runnerCSVFilePath = await loadRunnersFromCSV();
+  const fileContent = fs.readFileSync(runnerCSVFilePath[0], { encoding: "utf-8" });
+
+  parse(
+    fileContent,
+    {
+      delimiter: ",",
+      columns: headers,
+      from_line: 2
+    },
+    (error, result: Runner[]) => {
+      if (error) {
+        console.error(error);
+        return `${result.length} timings: ${error}`;
+      }
+
+      console.log("Result", result);
+
+      result.slice(1).forEach((timing) => {
+        const record: RunnerDB = {
+          index: timing.bibId,
+          bibId: timing.bibId,
+          stationId: data.station.id,
+          timeIn: parseCSVDate(timing.timeIn),
+          timeOut: parseCSVDate(timing.timeOut),
+          timeModified: new Date(),
+          note: timing.note,
+          sent: false
+        };
+
+        function parseCSVDate(timingDate: string): Date {
+          const event = new Date(Date.parse(timingDate));
+          event.setFullYear(new Date().getFullYear());
+          return event;
+        }
+
+        insertOrUpdateTimeRecord(record);
+      });
+      return `${runnerCSVFilePath}\r\n${result.length} timings imported`;
+    }
+  );
 }
 
 export async function exportRunnersAsCSV() {

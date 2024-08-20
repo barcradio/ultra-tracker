@@ -34,3 +34,14 @@ export function useExportRunnersToCSV() {
     onError: (error) => console.error(error)
   });
 }
+
+export function useImportRunnersFromCSV() {
+  const ipcRenderer = useIpcRenderer();
+  const { createToast } = useToasts();
+
+  return useMutation({
+    mutationFn: (message: string) => ipcRenderer.invoke("import-runners-file", message),
+    onSuccess: (data) => createToast({ message: data, type: "success" }),
+    onError: (error) => console.error(error)
+  });
+}

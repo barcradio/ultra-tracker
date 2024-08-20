@@ -17,6 +17,10 @@ const getAthletesTable: Handler<string> = () => {
   return dbAthlete.LoadAthletes();
 };
 
+const importRunnersFile: Handler<string> = () => {
+  return dbRunners.importRunnersFromCSV();
+};
+
 const exportRunnersFile: Handler<string> = () => {
   return dbRunners.exportRunnersAsCSV();
 };
@@ -33,6 +37,7 @@ export const initdbSettingsHandlers = () => {
   ipcMain.handle("get-athletes-table", getAthletesTable);
   ipcMain.handle("load-athletes-file", loadAthletesFile);
   ipcMain.handle("load-stations-file", loadStationFile);
+  ipcMain.handle("import-runners-file", importRunnersFile);
   ipcMain.handle("export-runners-file", exportRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);
   ipcMain.handle("clear-database", clearDatabase);
