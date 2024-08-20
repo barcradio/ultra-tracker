@@ -1,5 +1,5 @@
-import { getDatabaseConnection } from "./connect-db";
-import { DatabaseStatus, Operator, Station, StationDB } from "../../shared/models";
+import { clearStationsTable, getDatabaseConnection } from "./connect-db";
+import { DatabaseStatus, EntryMode, Operator, Station, StationDB } from "../../shared/models";
 import { selectStationsFile } from "../lib/file-dialogs";
 
 //TODO: we will need to set myStation, ought to create a settings table instaed of these hard-coded values
@@ -13,8 +13,9 @@ export async function LoadStations() {
   if (!stationData) return "Invalid JSON file.";
 
   for (const index in stationData) {
-    if (GetStations().length == stationData.stations.length)
-      return `${stationData.stations.length} stations already loaded`; // TODO: clear tation list and reload from file
+    if (GetStations().length > 0) {
+      clearStationsTable();
+    }
 
     for (const key in stationData[index]) {
       insertStation(stationData[index][key]);
@@ -66,9 +67,13 @@ export function GetStationByIdentifier(
     name: queryResult.name,
     identifier: queryResult.identifier,
     description: queryResult.description,
-    location: { latitude: loc.latitude, longitude: loc.latitude },
+    location: { latitude: loc.latitude, longitude: loc.latitude, elevation: loc.elevation },
     distance: queryResult.distance,
-    split: Boolean(queryResult.split),
+    dropbags: queryResult.dropbags,
+    crewaccess: queryResult.crewaccess,
+    paceraccess: queryResult.paceraccess,
+    cutofftime: new Date(queryResult.cutofftime),
+    entrymode: queryResult.entrymode as EntryMode,
     operators: ops as Operator[]
   };
 
@@ -85,14 +90,30 @@ export function insertStation(station: Station): [DatabaseStatus, string] {
   const description: string = station.description;
   const location: string = JSON.stringify(station.location);
   const distance: number = station.distance;
-  const split: number = Number(station.split);
+  const dropbags: number = Number(station.dropbags);
+  const crewaccess: number = Number(station.crewaccess);
+  const paceraccess: number = Number(station.paceraccess);
+  const cutofftime: string = new Date(station.cutofftime).toISOString();
+  const entrymode: number = Number(station.entrymode);
   const operators: string = JSON.stringify(station.operators);
 
   try {
     const query = db.prepare(
-      `INSERT INTO Stations (name, identifier, description, location, distance, split, operators) VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Stations (name, identifier, description, location, dropbags, crewaccess, paceraccess, distance, cutofftime, entrymode, operators) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
-    query.run(name, identifier, description, location, distance, split, operators);
+    query.run(
+      name,
+      identifier,
+      description,
+      location,
+      dropbags,
+      crewaccess,
+      paceraccess,
+      distance,
+      cutofftime,
+      entrymode,
+      operators
+    );
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);

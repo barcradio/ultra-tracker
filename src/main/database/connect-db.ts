@@ -122,7 +122,11 @@ export function CreateTables(): boolean {
       description TEXT,
       location BLOB,
       distance REAL,
-      split REAL,
+      dropbags INTEGER,
+      crewaccess INTEGER,
+      paceraccess INTEGER,
+      cutofftime DATETIME,
+      entrymode INTEGER,
       operators BLOB
       )`);
 

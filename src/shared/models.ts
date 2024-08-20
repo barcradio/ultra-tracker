@@ -57,7 +57,11 @@ export type StationDB = {
   description: string;
   location: string;
   distance: number;
-  split: boolean;
+  dropbags: boolean;
+  crewaccess: boolean;
+  paceraccess: boolean;
+  cutofftime: string;
+  entrymode: number;
   operators: string;
 };
 
@@ -67,13 +71,18 @@ export type Station = {
   description: string;
   location: Location;
   distance: number;
-  split: boolean;
+  dropbags: boolean;
+  crewaccess: boolean;
+  paceraccess: boolean;
+  cutofftime: Date;
+  entrymode: EntryMode;
   operators: Operator[];
 };
 
 export type Location = {
   latitude: number;
   longitude: number;
+  elevation: number;
 };
 
 export type Operator = {
@@ -93,4 +102,11 @@ export enum DatabaseStatus {
   NotFound,
   Error,
   Success
+}
+
+export enum EntryMode {
+  Normal,
+  Fast,
+  InOnly,
+  OutOnly
 }
