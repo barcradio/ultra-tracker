@@ -2,7 +2,7 @@ import { formatDate } from "$renderer/lib/datetimes";
 import { Runner } from "$shared/models";
 import { getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
-import { saveRunnersToCSV } from "../lib/file-dialogs"
+import { saveRunnersToCSV } from "../lib/file-dialogs";
 
 export function readRunnersTable() {
   const db = getDatabaseConnection();
@@ -33,7 +33,7 @@ export async function exportRunnersAsCSV() {
 
     writeToCSV(filename, stmt);
   } catch (e) {
-    if (e instanceof Error){
+    if (e instanceof Error) {
       console.error(e.message);
       return e.message;
     }

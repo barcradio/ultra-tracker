@@ -3,7 +3,6 @@ import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import icon from "$resources/icon.png?asset";
 import { createDatabaseConnection } from "./database/connect-db";
-import { exportRunnersAsCSV } from "./database/runners-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { initUserDirectories } from "./lib/file-dialogs";
 
@@ -60,8 +59,6 @@ app.whenReady().then(() => {
   createDatabaseConnection();
   initializeIpcHandlers();
   initUserDirectories();
-
-  // call backend functions for testing purposes
 
   createWindow();
 
