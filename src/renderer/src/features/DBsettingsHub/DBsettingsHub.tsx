@@ -66,13 +66,13 @@ export function DBsettingsHub() {
         </Stack>
         <Stack direction="col">
           <b>Developer Tools</b>
-          <Button color="warning" onClick={initializeDatabase}>
+          <Button color="warning" variant="outlined" onClick={initializeDatabase}>
             Init Database
           </Button>
-          <Button color="warning" onClick={clearDatabase}>
+          <Button color="warning" variant="outlined" onClick={clearDatabase}>
             Clear Database
           </Button>
-          <Button color="warning" onClick={importRunnerCSVFile}>
+          <Button color="warning" variant="outlined" onClick={importRunnerCSVFile}>
             Import from CSV File
           </Button>
         </Stack>
