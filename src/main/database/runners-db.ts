@@ -6,7 +6,6 @@ import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
 import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
-import { parseISO } from "date-fns";
 
 export function readRunnersTable() {
   const db = getDatabaseConnection();
@@ -32,6 +31,7 @@ export async function importRunnersFromCSV() {
     {
       delimiter: ",",
       columns: headers,
+      // eslint-disable-next-line camelcase
       from_line: 2
     },
     (error, result: Runner[]) => {
