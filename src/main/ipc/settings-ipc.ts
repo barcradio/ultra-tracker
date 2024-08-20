@@ -1,6 +1,6 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
-import * as dbAPI from "../database/main-db";
+import * as dbAthlete from "../database/athlete-db";
 import { Handler } from "../types";
 
 const runnerLookup: Handler = () => {
@@ -9,7 +9,9 @@ const runnerLookup: Handler = () => {
   let message: string = "";
 
   try {
-    const runner = dbAPI.LookupAthleteByBib(randomBib);
+    const result = dbAthlete.GetAthleteByBib(randomBib);
+    const runner = result[0];
+
     if (!runner) {
       message = `Bib #${randomBib} not found!`;
     } else {

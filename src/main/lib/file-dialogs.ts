@@ -26,17 +26,17 @@ export const selectStationsFile = async (): Promise<string[]> => {
   return result.filePaths as string[];
 };
 
-export const loadAthleteFile = () => {
+export const loadAthleteFile = async (): Promise<string[]> => {
   const dialogConfig = {
     title: "Select a starting athletes file",
-    defaultPath: app.getPath("documents"),
+    defaultPath: path.join(app.getPath("documents"), app.name),
     filters: [
       { name: "Readable File Types", extensions: ["csv", "json", "txt"] },
       { name: "All Files", extensions: ["*"] }
     ],
     properties: ["openFile"]
   };
-  openFileDialog("showOpenDialog", dialogConfig)
+  const result = await openFileDialog("showOpenDialog", dialogConfig)
     .then((result) => {
       console.log(result.canceled);
       console.log(result.filePaths);
@@ -45,6 +45,7 @@ export const loadAthleteFile = () => {
     .catch((err) => {
       console.log(err);
     });
+  return result.filePaths as string[];
 };
 
 export const saveRunnersToCSV = async (): Promise<string> => {

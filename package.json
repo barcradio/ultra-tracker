@@ -30,6 +30,7 @@
     "@tw-classed/react": "^1.7.0",
     "better-sqlite3": "^11.1.2",
     "class-variance-authority": "^0.7.0",
+    "csv-parse": "^5.5.6",
     "date-fns": "^3.6.0",
     "electron-updater": "^6.2.1",
     "focus-trap-react": "^10.2.3",

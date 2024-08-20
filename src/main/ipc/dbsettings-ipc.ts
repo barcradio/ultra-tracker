@@ -1,17 +1,20 @@
 import { ipcMain } from "electron";
-import { AthleteDB } from "../../shared/models";
-import * as dbAPI from "../database/main-db";
-import { LoadStations } from "../database/stations-db";
+import * as dbAthlete from "../database/athlete-db";
 import * as dbConnect from "../database/connect-db";
 import * as dbRunners from "../database/runners-db";
+import * as dbStations from "../database/stations-db";
 import { Handler } from "../types";
 
 const loadStationFile: Handler<string> = () => {
-  return LoadStations();
+  return dbStations.LoadStations();
 };
 
-const getAthletesTable: Handler<AthleteDB[]> = () => {
-  return dbAPI.AthletesLoadTable();
+const loadAthletesFile: Handler<string> = () => {
+  return dbAthlete.LoadAthletes();
+};
+
+const getAthletesTable: Handler<string> = () => {
+  return dbAthlete.LoadAthletes();
 };
 
 const exportRunnersFile: Handler<string> = () => {
@@ -28,6 +31,7 @@ const clearDatabase: Handler<string> = () => {
 
 export const initdbSettingsHandlers = () => {
   ipcMain.handle("get-athletes-table", getAthletesTable);
+  ipcMain.handle("load-athletes-file", loadAthletesFile);
   ipcMain.handle("load-stations-file", loadStationFile);
   ipcMain.handle("export-runners-file", exportRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);

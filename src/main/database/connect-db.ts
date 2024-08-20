@@ -98,8 +98,12 @@ export function CreateTables(): boolean {
         age INTEGER DEFAULT (0),
         city TEXT,
         state TEXT,
+        emergencyName TEXT,
         emergencyPhone INTEGER,
-        emergencyName TEXT
+        dns INTEGER,
+        dnf INTEGER,
+        dnfStation INTEGER,
+        dnfDateTime DATETIME
         )`);
 
     CmdResult.run();
