@@ -1,10 +1,17 @@
 import { Button, Stack } from "~/components";
-import { useExportRunnersToCSV, useLoadAthletes, useLoadStationsFile } from "~/hooks/useFileDialogs";
+import { useClearDatabase, useInitializeDatabase } from "~/hooks/useDatabaseUtilities";
+import {
+  useExportRunnersToCSV,
+  useLoadAthletes,
+  useLoadStationsFile
+} from "~/hooks/useFileDialogs";
 import { useToasts } from "../Toasts/useToasts";
 
 export function DBsettingsHub() {
   const loadAthletes = useLoadAthletes();
   const loadStation = useLoadStationsFile();
+  const initializeDatabaseMutation = useInitializeDatabase();
+  const clearDatabaseMutation = useClearDatabase();
   const exportRunnersFile = useExportRunnersToCSV();
   const { createToast } = useToasts();
 
@@ -21,6 +28,16 @@ export function DBsettingsHub() {
   const createRunnerCSVFile = () => {
     createToast({ message: "Exporting to CSV file", type: "info" });
     exportRunnersFile.mutate("ping from the renderer!");
+  };
+
+  const initializeDatabase = () => {
+    createToast({ message: "Initialize database", type: "info" });
+    initializeDatabaseMutation.mutate("ping from the renderer!");
+  };
+
+  const clearDatabase = () => {
+    createToast({ message: "Loading Stations file", type: "info" });
+    clearDatabaseMutation.mutate("ping from the renderer!");
   };
 
   return (
@@ -47,8 +64,8 @@ export function DBsettingsHub() {
         </Stack>
         <Stack direction="col">
           <b>Developer Tools</b>
-          <Button>Init Database</Button>
-          <Button>Clear Database</Button>
+          <Button onClick={initializeDatabase}>Init Database</Button>
+          <Button onClick={clearDatabase}>Clear Database</Button>
           <Button>Reload Database from CSV </Button>
         </Stack>
       </Stack>
