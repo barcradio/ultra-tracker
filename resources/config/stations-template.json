@@ -1,0 +1,29 @@
+{
+    "stations": [
+        {
+            "name": "",
+            "identifier": "0-first-station",
+            "description": "",
+            "location": {
+                "latitude": 41.71466394367188,
+                "longitude": -111.71753403361448,
+                "elevation": 9705
+            },
+            "distance": 0.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "cutofftime": "00:00:00 Jan 01",
+            "entrymode": 0,
+            "operators": [
+                {
+                    "name": "",
+                    "callsign": "",
+                    "phone": "999-999-9999",
+                    "shiftBegin": "00:00:00 Jan 01",
+                    "shiftEnd": "00:00:00 Jan 01"
+                }
+            ]
+        }
+    ]
+}
