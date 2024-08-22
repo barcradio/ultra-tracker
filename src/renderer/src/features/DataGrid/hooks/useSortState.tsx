@@ -32,13 +32,9 @@ export function useSortState<T extends object>({ initial, columns }: Props<T>) {
       const aValue = a[field];
       const bValue = b[field];
       if (aValue === bValue) return 0;
-      if (ascending) {
-        return aValue < bValue ? -1 : 1;
-      } else {
-        return aValue > bValue ? -1 : 1;
-      }
+      return aValue > bValue ? 1 : -1;
     },
-    [field, ascending]
+    [field]
   );
 
   const compareFn = useCallback(
