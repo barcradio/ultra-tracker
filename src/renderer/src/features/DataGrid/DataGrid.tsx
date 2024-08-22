@@ -18,7 +18,11 @@ interface Props<T extends object> {
 const Table = classed.table("w-full font-display text-on-component", {});
 
 export function DataGrid<T extends object>(props: Props<T>) {
-  const [compareFn, setSortField, sortState] = useSortState<T>(props.initialSort);
+  const [compareFn, setSortField, sortState] = useSortState<T>({
+    initial: props.initialSort,
+    columns: props.columns
+  });
+
   const sortedData = [...props.data].sort(compareFn);
 
   return (
