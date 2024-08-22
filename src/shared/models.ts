@@ -39,7 +39,7 @@ export type AthleteDB = {
   age: number;
   city: string;
   state: string;
-  emergencyPhone: string;
+  emergencyPhone: number;
   emergencyName: string;
   dns: boolean | undefined;
   dnf: boolean | undefined;

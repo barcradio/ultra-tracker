@@ -10,7 +10,7 @@ export const Route = createRootRoute({
       <Sidebar />
       <div className="flex flex-col w-screen h-screen">
         <Header />
-        <div className="grow">
+        <div className="m-4 grow">
           <Outlet />
         </div>
         <Footer />
