@@ -58,7 +58,7 @@ export function Headers<T extends object>(props: Props<T>) {
       <Row>
         {props.columns.map((column) => (
           <th
-            key={column.name}
+            key={column.name ?? String(column.field)}
             style={{ width: width(column.width) }}
             className="relative rounded-s bg-component-strong"
           >
@@ -76,7 +76,7 @@ export function Headers<T extends object>(props: Props<T>) {
                   align={column.align ?? "left"}
                   height={18}
                 />
-                {column.name}
+                {column.name ?? String(column.field)}
               </HeaderButton>
             )}
           </th>

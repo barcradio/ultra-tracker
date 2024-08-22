@@ -36,7 +36,7 @@ export function TableContent<T extends object>(props: Props<T>) {
       {props.data.map((row, rowIndex) => (
         <Row key={getKey(row)} even={isEven(rowIndex)} last={isLast(rowIndex)}>
           {props.columns.map((column) => (
-            <Cell key={column.name} align={column.align ?? "left"}>
+            <Cell key={column.name ?? String(column.field)} align={column.align ?? "left"}>
               {renderCell(column, row)}
             </Cell>
           ))}

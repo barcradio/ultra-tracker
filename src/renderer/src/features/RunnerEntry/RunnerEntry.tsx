@@ -11,12 +11,10 @@ export function RunnerEntry() {
   const columns: ColumnDef<RunnerWithSequence> = [
     {
       field: "sequence",
-      name: "Sequence",
       align: "right"
     },
     {
       field: "runner",
-      name: "Runner",
       align: "right"
     },
     {

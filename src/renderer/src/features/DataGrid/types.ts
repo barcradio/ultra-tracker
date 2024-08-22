@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 export type Column<T extends object> = {
   [K in keyof T]: {
     field: K;
-    name: string;
+    name?: string;
     width?: number | string;
     sortable?: boolean;
     render?: (value: T[K], row: T) => ReactNode;
