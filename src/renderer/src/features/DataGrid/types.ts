@@ -1,8 +1,6 @@
 import { ReactNode } from "react";
 
-export type WithId = { id: string | number };
-
-export type Column<T extends WithId> = {
+export type Column<T extends object> = {
   [K in keyof T]: {
     field: K;
     name: string;
@@ -13,4 +11,4 @@ export type Column<T extends WithId> = {
   };
 }[keyof T];
 
-export type ColumnDef<T extends WithId> = Column<T>[];
+export type ColumnDef<T extends object> = Column<T>[];

@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { classed } from "~/lib/classed";
+import { useKeyFn } from "./hooks/useKeyFn";
 import { Row } from "./Row";
-import { Column, WithId } from "./types";
+import { Column } from "./types";
 
 const Cell = classed.td("py-1 px-4 h-full text-sm font-medium text-end", {
   variants: {
@@ -12,13 +13,15 @@ const Cell = classed.td("py-1 px-4 h-full text-sm font-medium text-end", {
   }
 });
 
-interface Props<T extends WithId> {
+interface Props<T extends object> {
   data: T[];
   columns: Column<T>[];
   actionButtons?: (row: T) => ReactNode;
+  getKey?: (row: T) => string | number;
 }
 
-export function TableContent<T extends WithId>(props: Props<T>) {
+export function TableContent<T extends object>(props: Props<T>) {
+  const getKey = useKeyFn(props.getKey);
   const isEven = (index: number) => index % 2 === 0;
   const isLast = (index: number) => index === props.data.length - 1;
 
@@ -31,7 +34,7 @@ export function TableContent<T extends WithId>(props: Props<T>) {
   return (
     <tbody>
       {props.data.map((row, rowIndex) => (
-        <Row key={row.id} even={isEven(rowIndex)} last={isLast(rowIndex)}>
+        <Row key={getKey(row)} even={isEven(rowIndex)} last={isLast(rowIndex)}>
           {props.columns.map((column) => (
             <Cell key={column.name} align={column.align ?? "left"}>
               {renderCell(column, row)}

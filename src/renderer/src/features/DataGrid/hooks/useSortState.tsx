@@ -1,14 +1,14 @@
 import { useCallback, useState } from "react";
 import { WithId } from "../types";
 
-export type InitialSortState<T extends WithId> = Partial<SortState<T>>;
+export type InitialSortState<T extends object> = Partial<SortState<T>>;
 
-export interface SortState<T extends WithId> {
+export interface SortState<T extends object> {
   field: keyof T | null;
   ascending: boolean;
 }
 
-export const useSortState = <T extends WithId>(initial?: InitialSortState<T>) => {
+export const useSortState = <T extends object>(initial?: InitialSortState<T>) => {
   const [field, setField] = useState<keyof T | null>(initial?.field ?? null);
   const [ascending, setAscending] = useState(initial?.ascending ?? true);
 

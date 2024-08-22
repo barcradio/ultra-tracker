@@ -3,7 +3,7 @@ import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
 import { SortState } from "./hooks/useSortState";
 import { Row } from "./Row";
-import { Column, WithId } from "./types";
+import { Column } from "./types";
 
 const HeaderButton = classed.button(
   "flex justify-between items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase",
@@ -36,7 +36,7 @@ const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200 fill-
   }
 });
 
-interface Props<T extends WithId> {
+interface Props<T extends object> {
   data: T[];
   columns: Column<T>[];
   sortState: SortState<T>;
@@ -45,7 +45,7 @@ interface Props<T extends WithId> {
   className?: string;
 }
 
-export function Headers<T extends WithId>(props: Props<T>) {
+export function Headers<T extends object>(props: Props<T>) {
   const isActive = (field: keyof T) => props.sortState.field === field;
 
   const width = (width: Column<T>["width"]) => {
