@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { classed } from "~/lib/classed";
 import { Headers } from "./Headers";
 import { InitialSortState, useSortState } from "./hooks/useSortState";
@@ -13,34 +14,49 @@ interface Props<T extends object> {
   className?: string;
   headerClassName?: string;
   getKey?: (row: T) => string | number;
+  overscan?: number;
 }
 
-const Table = classed.table("w-full font-display text-on-component", {});
+const Table = classed.table("overflow-auto w-full font-display text-on-component");
 
 export function DataGrid<T extends object>(props: Props<T>) {
+  const parentRef = useRef<HTMLDivElement>(null);
   const [compareFn, setSortField, sortState] = useSortState<T>({
     initial: props.initialSort,
     columns: props.columns
   });
 
-  const sortedData = [...props.data].sort(compareFn);
+  // Memoize to prevent re-sorting on every render
+  const sortedData = useMemo(() => [...props.data].sort(compareFn), [compareFn, props.data]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: props.data.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 40,
+    overscan: props.overscan ?? 10
+  });
 
   return (
-    <Table className={props.className}>
-      <Headers<T>
-        data={props.data}
-        columns={props.columns}
-        setSortField={setSortField}
-        sortState={sortState}
-        actionButtons={props.actionButtons}
-        className={props.headerClassName}
-      />
-      <TableContent<T>
-        data={sortedData}
-        columns={props.columns}
-        actionButtons={props.actionButtons}
-        getKey={props.getKey}
-      />
-    </Table>
+    <div ref={parentRef} className="overflow-auto max-h-screen">
+      <div style={{ height: rowVirtualizer.getTotalSize() }}>
+        <Table className={props.className}>
+          <Headers<T>
+            data={props.data}
+            columns={props.columns}
+            setSortField={setSortField}
+            sortState={sortState}
+            actionButtons={props.actionButtons}
+            className={props.headerClassName}
+          />
+          <TableContent<T>
+            rowVirtualizer={rowVirtualizer}
+            data={sortedData}
+            columns={props.columns}
+            actionButtons={props.actionButtons}
+            getKey={props.getKey}
+          />
+        </Table>
+      </div>
+    </div>
   );
 }

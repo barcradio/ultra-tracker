@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { Virtualizer } from "@tanstack/react-virtual";
 import { classed } from "~/lib/classed";
 import { useKeyFn } from "./hooks/useKeyFn";
 import { Row } from "./Row";
@@ -13,8 +14,16 @@ const Cell = classed.td("py-1 px-4 h-full text-sm font-medium text-end", {
   }
 });
 
+const useVirtualPadding = (virtualizer: Virtualizer<HTMLDivElement, Element>) => {
+  const items = virtualizer.getVirtualItems();
+  const paddingTop = items.length ? items[0].start : 0;
+  const paddingBottom = items.length ? virtualizer.getTotalSize() - items[items.length - 1].end : 0;
+  return { paddingTop, paddingBottom };
+};
+
 interface Props<T extends object> {
   data: T[];
+  rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   columns: Column<T>[];
   actionButtons?: (row: T) => ReactNode;
   getKey?: (row: T) => string | number;
@@ -22,6 +31,8 @@ interface Props<T extends object> {
 
 export function TableContent<T extends object>(props: Props<T>) {
   const getKey = useKeyFn(props.getKey);
+  const { paddingTop, paddingBottom } = useVirtualPadding(props.rowVirtualizer);
+
   const isEven = (index: number) => index % 2 === 0;
   const isLast = (index: number) => index === props.data.length - 1;
 
@@ -32,21 +43,36 @@ export function TableContent<T extends object>(props: Props<T>) {
   };
 
   return (
-    <tbody>
-      {props.data.map((row, rowIndex) => (
-        <Row key={getKey(row)} even={isEven(rowIndex)} last={isLast(rowIndex)}>
+    <tbody className="relative">
+      {paddingTop > 0 && (
+        <tr>
+          <td style={{ height: paddingTop }} />
+        </tr>
+      )}
+      {props.rowVirtualizer.getVirtualItems().map((row) => (
+        <Row
+          key={getKey(props.data[row.index])}
+          even={isEven(row.index)}
+          last={isLast(row.index)}
+          ref={props.rowVirtualizer.measureElement}
+        >
           {props.columns.map((column) => (
             <Cell key={column.name ?? String(column.field)} align={column.align ?? "left"}>
-              {renderCell(column, row)}
+              {renderCell(column, props.data[row.index])}
             </Cell>
           ))}
           {props.actionButtons && (
             <Cell align="right" className="p-0 opacity-0 group-hover:opacity-100 h-inherit">
-              {props.actionButtons(row)}
+              {props.actionButtons(props.data[row.index])}
             </Cell>
           )}
         </Row>
       ))}
+      {paddingBottom > 0 && (
+        <tr>
+          <td style={{ height: paddingBottom }} />
+        </tr>
+      )}
     </tbody>
   );
 }
