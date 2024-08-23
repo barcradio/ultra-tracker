@@ -4,6 +4,7 @@ import { AthleteDB } from "$shared/models";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 const fullName = (athlete: AthleteDB) => `${athlete.firstName} ${athlete.lastName}`;
+const stateCity = (athlete: AthleteDB) => `${athlete.state}, ${athlete.city}`;
 
 export function SearchPage() {
   const { data } = useAthletes();
@@ -11,28 +12,35 @@ export function SearchPage() {
   const columns: ColumnDef<AthleteDB> = [
     {
       field: "bibId",
-      name: "Bib ID"
+      name: "Bib",
+      width: "6%"
     },
     {
       field: "firstName",
       name: "Name",
       render: (_, athlete) => fullName(athlete),
-      sortFn: (a, b) => fullName(a).localeCompare(fullName(b))
+      sortFn: (a, b) => fullName(a).localeCompare(fullName(b)),
+      width: "18%"
     },
     {
-      field: "age"
+      field: "age",
+      width: "6%"
     },
     {
-      field: "gender"
+      field: "gender",
+      width: "6%"
     },
     {
       field: "state",
       name: "Location",
-      render: (state, { city }) => `${city}, ${state}`
+      width: "20%",
+      render: (state, { city }) => `${city}, ${state}`,
+      sortFn: (a, b) => stateCity(a).localeCompare(stateCity(b))
     },
     {
       field: "emergencyName",
       name: "Emergency Contact",
+      width: "20%",
       render: (emergencyName, { emergencyPhone }) =>
         `${emergencyName} - ${formatPhone(emergencyPhone)}`
     }

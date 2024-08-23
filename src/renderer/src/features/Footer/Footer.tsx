@@ -15,7 +15,7 @@ export function Footer() {
     <Stack
       justify="between"
       align="center"
-      className="py-6 pl-4 mx-4 mb-4 text-lg bg-component font-display"
+      className="py-6 pl-4 m-4 text-lg bg-component font-display"
     >
       <Stack direction="col">
         <p className="text-on-component">
