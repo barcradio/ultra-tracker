@@ -1,5 +1,4 @@
 import { ReactNode, useEffect, useRef } from "react";
-import FocusTrap from "focus-trap-react";
 import { createPortal } from "react-dom";
 import CloseIcon from "~/assets/icons/xmark.svg?react";
 import { usePortalRoot } from "~/hooks/usePortalRoot";
@@ -97,26 +96,24 @@ export function Drawer(props: Props) {
   }, [open, handleClose]);
 
   return createPortal(
-    <FocusTrap active={open}>
-      <div aria-hidden={!open}>
-        <DrawerElement
-          position={position ?? "left"}
-          role="dialog"
-          open={open}
-          className={props.className}
-        >
-          {props.showCloseIcon !== false && (
-            <div className="fixed top-0 right-0 p-2">
-              <Button onClick={handleClose} variant="ghost" color="neutral">
-                <CloseIcon width={22} height={22} />
-              </Button>
-            </div>
-          )}
-          {children}
-        </DrawerElement>
-        <Backdrop open={open} onClick={handleClose} />
-      </div>
-    </FocusTrap>,
+    <div aria-hidden={!open}>
+      <DrawerElement
+        position={position ?? "left"}
+        role="dialog"
+        open={open}
+        className={props.className}
+      >
+        {props.showCloseIcon !== false && (
+          <div className="fixed top-0 right-0 p-2">
+            <Button onClick={handleClose} variant="ghost" color="neutral">
+              <CloseIcon width={22} height={22} />
+            </Button>
+          </div>
+        )}
+        {children}
+      </DrawerElement>
+      <Backdrop open={open} onClick={handleClose} />
+    </div>,
     portalRef.current
   );
 }
