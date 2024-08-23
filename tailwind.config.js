@@ -5,7 +5,8 @@ const { createThemes } = require('tw-colors')
 module.exports = {
   content: [
     "./src/renderer/index.html",
-    "./src/renderer/**/*.{ts,tsx}"
+    "./src/renderer/**/*.{ts,tsx}",
+    "./node_modules/primereact/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     colors: {
