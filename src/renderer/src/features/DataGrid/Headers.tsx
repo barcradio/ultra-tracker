@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { Virtualizer } from "@tanstack/react-virtual";
 import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
 import { SortState } from "./hooks/useSortState";

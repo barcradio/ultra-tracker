@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useRef } from "react";
+import { ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { classed } from "~/lib/classed";
 import { Headers } from "./Headers";
@@ -21,6 +21,7 @@ const Table = classed.table("overflow-auto w-full font-display text-on-component
 
 export function DataGrid<T extends object>(props: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const [availableSpace, setAvailableSpace] = useState(0);
   const [compareFn, setSortField, sortState] = useSortState<T>({
     initial: props.initialSort,
     columns: props.columns
@@ -36,8 +37,13 @@ export function DataGrid<T extends object>(props: Props<T>) {
     overscan: props.overscan ?? 10
   });
 
+  useLayoutEffect(() => {
+    if (!parentRef.current) return;
+    setAvailableSpace(parentRef.current?.parentElement?.clientHeight ?? 0);
+  }, []);
+
   return (
-    <div ref={parentRef} className="overflow-auto max-h-screen">
+    <div ref={parentRef} className="overflow-auto" style={{ height: availableSpace }}>
       <div style={{ height: rowVirtualizer.getTotalSize() }}>
         <Table className={props.className}>
           <Headers<T>
