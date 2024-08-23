@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Virtualizer } from "@tanstack/react-virtual";
 import { classed } from "~/lib/classed";
 import { useKeyFn } from "./hooks/useKeyFn";
+import { useVirtualPadding } from "./hooks/useVirtualPadding";
 import { Row } from "./Row";
 import { Column } from "./types";
 
@@ -13,13 +14,6 @@ const Cell = classed.td("py-1 px-4 h-full text-sm font-medium text-end", {
     }
   }
 });
-
-const useVirtualPadding = (virtualizer: Virtualizer<HTMLDivElement, Element>) => {
-  const items = virtualizer.getVirtualItems();
-  const paddingTop = items.length ? items[0].start : 0;
-  const paddingBottom = items.length ? virtualizer.getTotalSize() - items[items.length - 1].end : 0;
-  return { paddingTop, paddingBottom };
-};
 
 interface Props<T extends object> {
   data: T[];

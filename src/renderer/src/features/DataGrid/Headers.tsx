@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { Virtualizer } from "@tanstack/react-virtual";
 import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
 import { SortState } from "./hooks/useSortState";
@@ -54,7 +55,7 @@ export function Headers<T extends object>(props: Props<T>) {
   };
 
   return (
-    <thead>
+    <thead className="sticky top-0 z-10">
       <Row>
         {props.columns.map((column) => (
           <th
