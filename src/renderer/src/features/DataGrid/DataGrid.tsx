@@ -44,7 +44,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
 
   return (
     <div ref={parentRef} className="overflow-auto" style={{ height: availableSpace }}>
-      <div style={{ height: rowVirtualizer.getTotalSize() }}>
+      <div>
         <Table className={props.className}>
           <Headers<T>
             data={props.data}

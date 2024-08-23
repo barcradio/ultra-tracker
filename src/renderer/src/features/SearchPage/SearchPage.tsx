@@ -39,14 +39,16 @@ export function SearchPage() {
   ];
 
   return (
-    <DataGrid
-      data={data ?? []}
-      columns={columns}
-      getKey={({ bibId }) => bibId}
-      initialSort={{
-        field: "firstName",
-        ascending: true
-      }}
-    />
+    <div className="h-full bg-component">
+      <DataGrid
+        data={data ?? []}
+        columns={columns}
+        getKey={({ bibId }) => bibId}
+        initialSort={{
+          field: "firstName",
+          ascending: true
+        }}
+      />
+    </div>
   );
 }
