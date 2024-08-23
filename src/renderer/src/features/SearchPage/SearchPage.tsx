@@ -52,6 +52,7 @@ export function SearchPage() {
         data={data ?? []}
         columns={columns}
         getKey={({ bibId }) => bibId}
+        showFooter
         initialSort={{
           field: "firstName",
           ascending: true

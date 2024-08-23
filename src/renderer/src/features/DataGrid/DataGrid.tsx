@@ -15,6 +15,7 @@ interface Props<T extends object> {
   headerClassName?: string;
   getKey?: (row: T) => string | number;
   overscan?: number;
+  showFooter?: boolean;
 }
 
 const Table = classed.table("overflow-auto w-full font-display text-on-component");
@@ -42,18 +43,29 @@ export function DataGrid<T extends object>(props: Props<T>) {
     setAvailableSpace(parentRef.current?.parentElement?.clientHeight ?? 0);
   }, []);
 
+  const getSection = (type: "header" | "footer") => {
+    return (
+      <Headers<T>
+        type={type}
+        data={props.data}
+        columns={props.columns}
+        setSortField={setSortField}
+        sortState={sortState}
+        actionButtons={props.actionButtons}
+        className={props.headerClassName}
+      />
+    );
+  };
+
   return (
-    <div ref={parentRef} className="overflow-auto" style={{ height: availableSpace }}>
+    <div
+      ref={parentRef}
+      className="overflow-y-auto overflow-x-hidden"
+      style={{ height: availableSpace }}
+    >
       <div>
         <Table className={props.className}>
-          <Headers<T>
-            data={props.data}
-            columns={props.columns}
-            setSortField={setSortField}
-            sortState={sortState}
-            actionButtons={props.actionButtons}
-            className={props.headerClassName}
-          />
+          {getSection("header")}
           <TableContent<T>
             rowVirtualizer={rowVirtualizer}
             data={sortedData}
@@ -61,6 +73,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
             actionButtons={props.actionButtons}
             getKey={props.getKey}
           />
+          {props.showFooter && getSection("footer")}
         </Table>
       </div>
     </div>

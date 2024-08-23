@@ -3,6 +3,7 @@ import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
 import { SortState } from "./hooks/useSortState";
 import { Row } from "./Row";
+import { Section } from "./Section";
 import { Column } from "./types";
 
 const HeaderButton = classed.button(
@@ -43,6 +44,7 @@ interface Props<T extends object> {
   setSortField: (field: keyof T) => void;
   actionButtons?: (row: T) => ReactNode;
   className?: string;
+  type: "header" | "footer";
 }
 
 export function Headers<T extends object>(props: Props<T>) {
@@ -54,7 +56,7 @@ export function Headers<T extends object>(props: Props<T>) {
   };
 
   return (
-    <thead className="sticky top-0 z-10">
+    <Section type={props.type}>
       <Row>
         {props.columns.map((column) => (
           <th
@@ -67,15 +69,17 @@ export function Headers<T extends object>(props: Props<T>) {
                 className={props.className}
                 align={column.align ?? "left"}
                 onClick={() => props.setSortField(column.field as keyof T)}
-                disabled={column.sortable === false}
+                disabled={column.sortable === false || props.type === "footer"}
                 type="button"
               >
-                <SortIcon
-                  active={isActive(column.field)}
-                  ascending={props.sortState.ascending}
-                  align={column.align ?? "left"}
-                  height={18}
-                />
+                {props.type === "header" && (
+                  <SortIcon
+                    active={isActive(column.field)}
+                    ascending={props.sortState.ascending}
+                    align={column.align ?? "left"}
+                    height={18}
+                  />
+                )}
                 {column.name ?? String(column.field)}
               </HeaderButton>
             )}
@@ -83,6 +87,6 @@ export function Headers<T extends object>(props: Props<T>) {
         ))}
         {props.actionButtons && <th className="relative bg-component-strong" />}
       </Row>
-    </thead>
+    </Section>
   );
 }
