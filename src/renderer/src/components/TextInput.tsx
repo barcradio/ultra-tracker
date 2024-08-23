@@ -4,8 +4,11 @@ import WarningIcon from "~/assets/icons/warning-circle.svg?react";
 import { classed } from "~/lib/classed";
 import { Stack } from "./Stack";
 
+export const InputBaseStyles =
+  "p-2 w-full rounded-md border-2 outline-none bg-surface-secondary text-on-component font-display placeholder:text-component-strong border-component";
+
 const Input = classed.input({
-  base: "p-2 w-full rounded-md border-2 outline-none bg-surface-secondary text-on-component font-display placeholder:text-component-strong border-component",
+  base: InputBaseStyles,
   variants: {
     hasError: {
       true: "border-warning",
@@ -17,14 +20,14 @@ const Input = classed.input({
   }
 });
 
-const Label = classed.label({
+export const Label = classed.label({
   base: "text-xl font-bold uppercase font-display text-on-component"
 });
 
 type InputProps = ComponentProps<typeof Input>;
 type LabelProps = Omit<ComponentProps<typeof Label>, "for">;
 
-interface TextInputProps extends InputProps {
+export interface TextInputProps extends InputProps {
   label?: string;
   labelProps?: LabelProps;
   error?: FieldError;

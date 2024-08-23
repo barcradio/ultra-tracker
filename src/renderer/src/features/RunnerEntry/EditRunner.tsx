@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Calendar } from "primereact/calendar";
 import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
+import { DatePicker } from "~/components/DatePicker";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { RunnerWithSequence } from "../../hooks/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "../../hooks/useTiming";
@@ -53,7 +55,12 @@ export function EditRunner(props: Props) {
   const handleClose = () => {
     form.reset(props.runner); // Reset the form to the original runner
     setIsOpen(false);
+    inRef.current?.hide();
+    outRef.current?.hide();
   };
+
+  const inRef = useRef<Calendar>(null);
+  const outRef = useRef<Calendar>(null);
 
   return (
     <>
@@ -107,23 +114,21 @@ export function EditRunner(props: Props) {
                 required: "Runner is required"
               })}
             />
-            <TextInput
+            <DatePicker
+              name="in"
               label="In Time"
-              placeholder="In Time"
-              error={form.formState.errors.in}
-              {...form.register("in", {
-                //required: "In Time is required",
-                valueAsDate: true
-              })}
+              control={form.control}
+              showTime
+              showSeconds
+              ref={inRef}
             />
-            <TextInput
+            <DatePicker
+              name="out"
               label="Out Time"
-              placeholder="Out Time"
-              error={form.formState.errors.out}
-              {...form.register("out", {
-                //required: "Out Time is required",
-                valueAsDate: true
-              })}
+              control={form.control}
+              showTime
+              showSeconds
+              ref={outRef}
             />
             <TextInput
               label="Note"
