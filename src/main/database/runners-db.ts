@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 import fs from "fs";
 import { parse } from "csv-parse";
 import { formatDate } from "$renderer/lib/datetimes";
 import { DatabaseStatus, Runner, RunnerCSV, RunnerDB } from "$shared/models";
+=======
+import { RunnerDB } from "$shared/models";
+>>>>>>> 6534d49 (fix: fix dates throughout application)
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
@@ -62,7 +66,7 @@ function getRunnersInStation(): [number | null, DatabaseStatus, string] {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StaEvents Where 'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From StaEvents Where'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
   console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
@@ -84,7 +88,7 @@ export function getRunnersOutStation(): [number | null, DatabaseStatus, string] 
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StaEvents Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From StaEvents Where'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
   console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];

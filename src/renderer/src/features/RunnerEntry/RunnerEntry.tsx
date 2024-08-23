@@ -1,5 +1,6 @@
 import { Stack } from "~/components";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
+import { formatDate } from "~/lib/datetimes";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
 import { RunnerWithSequence, useRunnerData } from "../../hooks/useRunnerData";
@@ -20,11 +21,13 @@ export function RunnerEntry() {
     },
     {
       field: "in",
-      name: "In Time"
+      name: "In Time",
+      render: (value) => formatDate(value)
     },
     {
       field: "out",
-      name: "Out Time"
+      name: "Out Time",
+      render: (value) => formatDate(value)
     },
     {
       field: "note",

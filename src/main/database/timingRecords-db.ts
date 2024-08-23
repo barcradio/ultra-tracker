@@ -110,18 +110,12 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
   if (record.timeOut instanceof String) record.timeOut = null;
   if (record.timeModified instanceof String) record.timeModified = null;
 
-  if (existingRecord.timeIn != null && record.timeIn == null)
-    record.timeIn = new Date(existingRecord.timeIn);
-  if (existingRecord.timeOut != null && record.timeOut == null)
-    record.timeOut = new Date(existingRecord.timeOut);
-
   //build the time record
   const stationID = data.station.id;
-  const timeInISO: string | null = record.timeIn == null ? null : record.timeIn.toISOString();
-  const timeOutISO: string | null = record.timeOut == null ? null : record.timeOut.toISOString();
-  const modifiedISO: string | null =
-    record.timeModified == null ? null : record.timeModified.toISOString();
-  const sent: number = Number(record.sent);
+  const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
+  const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
+  const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+  const sent = Number(record.sent);
   const note = record.note;
 
   try {
@@ -159,11 +153,10 @@ function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
 
   const stationID = data.station.id;
-  const timeInISO: string | null = record.timeIn == null ? null : record.timeIn.toISOString();
-  const timeOutISO: string | null = record.timeOut == null ? null : record.timeOut.toISOString();
-  const modifiedISO: string | null =
-    record.timeModified == null ? null : record.timeModified.toISOString();
-  const sent: number = Number(record.sent);
+  const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
+  const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
+  const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+  const sent = Number(record.sent);
   const note = record.note;
 
   try {

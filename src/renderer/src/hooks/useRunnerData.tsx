@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { formatDate } from "~/lib/datetimes";
 import { RunnerDB } from "$shared/models";
 import { useIpcRenderer } from "./useIpcRenderer";
 
@@ -26,11 +25,8 @@ export function useRunnerData() {
         id: runner.index,
         sequence: index + 1,
         runner: runner.bibId,
-        in: runner.timeIn == null ? formatDate(runner.timeIn) : formatDate(new Date(runner.timeIn)),
-        out:
-          runner.timeOut == null
-            ? formatDate(runner.timeOut)
-            : formatDate(new Date(runner.timeOut)),
+        in: runner.timeIn,
+        out: runner.timeOut,
         note: runner.note
       }));
     }
