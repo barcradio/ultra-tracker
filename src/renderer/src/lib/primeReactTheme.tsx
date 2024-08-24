@@ -1,6 +1,5 @@
 import { PrimeReactPTOptions } from "primereact/api";
 import { classNames } from "primereact/utils";
-import { InputBaseStyles } from "~/components/TextInput";
 
 const TRANSITIONS = {
   overlay: {
@@ -18,16 +17,27 @@ const TRANSITIONS = {
 export const PrimeReactTheme: PrimeReactPTOptions = {
   calendar: {
     // Root
-    root: { className: "inline-flex relative w-full" },
+    root: {
+      className: classNames(
+        "rounded-md border-2 border-transparent",
+        "inline-flex relative w-full",
+        "[&>button>span]:hidden",
+        "[&>button]:flex [&>button]:flex-col [&>button]:justify-center",
+        "[&>button]:bg-surface-secondary [&>button]:rounded-r-md",
+        "[&>button]:text-on-surface [&>button]:hover:text-on-surface-hover",
+        "[&>button]:transition [&>button]:duration-200",
+        "[&>button]:pr-2"
+      )
+    },
     // Input
     input: {
-      root: { className: `w-full ${InputBaseStyles}`, readonly: "readonly" }
+      root: {
+        className: `p-2 w-full rounded-l-md cursor-pointer bg-surface-secondary font-display text-on-on-component`,
+        readOnly: "readonly"
+      }
     },
-    dropdownButton: (params) => ({
-      className: classNames({ "rounded-l-none": params?.props?.icon })
-    }),
     // General Panel
-    panel: () => ({ className: classNames("shadow-md bg-surface-secondary") }),
+    panel: { className: classNames("shadow-md bg-surface-secondary") },
     // Header
     header: {
       className:
@@ -49,8 +59,9 @@ export const PrimeReactTheme: PrimeReactPTOptions = {
     },
     yearTitle: { className: "p-2 pl-1 font-semibold transition duration-200 hover:text-primary" },
     // Calendar Table
-    table: { className: "mb-2 w-full border-collapse" },
+    table: { className: "w-full border-collapse" },
     tableHeaderCell: { className: "px-2 pb-2 bg-surface-tertiary font-display" },
+    tableBody: { className: "my-2 border-t-2 border-component-strong" },
     weekDay: { className: "font-semibold text-on-component" },
     day: { className: "text-on-surface font-display" },
     dayLabel: (params) => ({

@@ -12,8 +12,6 @@ type CustomCalendarProps = CalendarProps;
 type CustomInputProps = TextInputProps;
 type ExtendsProps = CustomInputProps & CustomCalendarProps;
 
-// Validate<FieldPathValue<TFieldValues, TFieldName>, TFieldValues> | Record<string, Validate<FieldPathValue<TFieldValues, TFieldName>, TFieldValues>>;
-
 type Props<T extends FieldValues> = Omit<ExtendsProps, "value" | "onChange" | "ref" | "error"> & {
   control: Control<T>;
   name: Path<T>;
@@ -48,6 +46,9 @@ export function DatePicker<T extends FieldValues>(props: Props<T>) {
             showTime
             showSeconds
             ref={ref}
+            pt={{
+              root: { className: fieldState.error ? "border-warning" : "border-component" }
+            }}
             footerTemplate={() => (
               <Stack
                 direction="row"
