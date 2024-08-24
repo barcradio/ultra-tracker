@@ -21,17 +21,17 @@ export const PrimeReactTheme: PrimeReactPTOptions = {
     root: { className: "inline-flex relative w-full" },
     // Input
     input: {
-      root: { className: `w-full ${InputBaseStyles}` }
+      root: { className: `w-full ${InputBaseStyles}`, readonly: "readonly" }
     },
     dropdownButton: (params) => ({
       className: classNames({ "rounded-l-none": params?.props?.icon })
     }),
     // General Panel
-    panel: () => ({ className: classNames("shadow-md bg-surface-tertiary") }),
+    panel: () => ({ className: classNames("shadow-md bg-surface-secondary") }),
     // Header
     header: {
       className:
-        "flex justify-between items-center p-2 font-semibold text-on-component bg-component-strong font-display"
+        "flex justify-between items-center p-2 font-semibold text-on-component bg-surface-tertiary font-display"
     },
     previousButton: {
       className: classNames(
@@ -50,15 +50,18 @@ export const PrimeReactTheme: PrimeReactPTOptions = {
     yearTitle: { className: "p-2 pl-1 font-semibold transition duration-200 hover:text-primary" },
     // Calendar Table
     table: { className: "mb-2 w-full border-collapse" },
-    tableHeaderCell: { className: "px-2 pb-2 bg-component-strong font-display" },
+    tableHeaderCell: { className: "px-2 pb-2 bg-surface-tertiary font-display" },
     weekDay: { className: "font-semibold text-on-component" },
     day: { className: "text-on-surface font-display" },
     dayLabel: (params) => ({
       className: classNames(
-        "flex justify-center items-center font-semibold rounded-full border border-transparent transition duration-200 cursor-pointer bg-surface-tertiary hover:text-primary",
+        "flex justify-center items-center font-semibold rounded-full border border-transparent transition duration-200 cursor-pointer hover:text-primary",
         {
           "bg-primary text-on-primary hover:text-on-primary":
             !params?.context.otherMonth && params?.context.selected
+        },
+        {
+          "text-on-component-strong": params?.context.otherMonth
         }
       )
     }),
