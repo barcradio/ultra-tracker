@@ -110,7 +110,7 @@ export function Drawer(props: Props) {
             </Button>
           </div>
         )}
-        {children}
+        {open && children}
       </DrawerElement>
       <Backdrop open={open} onClick={handleClose} />
     </div>,
