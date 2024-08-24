@@ -80,7 +80,7 @@ function GetCountFromAthletes(columnName: string): [number | null, DatabaseStatu
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `table Read Athletes - records:${queryResult[`COUNT(${columnName})`]}`;
+  message = `GetCountFromAthletesTable: ${queryResult[`COUNT(${columnName})`]}`;
   console.log(message);
 
   return [queryResult[`COUNT(${columnName})`] as number, DatabaseStatus.Success, message];
@@ -107,7 +107,7 @@ function GetCountFromAthletesWithWhere(
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `table Read Athletes - records:${queryResult[`COUNT(${columnName})`]}`;
+  message = `GetCountFromAthletes Where '${whereStatement}':${queryResult[`COUNT(${columnName})`]}`;
   console.log(message);
 
   return [queryResult[`COUNT(${columnName})`] as number, DatabaseStatus.Success, message];

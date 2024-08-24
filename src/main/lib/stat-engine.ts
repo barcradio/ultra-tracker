@@ -59,6 +59,7 @@ export function initStatEngine() {
 }
 
 export function Calculate() {
+  console.log("[Stats: Calculate]");
   const result = stats.calculate();
   return result;
 }

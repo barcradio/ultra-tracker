@@ -40,7 +40,7 @@ function getTotalRunners(): [number | null, DatabaseStatus, string] {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `table Read StaEvents - records:${queryResult["COUNT(bibId)"]}`;
+  message = `GetTotalRunnersFromStaEvents: ${queryResult["COUNT(bibId)"]}`;
   console.log(message);
 
   return [queryResult["COUNT(bibId)"] as number, DatabaseStatus.Success, message];
@@ -62,7 +62,7 @@ function getRunnersInStation(): [number | null, DatabaseStatus, string] {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `table Read StaEvents - records:${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From StaEvents Where 'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
   console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
@@ -84,7 +84,7 @@ export function getRunnersOutStation(): [number | null, DatabaseStatus, string] 
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `table Read StaEvents - records:${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From StaEvents Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
   console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
