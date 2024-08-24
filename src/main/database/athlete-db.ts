@@ -2,8 +2,8 @@ import fs from "fs";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
-import { AthleteDB, DatabaseStatus } from "../../shared/models";
-import { loadAthleteFile } from "../lib/file-dialogs";
+import { AthleteDB, DNXRecord, DatabaseStatus } from "../../shared/models";
+import { loadAthleteFile, loadDNFFromCSV, loadDNSFromCSV } from "../lib/file-dialogs";
 
 const invalidResult = -999;
 
@@ -44,6 +44,63 @@ export async function LoadAthletes() {
   );
 }
 
+export async function LoadDNS() {
+  const headers = ["stationId", "bibId", "dnsDateTime", "note"];
+  const athleteFilePath = await loadDNSFromCSV();
+  const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
+
+  parse(
+    fileContent,
+    {
+      delimiter: ",",
+      columns: headers
+    },
+    (error, result: DNXRecord[]) => {
+      if (error) {
+        console.error(error);
+        return `${result.length} dnsRecords: ${error}`;
+      }
+
+      console.log("Result", result);
+
+      result.slice(1).forEach((dnsRecord) => {
+        updateAthleteDNS(dnsRecord);
+      });
+      return `${athleteFilePath}\r\n${result.length} dnsRecords imported`;
+    }
+  );
+}
+
+export async function LoadDNF() {
+  const headers = ["stationId", "bibId", "dnfDateTime", "note"];
+  const athleteFilePath = await loadDNFFromCSV();
+  const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
+
+  parse(
+    fileContent,
+    {
+      delimiter: ",",
+      columns: headers
+    },
+    (error, result: DNXRecord[]) => {
+      if (error) {
+        console.error(error);
+        return `${result.length} dnfRecords: ${error}`;
+      }
+
+      //if (JSON.stringify(result[0]) != JSON.stringify(headers))
+      //  return `${result.length} dnfRecords: ${error}`;
+
+      console.log("Result", result);
+
+      result.slice(1).forEach((dnfRecord) => {
+        updateAthleteDNF(dnfRecord);
+      });
+      return `${athleteFilePath}\r\n${result.length} dnfRecords imported`;
+    }
+  );
+}
+
 export function GetTotalAthletes(): number {
   const count = GetCountFromAthletes("bibId");
   return count[0] == null ? invalidResult : count[0];
@@ -60,7 +117,7 @@ export function GetTotalDNF(): number {
 }
 
 export function GetStationDNF(): number {
-  const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == ${data.station.id.toString()}`);
+  const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${data.station.name}'`);
   return count[0] == null ? invalidResult : count[0];
 }
 
@@ -220,4 +277,55 @@ export function insertAthlete(athlete: AthleteDB): [DatabaseStatus, string] {
 
   const message = `athlete:add ${bibId}, ${firstName}, ${lastName}`;
   return [DatabaseStatus.Created, message];
+}
+
+export function updateAthleteDNS(record: DNXRecord): [DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  const dnsValue = true;
+
+  try {
+    const query = db.prepare(`UPDATE Athletes SET dns = ? WHERE bibId = ?`);
+    query.run(Number(dnsValue), record.bibId);
+
+    const query2 = db.prepare(`UPDATE StaEvents SET note = ? WHERE bibId = ?`);
+    query2.run(record.note, record.bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  const message = `athlete:update bibId: ${record.bibId}, dns: ${dnsValue}, note: ${record.note}`;
+  return [DatabaseStatus.Updated, message];
+}
+
+export function updateAthleteDNF(record: DNXRecord): [DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  const dnfValue = true;
+  const dnfDateTime = parseCSVDate(record.dnsDateTime).toISOString();
+
+  try {
+    const query = db.prepare(
+      `UPDATE Athletes SET dnf = ?, dnfStation = ?, dnfDateTime = ? WHERE bibId = ?`
+    );
+    query.run(Number(dnfValue), record.stationId, dnfDateTime, record.bibId);
+
+    const query2 = db.prepare(`UPDATE StaEvents SET note = ? WHERE bibId = ?`);
+    query2.run(record.note, record.bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  function parseCSVDate(timingDate: string): Date {
+    const event = new Date(Date.parse(timingDate));
+    event.setFullYear(new Date().getFullYear());
+    return event;
+  }
+
+  const message = `athlete:update bibId: ${record.bibId}, dnf: ${dnfValue}, dnfStation: ${record.stationId}, dnfDateTime: ${dnfDateTime}, note: ${record.note}`;
+  return [DatabaseStatus.Updated, message];
 }

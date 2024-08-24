@@ -13,12 +13,34 @@ export function useLoadStationsFile() {
   });
 }
 
-export function useLoadAthletes() {
+export function useLoadAthletesFile() {
   const ipcRenderer = useIpcRenderer();
   const { createToast } = useToasts();
 
   return useMutation({
     mutationFn: (message: string) => ipcRenderer.invoke("load-athletes-file", message),
+    onSuccess: (data) => createToast({ message: data, type: "success" }),
+    onError: (error) => console.error(error)
+  });
+}
+
+export function useLoadDNSFile() {
+  const ipcRenderer = useIpcRenderer();
+  const { createToast } = useToasts();
+
+  return useMutation({
+    mutationFn: (message: string) => ipcRenderer.invoke("load-dns-file", message),
+    onSuccess: (data) => createToast({ message: data, type: "success" }),
+    onError: (error) => console.error(error)
+  });
+}
+
+export function useLoadDNFFile() {
+  const ipcRenderer = useIpcRenderer();
+  const { createToast } = useToasts();
+
+  return useMutation({
+    mutationFn: (message: string) => ipcRenderer.invoke("load-dnf-file", message),
     onSuccess: (data) => createToast({ message: data, type: "success" }),
     onError: (error) => console.error(error)
   });
