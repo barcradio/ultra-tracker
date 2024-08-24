@@ -1,7 +1,7 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import { formatDate } from "$renderer/lib/datetimes";
-import { DatabaseStatus, Runner, RunnerDB } from "$shared/models";
+import { DatabaseStatus, Runner, RunnerCSV, RunnerDB } from "$shared/models";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
@@ -117,7 +117,7 @@ export async function importRunnersFromCSV() {
       // eslint-disable-next-line camelcase
       from_line: 2
     },
-    (error, result: Runner[]) => {
+    (error, result: RunnerCSV[]) => {
       if (error) {
         console.error(error);
         return `${result.length} timings: ${error}`;
@@ -207,11 +207,11 @@ function writeToCSV(filename, stmt) {
         runner: row[1],
         in: row[3] == null ? "" : formatDate(new Date(row[3])),
         out: row[4] == null ? "" : formatDate(new Date(row[4])),
-        notes: row[6]
+        note: row[6]
       };
       const sent = row[7];
 
-      const rowText = `${record.sequence},${sent},${record.runner},${record.in},${record.out},${record.notes}`;
+      const rowText = `${record.sequence},${sent},${record.runner},${record.in},${record.out},${record.note}`;
       stream.write(rowText + "\n");
       sequence++;
     }

@@ -12,13 +12,22 @@ export interface RunnerDB {
   sent: boolean;
 }
 
+export interface RunnerCSV {
+  index: number;
+  bibId: number;
+  timeIn: string;
+  timeOut: string;
+  note: string;
+  sent: number;
+}
+
 export interface Runner {
   id: number;
   sequence: number;
   runner: number;
   in: Date | string;
   out: Date | string;
-  notes: string;
+  note: string;
 }
 
 export type AthleteDB = {

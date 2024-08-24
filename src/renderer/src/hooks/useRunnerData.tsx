@@ -9,7 +9,7 @@ export interface Runner {
   runner: number;
   in: Date | null;
   out: Date | null;
-  notes: string;
+  note: string;
   name: string;
 }
 
@@ -29,7 +29,7 @@ export function useRunnerData() {
           runner.timeOut == null
             ? formatDate(runner.timeOut)
             : formatDate(new Date(runner.timeOut)),
-        notes: runner.note,
+        note: runner.note,
         name: ""
       }));
     }

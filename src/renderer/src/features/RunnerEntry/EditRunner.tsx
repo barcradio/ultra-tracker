@@ -73,7 +73,7 @@ export function EditRunner(props: Props) {
       timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
       timeOut: data.out?.toString() == "Invalid Date" ? null : data.out,
       timeModified: new Date(),
-      note: data.notes,
+      note: data.note,
       sent: false // if updating record, sent should always reset flag to false
     } as RunnerDB);
   };
@@ -86,7 +86,7 @@ export function EditRunner(props: Props) {
       timeIn: data.in?.toString() == "Invalid Date" ? null : data.in,
       timeOut: data.out?.toString() == "Invalid Date" ? null : data.out,
       timeModified: new Date(),
-      note: data.notes,
+      note: data.note,
       sent: false
     } as RunnerDB);
   };
@@ -162,10 +162,10 @@ export function EditRunner(props: Props) {
               })}
             />
             <TextInput
-              label="Notes"
-              placeholder="Notes"
-              error={form.formState.errors.notes}
-              {...form.register("notes")}
+              label="note"
+              placeholder="note"
+              error={form.formState.errors.note}
+              {...form.register("note")}
             />
           </Stack>
 

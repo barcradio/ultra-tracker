@@ -4,7 +4,7 @@ export interface Runner {
   runner: number;
   in: Date;
   out: Date;
-  notes: string;
+  note: string;
   name: string;
 }
 
@@ -15,7 +15,7 @@ const FakeData: Runner[] = [
     runner: 101,
     in: new Date("2023-07-01T08:00:00"),
     out: new Date("2023-07-01T08:30:00"),
-    notes: "Good start, steady pace.",
+    note: "Good start, steady pace.",
     name: "Alice Johnson"
   },
   {
@@ -24,7 +24,7 @@ const FakeData: Runner[] = [
     runner: 102,
     in: new Date("2023-07-01T08:30:00"),
     out: new Date("2023-07-01T09:00:00"),
-    notes: "Maintained speed, no issues.",
+    note: "Maintained speed, no issues.",
     name: "Bob Smith"
   },
   {
@@ -33,7 +33,7 @@ const FakeData: Runner[] = [
     runner: 103,
     in: new Date("2023-07-01T09:00:00"),
     out: new Date("2023-07-01T09:30:00"),
-    notes: "Slightly slowed down.",
+    note: "Slightly slowed down.",
     name: "Charlie Brown"
   },
   {
@@ -42,7 +42,7 @@ const FakeData: Runner[] = [
     runner: 104,
     in: new Date("2023-07-01T09:30:00"),
     out: new Date("2023-07-01T10:00:00"),
-    notes: "Picked up speed towards the end.",
+    note: "Picked up speed towards the end.",
     name: "Diana Prince"
   },
   {
@@ -51,7 +51,7 @@ const FakeData: Runner[] = [
     runner: 105,
     in: new Date("2023-07-01T10:00:00"),
     out: new Date("2023-07-01T10:30:00"),
-    notes: "Consistent pace.",
+    note: "Consistent pace.",
     name: "Edward Elric"
   },
   {
@@ -60,7 +60,7 @@ const FakeData: Runner[] = [
     runner: 106,
     in: new Date("2023-07-01T10:30:00"),
     out: new Date("2023-07-01T11:00:00"),
-    notes: "Felt a bit tired halfway.",
+    note: "Felt a bit tired halfway.",
     name: "Fiona Gallagher"
   },
   {
@@ -69,7 +69,7 @@ const FakeData: Runner[] = [
     runner: 107,
     in: new Date("2023-07-01T11:00:00"),
     out: new Date("2023-07-01T11:30:00"),
-    notes: "Great stamina, run. smooth",
+    note: "Great stamina, run. smooth",
     name: "George Weasley"
   },
   {
@@ -78,7 +78,7 @@ const FakeData: Runner[] = [
     runner: 108,
     in: new Date("2023-07-01T11:30:00"),
     out: new Date("2023-07-01T12:00:00"),
-    notes: "Strong finish, good speed.",
+    note: "Strong finish, good speed.",
     name: "Hannah Abbott"
   },
   {
@@ -87,7 +87,7 @@ const FakeData: Runner[] = [
     runner: 109,
     in: new Date("2023-07-01T12:00:00"),
     out: new Date("2023-07-01T12:30:00"),
-    notes: "Maintained steady pace.",
+    note: "Maintained steady pace.",
     name: "Isaac Newton"
   },
   {
@@ -96,7 +96,7 @@ const FakeData: Runner[] = [
     runner: 110,
     in: new Date("2023-07-01T12:30:00"),
     out: new Date("2023-07-01T13:00:00"),
-    notes: "Good form, consistent speed.",
+    note: "Good form, consistent speed.",
     name: "Jackie Chan"
   }
 ];
