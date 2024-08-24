@@ -1,49 +1,91 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import { formatDate } from "$renderer/lib/datetimes";
-import { Runner, RunnerDB } from "$shared/models";
+import { DatabaseStatus, Runner, RunnerDB } from "$shared/models";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
 import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
 
 export function GetTotalRunners(): number {
-  const db = getDatabaseConnection();
-
-  try {
-    const dataset = db.prepare(`SELECT COUNT(bibId) FROM StaEvents`).get();
-    console.log(`table Read StaEvents - records:${dataset["COUNT(bibId)"]}`);
-    return dataset["COUNT(bibId)"] as number;
-  } catch (e) {
-    if (e instanceof Error) console.error(e.message);
-    return 0;
-  }
+  const count = getTotalRunners();
+  return count[0] == null ? -1 : count[0];
 }
 
 export function GetRunnersInStation(): number {
-  const db = getDatabaseConnection();
-
-  try {
-    const dataset = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NULL`).get();
-    console.log(`table Read StaEvents - records:${dataset["COUNT(*)"]}`);
-    return dataset["COUNT(*)"] as number;
-  } catch (e) {
-    if (e instanceof Error) console.error(e.message);
-    return 0;
-  }
+  const count = getRunnersInStation();
+  return count[0] == null ? -1 : count[0];
 }
 
 export function GetRunnersOutStation(): number {
+  const count = getRunnersOutStation();
+  return count[0] == null ? -1 : count[0];
+}
+
+function getTotalRunners(): [number | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
 
   try {
-    const dataset = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NOT NULL`).get();
-    console.log(`table Read StaEvents - records:${dataset["COUNT(*)"]}`);
-    return dataset["COUNT(*)"] as number;
+    queryResult = db.prepare(`SELECT COUNT(bibId) FROM StaEvents`).get();
   } catch (e) {
-    if (e instanceof Error) console.error(e.message);
-    return 0;
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
   }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read StaEvents - records:${queryResult["COUNT(bibId)"]}`;
+  console.log(message);
+
+  return [queryResult["COUNT(bibId)"] as number, DatabaseStatus.Success, message];
+}
+
+function getRunnersInStation(): [number | null, DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NULL`).get();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read StaEvents - records:${queryResult["COUNT(*)"]}`;
+  console.log(message);
+
+  return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+}
+
+export function getRunnersOutStation(): [number | null, DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NOT NULL`).get();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read StaEvents - records:${queryResult["COUNT(*)"]}`;
+  console.log(message);
+
+  return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
 
 export function readRunnersTable() {

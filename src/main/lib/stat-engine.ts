@@ -17,7 +17,7 @@ class StatEngine<K extends string = "defaultValue"> {
 
     return this.stats.reduce(
       (result, stat) => {
-        result[stat.name] = stat.rule(result);
+        result[stat.name] = stat.stat(result);
         return result;
       },
       { defaultValue }
@@ -43,6 +43,8 @@ export function initStatEngine() {
   stats.addStat("errors", (input) => input.defaultValue);
 
   stats; // const engine: StatEngine<"defaultValue" | "inStation" | "throughStation">
+
+  stats.calculate();
 }
 
 export function Calculate() {
