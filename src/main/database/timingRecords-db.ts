@@ -13,15 +13,15 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, str
   if (!bibResult && !indexResult) [status, message] = insertTimeRecord(record);
 
   // only record with index exists, probably updating bib number on correct record
-  if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult);
+  if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult, true);
 
   // only record with bib exists, could be duplicate
-  if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult);
+  if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult, true);
 
   //both queries succeed exist and are equal, but the incoming object is not, we are just updating normally
   if (bibResult && indexResult && JSON.stringify(bibResult) === JSON.stringify(indexResult)) {
     if (JSON.stringify(record) !== JSON.stringify(indexResult)) {
-      [status, message] = updateTimeRecord(record, indexResult);
+      [status, message] = updateTimeRecord(record, indexResult, false);
     }
   }
   console.log(message);
@@ -101,7 +101,11 @@ export function deleteTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   return [DatabaseStatus.NotFound, `timing-record:delete Bib ${record.bibId} not found`];
 }
 
-function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [DatabaseStatus, string] {
+function updateTimeRecord(
+  record: RunnerDB,
+  existingRecord: RunnerDB,
+  merge: boolean
+): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryString = "";
 
@@ -109,6 +113,14 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
   if (record.timeIn instanceof String) record.timeIn = null;
   if (record.timeOut instanceof String) record.timeOut = null;
   if (record.timeModified instanceof String) record.timeModified = null;
+
+  // preserve the prior and opposite times when from input, don't merge when it is an edit
+  if (merge) {
+    if (existingRecord.timeIn != null && record.timeIn == null)
+      record.timeIn = new Date(existingRecord.timeIn);
+    if (existingRecord.timeOut != null && record.timeOut == null)
+      record.timeOut = new Date(existingRecord.timeOut);
+  }
 
   //build the time record
   const stationID = data.station.id;
