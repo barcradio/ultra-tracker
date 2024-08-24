@@ -1,3 +1,5 @@
+import { EntryMode } from "./enums";
+
 /**
  * Custom models (types) for ultra-tracker
  */
@@ -108,21 +110,3 @@ export type DNXRecord = {
   dnsDateTime: string;
   note: string;
 };
-
-// Status enums
-export enum DatabaseStatus {
-  Created,
-  Updated,
-  Deleted,
-  Duplicate,
-  NotFound,
-  Error,
-  Success
-}
-
-export enum EntryMode {
-  Normal,
-  Fast,
-  InOnly,
-  OutOnly
-}
