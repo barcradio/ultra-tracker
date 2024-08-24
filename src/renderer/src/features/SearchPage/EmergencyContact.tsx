@@ -1,7 +1,7 @@
 import { Tooltip } from "primereact/tooltip";
 import PhoneIcon from "~/assets/icons/phone.svg?react";
 import { Button, Stack } from "~/components";
-import { usePortalRoot } from "~/hooks/usePortalRoot";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { formatPhone } from "~/lib/phone";
 import { AthleteDB } from "$shared/models";
 import { useToasts } from "../Toasts/useToasts";

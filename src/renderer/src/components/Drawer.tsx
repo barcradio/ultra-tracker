@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import CloseIcon from "~/assets/icons/xmark.svg?react";
-import { usePortalRoot } from "~/hooks/usePortalRoot";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { classed } from "~/lib/classed";
 import { Button } from "./Button";
 

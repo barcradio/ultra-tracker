@@ -3,7 +3,7 @@ import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { RunnerWithSequence, useRunnerData } from "../../hooks/useRunnerData";
+import { RunnerWithSequence, useRunnerData } from "../../hooks/data/useRunnerData";
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();

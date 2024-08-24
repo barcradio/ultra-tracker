@@ -1,4 +1,4 @@
-import { useAthletes } from "~/hooks/useAthletes";
+import { useAthletes } from "~/hooks/data/useAthletes";
 import { AthleteDB } from "$shared/models";
 import { EmergencyContact } from "./EmergencyContact";
 import { ColumnDef, DataGrid } from "../DataGrid";

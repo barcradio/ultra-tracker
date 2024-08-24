@@ -3,7 +3,7 @@ import { useToasts } from "~/features/Toasts/useToasts";
 import { DatabaseStatus } from "$shared/enums";
 import { AthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
-import { useIpcRenderer } from "./useIpcRenderer";
+import { useIpcRenderer } from "../useIpcRenderer";
 
 export function useAthletes() {
   const ipcRenderer = useIpcRenderer();

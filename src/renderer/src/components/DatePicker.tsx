@@ -2,7 +2,7 @@ import { RefObject, useRef } from "react";
 import { Calendar, CalendarProps } from "primereact/calendar";
 import { Control, Controller, ControllerProps, FieldValues, Path } from "react-hook-form";
 import WarningIcon from "~/assets/icons/warning-circle.svg?react";
-import { usePortalRoot } from "~/hooks/usePortalRoot";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { formatDate } from "~/lib/datetimes";
 import { Button } from "./Button";
 import { Stack } from "./Stack";

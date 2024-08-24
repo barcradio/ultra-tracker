@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useIpcRenderer } from "./useIpcRenderer";
+import { useIpcRenderer } from "../useIpcRenderer";
 
 export interface Stats {
   registeredAthletes: number;
