@@ -1,13 +1,13 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
 import { RunnerDB } from "../../shared/models";
-import * as dbRunner from "../database/runners-db";
+import * as dbRunners from "../database/runners-db";
 import * as dbTimings from "../database/timingRecords-db";
 import * as stats from "../lib/stat-engine";
 import { Handler } from "../types";
 
 const getRunnersTable: Handler<RunnerDB[]> = () => {
-  return dbRunner.readRunnersTable();
+  return dbRunners.readRunnersTable();
 };
 
 const addTimeRecord: Handler<RunnerDB, string> = (_, record): string => {
