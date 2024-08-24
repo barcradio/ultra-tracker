@@ -62,7 +62,7 @@ function getRunnersInStation(): [number | null, DatabaseStatus, string] {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StaEvents Where'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From StaEvents Where 'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
   console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
@@ -108,6 +108,11 @@ export function readRunnersTable(): [RunnerDB[] | null, DatabaseStatus, string] 
 
   message = `GetRunnersTable from StaEvents: ${queryResult.length}`;
   console.log(message);
+
+  queryResult.forEach((row: RunnerDB) => {
+    row.timeIn = row.timeIn == null ? null : new Date(row.timeIn);
+    row.timeOut = row.timeOut == null ? null : new Date(row.timeOut);
+  });
 
   return [queryResult, DatabaseStatus.Success, message];
 }
