@@ -1,6 +1,6 @@
 import { RefObject, useRef } from "react";
 import { Calendar, CalendarProps } from "primereact/calendar";
-import { Control, Controller, FieldValues, Path } from "react-hook-form";
+import { Control, Controller, ControllerProps, FieldValues, Path } from "react-hook-form";
 import WarningIcon from "~/assets/icons/warning-circle.svg?react";
 import { usePortalRoot } from "~/hooks/usePortalRoot";
 import { formatDate } from "~/lib/datetimes";
@@ -12,10 +12,13 @@ type CustomCalendarProps = CalendarProps;
 type CustomInputProps = TextInputProps;
 type ExtendsProps = CustomInputProps & CustomCalendarProps;
 
+// Validate<FieldPathValue<TFieldValues, TFieldName>, TFieldValues> | Record<string, Validate<FieldPathValue<TFieldValues, TFieldName>, TFieldValues>>;
+
 type Props<T extends FieldValues> = Omit<ExtendsProps, "value" | "onChange" | "ref" | "error"> & {
   control: Control<T>;
   name: Path<T>;
   ref?: RefObject<Calendar>;
+  rules?: ControllerProps<T>["rules"];
 };
 
 export function DatePicker<T extends FieldValues>(props: Props<T>) {
@@ -25,6 +28,7 @@ export function DatePicker<T extends FieldValues>(props: Props<T>) {
   return (
     <Controller
       control={props.control}
+      rules={props.rules}
       name={props.name}
       render={({ field, fieldState }) => (
         <Stack direction="col" className="gap-1 w-full">
@@ -44,13 +48,12 @@ export function DatePicker<T extends FieldValues>(props: Props<T>) {
             showTime
             showSeconds
             ref={ref}
-            showOtherMonths={false}
             footerTemplate={() => (
               <Stack
                 direction="row"
                 align="center"
                 justify="between"
-                className="border-t-2 border-solid border-component-strong"
+                className="border-t-2 border-component-strong bg-surface-tertiary"
               >
                 <Button color="neutral" variant="ghost" onClick={() => field.onChange(new Date())}>
                   Now

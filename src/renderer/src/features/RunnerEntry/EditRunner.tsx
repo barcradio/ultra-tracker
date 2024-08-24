@@ -1,5 +1,4 @@
-import { useRef, useState } from "react";
-import { Calendar } from "primereact/calendar";
+import { useState } from "react";
 import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
@@ -55,12 +54,7 @@ export function EditRunner(props: Props) {
   const handleClose = () => {
     form.reset(props.runner); // Reset the form to the original runner
     setIsOpen(false);
-    inRef.current?.hide();
-    outRef.current?.hide();
   };
-
-  const inRef = useRef<Calendar>(null);
-  const outRef = useRef<Calendar>(null);
 
   return (
     <>
@@ -118,17 +112,29 @@ export function EditRunner(props: Props) {
               name="in"
               label="In Time"
               control={form.control}
+              rules={{
+                validate: (value, { out: outTime }) => {
+                  if (value && outTime && value > outTime)
+                    return "Runners cannot exit station before entering";
+                  return true;
+                }
+              }}
               showTime
               showSeconds
-              ref={inRef}
             />
             <DatePicker
               name="out"
               label="Out Time"
               control={form.control}
+              rules={{
+                validate: (value, { in: inTime }) => {
+                  if (value && inTime && value < inTime)
+                    return "Runners cannot exit station before entering";
+                  return true;
+                }
+              }}
               showTime
               showSeconds
-              ref={outRef}
             />
             <TextInput
               label="Note"
