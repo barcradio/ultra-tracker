@@ -102,6 +102,13 @@ export type Operator = {
   shiftEnd: Date;
 };
 
+export type DNXRecord = {
+  stationId: string;
+  bibId: number;
+  dnsDateTime: string;
+  note: string;
+};
+
 // Status enums
 export enum DatabaseStatus {
   Created,

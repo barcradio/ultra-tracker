@@ -13,6 +13,14 @@ const loadAthletesFile: Handler<string> = () => {
   return dbAthlete.LoadAthletes();
 };
 
+const loadDNSFile: Handler<string> = () => {
+  return dbAthlete.LoadDNS();
+};
+
+const loadDNFFile: Handler<string> = () => {
+  return dbAthlete.LoadDNF();
+};
+
 const getAthletesTable: Handler<string> = () => {
   return dbAthlete.GetAthletes();
 };
@@ -37,6 +45,8 @@ export const initdbSettingsHandlers = () => {
   ipcMain.handle("get-athletes-table", getAthletesTable);
   ipcMain.handle("load-athletes-file", loadAthletesFile);
   ipcMain.handle("load-stations-file", loadStationFile);
+  ipcMain.handle("load-dns-file", loadDNSFile);
+  ipcMain.handle("load-dnf-file", loadDNFFile);
   ipcMain.handle("import-runners-file", importRunnersFile);
   ipcMain.handle("export-runners-file", exportRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);

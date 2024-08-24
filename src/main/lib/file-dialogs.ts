@@ -31,7 +31,7 @@ export const loadAthleteFile = async (): Promise<string[]> => {
     title: "Select a starting athletes file",
     defaultPath: path.join(app.getPath("documents"), app.name),
     filters: [
-      { name: "Readable File Types", extensions: ["csv", "json", "txt"] },
+      { name: "Comma-Separated Values", extensions: ["csv"] },
       { name: "All Files", extensions: ["*"] }
     ],
     properties: ["openFile"]
@@ -48,9 +48,21 @@ export const loadAthleteFile = async (): Promise<string[]> => {
   return result.filePaths as string[];
 };
 
-export const loadRunnersFromCSV = async (): Promise<string[]> => {
+export const loadRunnersFromCSV = (): Promise<string[]> => {
+  return loadFromCSV("Select a runners file");
+};
+
+export const loadDNSFromCSV = (): Promise<string[]> => {
+  return loadFromCSV("Select a DNS file");
+};
+
+export const loadDNFFromCSV = (): Promise<string[]> => {
+  return loadFromCSV("Select a DNF file");
+};
+
+export const loadFromCSV = async (title: string): Promise<string[]> => {
   const dialogConfig = {
-    title: "Select a runners file",
+    title: title,
     defaultPath: path.join(app.getPath("documents"), app.name),
     filters: [
       { name: "Comma-Separated Values", extensions: ["csv"] },

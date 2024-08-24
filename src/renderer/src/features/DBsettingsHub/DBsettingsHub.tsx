@@ -4,8 +4,10 @@ import * as dialogHooks from "~/hooks/useFileDialogs";
 import { useToasts } from "../Toasts/useToasts";
 
 export function DBsettingsHub() {
-  const loadAthletes = dialogHooks.useLoadAthletes();
+  const loadAthletes = dialogHooks.useLoadAthletesFile();
   const loadStation = dialogHooks.useLoadStationsFile();
+  const loadDNS = dialogHooks.useLoadDNSFile();
+  const loadDNF = dialogHooks.useLoadDNFFile();
   const initializeDatabaseMutation = dbUtilHooks.useInitializeDatabase();
   const clearDatabaseMutation = dbUtilHooks.useClearDatabase();
   const importRunnersFile = dialogHooks.useImportRunnersFromCSV();
@@ -13,13 +15,23 @@ export function DBsettingsHub() {
   const { createToast } = useToasts();
 
   const importAthletesFile = () => {
-    createToast({ message: "Loading Athletes", type: "info" });
+    createToast({ message: "Loading Athletes file", type: "info" });
     loadAthletes.mutate("ping from the renderer!");
   };
 
   const importStationsFile = () => {
     createToast({ message: "Loading Stations file", type: "info" });
     loadStation.mutate("ping from the renderer!");
+  };
+
+  const importDNSFile = () => {
+    createToast({ message: "Loading DNS file", type: "info" });
+    loadDNS.mutate("ping from the renderer!");
+  };
+
+  const importDNFFile = () => {
+    createToast({ message: "Loading DNF file", type: "info" });
+    loadDNF.mutate("ping from the renderer!");
   };
 
   const createRunnerCSVFile = () => {
@@ -56,6 +68,12 @@ export function DBsettingsHub() {
           </Button>
           <Button color="primary" size="md" onClick={importAthletesFile}>
             Load Athletes File
+          </Button>
+          <Button color="primary" size="md" onClick={importDNSFile}>
+            Load DNS File
+          </Button>
+          <Button color="primary" size="md" onClick={importDNFFile}>
+            Load DNF File
           </Button>
         </Stack>
         <Stack direction="col">
