@@ -18,7 +18,7 @@ export function useLoadAthletes() {
   const { createToast } = useToasts();
 
   return useMutation({
-    mutationFn: (message: string) => ipcRenderer.invoke("get-athletes-table", message),
+    mutationFn: (message: string) => ipcRenderer.invoke("load-athletes-file", message),
     onSuccess: (data) => createToast({ message: data, type: "success" }),
     onError: (error) => console.error(error)
   });
