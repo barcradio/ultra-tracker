@@ -12,13 +12,13 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, str
   // new record
   if (!bibResult && !indexResult) [status, message] = insertTimeRecord(record);
 
-  // only record with index exists, probably updating bib number on correct record
+  // only record with index exists, probably updating bib number on correct record, merge them
   if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult, true);
 
-  // only record with bib exists, could be duplicate
+  // only record with bib exists, could be duplicate, merge them
   if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult, true);
 
-  //both queries succeed exist and are equal, but the incoming object is not, we are just updating normally
+  //both queries succeed exist and are equal, but the incoming object is not, we are updating normally, replace don't merge
   if (bibResult && indexResult && JSON.stringify(bibResult) === JSON.stringify(indexResult)) {
     if (JSON.stringify(record) !== JSON.stringify(indexResult)) {
       [status, message] = updateTimeRecord(record, indexResult, false);
