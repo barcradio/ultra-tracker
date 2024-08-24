@@ -1,7 +1,7 @@
 import { clearStationsTable, getDatabaseConnection } from "./connect-db";
+import { data } from "../../preload/data";
 import { DatabaseStatus, EntryMode, Operator, Station, StationDB } from "../../shared/models";
 import { selectStationsFile } from "../lib/file-dialogs";
-import { data } from "../../preload/data";
 
 //TODO: we will need to set myStation, ought to create a settings table instaed of these hard-coded values
 //import { data } from "../../preload/data";
