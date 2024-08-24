@@ -1,11 +1,14 @@
+import { EntryMode } from "../shared/models";
+
 export const data = {
   targetLanguage: "eng",
   // temp for development
   event: {
-    name: "BEAR 100 Race - 2024"
+    name: "ultra-marathon-2024"
   },
   station: {
     name: "5-temple-fork",
-    id: 5
+    id: 5,
+    entryMode: EntryMode.Normal
   }
 };
