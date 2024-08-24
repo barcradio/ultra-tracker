@@ -45,6 +45,7 @@ export function TableContent<T extends object>(props: Props<T>) {
       )}
       {props.rowVirtualizer.getVirtualItems().map((row) => (
         <Row
+          data-index={row.index}
           key={getKey(props.data[row.index])}
           even={isEven(row.index)}
           last={isLast(row.index)}
