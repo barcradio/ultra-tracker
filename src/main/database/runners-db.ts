@@ -7,6 +7,45 @@ import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
 import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
 
+export function GetTotalRunners(): number {
+  const db = getDatabaseConnection();
+
+  try {
+    const dataset = db.prepare(`SELECT COUNT(bibId) FROM StaEvents`).get();
+    console.log(`table Read StaEvents - records:${dataset["COUNT(bibId)"]}`);
+    return dataset["COUNT(bibId)"] as number;
+  } catch (e) {
+    if (e instanceof Error) console.error(e.message);
+    return 0;
+  }
+}
+
+export function GetRunnersInStation(): number {
+  const db = getDatabaseConnection();
+
+  try {
+    const dataset = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NULL`).get();
+    console.log(`table Read StaEvents - records:${dataset["COUNT(*)"]}`);
+    return dataset["COUNT(*)"] as number;
+  } catch (e) {
+    if (e instanceof Error) console.error(e.message);
+    return 0;
+  }
+}
+
+export function GetRunnersOutStation(): number {
+  const db = getDatabaseConnection();
+
+  try {
+    const dataset = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NOT NULL`).get();
+    console.log(`table Read StaEvents - records:${dataset["COUNT(*)"]}`);
+    return dataset["COUNT(*)"] as number;
+  } catch (e) {
+    if (e instanceof Error) console.error(e.message);
+    return 0;
+  }
+}
+
 export function readRunnersTable() {
   const db = getDatabaseConnection();
 

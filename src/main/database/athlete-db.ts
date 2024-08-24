@@ -1,3 +1,4 @@
+import { data } from "../../preload/data";
 import fs from "fs";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
@@ -41,7 +42,51 @@ export async function LoadAthletes() {
   );
 }
 
-export function GetStations(): AthleteDB[] {
+export function GetTotalAthletes(): number {
+  return GetCountFromAthletes("bibId");
+}
+
+export function GetTotalDNS(): number {
+  return GetCountFromAthletesWithWhere("dns", `dns == 1`);
+}
+
+export function GetTotalDNF(): number {
+  return GetCountFromAthletesWithWhere("dnf", `dnf == 1`);
+}
+
+export function GetStationDNF(): number {
+  return GetCountFromAthletesWithWhere("dnf", `dnfStation == ${data.station.id.toString()}`);
+}
+
+function GetCountFromAthletes(columnName: string): number {
+  const db = getDatabaseConnection();
+
+  try {
+    const dataset = db.prepare(`SELECT COUNT(${columnName}) FROM Athletes`).get();
+    console.log(`table Read Athletes - records:${dataset[`COUNT(${columnName})`]}`);
+    return dataset[`COUNT(${columnName})`] as number;
+  } catch (e) {
+    if (e instanceof Error) console.error(e.message);
+    return 0;
+  }
+}
+
+function GetCountFromAthletesWithWhere(columnName: string, whereStatement: string): number {
+  const db = getDatabaseConnection();
+
+  try {
+    const dataset = db
+      .prepare(`SELECT COUNT(${columnName}) FROM Athletes WHERE ${whereStatement}`)
+      .get();
+    console.log(`table Read Athletes - records:${dataset[`COUNT(${columnName})`]}`);
+    return dataset[`COUNT(${columnName})`] as number;
+  } catch (e) {
+    if (e instanceof Error) console.error(e.message);
+    return 0;
+  }
+}
+
+export function GetAthletes(): AthleteDB[] {
   const db = getDatabaseConnection();
 
   try {

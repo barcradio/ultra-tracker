@@ -5,6 +5,7 @@ import icon from "$resources/icon.png?asset";
 import { createDatabaseConnection } from "./database/connect-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { initUserDirectories } from "./lib/file-dialogs";
+import { initStatEngine } from "./lib/stat-engine";
 
 function createWindow(): void {
   // Create the browser window.
@@ -59,6 +60,7 @@ app.whenReady().then(() => {
   createDatabaseConnection();
   initializeIpcHandlers();
   initUserDirectories();
+  initStatEngine();
 
   createWindow();
 
