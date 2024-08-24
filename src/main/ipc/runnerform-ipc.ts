@@ -7,7 +7,8 @@ import * as stats from "../lib/stat-engine";
 import { Handler } from "../types";
 
 const getRunnersTable: Handler<RunnerDB[]> = () => {
-  return dbRunners.readRunnersTable();
+  const dataset = dbRunners.readRunnersTable();
+  return dataset[0];
 };
 
 const addTimeRecord: Handler<RunnerDB, string> = (_, record): string => {

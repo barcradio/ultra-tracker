@@ -90,18 +90,26 @@ export function getRunnersOutStation(): [number | null, DatabaseStatus, string] 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
 
-export function readRunnersTable() {
+export function readRunnersTable(): [RunnerDB[] | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
 
   try {
-    const query = db.prepare(`SELECT * FROM StaEvents`);
-    const dataset = query.all();
-    console.log(`table Read StaEvents - records:${dataset.length}`);
-    return dataset;
+    queryResult = db.prepare(`SELECT * FROM StaEvents`).all();
   } catch (e) {
-    if (e instanceof Error) console.error(e.message);
-    return [];
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
   }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `GetRunnersTable from StaEvents: ${queryResult.length}`;
+  console.log(message);
+
+  return [queryResult, DatabaseStatus.Success, message];
 }
 
 export async function importRunnersFromCSV() {
