@@ -29,7 +29,6 @@ export function RunnerEntry() {
     },
     {
       field: "note",
-      name: "Note",
       sortable: false
     }
   ];

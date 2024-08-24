@@ -175,7 +175,7 @@ export const PrimeReactTheme: PrimeReactPTOptions = {
     }),
     text: {
       className:
-        "p-3 whitespace-pre-line break-words rounded-md text-on-component bg-surface-tertiary"
+        "p-3 whitespace-pre-line break-words rounded-md text-on-component bg-surface-tertiary font-display fonty-medium"
     }
   }
 };

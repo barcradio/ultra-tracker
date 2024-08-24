@@ -22,7 +22,7 @@ export function EmergencyContact(props: Props) {
 
   return (
     <Stack className="gap-2 text-on-component group" align="center">
-      {props.name}
+      <p className="font-medium font-display">{props.name}</p>
       <Button variant="ghost" onClick={copyPhone} color="neutral" size="xs">
         <PhoneIcon
           className={`opacity-0 transition duration-100 cursor-pointer group-hover:opacity-100 fill-on-component phoneIcon-${props.athlete.bibId}`}
