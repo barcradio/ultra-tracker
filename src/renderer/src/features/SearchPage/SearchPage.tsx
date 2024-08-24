@@ -1,6 +1,6 @@
 import { useAthletes } from "~/hooks/useAthletes";
-import { formatPhone } from "~/lib/phone";
 import { AthleteDB } from "$shared/models";
+import { EmergencyContact } from "./EmergencyContact";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 const fullName = (athlete: AthleteDB) => `${athlete.firstName} ${athlete.lastName}`;
@@ -41,8 +41,7 @@ export function SearchPage() {
       field: "emergencyName",
       name: "Emergency Contact",
       width: "20%",
-      render: (emergencyName, { emergencyPhone }) =>
-        `${emergencyName} - ${formatPhone(emergencyPhone)}`
+      render: (value, row) => <EmergencyContact name={value} athlete={row} />
     }
   ];
 
