@@ -1,57 +1,68 @@
+import { type Stats, useStatsData } from "../../hooks/useStatsData";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
-function useFakeStats() {
+function useStats() {
+  const { data: statsData } = useStatsData();
+
+  if (statsData == undefined) return [];
+
   return [
     {
       id: "Registered Athletes",
-      value: 350
+      value: formatStat(statsData?.registeredAthletes)
     },
     {
-      id: "Pending Arrivals",
-      value: 311
+      id: "Incoming Athletes",
+      value: formatStat(statsData?.pendingArrivals)
     },
     {
       id: "In Station",
-      value: 1
+      value: formatStat(statsData?.inStation)
     },
     {
       id: "Through Station",
-      value: 3
+      value: formatStat(statsData?.throughStation)
     },
     {
       id: "Finished Race",
-      value: 0
+      value: formatStat(statsData?.finishedRace)
     },
     {
       id: "Total DNS",
-      value: 2
+      value: formatStat(statsData?.totalDNS)
     },
     {
       id: "Station DNF",
-      value: 12
+      value: formatStat(statsData?.stationDNF)
     },
     {
       id: "Total DNF",
-      value: 37
+      value: formatStat(statsData?.totalDNF)
     },
     {
       id: "Warnings",
-      value: 1
+      value: formatStat(statsData?.warnings)
     },
     {
       id: "Errors",
-      value: 3
+      value: formatStat(statsData?.errors)
     }
   ];
 }
 
+function formatStat(stat: number): number | string {
+  const invalidResult = -999;
+  const invalidString = "---";
+  return stat != invalidResult ? stat : invalidString;
+}
+
 interface Stat {
   id: string;
-  value: number;
+  value: number | string;
 }
 
 export function Stats() {
-  const stats = useFakeStats();
+  const stats = useStats();
 
   const Columns: ColumnDef<Stat> = [
     {

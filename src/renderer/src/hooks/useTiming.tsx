@@ -11,9 +11,10 @@ export function useCreateTiming() {
       return ipcRenderer.invoke("add-timing-record", timeRecord);
     },
     onSuccess: () => {
-      // Invalidate the runners-table query to refetch the data,
+      // Invalidate the queries to refetch the data,
       // so that the new/updated timing record is displayed
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     }
   });
 }
@@ -27,9 +28,10 @@ export function useEditTiming() {
       return ipcRenderer.invoke("edit-timing-record", timeRecord);
     },
     onSuccess: () => {
-      // Invalidate the runners-table query to refetch the data,
+      // Invalidate the queries to refetch the data,
       // so that the new/updated timing record is displayed
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     }
   });
 }
@@ -43,9 +45,10 @@ export function useDeleteTiming() {
       return ipcRenderer.invoke("delete-timing-record", timeRecord);
     },
     onSuccess: () => {
-      // Invalidate the runners-table query to refetch the data,
+      // Invalidate the queries to refetch the data,
       // so that the new/updated timing record is displayed
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     }
   });
 }

@@ -5,6 +5,8 @@ import { data } from "../../preload/data";
 import { AthleteDB, DatabaseStatus } from "../../shared/models";
 import { loadAthleteFile } from "../lib/file-dialogs";
 
+const invalidResult = -999;
+
 export async function LoadAthletes() {
   const headers = [
     "bibId",
@@ -44,22 +46,22 @@ export async function LoadAthletes() {
 
 export function GetTotalAthletes(): number {
   const count = GetCountFromAthletes("bibId");
-  return count[0] == null ? -1 : count[0];
+  return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetTotalDNS(): number {
   const count = GetCountFromAthletesWithWhere("dns", `dns == 1`);
-  return count[0] == null ? -1 : count[0];
+  return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetTotalDNF(): number {
   const count = GetCountFromAthletesWithWhere("dnf", `dnf == 1`);
-  return count[0] == null ? -1 : count[0];
+  return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetStationDNF(): number {
   const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == ${data.station.id.toString()}`);
-  return count[0] == null ? -1 : count[0];
+  return count[0] == null ? invalidResult : count[0];
 }
 
 function GetCountFromAthletes(columnName: string): [number | null, DatabaseStatus, string] {

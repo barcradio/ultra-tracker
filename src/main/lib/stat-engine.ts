@@ -13,7 +13,7 @@ class StatEngine<K extends string = "defaultValue"> {
   }
 
   calculate(): { [P in K]: number } {
-    const defaultValue: number = -1;
+    const defaultValue: number = -999;
 
     return this.stats.reduce(
       (result, stat) => {
@@ -26,17 +26,28 @@ class StatEngine<K extends string = "defaultValue"> {
 }
 
 const stats: StatEngine = new StatEngine();
+//const results: any =
 
 export function initStatEngine() {
+  const invalidResult = -999;
+
   stats.addStat("registeredAthletes", () => dbAthlete.GetTotalAthletes());
-  stats.addStat(
-    "pendingArrivals",
-    (input) => input.registeredAthletes - dbRunners.GetTotalRunners()
-  );
+  stats.addStat("totalRunners", () => dbRunners.GetTotalRunners());
+  stats.addStat("totalDNS", () => dbAthlete.GetTotalDNS());
+  stats.addStat("pendingArrivals", (input) => {
+    if (
+      input.registeredAthletes != invalidResult ||
+      input.totalDNS != invalidResult ||
+      input.totalRunners != invalidResult
+    ) {
+      return input.registeredAthletes - input.totalDNS - input.totalRunners;
+    } else {
+      return invalidResult;
+    }
+  });
   stats.addStat("inStation", () => dbRunners.GetRunnersInStation());
   stats.addStat("throughStation", () => dbRunners.GetRunnersOutStation());
   stats.addStat("finishedRace", (input) => input.defaultValue);
-  stats.addStat("totalDNS", () => dbAthlete.GetTotalDNS());
   stats.addStat("stationDNF", () => dbAthlete.GetStationDNF());
   stats.addStat("totalDNF", () => dbAthlete.GetTotalDNF());
   stats.addStat("warnings", (input) => input.defaultValue);

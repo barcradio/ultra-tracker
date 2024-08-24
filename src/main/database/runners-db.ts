@@ -7,19 +7,21 @@ import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
 import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
 
+const invalidResult = -999;
+
 export function GetTotalRunners(): number {
   const count = getTotalRunners();
-  return count[0] == null ? -1 : count[0];
+  return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetRunnersInStation(): number {
   const count = getRunnersInStation();
-  return count[0] == null ? -1 : count[0];
+  return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetRunnersOutStation(): number {
   const count = getRunnersOutStation();
-  return count[0] == null ? -1 : count[0];
+  return count[0] == null ? invalidResult : count[0];
 }
 
 function getTotalRunners(): [number | null, DatabaseStatus, string] {
