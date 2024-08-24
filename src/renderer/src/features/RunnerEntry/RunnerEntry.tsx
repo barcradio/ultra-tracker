@@ -27,8 +27,8 @@ export function RunnerEntry() {
       name: "Out Time"
     },
     {
-      field: "notes",
-      name: "Notes",
+      field: "note",
+      name: "note",
       sortable: false
     }
   ];

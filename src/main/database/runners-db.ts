@@ -1,11 +1,94 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import { formatDate } from "$renderer/lib/datetimes";
-import { Runner, RunnerDB } from "$shared/models";
+import { DatabaseStatus, Runner, RunnerCSV, RunnerDB } from "$shared/models";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
 import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
+
+const invalidResult = -999;
+
+export function GetTotalRunners(): number {
+  const count = getTotalRunners();
+  return count[0] == null ? invalidResult : count[0];
+}
+
+export function GetRunnersInStation(): number {
+  const count = getRunnersInStation();
+  return count[0] == null ? invalidResult : count[0];
+}
+
+export function GetRunnersOutStation(): number {
+  const count = getRunnersOutStation();
+  return count[0] == null ? invalidResult : count[0];
+}
+
+function getTotalRunners(): [number | null, DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT COUNT(bibId) FROM StaEvents`).get();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read StaEvents - records:${queryResult["COUNT(bibId)"]}`;
+  console.log(message);
+
+  return [queryResult["COUNT(bibId)"] as number, DatabaseStatus.Success, message];
+}
+
+function getRunnersInStation(): [number | null, DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NULL`).get();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read StaEvents - records:${queryResult["COUNT(*)"]}`;
+  console.log(message);
+
+  return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+}
+
+export function getRunnersOutStation(): [number | null, DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NOT NULL`).get();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read StaEvents - records:${queryResult["COUNT(*)"]}`;
+  console.log(message);
+
+  return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+}
 
 export function readRunnersTable() {
   const db = getDatabaseConnection();
@@ -34,7 +117,7 @@ export async function importRunnersFromCSV() {
       // eslint-disable-next-line camelcase
       from_line: 2
     },
-    (error, result: Runner[]) => {
+    (error, result: RunnerCSV[]) => {
       if (error) {
         console.error(error);
         return `${result.length} timings: ${error}`;
@@ -124,11 +207,11 @@ function writeToCSV(filename, stmt) {
         runner: row[1],
         in: row[3] == null ? "" : formatDate(new Date(row[3])),
         out: row[4] == null ? "" : formatDate(new Date(row[4])),
-        notes: row[6]
+        note: row[6]
       };
       const sent = row[7];
 
-      const rowText = `${record.sequence},${sent},${record.runner},${record.in},${record.out},${record.notes}`;
+      const rowText = `${record.sequence},${sent},${record.runner},${record.in},${record.out},${record.note}`;
       stream.write(rowText + "\n");
       sequence++;
     }

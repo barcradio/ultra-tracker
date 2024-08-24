@@ -1,8 +1,11 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
+import { data } from "../../preload/data";
 import { AthleteDB, DatabaseStatus } from "../../shared/models";
 import { loadAthleteFile } from "../lib/file-dialogs";
+
+const invalidResult = -999;
 
 export async function LoadAthletes() {
   const headers = [
@@ -41,18 +44,94 @@ export async function LoadAthletes() {
   );
 }
 
-export function GetStations(): AthleteDB[] {
+export function GetTotalAthletes(): number {
+  const count = GetCountFromAthletes("bibId");
+  return count[0] == null ? invalidResult : count[0];
+}
+
+export function GetTotalDNS(): number {
+  const count = GetCountFromAthletesWithWhere("dns", `dns == 1`);
+  return count[0] == null ? invalidResult : count[0];
+}
+
+export function GetTotalDNF(): number {
+  const count = GetCountFromAthletesWithWhere("dnf", `dnf == 1`);
+  return count[0] == null ? invalidResult : count[0];
+}
+
+export function GetStationDNF(): number {
+  const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == ${data.station.id.toString()}`);
+  return count[0] == null ? invalidResult : count[0];
+}
+
+function GetCountFromAthletes(columnName: string): [number | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
 
   try {
-    const query = db.prepare(`SELECT * FROM Athletes`);
-    const dataset = query.all();
-    console.log(`table Read Athletes - records:${dataset.length}`);
-    return dataset as AthleteDB[];
+    queryResult = db.prepare(`SELECT COUNT(${columnName}) FROM Athletes`).get();
   } catch (e) {
-    if (e instanceof Error) console.error(e.message);
-    return [];
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
   }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read Athletes - records:${queryResult[`COUNT(${columnName})`]}`;
+  console.log(message);
+
+  return [queryResult[`COUNT(${columnName})`] as number, DatabaseStatus.Success, message];
+}
+
+function GetCountFromAthletesWithWhere(
+  columnName: string,
+  whereStatement: string
+): [number | null, DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db
+      .prepare(`SELECT COUNT(${columnName}) FROM Athletes WHERE ${whereStatement}`)
+      .get();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read Athletes - records:${queryResult[`COUNT(${columnName})`]}`;
+  console.log(message);
+
+  return [queryResult[`COUNT(${columnName})`] as number, DatabaseStatus.Success, message];
+}
+
+export function GetAthletes(): [AthleteDB[] | null, DatabaseStatus, string] {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT * FROM Athletes`).all();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read Athletes - records:${queryResult.length}`;
+  console.log(message);
+  return [queryResult as AthleteDB[], DatabaseStatus.Success, message];
 }
 
 export function GetAthleteByBib(bibNumber: number): [AthleteDB | null, DatabaseStatus, string] {

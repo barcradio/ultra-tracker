@@ -12,14 +12,14 @@ export function DBsettingsHub() {
   const exportRunnersFile = dialogHooks.useExportRunnersToCSV();
   const { createToast } = useToasts();
 
-  const getStationsFile = () => {
-    createToast({ message: "Loading Stations file", type: "info" });
-    loadStation.mutate("ping from the renderer!");
+  const importAthletesFile = () => {
+    createToast({ message: "Loading Athletes", type: "info" });
+    loadAthletes.mutate("ping from the renderer!");
   };
 
-  const getAthletesFile = () => {
-    createToast({ message: "Getting Athletes", type: "info" });
-    loadAthletes.mutate("ping from the renderer!");
+  const importStationsFile = () => {
+    createToast({ message: "Loading Stations file", type: "info" });
+    loadStation.mutate("ping from the renderer!");
   };
 
   const createRunnerCSVFile = () => {
@@ -51,10 +51,10 @@ export function DBsettingsHub() {
       <Stack direction="row" align="stretch">
         <Stack direction="col">
           <b>Station Setup</b>
-          <Button color="primary" size="md" onClick={getStationsFile}>
+          <Button color="primary" size="md" onClick={importStationsFile}>
             Load Stations File
           </Button>
-          <Button color="primary" size="md" onClick={getAthletesFile}>
+          <Button color="primary" size="md" onClick={importAthletesFile}>
             Load Athletes File
           </Button>
         </Stack>

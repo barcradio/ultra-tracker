@@ -14,7 +14,7 @@ const loadAthletesFile: Handler<string> = () => {
 };
 
 const getAthletesTable: Handler<string> = () => {
-  return dbAthlete.LoadAthletes();
+  return dbAthlete.GetAthletes();
 };
 
 const importRunnersFile: Handler<string> = () => {
