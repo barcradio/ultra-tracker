@@ -1,7 +1,7 @@
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
-import icon from "$resources/icon.png?asset";
+import iconLinux from "$resources/iconLinux.png?asset";
 import { createDatabaseConnection } from "./database/connect-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { initUserDirectories } from "./lib/file-dialogs";
@@ -14,7 +14,9 @@ function createWindow(): void {
     height: 1080,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === "linux" ? { icon } : {}),
+    // setting or title here doesn't seem to work
+    //...(process.platform === "linux" ? { iconLinux } : {}),
+    //...(process.platform === "win32" ? { iconWin } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false
@@ -23,6 +25,8 @@ function createWindow(): void {
 
   mainWindow.on("ready-to-show", () => {
     mainWindow.showInactive();
+    mainWindow.setTitle(app.name);
+    mainWindow.setIcon(iconLinux);
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
