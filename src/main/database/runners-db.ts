@@ -188,8 +188,8 @@ function writeToCSV(filename, stmt) {
     // title row
     const event = data.event.name;
     const station = data.station.name;
-    const disclaimer = "All times are based off of the system they were recorded on.";
-    const rowText = `${event},${station},${disclaimer}`;
+    //const disclaimer = "All times are based off of the system they were recorded on.";
+    const rowText = `${event},${station}`;
     stream.write(rowText + "\n");
 
     for (const row of toRows(stmt)) {

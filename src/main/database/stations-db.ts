@@ -1,6 +1,7 @@
 import { clearStationsTable, getDatabaseConnection } from "./connect-db";
 import { DatabaseStatus, EntryMode, Operator, Station, StationDB } from "../../shared/models";
 import { selectStationsFile } from "../lib/file-dialogs";
+import { data } from "../../preload/data";
 
 //TODO: we will need to set myStation, ought to create a settings table instaed of these hard-coded values
 //import { data } from "../../preload/data";
@@ -16,9 +17,12 @@ export async function LoadStations() {
     if (GetStations().length > 0) {
       clearStationsTable();
     }
+    if (index == "event") data.event.name = stationData.event[0];
 
-    for (const key in stationData[index]) {
-      insertStation(stationData[index][key]);
+    if (index == "stations") {
+      for (const key in stationData.stations) {
+        insertStation(stationData[index][key]);
+      }
     }
   }
 
