@@ -34,8 +34,9 @@
     "date-fns": "^3.6.0",
     "electron-updater": "^6.2.1",
     "focus-trap-react": "^10.2.3",
-    "react-hook-form": "^7.52.2",
-    "tailwind-merge": "^2.5.2",
+    "primereact": "^10.8.2",
+    "react-hook-form": "^7.52.1",
+    "tailwind-merge": "^2.3.0",
     "typeorm": "^0.3.20"
   },
   "devDependencies": {

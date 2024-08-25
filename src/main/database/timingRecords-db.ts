@@ -12,16 +12,16 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, str
   // new record
   if (!bibResult && !indexResult) [status, message] = insertTimeRecord(record);
 
-  // only record with index exists, probably updating bib number on correct record
-  if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult);
+  // only record with index exists, probably updating bib number on correct record, merge them
+  if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult, true);
 
-  // only record with bib exists, could be duplicate
-  if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult);
+  // only record with bib exists, could be duplicate, merge them
+  if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult, true);
 
-  //both queries succeed exist and are equal, but the incoming object is not, we are just updating normally
+  //both queries succeed exist and are equal, but the incoming object is not, we are updating normally, replace don't merge
   if (bibResult && indexResult && JSON.stringify(bibResult) === JSON.stringify(indexResult)) {
     if (JSON.stringify(record) !== JSON.stringify(indexResult)) {
-      [status, message] = updateTimeRecord(record, indexResult);
+      [status, message] = updateTimeRecord(record, indexResult, false);
     }
   }
   console.log(message);
@@ -101,7 +101,11 @@ export function deleteTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   return [DatabaseStatus.NotFound, `timing-record:delete Bib ${record.bibId} not found`];
 }
 
-function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [DatabaseStatus, string] {
+function updateTimeRecord(
+  record: RunnerDB,
+  existingRecord: RunnerDB,
+  merge: boolean
+): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryString = "";
 
@@ -110,18 +114,20 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
   if (record.timeOut instanceof String) record.timeOut = null;
   if (record.timeModified instanceof String) record.timeModified = null;
 
-  if (existingRecord.timeIn != null && record.timeIn == null)
-    record.timeIn = new Date(existingRecord.timeIn);
-  if (existingRecord.timeOut != null && record.timeOut == null)
-    record.timeOut = new Date(existingRecord.timeOut);
+  // preserve the prior and opposite times when from input, don't merge when it is an edit
+  if (merge) {
+    if (existingRecord.timeIn != null && record.timeIn == null)
+      record.timeIn = new Date(existingRecord.timeIn);
+    if (existingRecord.timeOut != null && record.timeOut == null)
+      record.timeOut = new Date(existingRecord.timeOut);
+  }
 
   //build the time record
   const stationID = data.station.id;
-  const timeInISO: string | null = record.timeIn == null ? null : record.timeIn.toISOString();
-  const timeOutISO: string | null = record.timeOut == null ? null : record.timeOut.toISOString();
-  const modifiedISO: string | null =
-    record.timeModified == null ? null : record.timeModified.toISOString();
-  const sent: number = Number(record.sent);
+  const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
+  const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
+  const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+  const sent = Number(record.sent);
   const note = record.note;
 
   try {
@@ -159,11 +165,10 @@ function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
 
   const stationID = data.station.id;
-  const timeInISO: string | null = record.timeIn == null ? null : record.timeIn.toISOString();
-  const timeOutISO: string | null = record.timeOut == null ? null : record.timeOut.toISOString();
-  const modifiedISO: string | null =
-    record.timeModified == null ? null : record.timeModified.toISOString();
-  const sent: number = Number(record.sent);
+  const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
+  const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
+  const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+  const sent = Number(record.sent);
   const note = record.note;
 
   try {

@@ -1,13 +1,14 @@
 import { Stack } from "~/components";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
+import { formatDate } from "~/lib/datetimes";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { type Runner, useRunnerData } from "../../hooks/useRunnerData";
+import { RunnerWithSequence, useRunnerData } from "../../hooks/useRunnerData";
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
 
-  const columns: ColumnDef<Runner> = [
+  const columns: ColumnDef<RunnerWithSequence> = [
     {
       field: "sequence",
       name: "Sequence",
@@ -20,15 +21,17 @@ export function RunnerEntry() {
     },
     {
       field: "in",
-      name: "In Time"
+      name: "In Time",
+      render: (value) => formatDate(value)
     },
     {
       field: "out",
-      name: "Out Time"
+      name: "Out Time",
+      render: (value) => formatDate(value)
     },
     {
       field: "note",
-      name: "note",
+      name: "Note",
       sortable: false
     }
   ];

@@ -109,6 +109,11 @@ export function readRunnersTable(): [RunnerDB[] | null, DatabaseStatus, string] 
   message = `GetRunnersTable from StaEvents: ${queryResult.length}`;
   console.log(message);
 
+  queryResult.forEach((row: RunnerDB) => {
+    row.timeIn = row.timeIn == null ? null : new Date(row.timeIn);
+    row.timeOut = row.timeOut == null ? null : new Date(row.timeOut);
+  });
+
   return [queryResult, DatabaseStatus.Success, message];
 }
 
