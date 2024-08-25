@@ -1,91 +1,78 @@
-# Illis a cuncta Cephalus increpat
+# Ultra-tracker Help
 
-## Spatium et quoque tectus ova
+## Operating Instructions
 
-Lorem markdownum, et pectus. Undis in alteraque *iram cornuaque* voluere
-*stellantibus* video occupat Procnen Pandion hic verba Herculeae [capillis
-praecorrumpere vivente](http://tepidisque.io/peremi-coire.php). Occiduus poteras
-piceae Themis, omne huius litoraque, est.
+The left side bar of the Ultra-tracker is used to select different panels or to provide selection of different options affecting the entire application.
 
-Seu post quem Saturnia virens trabeati matrona flagrantemque deerat *me cessasse
-artus* flumina vagi fugias equum? Est esse, tradendum
-[matertera](http://socia.com/ait.aspx) oscula imagine quem retinere?
+### Stats panel
 
-## Et futura mensis et unum profectus longo
+  The **BIB#** box should be the main starting point for using this panel. This application will accept numerical input either from the 10 key pad or top-row keys of all standard keyboards.
 
-Vobis curvamine iam maiores [urnam militis](http://regnum.org/fatentis)
-ministrae si **gravi** nisi alte Daedalon, luxit incensaque. Diruit matrisque
-ferro erat oleaster quod atque solet postquam in iecit, mihi tum miseris
-externis novas quem inducere!
+  The app performs a search of the bib number input by the operator to find whether that person is listed as an athlete that did start the race. If they did not start, an error is displayed allowing the operator to correct the bib number before proceeding.
 
-## Quam nam stamina pocula
+<kbd>Backslash</kbd>
+<kbd>Slash</kbd>
+<kbd>NumpadDivide</kbd>
 
-Via virgo; missis et nil deus utrumque sororum illa Amor minister deiectam
-ignotas ubi qualia moras, agricolis exanimem. Si in fontes super interdictae
-postquam tutus.
+### Search panel
 
-    if (webmail_imap + 4 > character_troubleshooting) {
-        bing_alpha_boot = -2 + regular_bare_dcim;
-        hubPassive = rup_restore + vlog.primaryDimmHdd(device);
-        sd_computer(5);
-    } else {
-        responsive_box = kvm.solid.recycle_open(-4, inbox);
-    }
-    emulationSnmpExpansion = internal.party_wpa(76, sli_dsl + bitrate, sli);
-    if (software_active.gnu_lcd(hashtagCharacterBankruptcy - remote_oop, cycle +
-            wizardSnapshotAccess, syntaxRequirementsLog + 2 *
-            gpsCybersquatter)) {
-        pmu_minimize += version;
-    }
-    cad_hard_io += hacker / hsf_driver_prompt - wpa - 4 + soft_asp_extension;
-    var favicon = thunderbolt_application_command + ssid + memoryMultiWidget;
+The purpose of this panel is to function as an full list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and notes entries.
 
-## Vidit iracundique sine
+ 
+## Logs panel
 
-*Carior erat* aequora cornum poscit [cura](http://quendamaliamve.io/figuram):
-tempora quater que, ubique! Est *Achille* etiam, quicquam euhoeque Abantiades in
-Cyanes dominum, illa circumvertitur mortali.
+The purpose of this panel is to display and export the station log file that is auto-generated during operation. There are two versions of the log that can be viewed and/or exported for the use of operators or developers to aid in fixing errors that may occur due to programming mistakes or unforeseen situations.
+- The normal station log will contain entrees that happened during regular operation that indicates typical data gathering operations. This view may be used by all operators to allow a detailed look at the order and purpose of all standard events that have occurred during operation.
+- The verbose station log contains all events that occurred as well as debug messages designed to assist the developers to locate problems that might occur. This file can be large and should be sent to the developers only upon request.
 
-Dant natus *est* ferro secum, conveniet, per nominat. Rigore cum multa.
+## Database panel
+The database panel allows the operator to initialize the database and to load data for various input files needed for proper program operation. By default, system initialization files will be located in the Windows folder "...\Documents\ultra-tracker" and file reading/writing selection dialogs will start in this folder.
 
-## Faciem deus facta
+**NOTE: Some of these functions (marked in RED) are completely destructive to the database and MUST NOT be performed during normal operation.**
 
-Lorem *markdownum opem*; nitentior plantas [e leves
-arbore](http://istoin.net/vel-praemia) ab teneras foedere! Miser raptamque
-Lyrnesia Lyaeumque pontum?
+These are provided as a means to completely recover after a major database error and other methods have not corrected these errors. The following is a description of each button and its' function.
+- **Load Stations File**
+    This loads a json file containing each of the stations and their detailed information to allow ease of selection while setting up this application. As stated above, a file dialog will allow selection of this file that is placed, by default, in the folder **"...\Documents\ultra-tracker"**. Any other location can be selected. A typical filename will be bear100-YYYY-stations.json.
 
-**Erat** et viva, excussis quidque pisces, mira, substiterat exercere undis in
-capillos nymphe, nec hostis artis. Pectoribusque venit caelicolae serpentum
-cruribus abest quis negarunt meruere, ipsum. Habes inrita Bacche quam partes
-[forte](http://nuper-evolvit.net/)! Rogant dicenti cautes ferarum pendent,
-stridet, iaculatus, loco o ortus habenas occupat, quas. Res leonis, chordas
-virga si visaque nec mactas morte; minimas augur illis dicta animi, Telamone.
+- **Load Athletes File**
+    This function loads a .csv file, supplied by race organizers, containing all of the athletes registered for the event whether they are known to have started or not.
 
-In aduncum quidem, moveat, solita ab cetera **data**, agro erant Aeacus regoque,
-latebris. Caecis quod deciderant illis.
+- **Load DNS File**
+    This function loads a .csv file, supplied by race organizers, containing all of the athletes known to have **not started** the race.
 
-1. Occidet domui nec Aeneas numen vetustas
-2. Deos solque sequentis nunc
-3. Ipse magna mors ei toto tenuisse
-4. Tela dea praeterea
-5. Nodis gratia
+- **load DNF File**
+   This function loads a .csv file, supplied by race organizers, containing all of the athletes known to have **not finished** the race.
 
-## Tantum in desperat iugulum expers
+- **Export Recent Events File**
+    This function exports a .csv file of the station entries containing each athlete and their TimeIn, TimeOut, DNF/DNS status and any notes made by the operator of those events that have **Not already been sent**.
+    (Sending only the recent results allows for much shorter files being routinely sent to the network database via radio.)
 
-Ianigenam ad leves diligitur **et** Iuno, condi nam convellere! Vertice medio,
-illis ausa piscosa torserat; dat falsum praemia, auso viderat Hic **sensisse
-crepuscula**. Levem amne est tulit; fuit Abantiades cuius tangamque caecis: qua
-expetit. Mollibus viarum, se patrem, adgreditur, ferebat pro quater arcus, sim
-domum, serpentem. Et fore!
+- **Export All Events File**
+  This function exports a .csv file of the station entries containing each athlete and their TimeIn, TimeOut, DNF/DNS status and any notes made by the operator of **all events** that have **been entered**.  
+ 
+  (Sending all of the results since the start of the race results in **longer files** being sent to the network database via radio.)
 
-    volumeCmosJson += 4;
-    primaryVfatGuid(propertyPort, richPlugCharacter(2, wimax), 2);
-    webDpiGigabit.localhost_drive_lamp = localhostBalanceStatus;
+- **Destroy and Init Database**
+    This function is the means where *ALL* **database entries and tables are removed** resulting in the loss of *ALL* setup data and entry history!
+    The intent is to allow recovery of a major database corruption event and the rapid rebuild and subsequent return to normal operation by the operator.
+   While the previous button of "Destroy and Init Database" is drastic, this allows us to now rebuild the database and application back to the previous state!
 
-Iubet omine genitor foedaque nomina dei dixit et frugum venit, promissis ero
-frondere. Et erat leves habet et circum Theseus accinctus candentia praeceps
-curis.
+    ***Recovery of Ultra-Tracker application procedure***  
+    After the "Destroy and Init Database" has been performed, perform the following steps:  
+    1. Load the Stations File.
+    2. Load the Athletes File.
+    3. Load the DNS File.
+    4. Load the DNF File.
+    5. Import History File to DB.
 
-Abstulit non. Quam volubilitas, vult, non in in qua armisque iuppiter terret
-parentem ea calido frondes tempore. Caedis quam Penthea! Lumina sub faveat
-levis.
+
+- **Import History File to DB**  
+This function imports **ALL of the entries** that have previously been made by the operator since the start of this race event!  The Ultra-tracker application has been automatically producing a file containing EVERY entry made by the operator continuously during normal operation! This function will restore all of this data to restore the program to the previous state automatically.
+ 
+### Theme panel
+
+This is a global selection that allows two different color/shading options for use during daylight or nighttime operation.
+
+### Settings panel
+
+This panel has selections for entering the Station name, number, location in lat/long coordinates and operators names and callsigns.
