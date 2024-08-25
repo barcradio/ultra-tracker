@@ -32,6 +32,10 @@ function useStats() {
       value: formatStat(statsData?.totalDNS)
     },
     {
+      id: "Previous DNF",
+      value: formatStat(statsData?.previousDNF)
+    },
+    {
       id: "Station DNF",
       value: formatStat(statsData?.stationDNF)
     },
