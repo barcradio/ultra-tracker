@@ -12,6 +12,7 @@ function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1440,
     height: 1080,
+    backgroundColor: "#0D1519",
     show: false,
     autoHideMenuBar: true,
     // setting or title here doesn't seem to work

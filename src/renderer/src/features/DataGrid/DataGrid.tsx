@@ -1,5 +1,6 @@
-import { ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useParentHeight } from "~/hooks/useParentRect";
 import { classed } from "~/lib/classed";
 import { Headers } from "./Headers";
 import { InitialSortState, useSortState } from "./hooks/useSortState";
@@ -22,7 +23,6 @@ const Table = classed.table("overflow-auto w-full font-display text-on-component
 
 export function DataGrid<T extends object>(props: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
-  const [availableSpace, setAvailableSpace] = useState(0);
   const [compareFn, setSortField, sortState] = useSortState<T>({
     initial: props.initialSort,
     columns: props.columns
@@ -38,10 +38,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
     overscan: props.overscan ?? 10
   });
 
-  useLayoutEffect(() => {
-    if (!parentRef.current) return;
-    setAvailableSpace(parentRef.current?.parentElement?.clientHeight ?? 0);
-  }, []);
+  const height = useParentHeight(parentRef);
 
   const getSection = (type: "header" | "footer") => {
     return (
@@ -58,11 +55,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
   };
 
   return (
-    <div
-      ref={parentRef}
-      className="overflow-y-auto overflow-x-hidden"
-      style={{ height: availableSpace }}
-    >
+    <div ref={parentRef} className="overflow-y-auto overflow-x-hidden" style={{ height }}>
       <div>
         <Table className={props.className}>
           {getSection("header")}

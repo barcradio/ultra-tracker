@@ -1,0 +1,21 @@
+import { RefObject, useCallback, useLayoutEffect, useState } from "react";
+
+export function useParentHeight(ref: RefObject<HTMLElement>) {
+  const [height, setHeight] = useState(0);
+
+  const setSpace = useCallback(() => {
+    const rect = ref.current?.parentElement?.getBoundingClientRect();
+    const height = rect?.height ?? 0;
+    console.log("height", height);
+    setHeight(height);
+  }, [ref]);
+
+  useLayoutEffect(() => {
+    if (!ref.current) return;
+    setSpace();
+    window.addEventListener("resize", setSpace);
+    return () => window.removeEventListener("resize", setSpace);
+  }, [ref, setSpace]);
+
+  return height;
+}
