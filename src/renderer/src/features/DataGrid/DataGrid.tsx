@@ -23,6 +23,8 @@ const Table = classed.table("overflow-auto w-full font-display text-on-component
 
 export function DataGrid<T extends object>(props: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const height = useParentHeight(parentRef);
+
   const [compareFn, setSortField, sortState] = useSortState<T>({
     initial: props.initialSort,
     columns: props.columns
@@ -38,7 +40,10 @@ export function DataGrid<T extends object>(props: Props<T>) {
     overscan: props.overscan ?? 10
   });
 
-  const height = useParentHeight(parentRef);
+  const handleSetSortField = (field: keyof T) => {
+    setSortField(field);
+    rowVirtualizer.scrollToIndex(0);
+  };
 
   const getSection = (type: "header" | "footer") => {
     return (
@@ -46,7 +51,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
         type={type}
         data={props.data}
         columns={props.columns}
-        setSortField={setSortField}
+        setSortField={handleSetSortField}
         sortState={sortState}
         actionButtons={props.actionButtons}
         className={props.headerClassName}
