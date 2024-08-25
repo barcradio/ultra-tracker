@@ -43,7 +43,7 @@ export type AthleteDB = {
   emergencyName: string;
   dns: boolean | undefined;
   dnf: boolean | undefined;
-  dnfStation: number | undefined;
+  dnfStation: string | undefined;
   dnfDateTime: Date | null;
 };
 

@@ -26,7 +26,6 @@ class StatEngine<K extends string = "defaultValue"> {
 }
 
 const stats: StatEngine = new StatEngine();
-//const results: any =
 
 export function initStatEngine() {
   const invalidResult = -999;
@@ -34,13 +33,14 @@ export function initStatEngine() {
   stats.addStat("registeredAthletes", () => dbAthlete.GetTotalAthletes());
   stats.addStat("totalRunners", () => dbRunners.GetTotalRunners());
   stats.addStat("totalDNS", () => dbAthlete.GetTotalDNS());
+  stats.addStat("previousDNF", () => dbAthlete.GetPreviousDNF());
   stats.addStat("pendingArrivals", (input) => {
     if (
       input.registeredAthletes != invalidResult ||
       input.totalDNS != invalidResult ||
       input.totalRunners != invalidResult
     ) {
-      return input.registeredAthletes - input.totalDNS - input.totalRunners;
+      return input.registeredAthletes - input.totalDNS - input.previousDNF - input.totalRunners;
     } else {
       return invalidResult;
     }

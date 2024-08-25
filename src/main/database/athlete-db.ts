@@ -88,9 +88,6 @@ export async function LoadDNF() {
         return `${result.length} dnfRecords: ${error}`;
       }
 
-      //if (JSON.stringify(result[0]) != JSON.stringify(headers))
-      //  return `${result.length} dnfRecords: ${error}`;
-
       console.log("Result", result);
 
       result.slice(1).forEach((dnfRecord) => {
@@ -119,6 +116,32 @@ export function GetTotalDNF(): number {
 export function GetStationDNF(): number {
   const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${data.station.name}'`);
   return count[0] == null ? invalidResult : count[0];
+}
+
+export function GetPreviousDNF(): number {
+  const db = getDatabaseConnection();
+  let queryResult;
+
+  try {
+    queryResult = db.prepare(`SELECT * FROM Athletes WHERE dnf = ?`).all(Number(true));
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return invalidResult;
+    }
+  }
+
+  if (queryResult == null) return invalidResult;
+
+  const dnfList = queryResult as AthleteDB[];
+  const previousDNF: AthleteDB[] = [];
+
+  for (const athlete of dnfList) {
+    const id = Number(Array.from(athlete.dnfStation as string)[0]);
+    if (id < data.station.id) previousDNF.push(athlete);
+  }
+
+  return previousDNF.length == null ? invalidResult : previousDNF.length;
 }
 
 function GetCountFromAthletes(columnName: string): [number | null, DatabaseStatus, string] {
@@ -192,12 +215,19 @@ export function GetAthletes(): [AthleteDB[] | null, DatabaseStatus, string] {
 }
 
 export function GetAthleteByBib(bibNumber: number): [AthleteDB | null, DatabaseStatus, string] {
+  return GetAthleteFromColumn("bibId", bibNumber);
+}
+
+export function GetAthleteFromColumn(
+  columnName: string,
+  value: unknown
+): [AthleteDB | null, DatabaseStatus, string] {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT * FROM Athletes WHERE bibId = ?`).get(bibNumber);
+    queryResult = db.prepare(`SELECT * FROM Athletes WHERE ${columnName} = ?`).get(value);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -223,7 +253,7 @@ export function GetAthleteByBib(bibNumber: number): [AthleteDB | null, DatabaseS
     emergencyName: queryResult.emergencyName,
     dns: false,
     dnf: false,
-    dnfStation: 0,
+    dnfStation: "",
     dnfDateTime: null
   };
 
