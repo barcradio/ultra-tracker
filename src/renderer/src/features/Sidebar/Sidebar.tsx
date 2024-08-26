@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
+import { createPortal } from "react-dom";
 import DatabaseIcon from "~/assets/icons/database.svg?react";
 import HelpIcon from "~/assets/icons/help.svg?react";
 import LogsIcon from "~/assets/icons/logs.svg?react";
@@ -8,6 +9,7 @@ import SearchIcon from "~/assets/icons/search.svg?react";
 import SettingsIcon from "~/assets/icons/settings.svg?react";
 import { Backdrop } from "~/components/Backdrop";
 import { Stack } from "~/components/Stack";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { classed } from "~/lib/classed";
 import { SidebarLink } from "./SidebarLink";
 import { ThemeToggle } from "./ThemeToggle";
@@ -29,6 +31,7 @@ enum SidebarMode {
 }
 
 export function Sidebar() {
+  const portalRoot = usePortalRoot();
   // TODO: Implement this setting in the settings page / database
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [mode, setMode] = useState(SidebarMode.Auto);
@@ -75,7 +78,7 @@ export function Sidebar() {
         </Stack>
       </SidebarElement>
 
-      <Backdrop open={expanded} />
+      {createPortal(<Backdrop open={expanded} />, portalRoot?.current)}
     </>
   );
 }
