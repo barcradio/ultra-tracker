@@ -1,0 +1,21 @@
+import { useQuery } from "@tanstack/react-query";
+import { useToasts } from "~/features/Toasts/useToasts";
+import { useIpcRenderer } from "../useIpcRenderer";
+
+export const useHelpDocumentContents = () => {
+  const ipcRenderer = useIpcRenderer();
+  const { createToast } = useToasts();
+
+  return useQuery({
+    queryKey: ["help-document"],
+    retry: false,
+    queryFn: () => {
+      const result = ipcRenderer.invoke("get-help-document");
+      if (!result) {
+        createToast({ type: "danger", message: "Failed to load help document" });
+        throw new Error("Failed to load help document");
+      }
+      return result;
+    }
+  });
+};
