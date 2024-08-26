@@ -3,7 +3,7 @@ import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { RunnerWithSequence, useRunnerData } from "../../hooks/useRunnerData";
+import { RunnerWithSequence, useRunnerData } from "../../hooks/data/useRunnerData";
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
@@ -11,12 +11,10 @@ export function RunnerEntry() {
   const columns: ColumnDef<RunnerWithSequence> = [
     {
       field: "sequence",
-      name: "Sequence",
       align: "right"
     },
     {
       field: "runner",
-      name: "Runner",
       align: "right"
     },
     {
@@ -31,13 +29,12 @@ export function RunnerEntry() {
     },
     {
       field: "note",
-      name: "Note",
       sortable: false
     }
   ];
 
   return (
-    <Stack className="gap-4 m-4 mt-0 h-full" justify="stretch" align="stretch">
+    <Stack className="gap-4 mt-0 h-full" justify="stretch" align="stretch">
       <RunnerFormStats />
       <div className="h-full bg-component grow">
         <DataGrid

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToasts } from "~/features/Toasts/useToasts";
-import { RunnerWithSequence } from "~/hooks/useRunnerData";
+import { RunnerWithSequence } from "~/hooks/data/useRunnerData";
 
 export function useSelectRunnerForm(runner: RunnerWithSequence, runners: RunnerWithSequence[]) {
   const { createToast } = useToasts();

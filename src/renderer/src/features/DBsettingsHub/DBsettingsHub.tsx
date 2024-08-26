@@ -1,6 +1,6 @@
 import { Button, Stack } from "~/components";
-import * as dbUtilHooks from "~/hooks/useDatabaseUtilities";
-import * as dialogHooks from "~/hooks/useFileDialogs";
+import * as dbUtilHooks from "~/hooks/ipc/useDatabaseUtilities";
+import * as dialogHooks from "~/hooks/ipc/useFileDialogs";
 import { useToasts } from "../Toasts/useToasts";
 
 export function DBsettingsHub() {

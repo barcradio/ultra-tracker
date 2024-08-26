@@ -1,8 +1,9 @@
 import { ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import CloseIcon from "~/assets/icons/xmark.svg?react";
-import { usePortalRoot } from "~/hooks/usePortalRoot";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { classed } from "~/lib/classed";
+import { Backdrop } from "./Backdrop";
 import { Button } from "./Button";
 
 interface Props {
@@ -51,18 +52,6 @@ const DrawerElement = classed.div(
         className: "translate-y-full"
       }
     ]
-  }
-);
-
-const Backdrop = classed.button(
-  "fixed top-0 left-0 w-full h-full transition-all duration-200 ease-in-out bg-surface-secondary",
-  {
-    variants: {
-      open: {
-        true: "opacity-50 pointer-events-auto z-index-10",
-        false: "opacity-0 pointer-events-none"
-      }
-    }
   }
 );
 

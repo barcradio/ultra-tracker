@@ -1,4 +1,4 @@
-import { type Stats, useStatsData } from "../../hooks/useStatsData";
+import { type Stats, useStatsData } from "../../hooks/data/useStatsData";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 function useStats() {

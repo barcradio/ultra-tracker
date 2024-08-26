@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { compareAsc } from "date-fns";
 import { createPortal } from "react-dom";
 import { v4 as uuid } from "uuid";
-import { usePortalRoot } from "~/hooks/usePortalRoot";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { ToastComponent } from "./ToastComponent";
 import { InternalToast, Toast, ToastsContext } from "./ToastsContext";
 

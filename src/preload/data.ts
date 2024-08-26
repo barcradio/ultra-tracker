@@ -1,4 +1,4 @@
-import { EntryMode } from "../shared/models";
+import { EntryMode } from "../shared/enums";
 
 export const data = {
   targetLanguage: "eng",

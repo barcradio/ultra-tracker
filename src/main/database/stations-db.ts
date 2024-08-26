@@ -1,6 +1,8 @@
+import { DatabaseStatus, EntryMode } from "$shared/enums";
+import { DatabaseResponse } from "$shared/types";
 import { clearStationsTable, getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
-import { DatabaseStatus, EntryMode, Operator, Station, StationDB } from "../../shared/models";
+import { Operator, Station, StationDB } from "../../shared/models";
 import { selectStationsFile } from "../lib/file-dialogs";
 
 //TODO: we will need to set myStation, ought to create a settings table instaed of these hard-coded values
@@ -43,9 +45,7 @@ export function GetStations(): Station[] {
   }
 }
 
-export function GetStationByIdentifier(
-  identifier: string
-): [Station | null, DatabaseStatus, string] {
+export function GetStationByIdentifier(identifier: string): DatabaseResponse<Station> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -86,7 +86,7 @@ export function GetStationByIdentifier(
   return [station, DatabaseStatus.Success, message];
 }
 
-export function insertStation(station: Station): [DatabaseStatus, string] {
+export function insertStation(station: Station): DatabaseResponse {
   const db = getDatabaseConnection();
 
   const name: string = station.name;

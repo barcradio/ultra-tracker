@@ -1,6 +1,6 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
 import { Button, Stack, TextInput } from "~/components";
-import { useCreateTiming } from "~/hooks/useTiming";
+import { useCreateTiming } from "~/hooks/data/useTiming";
 import { RecordType } from "$shared/models";
 import { Stats } from "./Stats";
 

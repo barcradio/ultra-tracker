@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { RunnerDB } from "$shared/models";
-import { useIpcRenderer } from "./useIpcRenderer";
+import { useIpcRenderer } from "../useIpcRenderer";
 
 export interface Runner {
   id: number;

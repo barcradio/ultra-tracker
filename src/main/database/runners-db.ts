@@ -1,7 +1,9 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import { formatDate } from "$renderer/lib/datetimes";
-import { DatabaseStatus, Runner, RunnerCSV, RunnerDB } from "$shared/models";
+import { DatabaseStatus } from "$shared/enums";
+import { Runner, RunnerCSV, RunnerDB } from "$shared/models";
+import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { data } from "../../preload/data";
@@ -24,7 +26,7 @@ export function GetRunnersOutStation(): number {
   return count[0] == null ? invalidResult : count[0];
 }
 
-function getTotalRunners(): [number | null, DatabaseStatus, string] {
+function getTotalRunners(): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -46,7 +48,7 @@ function getTotalRunners(): [number | null, DatabaseStatus, string] {
   return [queryResult["COUNT(bibId)"] as number, DatabaseStatus.Success, message];
 }
 
-function getRunnersInStation(): [number | null, DatabaseStatus, string] {
+function getRunnersInStation(): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -68,7 +70,7 @@ function getRunnersInStation(): [number | null, DatabaseStatus, string] {
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
 
-export function getRunnersOutStation(): [number | null, DatabaseStatus, string] {
+export function getRunnersOutStation(): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -90,7 +92,7 @@ export function getRunnersOutStation(): [number | null, DatabaseStatus, string] 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
 
-export function readRunnersTable(): [RunnerDB[] | null, DatabaseStatus, string] {
+export function readRunnersTable(): DatabaseResponse<RunnerDB[]> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";

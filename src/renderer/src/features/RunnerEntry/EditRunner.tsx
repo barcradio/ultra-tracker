@@ -3,9 +3,9 @@ import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
+import { RunnerWithSequence } from "~/hooks/data/useRunnerData";
+import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
-import { RunnerWithSequence } from "../../hooks/useRunnerData";
-import { useDeleteTiming, useEditTiming } from "../../hooks/useTiming";
 import { useToasts } from "../Toasts/useToasts";
 
 interface Props {

@@ -3,7 +3,8 @@ import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
 import { SortState } from "./hooks/useSortState";
 import { Row } from "./Row";
-import { Column, WithId } from "./types";
+import { Section } from "./Section";
+import { Column } from "./types";
 
 const HeaderButton = classed.button(
   "flex justify-between items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase",
@@ -36,16 +37,17 @@ const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200 fill-
   }
 });
 
-interface Props<T extends WithId> {
+interface Props<T extends object> {
   data: T[];
   columns: Column<T>[];
   sortState: SortState<T>;
   setSortField: (field: keyof T) => void;
   actionButtons?: (row: T) => ReactNode;
   className?: string;
+  type: "header" | "footer";
 }
 
-export function Headers<T extends WithId>(props: Props<T>) {
+export function Headers<T extends object>(props: Props<T>) {
   const isActive = (field: keyof T) => props.sortState.field === field;
 
   const width = (width: Column<T>["width"]) => {
@@ -54,11 +56,11 @@ export function Headers<T extends WithId>(props: Props<T>) {
   };
 
   return (
-    <thead>
+    <Section type={props.type}>
       <Row>
         {props.columns.map((column) => (
           <th
-            key={column.name}
+            key={column.name ?? String(column.field)}
             style={{ width: width(column.width) }}
             className="relative rounded-s bg-component-strong"
           >
@@ -67,22 +69,24 @@ export function Headers<T extends WithId>(props: Props<T>) {
                 className={props.className}
                 align={column.align ?? "left"}
                 onClick={() => props.setSortField(column.field as keyof T)}
-                disabled={column.sortable === false}
+                disabled={column.sortable === false || props.type === "footer"}
                 type="button"
               >
-                <SortIcon
-                  active={isActive(column.field)}
-                  ascending={props.sortState.ascending}
-                  align={column.align ?? "left"}
-                  height={18}
-                />
-                {column.name}
+                {props.type === "header" && (
+                  <SortIcon
+                    active={isActive(column.field)}
+                    ascending={props.sortState.ascending}
+                    align={column.align ?? "left"}
+                    height={18}
+                  />
+                )}
+                {column.name ?? String(column.field)}
               </HeaderButton>
             )}
           </th>
         ))}
         {props.actionButtons && <th className="relative bg-component-strong" />}
       </Row>
-    </thead>
+    </Section>
   );
 }

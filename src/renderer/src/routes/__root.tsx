@@ -8,9 +8,9 @@ export const Route = createRootRoute({
   component: () => (
     <ToastProvider>
       <Sidebar />
-      <div className="flex flex-col w-screen h-screen">
+      <div className="flex overflow-hidden flex-col ml-16 w-screen">
         <Header />
-        <div className="grow">
+        <div className="mx-4 grow max-h-[calc(100vh-260px)]">
           <Outlet />
         </div>
         <Footer />

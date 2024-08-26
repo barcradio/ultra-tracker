@@ -2,7 +2,9 @@ import fs from "fs";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
-import { AthleteDB, DNXRecord, DatabaseStatus } from "../../shared/models";
+import { DatabaseStatus } from "../../shared/enums";
+import { AthleteDB, DNXRecord } from "../../shared/models";
+import { DatabaseResponse } from "../../shared/types";
 import { loadAthleteFile, loadDNFFromCSV, loadDNSFromCSV } from "../lib/file-dialogs";
 
 const invalidResult = -999;
@@ -144,7 +146,7 @@ export function GetPreviousDNF(): number {
   return previousDNF.length == null ? invalidResult : previousDNF.length;
 }
 
-function GetCountFromAthletes(columnName: string): [number | null, DatabaseStatus, string] {
+function GetCountFromAthletes(columnName: string): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -169,7 +171,7 @@ function GetCountFromAthletes(columnName: string): [number | null, DatabaseStatu
 function GetCountFromAthletesWithWhere(
   columnName: string,
   whereStatement: string
-): [number | null, DatabaseStatus, string] {
+): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -193,7 +195,7 @@ function GetCountFromAthletesWithWhere(
   return [queryResult[`COUNT(${columnName})`] as number, DatabaseStatus.Success, message];
 }
 
-export function GetAthletes(): [AthleteDB[] | null, DatabaseStatus, string] {
+export function GetAthletes(): DatabaseResponse<AthleteDB[]> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -221,7 +223,7 @@ export function GetAthleteByBib(bibNumber: number): [AthleteDB | null, DatabaseS
 export function GetAthleteFromColumn(
   columnName: string,
   value: unknown
-): [AthleteDB | null, DatabaseStatus, string] {
+): DatabaseResponse<AthleteDB> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -262,7 +264,7 @@ export function GetAthleteFromColumn(
   return [runner, DatabaseStatus.Success, message];
 }
 
-export function insertAthlete(athlete: AthleteDB): [DatabaseStatus, string] {
+export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   const db = getDatabaseConnection();
 
   const bibId: number = athlete.bibId;
@@ -309,7 +311,7 @@ export function insertAthlete(athlete: AthleteDB): [DatabaseStatus, string] {
   return [DatabaseStatus.Created, message];
 }
 
-export function updateAthleteDNS(record: DNXRecord): [DatabaseStatus, string] {
+export function updateAthleteDNS(record: DNXRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnsValue = true;
 
@@ -330,7 +332,7 @@ export function updateAthleteDNS(record: DNXRecord): [DatabaseStatus, string] {
   return [DatabaseStatus.Updated, message];
 }
 
-export function updateAthleteDNF(record: DNXRecord): [DatabaseStatus, string] {
+export function updateAthleteDNF(record: DNXRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnfValue = true;
   const dnfDateTime = parseCSVDate(record.dnsDateTime).toISOString();

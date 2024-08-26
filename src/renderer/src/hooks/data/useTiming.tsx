@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RunnerDB } from "$shared/models";
-import { useIpcRenderer } from "./useIpcRenderer";
+import { useIpcRenderer } from "../useIpcRenderer";
 import { Runner } from "./useRunnerData";
 
 const runnerToRunnerDB = (runner: Runner): RunnerDB => ({

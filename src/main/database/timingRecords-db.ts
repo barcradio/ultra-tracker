@@ -1,8 +1,10 @@
+import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { data } from "../../preload/data";
-import { DatabaseStatus, RunnerDB } from "../../shared/models";
+import { DatabaseStatus } from "../../shared/enums";
+import { RunnerDB } from "../../shared/models";
 
-export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
+export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
   let status: DatabaseStatus = DatabaseStatus.Error;
   let message: string = "";
 
@@ -28,7 +30,7 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, str
   return [status, message];
 }
 
-export function getTimeRecordbyBib(record: RunnerDB): [RunnerDB | null, DatabaseStatus, string] {
+export function getTimeRecordbyBib(record: RunnerDB): DatabaseResponse<RunnerDB> {
   const db = getDatabaseConnection();
   let queryString = "";
   let queryResult;
@@ -53,7 +55,7 @@ export function getTimeRecordbyBib(record: RunnerDB): [RunnerDB | null, Database
   return [queryResult, DatabaseStatus.Success, message];
 }
 
-export function getTimeRecordbyIndex(record: RunnerDB): [RunnerDB | null, DatabaseStatus, string] {
+export function getTimeRecordbyIndex(record: RunnerDB): DatabaseResponse<RunnerDB> {
   const db = getDatabaseConnection();
   let queryString = "";
   let queryResult;
@@ -78,7 +80,7 @@ export function getTimeRecordbyIndex(record: RunnerDB): [RunnerDB | null, Databa
   return [queryResult, DatabaseStatus.Success, message];
 }
 
-export function deleteTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
+export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
   let queryString = "";
 
@@ -105,7 +107,7 @@ function updateTimeRecord(
   record: RunnerDB,
   existingRecord: RunnerDB,
   merge: boolean
-): [DatabaseStatus, string] {
+): DatabaseResponse {
   const db = getDatabaseConnection();
   let queryString = "";
 
@@ -161,7 +163,7 @@ function updateTimeRecord(
   return [DatabaseStatus.Updated, message];
 }
 
-function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
+function insertTimeRecord(record: RunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
 
   const stationID = data.station.id;

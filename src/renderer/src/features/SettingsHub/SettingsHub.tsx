@@ -1,5 +1,5 @@
 import { Button } from "~/components";
-import { useRunnerLookup } from "~/hooks/useRunnerLookup";
+import { useRunnerLookup } from "~/hooks/data/useRunnerLookup";
 import { useToasts } from "../Toasts/useToasts";
 
 export function SettingsHub() {
