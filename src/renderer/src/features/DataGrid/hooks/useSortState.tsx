@@ -16,6 +16,8 @@ interface Props<T extends object> {
 }
 
 export function useSortState<T extends object>({ initial, columns }: Props<T>) {
+  // NOTE: If two tables have the same columns, they will share the same sort state.
+  // If this is a problem in the future we can find some other way to get a unique hash.
   const hash = objectHash(columns.map((column) => column.field));
 
   const [field, setField] = useLocalStorage(`sort-field-${hash}`, initial?.field ?? null);
