@@ -1,7 +1,7 @@
 import { useCallback, } from "react";
 import objectHash from "object-hash";
 import { ColumnDef } from "../types";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import {  useSessionStorage } from "@uidotdev/usehooks";
 
 export type InitialSortState<T extends object> = Partial<SortState<T>>;
 
@@ -20,8 +20,8 @@ export function useSortState<T extends object>({ initial, columns }: Props<T>) {
   // If this is a problem in the future we can find some other way to get a unique hash.
   const hash = objectHash(columns.map((column) => column.field));
 
-  const [field, setField] = useLocalStorage(`sort-field-${hash}`, initial?.field ?? null);
-  const [ascending, setAscending] = useLocalStorage(`sort-ascending-${hash}`, initial?.ascending ?? true);
+  const [field, setField] = useSessionStorage(`sort-field-${hash}`, initial?.field ?? null);
+  const [ascending, setAscending] = useSessionStorage(`sort-ascending-${hash}`, initial?.ascending ?? true);
 
   const setSort = (newField: keyof T) => {
     if (field === newField) {
