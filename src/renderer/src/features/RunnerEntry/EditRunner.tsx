@@ -101,6 +101,7 @@ export function EditRunner(props: Props) {
 
           <Stack className="gap-4 w-full" direction="col">
             <TextInput
+              type="number"
               label="Runner Bib"
               placeholder="Runner"
               error={form.formState.errors.runner}
@@ -140,7 +141,12 @@ export function EditRunner(props: Props) {
               label="Note"
               placeholder="Note"
               error={form.formState.errors.note}
-              {...form.register("note")}
+              {...form.register("note", {
+                validate: (value) => {
+                  if (value.includes(",")) return "Commas are not allowed in the notes field";
+                  return true;
+                }
+              })}
             />
           </Stack>
 
