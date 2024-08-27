@@ -274,7 +274,7 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   const age: number = athlete.age;
   const city: string = athlete.city;
   const state: string = athlete.state;
-  const emergencyPhone: string = athlete.emergencyPhone;
+  const emergencyPhone: number = athlete.emergencyPhone;
   const emergencyName: string = athlete.emergencyName;
   const dns: number = Number(false);
   const dnf: number = Number(false);
