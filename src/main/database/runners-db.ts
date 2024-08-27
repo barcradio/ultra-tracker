@@ -148,6 +148,8 @@ export async function importRunnersFromCSV() {
           stationId: data.station.id,
           timeIn: parseCSVDate(timing.timeIn),
           timeOut: parseCSVDate(timing.timeOut),
+          timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
+          timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
           timeModified: new Date(),
           note: timing.note,
           sent: false
