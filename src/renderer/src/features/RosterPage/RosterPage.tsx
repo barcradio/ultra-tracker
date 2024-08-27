@@ -6,7 +6,7 @@ import { ColumnDef, DataGrid } from "../DataGrid";
 const fullName = (athlete: AthleteDB) => `${athlete.firstName} ${athlete.lastName}`;
 const stateCity = (athlete: AthleteDB) => `${athlete.state}, ${athlete.city}`;
 
-export function SearchPage() {
+export function RosterPage() {
   const { data } = useAthletes();
 
   const columns: ColumnDef<AthleteDB> = [

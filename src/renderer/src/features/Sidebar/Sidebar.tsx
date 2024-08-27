@@ -32,11 +32,12 @@ enum SidebarMode {
 
 export function Sidebar() {
   const portalRoot = usePortalRoot();
-  // TODO: Implement this setting in the settings page / database
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [mode, setMode] = useState(SidebarMode.Auto);
+  // TODO: Uncomment this logic to enable other sidebar modes, implement in e.g. settings
+  const mode = SidebarMode.Auto;
+  // const [mode, setMode] = useState(SidebarMode.Auto);
   const [expand, setExpand] = useState(false);
-  const expanded = mode === SidebarMode.Expand || (mode === SidebarMode.Auto && expand);
+  // const expanded = mode === SidebarMode.Expand || (mode === SidebarMode.Auto && expand);
+  const expanded = expand;
 
   const location = useLocation();
 
@@ -56,8 +57,8 @@ export function Sidebar() {
             <SidebarLink to="/" icon={RunnerIcon}>
               Stats
             </SidebarLink>
-            <SidebarLink to="/search" icon={SearchIcon}>
-              Search
+            <SidebarLink to="/roster" icon={SearchIcon}>
+              Roster
             </SidebarLink>
             <SidebarLink to="/logs" icon={LogsIcon}>
               Logs
