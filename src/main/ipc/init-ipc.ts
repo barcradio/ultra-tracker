@@ -1,6 +1,6 @@
 import { initAthleteHandlers } from "./athletes-ipc";
 import { initdbSettingsHandlers } from "./dbsettings-ipc";
-import { initHelpHandlers } from "./help-ipc";
+import { initResourceHandlers } from "./resource-ipc";
 import { initRunnerFormHandlers } from "./runnerform-ipc";
 import { initSettingsHandlers } from "./settings-ipc";
 import { initStatsHandlers } from "./stats-ipc";
@@ -11,5 +11,5 @@ export function initializeIpcHandlers() {
   initdbSettingsHandlers();
   initSettingsHandlers();
   initAthleteHandlers();
-  initHelpHandlers();
+  initResourceHandlers();
 }
