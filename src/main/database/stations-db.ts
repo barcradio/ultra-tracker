@@ -1,12 +1,9 @@
+import settings from "electron-settings";
 import { DatabaseStatus, EntryMode } from "$shared/enums";
 import { DatabaseResponse } from "$shared/types";
 import { clearStationsTable, getDatabaseConnection } from "./connect-db";
-import { data } from "../../preload/data";
 import { Operator, Station, StationDB } from "../../shared/models";
 import { selectStationsFile } from "../lib/file-dialogs";
-
-//TODO: we will need to set myStation, ought to create a settings table instaed of these hard-coded values
-//import { data } from "../../preload/data";
 
 export async function LoadStations() {
   //const devStationData = require("$resources/config/stations.json");
@@ -19,7 +16,7 @@ export async function LoadStations() {
     if (GetStations().length > 0) {
       clearStationsTable();
     }
-    if (index == "event") data.event.name = stationData.event[0];
+    if (index == "event") await settings.set("event.name", stationData.event[0]);
 
     if (index == "stations") {
       for (const key in stationData.stations) {

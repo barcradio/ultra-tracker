@@ -7,6 +7,7 @@ import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
+import { initializeDefaultAppSettings } from "../preload/data";
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -47,6 +48,7 @@ app.on("ready", async () => {
 
   await installDevTools();
 
+  initializeDefaultAppSettings();
   createDatabaseConnection();
   initializeIpcHandlers();
   initUserDirectories();
