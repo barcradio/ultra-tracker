@@ -1,7 +1,7 @@
 import { useCallback } from "react";
+import { useSessionStorage } from "@uidotdev/usehooks";
 import objectHash from "object-hash";
 import { ColumnDef } from "../types";
-import { useSessionStorage } from "@uidotdev/usehooks";
 
 export type InitialSortState<T extends object> = Partial<SortState<T>>;
 
