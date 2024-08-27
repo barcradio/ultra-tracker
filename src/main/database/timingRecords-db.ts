@@ -188,3 +188,19 @@ function insertTimeRecord(record: RunnerDB): DatabaseResponse {
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
   return [DatabaseStatus.Created, message];
 }
+
+export function markTimeRecordAsSent(bibId: number) {
+  const db = getDatabaseConnection();
+
+  try {
+    db.prepare(`UPDATE StaEvents SET sent = ? WHERE "bibId" = ?`).run(Number(true), bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  const message = `timing-record:sent ${bibId}`;
+  return [DatabaseStatus.Created, message];
+}

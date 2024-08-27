@@ -10,5 +10,6 @@ export const data = {
     name: "5-temple-fork",
     id: 5,
     entryMode: EntryMode.Normal
-  }
+  },
+  incrementalIndex: 1
 };

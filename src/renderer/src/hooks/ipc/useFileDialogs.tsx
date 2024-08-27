@@ -57,6 +57,17 @@ export function useExportRunnersToCSV() {
   });
 }
 
+export function useExportRunnersToIncrementalCSV() {
+  const ipcRenderer = useIpcRenderer();
+  const { createToast } = useToasts();
+
+  return useMutation({
+    mutationFn: (message: string) => ipcRenderer.invoke("export-incremental-file", message),
+    onSuccess: (data) => createToast({ message: data, type: "success" }),
+    onError: (error) => console.error(error)
+  });
+}
+
 export function useImportRunnersFromCSV() {
   const ipcRenderer = useIpcRenderer();
   const { createToast } = useToasts();
