@@ -29,6 +29,10 @@ const exportRunnersFile: Handler<string> = () => {
   return dbRunners.exportRunnersAsCSV();
 };
 
+const exportIncrementalRunnersFile: Handler<string> = () => {
+  return dbRunners.exportUnsentRunnersAsCSV();
+};
+
 const initializeDatabase: Handler<string> = () => {
   return dbConnect.CreateTables();
 };
@@ -44,6 +48,7 @@ export const initdbSettingsHandlers = () => {
   ipcMain.handle("load-dnf-file", loadDNFFile);
   ipcMain.handle("import-runners-file", importRunnersFile);
   ipcMain.handle("export-runners-file", exportRunnersFile);
+  ipcMain.handle("export-incremental-file", exportIncrementalRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);
   ipcMain.handle("clear-database", clearDatabase);
 };

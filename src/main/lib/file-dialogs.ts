@@ -1,6 +1,7 @@
-const fs = require("fs");
-const path = require("path");
-const { app, dialog } = require("electron");
+import fs from "fs";
+import path from "path";
+import { app, dialog } from "electron";
+import { data } from "../../preload/data";
 
 export const selectStationsFile = async (): Promise<string[]> => {
   const dialogConfig = {
@@ -83,9 +84,14 @@ export const loadFromCSV = async (title: string): Promise<string[]> => {
 };
 
 export const saveRunnersToCSV = async (): Promise<string> => {
+  const formattedStationId = data.station.id.toLocaleString("en-US", {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+
   const dialogConfig = {
     title: "Specify an export file",
-    defaultPath: path.join(app.getPath("documents"), app.name, "Aid0XTimes"),
+    defaultPath: path.join(app.getPath("documents"), app.name, `Aid${formattedStationId}Times`),
     filters: [
       { name: "Comma-Separated Values", extensions: ["csv"] },
       { name: "All Files", extensions: ["*"] }

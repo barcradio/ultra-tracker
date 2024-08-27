@@ -1,11 +1,12 @@
 import fs from "fs";
 import { parse } from "csv-parse";
+import { app } from "electron";
 import { formatDate } from "$renderer/lib/datetimes";
 import { DatabaseStatus } from "$shared/enums";
-import { Runner, RunnerCSV, RunnerDB } from "$shared/models";
+import { RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
-import { insertOrUpdateTimeRecord } from "./timingRecords-db";
+import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
 import { data } from "../../preload/data";
 import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
 
@@ -165,70 +166,102 @@ export async function importRunnersFromCSV() {
   );
 }
 
-export async function exportRunnersAsCSV() {
+export function exportUnsentRunnersAsCSV() {
+  const path = require("path");
   const db = getDatabaseConnection();
+  let queryResult;
+
+  const formattedStationId = data.station.id.toLocaleString("en-US", {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+
+  const formattedIndex = data.incrementalIndex.toLocaleString("en-US", {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+
+  const fileName: string = `Aid${formattedStationId}times_${formattedIndex}i.csv`;
+  const filePath: string = path.join(app.getPath("documents"), app.name, fileName);
+  if (filePath == undefined) return "Invalid file name";
 
   try {
-    const stmt = db.prepare(`SELECT * FROM StaEvents`);
+    queryResult = db.prepare(`SELECT * FROM StaEvents WHERE sent == 0`).all();
 
-    //const filePath: string = app.getPath("downloads");
-    // const path = require("path");
-    // const filename: string = path.join(filePath[0], "Aid5times.csv");
-    const filename: string = await saveRunnersToCSV();
+    if (queryResult.length == 0) {
+      const previousIndex = data.incrementalIndex - 1;
+      const formattedPreviousIndex = previousIndex.toLocaleString("en-US", {
+        minimumIntegerDigits: 2,
+        useGrouping: false
+      });
 
-    if (filename == undefined) return "Invalid file name";
+      const previousFilename = `Aid${formattedStationId}times_${formattedPreviousIndex}i.csv`;
+      return `No unsent records, previous file: ${previousFilename}`;
+    }
 
-    writeToCSV(filename, stmt);
+    writeToCSV(filePath, queryResult, true);
+    data.incrementalIndex++;
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
       return e.message;
     }
   }
-  return "File Export Successful";
+
+  for (const key in queryResult) {
+    markTimeRecordAsSent(queryResult[key].bibId);
+  }
+
+  return `Incremental file export successful: ${fileName}`;
 }
 
-function* toRows(stmt) {
-  yield stmt.columns().map((column) => column.name);
-  yield* stmt.raw().iterate();
+export async function exportRunnersAsCSV() {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let filename: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT * FROM StaEvents`).all();
+    filename = await saveRunnersToCSV();
+
+    if (filename == undefined) return "Invalid file name";
+
+    writeToCSV(filename, queryResult, false);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return e.message;
+    }
+  }
+  return `File Export Successful: ${filename}`;
 }
 
-function writeToCSV(filename, stmt) {
+function writeToCSV(filename: string, queryResult, incremental: boolean) {
   const fs = require("fs");
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);
-    let sequence = -1;
 
     // title row
     const event = data.event.name;
     const station = data.station.name;
     //const disclaimer = "All times are based off of the system they were recorded on.";
-    const rowText = `${event},${station}`;
-    stream.write(rowText + "\n");
+    const headerText = `${event},${station}`;
+    stream.write(headerText + "\n");
 
-    for (const row of toRows(stmt)) {
-      // headers
-      if (sequence == -1) {
-        const rowText = `${row[0]},${row[7]},${row[1]},${row[3]},${row[4]},${row[6]}`;
+    for (const row of queryResult as RunnerDB[]) {
+      let rowText = "";
+      const bSent = Boolean(row.sent);
+      if (!incremental || (incremental && !bSent)) {
+        rowText =
+          `${row.index},` +
+          `${row.sent},` +
+          `${row.bibId},` +
+          `${row.timeIn == null ? "" : formatDate(new Date(row.timeIn))},` +
+          `${row.timeOut == null ? "" : formatDate(new Date(row.timeOut))},` +
+          `${row.note}`;
         stream.write(rowText + "\n");
-        sequence++;
-        continue;
       }
-
-      const record: Runner = {
-        id: row.index,
-        sequence: sequence + 1,
-        runner: row[1],
-        in: row[3] == null ? "" : formatDate(new Date(row[3])),
-        out: row[4] == null ? "" : formatDate(new Date(row[4])),
-        note: row[6]
-      };
-      const sent = row[7];
-
-      const rowText = `${record.sequence},${sent},${record.runner},${record.in},${record.out},${record.note}`;
-      stream.write(rowText + "\n");
-      sequence++;
     }
     stream.on("error", reject);
     stream.end(resolve);
