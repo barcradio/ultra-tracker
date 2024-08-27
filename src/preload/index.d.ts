@@ -6,10 +6,6 @@ declare global {
     api: unknown;
     data: {
       targetLanguage: string;
-      station: {
-        id: number;
-        name: string;
-      };
     };
   }
 }

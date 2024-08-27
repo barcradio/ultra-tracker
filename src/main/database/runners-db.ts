@@ -1,13 +1,13 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import { app } from "electron";
+import settings from "electron-settings";
 import { formatDate } from "$renderer/lib/datetimes";
 import { DatabaseStatus } from "$shared/enums";
 import { RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
-import { data } from "../../preload/data";
 import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
 
 const invalidResult = -999;
@@ -124,6 +124,7 @@ export async function importRunnersFromCSV() {
   const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "note"];
   const runnerCSVFilePath = await loadRunnersFromCSV();
   const fileContent = fs.readFileSync(runnerCSVFilePath[0], { encoding: "utf-8" });
+  const stationId = (await settings.get("station.id")) as number;
 
   parse(
     fileContent,
@@ -145,9 +146,7 @@ export async function importRunnersFromCSV() {
         const record: RunnerDB = {
           index: timing.bibId,
           bibId: timing.bibId,
-          stationId: data.station.id,
-          timeIn: parseCSVDate(timing.timeIn),
-          timeOut: parseCSVDate(timing.timeOut),
+          stationId: stationId,
           timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
           timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
           timeModified: new Date(),
@@ -171,14 +170,16 @@ export async function importRunnersFromCSV() {
 export function exportUnsentRunnersAsCSV() {
   const path = require("path");
   const db = getDatabaseConnection();
+  const stationId = settings.getSync("station.id") as number;
+  let fileIndex = settings.getSync("incrementalFileIndex") as number;
   let queryResult;
 
-  const formattedStationId = data.station.id.toLocaleString("en-US", {
+  const formattedStationId = stationId.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false
   });
 
-  const formattedIndex = data.incrementalIndex.toLocaleString("en-US", {
+  const formattedIndex = fileIndex.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false
   });
@@ -191,7 +192,7 @@ export function exportUnsentRunnersAsCSV() {
     queryResult = db.prepare(`SELECT * FROM StaEvents WHERE sent == 0`).all();
 
     if (queryResult.length == 0) {
-      const previousIndex = data.incrementalIndex - 1;
+      const previousIndex = fileIndex - 1;
       const formattedPreviousIndex = previousIndex.toLocaleString("en-US", {
         minimumIntegerDigits: 2,
         useGrouping: false
@@ -202,7 +203,8 @@ export function exportUnsentRunnersAsCSV() {
     }
 
     writeToCSV(filePath, queryResult, true);
-    data.incrementalIndex++;
+    fileIndex++;
+    settings.setSync("incrementalFileIndex", fileIndex);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -240,13 +242,15 @@ export async function exportRunnersAsCSV() {
 
 function writeToCSV(filename: string, queryResult, incremental: boolean) {
   const fs = require("fs");
+  const eventName = settings.getSync("event.name") as string;
+  const stationName = settings.getSync("station.name") as string;
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);
 
     // title row
-    const event = data.event.name;
-    const station = data.station.name;
+    const event = eventName;
+    const station = stationName;
     //const disclaimer = "All times are based off of the system they were recorded on.";
     const headerText = `${event},${station}`;
     stream.write(headerText + "\n");

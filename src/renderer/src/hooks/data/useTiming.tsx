@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RunnerDB } from "$shared/models";
-import { useIpcRenderer } from "../useIpcRenderer";
 import { Runner } from "./useRunnerData";
+import { useIpcRenderer } from "../useIpcRenderer";
 
 const runnerToRunnerDB = (runner: Runner): RunnerDB => ({
   index: runner.id,
   bibId: runner.runner,
-  stationId: window.data.station.id,
+  stationId: -1, // will be set by the backend
   timeIn: runner.in?.toString() == "Invalid Date" ? null : runner.in,
   timeOut: runner.out?.toString() == "Invalid Date" ? null : runner.out,
   timeModified: new Date(),

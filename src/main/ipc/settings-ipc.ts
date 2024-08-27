@@ -1,5 +1,6 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
+import settings from "electron-settings";
 import * as dbAthlete from "../database/athlete-db";
 import { Handler } from "../types";
 
@@ -25,7 +26,13 @@ const runnerLookup: Handler = () => {
   return message;
 };
 
+// TODO: need to figure out how to provide renderer with app settings.
+const getAppSettings: Handler = () => {
+  return settings;
+};
+
 export const initSettingsHandlers = () => {
+  ipcMain.handle("app-settings", getAppSettings);
   ipcMain.handle("runner-lookup", runnerLookup);
 };
 

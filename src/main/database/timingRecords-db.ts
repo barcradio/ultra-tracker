@@ -1,6 +1,6 @@
+import settings from "electron-settings";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
-import { data } from "../../preload/data";
 import { DatabaseStatus } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 
@@ -109,6 +109,7 @@ function updateTimeRecord(
   merge: boolean
 ): DatabaseResponse {
   const db = getDatabaseConnection();
+  const stationId = settings.getSync("station.id") as number;
   let queryString = "";
 
   // scrub any string values coming from the UI
@@ -125,7 +126,7 @@ function updateTimeRecord(
   }
 
   //build the time record
-  const stationID = data.station.id;
+  const stationID = stationId;
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
@@ -165,8 +166,9 @@ function updateTimeRecord(
 
 function insertTimeRecord(record: RunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
+  const stationId = settings.getSync("station.id") as number;
 
-  const stationID = data.station.id;
+  const stationID = stationId;
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();

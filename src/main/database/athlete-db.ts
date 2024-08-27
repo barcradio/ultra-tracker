@@ -1,7 +1,7 @@
 import fs from "fs";
 import { parse } from "csv-parse";
+import settings from "electron-settings";
 import { getDatabaseConnection } from "./connect-db";
-import { data } from "../../preload/data";
 import { DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNXRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
@@ -116,12 +116,14 @@ export function GetTotalDNF(): number {
 }
 
 export function GetStationDNF(): number {
-  const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${data.station.name}'`);
+  const stationName = settings.getSync("station.name") as string;
+  const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${stationName}'`);
   return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetPreviousDNF(): number {
   const db = getDatabaseConnection();
+  const stationId = settings.getSync("station.id") as number;
   let queryResult;
 
   try {
@@ -140,7 +142,7 @@ export function GetPreviousDNF(): number {
 
   for (const athlete of dnfList) {
     const id = Number(Array.from(athlete.dnfStation as string)[0]);
-    if (id < data.station.id) previousDNF.push(athlete);
+    if (id < stationId) previousDNF.push(athlete);
   }
 
   return previousDNF.length == null ? invalidResult : previousDNF.length;
