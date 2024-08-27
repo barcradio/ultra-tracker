@@ -57,8 +57,8 @@ export function Sidebar() {
             <SidebarLink to="/" icon={RunnerIcon}>
               Stats
             </SidebarLink>
-            <SidebarLink to="/search" icon={SearchIcon}>
-              Search
+            <SidebarLink to="/roster" icon={SearchIcon}>
+              Roster
             </SidebarLink>
             <SidebarLink to="/logs" icon={LogsIcon}>
               Logs
