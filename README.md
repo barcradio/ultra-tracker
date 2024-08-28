@@ -11,13 +11,13 @@ An Electron application with React and TypeScript.
 
 1. Install pnpm
 
-   pnpm is the package manager utilized. It is a drop-in replacement for 'npm'. [pnpm website](https://pnpm.io/installation). 
+   pnpm is the package manager that is used. It is a drop-in replacement for 'npm'. [pnpm website](https://pnpm.io/installation). 
    ```bash
      # For Windows from the powershell
      iwr https://get.pnpm.io/install.ps1 -useb | iex
    ``` 
 
-3. Install winget (windows only)
+2. Install winget (windows only)
 
    winget is the Microsoft CLI installer [winget website](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
     ```bash 
@@ -25,13 +25,18 @@ An Electron application with React and TypeScript.
       Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
    ``` 
 
-5. Install git [git app website](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+3. Install git
+   This is a third party product, not from the Github website [git app website](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
    ```bash 
      # For Windows from the powershell
      winget install --id Git.Git -e --source winget
    ``` 
-
-3. Clone repository
+   ```bash 
+     # For Linux Ubuntu cli
+     sudo apt install git
+   ```
+   
+4. Clone repository
    ```bash
      # For Windows, Linux or MacOS 
      git clone https://github.com/barcradio/ultra-tracker
@@ -55,20 +60,20 @@ An Electron application with React and TypeScript.
      pnpm rebuild
    ```
 
-8. To run a development version of ultra-tracker, ie. to interact completely with the app. (this is considered compiling, this is not a build, see Build below)
+8. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
    ```bash
-     # For Windows, Linux or MacOS 
+    # For Windows, Linux or MacOS 
      pnpm dev
    ```
 
-10. To refresh your cloned version of ultra-tracker
+9. To refresh your cloned version of ultra-tracker
    ```bash
      # For Windows, Linux or MacOS 
      # remove the ultra-tracker directory (del or rm or rmdir or ???)
      # Repeat steps 3 through 7
    ```
 
-11. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
+10. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
 
     The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
 
