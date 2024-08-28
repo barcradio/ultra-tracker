@@ -12,42 +12,51 @@ ultra marathons.
 
 ### Configure development environment
 
-1. Install pnpm
-  pnpm is the package manager. It is a much faster version of `npm` and is a drop-in replacement, though the command set is different and simplified.  You do not have to use `npm`.
-  To install pnpm, go to the [pnpm website](https://pnpm.io/installation) and follow the instructions.
-    ```bash
+1. Install pnpm 
+  pnpm is the package manager used [pnpm website](https://pnpm.io/installation). It is a drop-in replacement for 'npm'.
+     ```bash
       # For Windows from the powershell
       iwr https://get.pnpm.io/install.ps1 -useb | iex
     ``` 
 
-2. Install winget (for windows)
+3. Install winget (windows only)
   winget is the Microsoft CLI installer [winget website](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
+  ```bash 
+     # For Windows from the powershell
+     Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+  ``` 
 
-    ```bash 
-      # For Windows from the powershell
-      Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
-    ``` 
 4. Install git
-      ```bash from the powershell
-      # For Windows
-      iwr https://get.pnpm.io/install.ps1 -useb | iex
-    ``` 
+  ```bash 
+     # For Windows from the powershell
+     winget install --id Git.Git -e --source winget
+   ``` 
+
 3. Clone repository
-
+  '''bash
+     # For Windows, Linux or MacOS 
      git clone https://github.com/barcradio/ultra-tracker
+  '''
 
-4. Install any missing project dependencies
-  
+4. change dir to the new folder (ultra-tracker) that was created in the previous step
+  '''bash
+     # For Windows, Linux or MacOS 
+     cd ultra-tracker
+  '''  
+
+6. Install any missing project dependencies
     ```bash
+     # For Windows, Linux or MacOS 
     $ pnpm install
     ```
 
-5. Rebuild imported packages
+7. Rebuild imported packages
       ```bash
+     # For Windows, Linux or MacOS 
       $ pnpm rebuild
       ```
 
-6. Open folder in VSCode and install recommended extensions
+8. Open folder in VSCode and install recommended extensions
 
 
 ### Project structure
