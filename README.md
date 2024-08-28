@@ -19,7 +19,7 @@ An Electron application with React and TypeScript.
      iwr https://get.pnpm.io/install.ps1 -useb | iex
    ``` 
 
-3. Install winget (windows only)
+2. Install winget (windows only)
 
    winget is the Microsoft CLI installer
 
@@ -29,7 +29,7 @@ An Electron application with React and TypeScript.
       Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
    ``` 
 
-4. Install git
+3. Install git
    
    This is a third party product, not from the Github website
 
@@ -43,44 +43,44 @@ An Electron application with React and TypeScript.
      sudo apt install git
    ```
    
-5. Clone repository
+4. Clone repository
    ```bash
      # For Windows, Linux or MacOS 
      git clone https://github.com/barcradio/ultra-tracker
    ```
 
-6. Change dir to the new folder (ultra-tracker) that was created in the previous step
+5. Change dir to the new folder (ultra-tracker) that was created in the previous step
    ```bash
      # For Windows, Linux or MacOS 
      cd ultra-tracker
    ```  
 
-7. Install any missing project dependencies
+6. Install any missing project dependencies
    ```bash
      # For Windows, Linux or MacOS 
      pnpm install
    ```
 
-8. Rebuild imported packages
+7. Rebuild imported packages
    ```bash
      # For Windows, Linux or MacOS 
      pnpm rebuild
    ```
 
-9. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
+8. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
    ```bash
      # For Windows, Linux or MacOS 
      pnpm dev
    ```
 
-10. To refresh your cloned version of ultra-tracker to get latest changes
+9. To refresh your cloned version of ultra-tracker to get the latest changes
     ```bash
       # For Windows, Linux or MacOS 
       # remove the ultra-tracker directory (del or rm or rmdir or ???)
       # Repeat steps 3 through 7
    ```
 
-11. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
+10. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
 
     The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
 
@@ -97,7 +97,7 @@ An Electron application with React and TypeScript.
 
 In Electron, the app structure is emulated in the src directory.  Content in `/main` is the backend, content in `/preload` is a small amount of middleware, and content in `/renderer` is the client frontend.
 
-Consider carefully where the implementation should be. The implementation on the frontend client that should be at the backend server and can cause synchronization issues and refactoring in the future.
+Consider carefully where the implementation should be located. The implementation on the frontend client that should be at the backend server and can cause synchronization issues and refactoring in the future.
 
 The `/shared` directory holds common types and global data.  This is not an alternative for passing data via IPC.
 
