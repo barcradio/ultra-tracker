@@ -29,7 +29,7 @@ An Electron application with React and TypeScript.
       Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
    ``` 
 
-5. Install git
+4. Install git
    
    This is a third party product, not from the Github website
 
@@ -43,37 +43,37 @@ An Electron application with React and TypeScript.
      sudo apt install git
    ```
    
-6. Clone repository
+5. Clone repository
    ```bash
      # For Windows, Linux or MacOS 
      git clone https://github.com/barcradio/ultra-tracker
    ```
 
-7. Change dir to the new folder (ultra-tracker) that was created in the previous step
+6. Change dir to the new folder (ultra-tracker) that was created in the previous step
    ```bash
      # For Windows, Linux or MacOS 
      cd ultra-tracker
    ```  
 
-8. Install any missing project dependencies
+7. Install any missing project dependencies
    ```bash
      # For Windows, Linux or MacOS 
      pnpm install
    ```
 
-9. Rebuild imported packages
+8. Rebuild imported packages
    ```bash
      # For Windows, Linux or MacOS 
      pnpm rebuild
    ```
 
-10. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
+9. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
    ```bash
     # For Windows, Linux or MacOS 
      pnpm dev
    ```
 
-11. To refresh your cloned version of ultra-tracker
+10. To refresh your cloned version of ultra-tracker to get latest changes
    ```bash
      # For Windows, Linux or MacOS 
      # remove the ultra-tracker directory (del or rm or rmdir or ???)
@@ -128,33 +128,40 @@ To build a complete installer for a given environment, use these commands.
 
 ```bash
 # For windows
-$ pnpm build:win
+pnpm build:win
 
 # For macOS
-$ pnpm build:mac
+pnpm build:mac
 
 # For Linux
-$ pnpm build:linux
+pnpm build:linux
 ```
+### Install 
+Run the single file executable to install.
 
+```bash 
+  # For Windows UI
+  double click new file created in the previous setp
+``` 
 
 ### Linting
 Linting is the process of running a program that will analyse code for potential errors. The term was derived from the name of the undesirable bits of fiber and fluff.
 ```bash
 # View lint errors
-$ pnpm lint
+pnpm lint
 ```
 
 ```bash
 # View lint errors and automatically fix when possible
-$ pnpm lint:fix
+pnpm lint:fix
 ```
 
 ## Troubleshooting
 
-### Issues with better-sqlite-3 functions after restructure of folders
+### Issues with better-sqlite-3 functions after the restructure of folders
 If the folder structure changes, better-sqlite3 likes to have things rebuilt.
 
 1. Ensure that all code compilation errors are resolved.
 2. Run `pnpm rebuild`.
-3. Compile and run.
+
+
