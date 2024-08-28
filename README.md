@@ -67,11 +67,11 @@ ultra marathons.
      # Repeat steps 3 through 7
    ```
 
-10. To assist by editing parts (code, logic, UI, etc) of the repository you may open the ultra-tracker folder in VSCode and install the recommended extensions
+10. To assist by editing code, logic or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
 
-The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
+    The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
 
-Recommended VSCode IDE Setup
+### Recommended VSCode IDE Setup
 
 [VSCode](https://code.visualstudio.com/) +
 [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) +
