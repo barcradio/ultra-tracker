@@ -1,3 +1,6 @@
+![image](https://github.com/user-attachments/assets/10cbe232-f617-43a1-bf95-bfaca8c04248)
+
+
 # ultra-tracker
 
 An Electron application with React and TypeScript for tracking athlete times in
@@ -64,14 +67,23 @@ ultra marathons.
      pnpm dev
    ```
 
-9. Open folder in VSCode and install recommended extensions
+9. To refresh your cloned version of ultra-tracker
+   ```bash
+     # For Windows, Linux or MacOS 
+     # remove the ultra-tracker directory (del or rm or rmdir or ???)
+     # Repeat steps 3 through 7
+   ```
+
+10. To assist by editing parts (code, logic, UI, etc) of the repository you may open the ultra-tracker folder in VSCode and install the recommended extensions
+
+The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
 
 
 ### Project structure
 
-In Electron, the structure of the application is emulated the src directory.  Content in `/main` is the backend, content in `/preload` is a small amount of middleware, and content in `/renderer` is the client frontend.
+In Electron, the app structure is emulated in the src directory.  Content in `/main` is the backend, content in `/preload` is a small amount of middleware, and content in `/renderer` is the client frontend.
 
-Take care to think of where implementation should be.  Implementation on the frontend client that ought to be at the backend server can cause synchronization issues and refactor later.
+Consider carefully where the implementation should be. The implementation on the frontend client that should be at the backend server and can cause synchronization issues and refactoring in the future.
 
 The `/shared` directory holds common types and global data.  This is not an alternative for passing data via IPC.
 
@@ -96,15 +108,6 @@ The `/shared` directory holds common types and global data.  This is not an alte
 │       └───routes
 └───shared                           // common data/types
 ```
-
-
-### Local Development
-To compile and run the application use the following command in the terminal. 
-
-```bash
-$ pnpm dev
-```
-The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, buit can also be run without using the launch controls.
 
 ### Build
 To build a complete installer for a given environment, use these commands.
