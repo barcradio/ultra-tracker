@@ -12,8 +12,8 @@ ultra marathons.
 
 ### Configure development environment
 
-1. Install pnpm 
-   pnpm is the package manager used [pnpm website](https://pnpm.io/installation). It is a drop-in replacement for 'npm'.
+1. Install pnpm
+   pnpm is the package manager utilized. It is a drop-in replacement for 'npm'. [pnpm website](https://pnpm.io/installation). 
    ```bash
      # For Windows from the powershell
      iwr https://get.pnpm.io/install.ps1 -useb | iex
