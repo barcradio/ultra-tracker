@@ -1,7 +1,6 @@
-![image](https://github.com/user-attachments/assets/10cbe232-f617-43a1-bf95-bfaca8c04248)
+![image](https://github.com/user-attachments/assets/9c6c85dd-449e-43e5-8b92-d58258e8f2dc)
+![image](https://github.com/user-attachments/assets/f1d4e7a5-e90b-471c-9137-1f1022d9e1f9)
 
-
-# ultra-tracker
 
 An Electron application with React and TypeScript for tracking athlete times in
 ultra marathons.
