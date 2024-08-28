@@ -1,10 +1,21 @@
 {
   "name": "ultra-tracker",
-  "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "version": "1.0.0-beta.1",
+  "description": "Track athlete times in ultra marathons.",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": {
+    "name": "Bridgerland Amatuer Radio Club",
+    "url": "https://barconline.org"
+  },
+  "homepage": "https://github.com/barcradio/ultra-tracker",
+  "appId": "barcradio.ultra-tracker",
+  "license": "MIT",
+  "repository": {
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/barcradio/ultra-tracker.git"
+    }
+  },
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx",
