@@ -1,16 +1,10 @@
 ![image](https://github.com/user-attachments/assets/f1d4e7a5-e90b-471c-9137-1f1022d9e1f9)
+
 ![image](https://github.com/user-attachments/assets/9c6c85dd-449e-43e5-8b92-d58258e8f2dc)
 
 
 An Electron application with React and TypeScript for tracking athlete times in
 ultra marathons.
-
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) +
-[ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) +
-[Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) +
-[Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 
 ### Configure development environment
 
@@ -77,6 +71,12 @@ ultra marathons.
 
 The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
 
+Recommended VSCode IDE Setup
+
+[VSCode](https://code.visualstudio.com/) +
+[ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) +
+[Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) +
+[Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 
 ### Project structure
 
