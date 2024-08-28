@@ -1,7 +1,7 @@
 import "./assets/main.css";
 import { StrictMode, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { RouterProvider, createMemoryHistory, createRouter } from "@tanstack/react-router";
 import { PrimeReactProvider } from "primereact/api";
 import { createRoot } from "react-dom/client";
 import { twMerge } from "tailwind-merge";
@@ -12,7 +12,10 @@ const queryClient = new QueryClient();
 
 const router = createRouter({
   routeTree,
-  defaultPreload: "intent"
+  defaultPreload: "intent",
+  history: createMemoryHistory({
+    initialEntries: ["/"]
+  })
 });
 
 declare module "@tanstack/react-router" {
