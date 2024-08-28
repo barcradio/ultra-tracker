@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToasts } from "~/features/Toasts/useToasts";
 import { RunnerDB } from "$shared/models";
-import { Runner } from "./useRunnerData";
+import { Runner, useRunnerData } from "./useRunnerData";
 import { useIpcRenderer } from "../useIpcRenderer";
 
 const runnerToRunnerDB = (runner: Runner): RunnerDB => ({
@@ -14,12 +15,17 @@ const runnerToRunnerDB = (runner: Runner): RunnerDB => ({
   sent: false // New: sent flag is false, obviously; updated: sent flag is reset to false
 });
 
-function useTimingMutation(channel: string) {
+interface TimingMutationOptions {
+  onMutate?: (runner: Runner) => void;
+}
+
+function useTimingMutation(channel: string, options?: TimingMutationOptions) {
   const ipcRenderer = useIpcRenderer();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (timeRecord: Runner) => {
+      options?.onMutate?.(timeRecord);
       return ipcRenderer.invoke(channel, runnerToRunnerDB(timeRecord));
     },
     onSuccess: () => {
@@ -31,6 +37,26 @@ function useTimingMutation(channel: string) {
   });
 }
 
-export const useCreateTiming = () => useTimingMutation("add-timing-record");
 export const useEditTiming = () => useTimingMutation("edit-timing-record");
 export const useDeleteTiming = () => useTimingMutation("delete-timing-record");
+
+export const useCreateTiming = () => {
+  const { createToast } = useToasts();
+  const { data } = useRunnerData();
+
+  // This is a temporary UX improvement that will be replaced by a more robust error handling mechanism later.
+  const onMutate = (runner: Runner) => {
+    const existing = data?.find((r) => r.runner == runner.runner);
+    if (!existing) return;
+
+    if (existing.in && runner.in && existing.in.getTime() != runner.in.getTime()) {
+      createToast({ type: "warning", message: `Overrode #${runner.runner}'s previous In Time` });
+    }
+
+    if (existing.out && runner.out && existing.out.getTime() != runner.out.getTime()) {
+      createToast({ type: "warning", message: `Overrode #${runner.runner}'s previous Out Time` });
+    }
+  };
+
+  return useTimingMutation("add-timing-record", { onMutate });
+};
