@@ -54,20 +54,20 @@ ultra marathons.
      pnpm rebuild
    ```
 
-8. To run a development version of ultra-tracker, ie. to interact completely with the app. (not to package for distribution)
+8. To run a development version of ultra-tracker, ie. to interact completely with the app. (this is considered compiling, this is not a build, see Build below)
    ```bash
      # For Windows, Linux or MacOS 
      pnpm dev
    ```
 
-9. To refresh your cloned version of ultra-tracker
+10. To refresh your cloned version of ultra-tracker
    ```bash
      # For Windows, Linux or MacOS 
      # remove the ultra-tracker directory (del or rm or rmdir or ???)
      # Repeat steps 3 through 7
    ```
 
-10. To assist by editing code, logic or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
+11. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
 
     The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
 
@@ -138,7 +138,7 @@ $ pnpm lint:fix
 ## Troubleshooting
 
 ### Issues with better-sqlite-3 functions after restructure of folders
-If the folder thus import structure changes, better-sqlite3 seems to have things that need to be rebuilt.
+If the folder structure changes, better-sqlite3 likes to have things rebuilt.
 
 1. Ensure that all code compilation errors are resolved.
 2. Run `pnpm rebuild`.
