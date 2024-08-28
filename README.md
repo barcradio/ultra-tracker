@@ -13,47 +13,47 @@ ultra marathons.
 ### Configure development environment
 
 1. Install pnpm 
-  pnpm is the package manager used [pnpm website](https://pnpm.io/installation). It is a drop-in replacement for 'npm'.
-     ```bash
-      # For Windows from the powershell
-      iwr https://get.pnpm.io/install.ps1 -useb | iex
-    ``` 
+   pnpm is the package manager used [pnpm website](https://pnpm.io/installation). It is a drop-in replacement for 'npm'.
+   ```bash
+     # For Windows from the powershell
+     iwr https://get.pnpm.io/install.ps1 -useb | iex
+   ``` 
 
 3. Install winget (windows only)
-  winget is the Microsoft CLI installer [winget website](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
-  ```bash 
-     # For Windows from the powershell
-     Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
-  ``` 
+   winget is the Microsoft CLI installer [winget website](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
+    ```bash 
+      # For Windows from the powershell
+      Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+   ``` 
 
 4. Install git
-  ```bash 
+   ```bash 
      # For Windows from the powershell
      winget install --id Git.Git -e --source winget
    ``` 
 
 3. Clone repository
-  ```bash
+   ```bash
      # For Windows, Linux or MacOS 
      git clone https://github.com/barcradio/ultra-tracker
-  ```
+   ```
 
 5. Change dir to the new folder (ultra-tracker) that was created in the previous step
-```bash
+   ```bash
      # For Windows, Linux or MacOS 
      cd ultra-tracker
-```  
+   ```  
 
 6. Install any missing project dependencies
-    ```bash
+   ```bash
      # For Windows, Linux or MacOS 
      pnpm install
-    ```
+   ```
 
 7. Rebuild imported packages
    ```bash
-   # For Windows, Linux or MacOS 
-   pnpm rebuild
+     # For Windows, Linux or MacOS 
+     pnpm rebuild
    ```
 
 8. To run a development version of ultra-tracker, ie. to interact completely with the app. (not to package for distribution)
