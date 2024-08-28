@@ -3,8 +3,9 @@
 ![image](https://github.com/user-attachments/assets/9c6c85dd-449e-43e5-8b92-d58258e8f2dc)
 
 
-An Electron application with React and TypeScript for tracking athlete times in
-ultra marathons.
+An app for tracking athletes during ultra marathons (Windows, Linux, MacOS)
+
+An Electron application with React and TypeScript.
 
 ### Configure development environment
 
