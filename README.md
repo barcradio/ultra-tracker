@@ -13,6 +13,7 @@ ultra marathons.
 ### Configure development environment
 
 1. Install pnpm
+
    pnpm is the package manager utilized. It is a drop-in replacement for 'npm'. [pnpm website](https://pnpm.io/installation). 
    ```bash
      # For Windows from the powershell
@@ -20,13 +21,14 @@ ultra marathons.
    ``` 
 
 3. Install winget (windows only)
+
    winget is the Microsoft CLI installer [winget website](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
     ```bash 
       # For Windows from the powershell
       Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
    ``` 
 
-4. Install git
+5. Install git [git app website](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
    ```bash 
      # For Windows from the powershell
      winget install --id Git.Git -e --source winget
@@ -58,10 +60,9 @@ ultra marathons.
 
 8. To run a development version of ultra-tracker, ie. to interact completely with the app. (not to package for distribution)
    ```bash
-      # For Windows, Linux or MacOS 
-      pnpm rebuild
-    ```
-
+     # For Windows, Linux or MacOS 
+     pnpm dev
+   ```
 
 9. Open folder in VSCode and install recommended extensions
 
