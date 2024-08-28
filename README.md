@@ -69,15 +69,15 @@ An Electron application with React and TypeScript.
 
 9. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
    ```bash
-    # For Windows, Linux or MacOS 
-    pnpm dev
+     # For Windows, Linux or MacOS 
+     pnpm dev
    ```
 
 10. To refresh your cloned version of ultra-tracker to get latest changes
     ```bash
-     # For Windows, Linux or MacOS 
-     # remove the ultra-tracker directory (del or rm or rmdir or ???)
-     # Repeat steps 3 through 7
+      # For Windows, Linux or MacOS 
+      # remove the ultra-tracker directory (del or rm or rmdir or ???)
+      # Repeat steps 3 through 7
    ```
 
 11. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
@@ -141,19 +141,19 @@ Run the single file executable to install.
 
 ```bash 
   # For Windows UI
-  double click new file created in the previous setp
+  double click new file created in the previous step
 ``` 
 
 ### Linting
-Linting is the process of running a program that will analyse code for potential errors. The term was derived from the name of the undesirable bits of fiber and fluff.
+Linting is the process of running a program that will analyze code for potential errors. The term was derived from the name of the undesirable bits of fiber and fluff.
 ```bash
-# View lint errors
-pnpm lint
+  # View lint errors
+  pnpm lint
 ```
 
 ```bash
-# View lint errors and automatically fix when possible
-pnpm lint:fix
+  # View lint errors and automatically fix when possible
+  pnpm lint:fix
 ```
 
 ## Troubleshooting
