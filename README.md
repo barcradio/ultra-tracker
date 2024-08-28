@@ -162,6 +162,6 @@ Linting is the process of running a program that will analyze code for potential
 If the folder structure changes, better-sqlite3 likes to have things rebuilt.
 
 1. Ensure that all code compilation errors are resolved.
-2. Run `pnpm rebuild`.
+2. Run `pnpm rebuild` before compiling or building
 
 
