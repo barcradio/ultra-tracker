@@ -11,22 +11,29 @@ An Electron application with React and TypeScript.
 
 1. Install pnpm
 
-   pnpm is the package manager that is used. It is a drop-in replacement for 'npm'. [pnpm website](https://pnpm.io/installation). 
+   pnpm is used as the package manager. It is a drop-in replacement for 'npm'.
+
+   [pnpm website](https://pnpm.io/installation) 
    ```bash
      # For Windows from the powershell
      iwr https://get.pnpm.io/install.ps1 -useb | iex
    ``` 
 
-2. Install winget (windows only)
+3. Install winget (windows only)
 
-   winget is the Microsoft CLI installer [winget website](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
+   winget is the Microsoft CLI installer
+
+   [winget website](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
     ```bash 
       # For Windows from the powershell
       Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
    ``` 
 
-3. Install git
-   This is a third party product, not from the Github website [git app website](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+5. Install git
+   
+   This is a third party product, not from the Github website
+
+   [git app website](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
    ```bash 
      # For Windows from the powershell
      winget install --id Git.Git -e --source winget
@@ -36,46 +43,48 @@ An Electron application with React and TypeScript.
      sudo apt install git
    ```
    
-4. Clone repository
+6. Clone repository
    ```bash
      # For Windows, Linux or MacOS 
      git clone https://github.com/barcradio/ultra-tracker
    ```
 
-5. Change dir to the new folder (ultra-tracker) that was created in the previous step
+7. Change dir to the new folder (ultra-tracker) that was created in the previous step
    ```bash
      # For Windows, Linux or MacOS 
      cd ultra-tracker
    ```  
 
-6. Install any missing project dependencies
+8. Install any missing project dependencies
    ```bash
      # For Windows, Linux or MacOS 
      pnpm install
    ```
 
-7. Rebuild imported packages
+9. Rebuild imported packages
    ```bash
      # For Windows, Linux or MacOS 
      pnpm rebuild
    ```
 
-8. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
+10. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
    ```bash
     # For Windows, Linux or MacOS 
      pnpm dev
    ```
 
-9. To refresh your cloned version of ultra-tracker
+11. To refresh your cloned version of ultra-tracker
    ```bash
      # For Windows, Linux or MacOS 
      # remove the ultra-tracker directory (del or rm or rmdir or ???)
      # Repeat steps 3 through 7
    ```
 
-10. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
+11. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
 
     The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
+
+    [VSCode website](https://code.visualstudio.com/)
 
 ### Recommended VSCode IDE Setup
 
