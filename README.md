@@ -70,11 +70,11 @@ An Electron application with React and TypeScript.
 9. To run a development version of the ultra-tracker app. (This is also called compiling, this is not a build, see Build below)
    ```bash
     # For Windows, Linux or MacOS 
-     pnpm dev
+    pnpm dev
    ```
 
 10. To refresh your cloned version of ultra-tracker to get latest changes
-   ```bash
+    ```bash
      # For Windows, Linux or MacOS 
      # remove the ultra-tracker directory (del or rm or rmdir or ???)
      # Repeat steps 3 through 7
