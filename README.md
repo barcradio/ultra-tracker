@@ -12,30 +12,42 @@ ultra marathons.
 
 ### Configure development environment
 
-1. This project uses `pnpm` as the package manager. It is a much faster version of
-`npm` and is a drop-in replacement, though the command set is different and simplified.  You shouldn't have to use `npm` for anything, there is a `pnpm` equivalent/alternative.
-
-    To install, go to the [pnpm website](https://pnpm.io/installation) and follow
-    the instructions.
-
+1. Install pnpm
+  pnpm is the package manager. It is a much faster version of `npm` and is a drop-in replacement, though the command set is different and simplified.  You do not have to use `npm`.
+  To install pnpm, go to the [pnpm website](https://pnpm.io/installation) and follow the instructions.
     ```bash
+      # For Windows from the powershell
+      iwr https://get.pnpm.io/install.ps1 -useb | iex
+    ``` 
+
+2. Install winget (for windows)
+  winget is the Microsoft CLI installer [winget website](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
+
+    ```bash 
+      # For Windows from the powershell
+      Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+    ``` 
+4. Install git
+      ```bash from the powershell
       # For Windows
       iwr https://get.pnpm.io/install.ps1 -useb | iex
     ``` 
-2. Clone repository 
+3. Clone repository
 
-3. Install any missing project dependencies
+     git clone https://github.com/barcradio/ultra-tracker
+
+4. Install any missing project dependencies
   
     ```bash
     $ pnpm install
     ```
 
-4. Rebuild imported packages
+5. Rebuild imported packages
       ```bash
       $ pnpm rebuild
       ```
 
-5. Open folder in VSCode and install recommended extensions
+6. Open folder in VSCode and install recommended extensions
 
 
 ### Project structure
@@ -70,7 +82,7 @@ The `/shared` directory holds common types and global data.  This is not an alte
 
 
 ### Local Development
-To compile and run the applicationuse the following command in the terminal. 
+To compile and run the application use the following command in the terminal. 
 
 ```bash
 $ pnpm dev
