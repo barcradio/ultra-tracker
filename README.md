@@ -102,25 +102,25 @@ Consider carefully where the implementation should be located. The implementatio
 The `/shared` directory holds common types and global data.  This is not an alternative for passing data via IPC.
 
 ```
-├───api                             // future server-api
-├───main            // backend
-│   ├───database                    // only db access
-│   ├───ipc                         // ipc to frontend
-│   └───lib
-├───preload         // middleware
-├───renderer        // frontend
-│   └───src
-│       ├───assets
-│       ├───components
-│       ├───features
-│       │   ├───Footer
-│       │   ├───Header
-│       │   ├───SettingsHub
-│       │   └───Toasts
-│       ├───hooks
-│       ├───lib
-│       └───routes
-└───shared                           // common data/types
+  ├───api                             // future server-api
+  ├───main            // backend
+  │   ├───database                    // only db access
+  │   ├───ipc                         // ipc to frontend
+  │   └───lib
+  ├───preload         // middleware
+  ├───renderer        // frontend
+  │   └───src
+  │       ├───assets
+  │       ├───components
+  │       ├───features
+  │       │   ├───Footer
+  │       │   ├───Header
+  │       │   ├───SettingsHub
+  │       │   └───Toasts
+  │       ├───hooks
+  │       ├───lib
+  │       └───routes
+  └───shared                           // common data/types
 ```
 
 ### Build
