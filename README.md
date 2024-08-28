@@ -127,21 +127,21 @@ The `/shared` directory holds common types and global data.  This is not an alte
 To build a complete installer for a given environment, use these commands.
 
 ```bash
-# For windows
-pnpm build:win
+  # For windows
+  pnpm build:win
 
-# For macOS
-pnpm build:mac
+  # For macOS
+  pnpm build:mac
 
-# For Linux
-pnpm build:linux
+  # For Linux
+  pnpm build:linux
 ```
 ### Install 
 Run the single file executable to install.
 
 ```bash 
   # For Windows UI
-  double click new file created in the previous step
+  Double-click the new file created in the previous step
 ``` 
 
 ### Linting
