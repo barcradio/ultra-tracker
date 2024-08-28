@@ -33,30 +33,37 @@ ultra marathons.
    ``` 
 
 3. Clone repository
-  '''bash
+  ```bash
      # For Windows, Linux or MacOS 
      git clone https://github.com/barcradio/ultra-tracker
-  '''
+  ```
 
-4. change dir to the new folder (ultra-tracker) that was created in the previous step
-  '''bash
+5. Change dir to the new folder (ultra-tracker) that was created in the previous step
+```bash
      # For Windows, Linux or MacOS 
      cd ultra-tracker
-  '''  
+```  
 
 6. Install any missing project dependencies
     ```bash
      # For Windows, Linux or MacOS 
-    $ pnpm install
+     pnpm install
     ```
 
 7. Rebuild imported packages
-      ```bash
-     # For Windows, Linux or MacOS 
-      $ pnpm rebuild
-      ```
+   ```bash
+   # For Windows, Linux or MacOS 
+   pnpm rebuild
+   ```
 
-8. Open folder in VSCode and install recommended extensions
+8. To run a development version of ultra-tracker, ie. to interact completely with the app. (not to package for distribution)
+   ```bash
+      # For Windows, Linux or MacOS 
+      pnpm rebuild
+    ```
+
+
+9. Open folder in VSCode and install recommended extensions
 
 
 ### Project structure
