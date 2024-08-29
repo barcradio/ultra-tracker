@@ -39,16 +39,17 @@ The purpose of this panel is to display and export the station log file that is 
 ## Database panel
 The database panel allows the operator to initialize the database and to load data for various input files needed for proper program operation. By default, system initialization files will be located in user documents directory and file reading/writing selection dialogs will open to this directory.
 * Windows: `%userprofile%\Documents\ultra-tracker\`
-* Linux `$HOME/Documents/ultra-tracker` 
+* Linux `$HOME/Documents/ultra-tracker`
+* MAC `TBD`
 
-<span style="color:red">**Warning: Some of these functions (marked in RED) are completely destructive to the local database and MUST NOT be performed during normal operation.**</span>
+<span style="color:red">**Warning: Some of the functions in the app (marked in RED) are completely destructive to the local database and MUST NOT be performed during normal operation.**</span>
 
-<span style="color:orange">These are provided as a means to completely recover after a major database error and other methods have not corrected these serious errors.</span>
+<span style="color:orange">The orange functions are provided as a means to completely recover after a major database error and other methods have not corrected the issue.</span>
 
 The following is a description of each button and its' function.
 
 - **Load Stations File**
-This loads a json file containing each of the stations and their detailed information to allow ease of selection while setting up this application. As stated above, a file dialog will allow selection of this file that is placed, by default, in the folder `%userprofile%\Documents\ultra-tracker\`. Any other location can be selected. A typical filename will be bear100-YYYY-stations.json.
+This loads a json file containing each of the stations and their detailed information to allow ease of selection while setting up this application. As stated above, a file dialog will allow selection of this file that is typically placed in the default folder location mentioned above. A typical filename will be bear100-YYYY-stations.json.
 
 - **Load Athletes File**  
 This function loads a .csv file, supplied by race organizers, containing all of the athletes registered for the event whether they are known to have started or not.
