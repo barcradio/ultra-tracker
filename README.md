@@ -77,7 +77,7 @@ An Electron application with React and TypeScript.
     ```bash
       # For Windows, Linux or MacOS 
       # remove the ultra-tracker directory (del or rm or rmdir or ???)
-      # Repeat steps 3 through 7
+      # Repeat steps 4 through 7
    ```
 
 10. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
