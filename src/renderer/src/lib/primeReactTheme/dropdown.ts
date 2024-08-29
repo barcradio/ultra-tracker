@@ -67,7 +67,7 @@ export const DropdownPT: DropdownPassThroughOptions = {
   itemGroupLabel: { className: "font-semibold" },
   itemGroup: {
     className: classNames(
-      "p-3 m-0 border-b-2 cursor-auto text-on-surface bg-surface border-component font-display"
+      "p-3 m-0 border-b-2 cursor-auto text-on-component bg-component-strong border-component font-display"
     )
   },
   header: {
