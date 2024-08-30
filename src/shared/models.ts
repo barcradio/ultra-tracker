@@ -126,3 +126,15 @@ export enum EntryMode {
   InOnly,
   OutOnly
 }
+
+export type EventLogRec = {
+  index: number;
+  bibId: number;
+  stationId: number;
+  timeIn: Date | null;
+  timeOut: Date | null;
+  timeModified: Date | null;
+  comments: string;
+  sent: boolean | undefined;
+  verbose: boolean | undefined;
+};

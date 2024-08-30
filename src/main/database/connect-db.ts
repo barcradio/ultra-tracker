@@ -1,5 +1,6 @@
 import fs from "fs";
 import Database, { Statement } from "better-sqlite3";
+// import { IntegerType } from "typeorm";
 
 let db: Database.Database;
 
@@ -48,7 +49,7 @@ export function CreateTables(): boolean {
         timeOut DATETIME,
         timeModified DATETIME,
         note TEXT,
-        sent BOOLEAN DEFAULT (FALSE)
+        sent INTEGER
         )`);
 
     CmdResult.run();
@@ -60,7 +61,7 @@ export function CreateTables(): boolean {
   }
 
   /* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
-    of all events to provide a searchable log in a */
+    of all events to provide a searchable log in a table.*/
   //Create Eventlog table
   try {
     CmdResult = db.prepare(`CREATE TABLE IF NOT EXISTS Eventlog (
@@ -70,8 +71,9 @@ export function CreateTables(): boolean {
         timeIn DATETIME,
         timeOut DATETIME,
         timeModified DATETIME,
-        note TEXT,
-        sent BOOLEAN DEFAULT (FALSE)
+        comments TEXT,
+        sent INTEGER,
+        verbose INTEGER
         )`);
 
     CmdResult.run();
@@ -155,8 +157,8 @@ export function CreateTables(): boolean {
         bibId INTEGER DEFAULT (0),
         inJSON BLOB,
         outJSON BLOB,
-        dnf BOOLEAN,
-        dns BOOLEAN,
+        dnf INTEGER,
+        dns INTEGER,
         Last_changed DATETIME
         )`);
 

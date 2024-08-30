@@ -1,4 +1,5 @@
 import { getDatabaseConnection } from "./connect-db";
+import { logEvent } from "./eventLogger-db";
 import { data } from "../../preload/data";
 import { DatabaseStatus, RunnerDB } from "../../shared/models";
 
@@ -122,12 +123,13 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
   const modifiedISO: string | null =
     record.timeModified == null ? null : record.timeModified.toISOString();
   const sent: number = Number(record.sent);
-  const note = record.note;
+  const comments = record.note;
+  const verbose = false;
 
   try {
     // if bib number is changing, then update by index
     if (existingRecord != null && existingRecord.bibId != record.bibId) {
-      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE "index" = ?`;
+      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, comments = ?, sent = ? WHERE "index" = ?`;
       const query = db.prepare(queryString);
       query.run(
         record.bibId,
@@ -135,14 +137,25 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
         timeInISO,
         timeOutISO,
         modifiedISO,
-        note,
+        comments,
         sent,
         record.index
+      );
+
+      logEvent(
+        record.bibId,
+        Number(record.stationId),
+        timeInISO == null ? "" : timeInISO,
+        timeOutISO == null ? "" : timeOutISO,
+        modifiedISO == null ? "" : modifiedISO,
+        "Update Timing record",
+        record.sent,
+        verbose
       );
     } else {
       queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE bibId = ?`;
       const query = db.prepare(queryString);
-      query.run(stationID, timeInISO, timeOutISO, modifiedISO, note, sent, record.bibId);
+      query.run(stationID, timeInISO, timeOutISO, modifiedISO, comments, sent, record.bibId);
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -164,13 +177,25 @@ function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   const modifiedISO: string | null =
     record.timeModified == null ? null : record.timeModified.toISOString();
   const sent: number = Number(record.sent);
-  const note = record.note;
+  const comments = record.note;
+  const verbose = false;
 
   try {
     const query = db.prepare(
-      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, comments, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent);
+    query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, comments, sent);
+
+    logEvent(
+      record.bibId,
+      Number(record.stationId),
+      timeInISO == null ? "" : timeInISO,
+      timeOutISO == null ? "" : timeOutISO,
+      modifiedISO == null ? "" : modifiedISO,
+      "Update time record",
+      record.sent,
+      verbose
+    );
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
