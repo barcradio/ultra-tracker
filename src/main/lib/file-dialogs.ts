@@ -6,7 +6,7 @@ import appSettings from "electron-settings";
 export const selectStationsFile = async (): Promise<string[]> => {
   const dialogConfig = {
     title: "Select a starting Stations file",
-    defaultPath: path.join(app.getPath("documents"), app.name),
+    defaultPath: AppPaths.eventConfig,
     filters: [
       { name: "Readable File Types", extensions: ["json"] },
       { name: "All Files", extensions: ["*"] }
@@ -30,7 +30,7 @@ export const selectStationsFile = async (): Promise<string[]> => {
 export const loadAthleteFile = async (): Promise<string[]> => {
   const dialogConfig = {
     title: "Select a starting athletes file",
-    defaultPath: path.join(app.getPath("documents"), app.name),
+    defaultPath: AppPaths.eventConfig,
     filters: [
       { name: "Comma-Separated Values", extensions: ["csv"] },
       { name: "All Files", extensions: ["*"] }
@@ -64,7 +64,7 @@ export const loadDNFFromCSV = (): Promise<string[]> => {
 export const loadFromCSV = async (title: string): Promise<string[]> => {
   const dialogConfig = {
     title: title,
-    defaultPath: path.join(app.getPath("documents"), app.name),
+    defaultPath: AppPaths.userRoot,
     filters: [
       { name: "Comma-Separated Values", extensions: ["csv"] },
       { name: "All Files", extensions: ["*"] }
@@ -92,7 +92,7 @@ export const saveRunnersToCSV = async (): Promise<string> => {
 
   const dialogConfig = {
     title: "Specify an export file",
-    defaultPath: path.join(app.getPath("documents"), app.name, `Aid${formattedStationId}Times`),
+    defaultPath: path.join(AppPaths.userRoot, `Aid${formattedStationId}Times`),
     filters: [
       { name: "Comma-Separated Values", extensions: ["csv"] },
       { name: "All Files", extensions: ["*"] }
@@ -117,11 +117,12 @@ const openFileDialog = (method, params) => {
 };
 
 export function initUserDirectories() {
-  const userDocs = path.join(app.getPath("documents"), app.name);
-
-  //if (!fs.existsSync(app.getPath("documents"))) return;
-
-  if (!fs.existsSync(userDocs)) {
-    fs.mkdirSync(userDocs);
+  for (const key in AppPaths) {
+    if (!fs.existsSync(AppPaths[key])) fs.mkdirSync(AppPaths[key], { recursive: true });
   }
 }
+
+export const AppPaths = {
+  userRoot: path.join(app.getPath("documents"), app.name),
+  eventConfig: path.join(app.getPath("documents"), app.name, ".event-config")
+};

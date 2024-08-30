@@ -1,6 +1,5 @@
 import fs from "fs";
 import { parse } from "csv-parse";
-import { app } from "electron";
 import appSettings from "electron-settings";
 import { formatDate } from "$renderer/lib/datetimes";
 import { DatabaseStatus, RecordStatus } from "$shared/enums";
@@ -8,7 +7,7 @@ import { RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
-import { loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
+import { AppPaths, loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
 
 const invalidResult = -999;
 
@@ -186,7 +185,7 @@ export function exportUnsentRunnersAsCSV() {
   });
 
   const fileName: string = `Aid${formattedStationId}times_${formattedIndex}i.csv`;
-  const filePath: string = path.join(app.getPath("documents"), app.name, fileName);
+  const filePath: string = path.join(AppPaths.userRoot, fileName);
   if (filePath == undefined) return "Invalid file name";
 
   try {
