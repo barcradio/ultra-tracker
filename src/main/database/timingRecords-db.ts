@@ -2,31 +2,48 @@ import settings from "electron-settings";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
-import { DatabaseStatus } from "../../shared/enums";
+import { DatabaseStatus, RecordStatus } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 
 export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
   let status: DatabaseStatus = DatabaseStatus.Error;
   let message: string = "";
 
-  const bibResult = getTimeRecordbyBib(record)[0];
-  const indexResult = getTimeRecordbyIndex(record)[0];
+  const recordExistsWithBib = getTimeRecordbyBib(record)[0];
+  const recordExistsWithIndex = getTimeRecordbyIndex(record)[0];
 
   // new record
-  if (!bibResult && !indexResult) [status, message] = insertTimeRecord(record);
+  if (!recordExistsWithBib && !recordExistsWithIndex) {
+    record.status = RecordStatus.OK;
+    [status, message] = insertTimeRecord(record);
+  }
+
+  // only record with bib exists, this is a duplicate
+  if (recordExistsWithBib && !recordExistsWithIndex) {
+    record.status = RecordStatus.Duplicate;
+    [status, message] = insertTimeRecord(record);
+  }
 
   // only record with index exists, probably updating bib number on correct record, merge them
-  if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult, true);
-
-  // only record with bib exists, could be duplicate, merge them
-  if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult, true);
+  if (!recordExistsWithBib && recordExistsWithIndex) {
+    record.status = RecordStatus.OK;
+    [status, message] = updateTimeRecord(record, recordExistsWithIndex, true);
+  }
 
   //both queries succeed exist and are equal, but the incoming object is not, we are updating normally, replace don't merge
-  if (bibResult && indexResult && JSON.stringify(bibResult) === JSON.stringify(indexResult)) {
-    if (JSON.stringify(record) !== JSON.stringify(indexResult)) {
-      [status, message] = updateTimeRecord(record, indexResult, false);
+  if (recordExistsWithBib && recordExistsWithIndex) {
+    if (JSON.stringify(recordExistsWithBib) === JSON.stringify(recordExistsWithIndex)) {
+      if (JSON.stringify(record) !== JSON.stringify(recordExistsWithIndex)) {
+        record.status = RecordStatus.OK;
+        [status, message] = updateTimeRecord(record, recordExistsWithIndex, false);
+      }
+    } else {
+      //we are updating the current record, but is now a duplicate
+      record.status = RecordStatus.Duplicate;
+      [status, message] = updateTimeRecord(record, recordExistsWithIndex, false);
     }
   }
+
   console.log(message);
   return [status, message];
 }
@@ -127,18 +144,20 @@ function updateTimeRecord(
   }
 
   //build the time record
+  isDuplicate(record);
   const stationID = stationId;
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
   const note = record.note.replaceAll(",", "");
   const sent = Number(record.sent);
+  const status = Number(record.status);
   const verbose = false;
 
   try {
     // if bib number is changing, then update by index
     if (existingRecord != null && existingRecord.bibId != record.bibId) {
-      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE "index" = ?`;
+      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ?, status = ? WHERE "index" = ?`;
       const query = db.prepare(queryString);
       query.run(
         record.bibId,
@@ -148,6 +167,7 @@ function updateTimeRecord(
         modifiedISO,
         note,
         sent,
+        status,
         record.index
       );
 
@@ -162,9 +182,9 @@ function updateTimeRecord(
         verbose
       );
     } else {
-      queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE bibId = ?`;
+      queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ?, status = ? WHERE bibId = ?`;
       const query = db.prepare(queryString);
-      query.run(stationID, timeInISO, timeOutISO, modifiedISO, note, sent, record.bibId);
+      query.run(stationID, timeInISO, timeOutISO, modifiedISO, note, sent, status, record.bibId);
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -181,6 +201,8 @@ function insertTimeRecord(record: RunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
   const stationId = settings.getSync("station.id") as number;
 
+  //build the time record
+  isDuplicate(record);
   const stationID = stationId;
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
@@ -192,9 +214,9 @@ function insertTimeRecord(record: RunnerDB): DatabaseResponse {
 
   try {
     const query = db.prepare(
-      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, note, sent, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     );
-    query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent);
+    query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent, status);
 
     logEvent(
       record.bibId,
@@ -231,4 +253,12 @@ export function markTimeRecordAsSent(bibId: number) {
 
   const message = `timing-record:sent ${bibId}`;
   return [DatabaseStatus.Created, message];
+}
+
+function isDuplicate(record: RunnerDB): RunnerDB {
+  if (record.status == RecordStatus.Duplicate) {
+    record.bibId = Number(record.bibId) + 0.2;
+    record.note = "[Duplicate]" + record.note;
+  }
+  return record;
 }

@@ -1,4 +1,4 @@
-import { EntryMode } from "./enums";
+import { EntryMode, RecordType } from "./enums";
 
 /**
  * Custom models (types) for ultra-tracker
@@ -12,6 +12,7 @@ export interface RunnerDB {
   timeModified: Date | null;
   note: string;
   sent: boolean;
+  status: number;
 }
 
 export interface RunnerCSV {
@@ -55,12 +56,6 @@ export type TimingRecord = {
   type: RecordType;
   note: string;
 };
-
-export enum RecordType {
-  In,
-  Out,
-  InOut
-}
 
 export type StationDB = {
   name: string;
