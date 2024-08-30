@@ -13,9 +13,6 @@ export const initializeDefaultAppSettings = () => {
     prettify: true
   });
 
-  const firstRun = require("electron-first-run");
-  if (!firstRun()) return;
-
   appSettings.set({
     targetLanguage: "eng",
     event: {
