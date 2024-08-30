@@ -3,6 +3,7 @@ import { parse } from "csv-parse";
 import settings from "electron-settings";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
+import { clearAthletesTable } from "./tables-db";
 import { DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNXRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
@@ -22,6 +23,10 @@ export async function LoadAthletes() {
     "emergencyName",
     "emergencyPhone"
   ];
+
+  // this is entirely destructive, will lose any notes and DNS/DNF tags that aren't saved to a file.
+  clearAthletesTable();
+
   const athleteFilePath = await loadAthleteFile();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
 
@@ -324,7 +329,7 @@ export function updateAthleteDNS(record: DNXRecord): DatabaseResponse {
     query.run(Number(dnsValue), record.bibId);
 
     const query2 = db.prepare(`UPDATE StaEvents SET note = ? WHERE bibId = ?`);
-    query2.run(record.note, record.bibId);
+    query2.run(record.note.replaceAll(",", ""), record.bibId);
     logEvent(
       record.bibId,
       Number(record.stationId),
@@ -359,7 +364,7 @@ export function updateAthleteDNF(record: DNXRecord): DatabaseResponse {
     query.run(Number(dnfValue), record.stationId, dnfDateTime, record.bibId);
 
     const query2 = db.prepare(`UPDATE StaEvents SET note = ? WHERE bibId = ?`);
-    query2.run(record.note, record.bibId);
+    query2.run(record.note.replaceAll(",", ""), record.bibId);
     logEvent(
       record.bibId,
       Number(record.stationId),

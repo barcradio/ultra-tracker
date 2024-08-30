@@ -1,5 +1,9 @@
 {
-    "event": "ultra-marathon-2024",
+    "event": {
+        "name": "ultra-marathon-2024",
+        "starttime": "00:00:00 Jan 01 2024",
+        "endtime": "00:00:00 Jan 01 2024"
+    },
     "stations": [
         {
             "name": "",
@@ -14,17 +18,27 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "00:00:00 Jan 01",
+            "shiftBegin": "00:00:00 Jan 01 2024",
+            "cutofftime": "00:00:00 Jan 01 2024",
+            "shiftEnd": "00:00:00 Jan 01 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         }
     ]
 }
