@@ -49,7 +49,11 @@ app.on("ready", async () => {
 
   await installDevTools();
 
-  initializeDefaultAppSettings();
+  const firstRun = require("electron-first-run");
+  if (firstRun()) {
+    initializeDefaultAppSettings();
+  }
+
   createDatabaseConnection();
   validateDatabaseTables();
   initializeIpcHandlers();
