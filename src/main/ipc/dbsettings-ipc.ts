@@ -1,8 +1,8 @@
 import { ipcMain } from "electron";
 import * as dbAthlete from "../database/athlete-db";
-import * as dbConnect from "../database/connect-db";
 import * as dbRunners from "../database/runners-db";
 import * as dbStations from "../database/stations-db";
+import * as dbTables from "../database/tables-db";
 import { Handler } from "../types";
 
 const loadStationFile: Handler<string> = () => {
@@ -34,11 +34,11 @@ const exportIncrementalRunnersFile: Handler<string> = () => {
 };
 
 const initializeDatabase: Handler<string> = () => {
-  return dbConnect.CreateTables();
+  return dbTables.CreateTables();
 };
 
 const clearDatabase: Handler<string> = () => {
-  return dbConnect.ClearTables();
+  return dbTables.ClearTables();
 };
 
 export const initdbSettingsHandlers = () => {

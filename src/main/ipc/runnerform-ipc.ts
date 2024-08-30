@@ -1,4 +1,3 @@
-/* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
 import { RunnerDB } from "../../shared/models";
 import * as dbRunners from "../database/runners-db";

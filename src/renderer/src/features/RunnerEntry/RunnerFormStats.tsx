@@ -1,7 +1,7 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
 import { Button, Stack, TextInput } from "~/components";
 import { useCreateTiming } from "~/hooks/data/useTiming";
-import { RecordType } from "$shared/models";
+import { RecordType } from "$shared/enums";
 import { Stats } from "./Stats";
 
 export function RunnerFormStats() {

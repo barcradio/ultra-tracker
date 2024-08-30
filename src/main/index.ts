@@ -3,6 +3,7 @@ import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
 import { createDatabaseConnection } from "./database/connect-db";
+import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
@@ -50,6 +51,7 @@ app.on("ready", async () => {
 
   initializeDefaultAppSettings();
   createDatabaseConnection();
+  validateDatabaseTables();
   initializeIpcHandlers();
   initUserDirectories();
   initStatEngine();
