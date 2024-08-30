@@ -1,4 +1,4 @@
-import settings from "electron-settings";
+import appSettings from "electron-settings";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
@@ -127,7 +127,7 @@ function updateTimeRecord(
   merge: boolean
 ): DatabaseResponse {
   const db = getDatabaseConnection();
-  const stationId = settings.getSync("station.id") as number;
+  const stationId = appSettings.getSync("station.id") as number;
   let queryString = "";
 
   // scrub any string values coming from the UI
@@ -199,7 +199,7 @@ function updateTimeRecord(
 
 function insertTimeRecord(record: RunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
-  const stationId = settings.getSync("station.id") as number;
+  const stationId = appSettings.getSync("station.id") as number;
 
   //build the time record
   isDuplicate(record);

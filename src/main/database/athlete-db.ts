@@ -1,6 +1,6 @@
 import fs from "fs";
 import { parse } from "csv-parse";
-import settings from "electron-settings";
+import appSettings from "electron-settings";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearAthletesTable } from "./tables-db";
@@ -122,14 +122,14 @@ export function GetTotalDNF(): number {
 }
 
 export function GetStationDNF(): number {
-  const stationName = settings.getSync("station.name") as string;
+  const stationName = appSettings.getSync("station.name") as string;
   const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${stationName}'`);
   return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetPreviousDNF(): number {
   const db = getDatabaseConnection();
-  const stationId = settings.getSync("station.id") as number;
+  const stationId = appSettings.getSync("station.id") as number;
   let queryResult;
 
   try {

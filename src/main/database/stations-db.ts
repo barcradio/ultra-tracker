@@ -1,4 +1,4 @@
-import settings from "electron-settings";
+import appSettings from "electron-settings";
 import { DatabaseStatus, EntryMode } from "$shared/enums";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
@@ -17,7 +17,7 @@ export async function LoadStations() {
     if (GetStations().length > 0) {
       clearStationsTable();
     }
-    if (index == "event") await settings.set("event.name", stationData.event[0]);
+    if (index == "event") await appSettings.set("event.name", stationData.event[0]);
 
     if (index == "stations") {
       for (const key in stationData.stations) {

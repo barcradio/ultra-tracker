@@ -1,6 +1,6 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
-import settings from "electron-settings";
+import appSettings from "electron-settings";
 import * as dbAthlete from "../database/athlete-db";
 import { Handler } from "../types";
 
@@ -28,7 +28,7 @@ const runnerLookup: Handler = () => {
 
 // TODO: need to figure out how to provide renderer with app settings.
 const getAppSettings: Handler = () => {
-  return settings;
+  return appSettings;
 };
 
 export const initSettingsHandlers = () => {

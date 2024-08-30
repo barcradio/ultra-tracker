@@ -1,7 +1,7 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import { app } from "electron";
-import settings from "electron-settings";
+import appSettings from "electron-settings";
 import { formatDate } from "$renderer/lib/datetimes";
 import { DatabaseStatus, RecordStatus } from "$shared/enums";
 import { RunnerCSV, RunnerDB } from "$shared/models";
@@ -124,7 +124,7 @@ export async function importRunnersFromCSV() {
   const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "note"];
   const runnerCSVFilePath = await loadRunnersFromCSV();
   const fileContent = fs.readFileSync(runnerCSVFilePath[0], { encoding: "utf-8" });
-  const stationId = (await settings.get("station.id")) as number;
+  const stationId = (await appSettings.get("station.id")) as number;
 
   parse(
     fileContent,
@@ -171,8 +171,8 @@ export async function importRunnersFromCSV() {
 export function exportUnsentRunnersAsCSV() {
   const path = require("path");
   const db = getDatabaseConnection();
-  const stationId = settings.getSync("station.id") as number;
-  let fileIndex = settings.getSync("incrementalFileIndex") as number;
+  const stationId = appSettings.getSync("station.id") as number;
+  let fileIndex = appSettings.getSync("incrementalFileIndex") as number;
   let queryResult;
 
   const formattedStationId = stationId.toLocaleString("en-US", {
@@ -205,7 +205,7 @@ export function exportUnsentRunnersAsCSV() {
 
     writeToCSV(filePath, queryResult, true);
     fileIndex++;
-    settings.setSync("incrementalFileIndex", fileIndex);
+    appSettings.setSync("incrementalFileIndex", fileIndex);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -243,8 +243,8 @@ export async function exportRunnersAsCSV() {
 
 function writeToCSV(filename: string, queryResult, incremental: boolean) {
   const fs = require("fs");
-  const eventName = settings.getSync("event.name") as string;
-  const stationIdentifier = settings.getSync("station.identifier") as string;
+  const eventName = appSettings.getSync("event.name") as string;
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);

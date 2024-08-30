@@ -1,4 +1,4 @@
-import settings from "electron-settings";
+import appSettings from "electron-settings";
 import { EntryMode } from "../shared/enums";
 
 export const data = {
@@ -6,7 +6,7 @@ export const data = {
 };
 
 export const initializeDefaultAppSettings = () => {
-  settings.configure({
+  appSettings.configure({
     atomicSave: true,
     fileName: "settings.json",
     numSpaces: 2,
@@ -16,7 +16,7 @@ export const initializeDefaultAppSettings = () => {
   const firstRun = require("electron-first-run");
   if (!firstRun()) return;
 
-  settings.set({
+  appSettings.set({
     targetLanguage: "eng",
     event: {
       name: "ultra-marathon-2024"

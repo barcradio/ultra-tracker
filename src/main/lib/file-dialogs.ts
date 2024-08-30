@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { app, dialog } from "electron";
-import settings from "electron-settings";
+import appSettings from "electron-settings";
 
 export const selectStationsFile = async (): Promise<string[]> => {
   const dialogConfig = {
@@ -84,7 +84,7 @@ export const loadFromCSV = async (title: string): Promise<string[]> => {
 };
 
 export const saveRunnersToCSV = async (): Promise<string> => {
-  const stationId = settings.getSync("station.id") as number;
+  const stationId = appSettings.getSync("station.id") as number;
   const formattedStationId = stationId.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false
