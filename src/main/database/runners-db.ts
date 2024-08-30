@@ -150,8 +150,8 @@ export async function importRunnersFromCSV() {
           timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
           timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
           timeModified: new Date(),
-          note: timing.note,
           sent: false
+          note: timing.note.replaceAll(",", ""),
         };
 
         function parseCSVDate(timingDate: string): Date {

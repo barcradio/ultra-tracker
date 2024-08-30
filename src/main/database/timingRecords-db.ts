@@ -131,14 +131,14 @@ function updateTimeRecord(
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+  const note = record.note.replaceAll(",", "");
   const sent = Number(record.sent);
-  const comments = record.note;
   const verbose = false;
 
   try {
     // if bib number is changing, then update by index
     if (existingRecord != null && existingRecord.bibId != record.bibId) {
-      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, comments = ?, sent = ? WHERE "index" = ?`;
+      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE "index" = ?`;
       const query = db.prepare(queryString);
       query.run(
         record.bibId,
@@ -146,7 +146,7 @@ function updateTimeRecord(
         timeInISO,
         timeOutISO,
         modifiedISO,
-        comments,
+        note,
         sent,
         record.index
       );
@@ -164,7 +164,7 @@ function updateTimeRecord(
     } else {
       queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ? WHERE bibId = ?`;
       const query = db.prepare(queryString);
-      query.run(stationID, timeInISO, timeOutISO, modifiedISO, comments, sent, record.bibId);
+      query.run(stationID, timeInISO, timeOutISO, modifiedISO, note, sent, record.bibId);
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -185,15 +185,16 @@ function insertTimeRecord(record: RunnerDB): DatabaseResponse {
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+  const note = record.note.replaceAll(",", "");
   const sent = Number(record.sent);
-  const comments = record.note;
+  const status = Number(record.status);
   const verbose = false;
 
   try {
     const query = db.prepare(
       `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, comments, sent);
+    query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent);
 
     logEvent(
       record.bibId,
