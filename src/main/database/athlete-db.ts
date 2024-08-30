@@ -24,7 +24,7 @@ export async function LoadAthletes() {
   ];
   const athleteFilePath = await loadAthleteFile();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
-  
+
   parse(
     fileContent,
     {

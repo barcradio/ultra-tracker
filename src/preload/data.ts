@@ -2,7 +2,7 @@ import settings from "electron-settings";
 import { EntryMode } from "../shared/enums";
 
 export const data = {
-  targetLanguage: "eng",
+  targetLanguage: "eng"
 };
 
 export const initializeDefaultAppSettings = () => {
