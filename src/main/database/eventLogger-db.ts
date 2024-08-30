@@ -1,4 +1,4 @@
-import { DatabaseStatus } from "$shared/models";
+import { DatabaseStatus } from "$shared/enums";
 import { getDatabaseConnection } from "./connect-db";
 
 export function logEvent(
