@@ -248,13 +248,26 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);
+    let sequence = -1;
 
     // title row
     const event = eventName;
     const station = stationName;
     //const disclaimer = "All times are based off of the system they were recorded on.";
-    const headerText = `${event},${station}`;
+    //index,sent,bibId,timeIn,timeOut,note
+    const headerText = `${event},${station}`; //TODO fix the headers
     stream.write(headerText + "\n");
+
+    //header row
+    for (const row of queryResult as RunnerDB[]) {
+      // headers
+      if (sequence == -1) {
+        const rowText = `${row.index},${row.sent},${row.bibId},${row.timeIn},${row.timeOut},${row.note}`;
+        stream.write(rowText + "\n");
+        sequence++;
+        continue;
+      }
+    }
 
     for (const row of queryResult as RunnerDB[]) {
       let rowText = "";
@@ -269,6 +282,7 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
           `${row.note}`;
         stream.write(rowText + "\n");
       }
+      sequence++;
     }
     stream.on("error", reject);
     stream.end(resolve);
