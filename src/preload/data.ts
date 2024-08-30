@@ -42,3 +42,8 @@ export const initializeDefaultAppSettings = () => {
     incrementalFileIndex: 1
   });
 };
+
+export const resetAppSettings = () => {
+  appSettings.reset();
+  initializeDefaultAppSettings();
+};
