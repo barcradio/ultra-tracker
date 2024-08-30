@@ -182,7 +182,7 @@ function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
 
   try {
     const query = db.prepare(
-      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, comments, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, note, sent) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
     query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, comments, sent);
 

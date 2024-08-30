@@ -1,6 +1,5 @@
 import fs from "fs";
 import Database, { Statement } from "better-sqlite3";
-// import { IntegerType } from "typeorm";
 
 let db: Database.Database;
 
