@@ -21,16 +21,16 @@ const loadDNFFile: Handler<string> = () => {
   return dbAthlete.LoadDNF();
 };
 
-const getAthletesTable: Handler<string> = () => {
-  return dbAthlete.GetAthletes();
-};
-
 const importRunnersFile: Handler<string> = () => {
   return dbRunners.importRunnersFromCSV();
 };
 
 const exportRunnersFile: Handler<string> = () => {
   return dbRunners.exportRunnersAsCSV();
+};
+
+const exportIncrementalRunnersFile: Handler<string> = () => {
+  return dbRunners.exportUnsentRunnersAsCSV();
 };
 
 const initializeDatabase: Handler<string> = () => {
@@ -42,13 +42,13 @@ const clearDatabase: Handler<string> = () => {
 };
 
 export const initdbSettingsHandlers = () => {
-  ipcMain.handle("get-athletes-table", getAthletesTable);
   ipcMain.handle("load-athletes-file", loadAthletesFile);
   ipcMain.handle("load-stations-file", loadStationFile);
   ipcMain.handle("load-dns-file", loadDNSFile);
   ipcMain.handle("load-dnf-file", loadDNFFile);
   ipcMain.handle("import-runners-file", importRunnersFile);
   ipcMain.handle("export-runners-file", exportRunnersFile);
+  ipcMain.handle("export-incremental-file", exportIncrementalRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);
   ipcMain.handle("clear-database", clearDatabase);
 };

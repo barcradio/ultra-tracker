@@ -5,7 +5,7 @@ const { createThemes } = require('tw-colors')
 module.exports = {
   content: [
     "./src/renderer/index.html",
-    "./src/renderer/**/*.{ts,tsx}"
+    "./src/renderer/**/*.{ts,tsx}",
   ],
   theme: {
     colors: {

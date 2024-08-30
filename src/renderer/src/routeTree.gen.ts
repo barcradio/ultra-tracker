@@ -17,7 +17,7 @@ import { Route as rootRoute } from './routes/__root'
 // Create Virtual Routes
 
 const SettingsLazyImport = createFileRoute('/settings')()
-const SearchLazyImport = createFileRoute('/search')()
+const RosterLazyImport = createFileRoute('/roster')()
 const LogsLazyImport = createFileRoute('/logs')()
 const HelpLazyImport = createFileRoute('/help')()
 const DatabaseLazyImport = createFileRoute('/database')()
@@ -30,10 +30,10 @@ const SettingsLazyRoute = SettingsLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
 
-const SearchLazyRoute = SearchLazyImport.update({
-  path: '/search',
+const RosterLazyRoute = RosterLazyImport.update({
+  path: '/roster',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/search.lazy').then((d) => d.Route))
+} as any).lazy(() => import('./routes/roster.lazy').then((d) => d.Route))
 
 const LogsLazyRoute = LogsLazyImport.update({
   path: '/logs',
@@ -87,11 +87,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogsLazyImport
       parentRoute: typeof rootRoute
     }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchLazyImport
+    '/roster': {
+      id: '/roster'
+      path: '/roster'
+      fullPath: '/roster'
+      preLoaderRoute: typeof RosterLazyImport
       parentRoute: typeof rootRoute
     }
     '/settings': {
@@ -111,7 +111,7 @@ export const routeTree = rootRoute.addChildren({
   DatabaseLazyRoute,
   HelpLazyRoute,
   LogsLazyRoute,
-  SearchLazyRoute,
+  RosterLazyRoute,
   SettingsLazyRoute,
 })
 
@@ -127,7 +127,7 @@ export const routeTree = rootRoute.addChildren({
         "/database",
         "/help",
         "/logs",
-        "/search",
+        "/roster",
         "/settings"
       ]
     },
@@ -143,8 +143,8 @@ export const routeTree = rootRoute.addChildren({
     "/logs": {
       "filePath": "logs.lazy.tsx"
     },
-    "/search": {
-      "filePath": "search.lazy.tsx"
+    "/roster": {
+      "filePath": "roster.lazy.tsx"
     },
     "/settings": {
       "filePath": "settings.lazy.tsx"

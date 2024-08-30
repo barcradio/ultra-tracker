@@ -1,4 +1,4 @@
-import { type Stats, useStatsData } from "../../hooks/useStatsData";
+import { type Stats, useStatsData } from "../../hooks/data/useStatsData";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 function useStats() {
@@ -30,6 +30,10 @@ function useStats() {
     {
       id: "Total DNS",
       value: formatStat(statsData?.totalDNS)
+    },
+    {
+      id: "Previous DNF",
+      value: formatStat(statsData?.previousDNF)
     },
     {
       id: "Station DNF",

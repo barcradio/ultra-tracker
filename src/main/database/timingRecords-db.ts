@@ -1,9 +1,11 @@
+import settings from "electron-settings";
+import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
-import { data } from "../../preload/data";
-import { DatabaseStatus, RunnerDB } from "../../shared/models";
+import { DatabaseStatus } from "../../shared/enums";
+import { RunnerDB } from "../../shared/models";
 
-export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
+export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
   let status: DatabaseStatus = DatabaseStatus.Error;
   let message: string = "";
 
@@ -13,23 +15,23 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): [DatabaseStatus, str
   // new record
   if (!bibResult && !indexResult) [status, message] = insertTimeRecord(record);
 
-  // only record with index exists, probably updating bib number on correct record
-  if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult);
+  // only record with index exists, probably updating bib number on correct record, merge them
+  if (!bibResult && indexResult) [status, message] = updateTimeRecord(record, indexResult, true);
 
-  // only record with bib exists, could be duplicate
-  if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult);
+  // only record with bib exists, could be duplicate, merge them
+  if (bibResult && !indexResult) [status, message] = updateTimeRecord(record, bibResult, true);
 
-  //both queries succeed exist and are equal, but the incoming object is not, we are just updating normally
+  //both queries succeed exist and are equal, but the incoming object is not, we are updating normally, replace don't merge
   if (bibResult && indexResult && JSON.stringify(bibResult) === JSON.stringify(indexResult)) {
     if (JSON.stringify(record) !== JSON.stringify(indexResult)) {
-      [status, message] = updateTimeRecord(record, indexResult);
+      [status, message] = updateTimeRecord(record, indexResult, false);
     }
   }
   console.log(message);
   return [status, message];
 }
 
-export function getTimeRecordbyBib(record: RunnerDB): [RunnerDB | null, DatabaseStatus, string] {
+export function getTimeRecordbyBib(record: RunnerDB): DatabaseResponse<RunnerDB> {
   const db = getDatabaseConnection();
   let queryString = "";
   let queryResult;
@@ -54,7 +56,7 @@ export function getTimeRecordbyBib(record: RunnerDB): [RunnerDB | null, Database
   return [queryResult, DatabaseStatus.Success, message];
 }
 
-export function getTimeRecordbyIndex(record: RunnerDB): [RunnerDB | null, DatabaseStatus, string] {
+export function getTimeRecordbyIndex(record: RunnerDB): DatabaseResponse<RunnerDB> {
   const db = getDatabaseConnection();
   let queryString = "";
   let queryResult;
@@ -79,7 +81,7 @@ export function getTimeRecordbyIndex(record: RunnerDB): [RunnerDB | null, Databa
   return [queryResult, DatabaseStatus.Success, message];
 }
 
-export function deleteTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
+export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
   let queryString = "";
 
@@ -102,8 +104,13 @@ export function deleteTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   return [DatabaseStatus.NotFound, `timing-record:delete Bib ${record.bibId} not found`];
 }
 
-function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [DatabaseStatus, string] {
+function updateTimeRecord(
+  record: RunnerDB,
+  existingRecord: RunnerDB,
+  merge: boolean
+): DatabaseResponse {
   const db = getDatabaseConnection();
+  const stationId = settings.getSync("station.id") as number;
   let queryString = "";
 
   // scrub any string values coming from the UI
@@ -111,18 +118,20 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
   if (record.timeOut instanceof String) record.timeOut = null;
   if (record.timeModified instanceof String) record.timeModified = null;
 
-  if (existingRecord.timeIn != null && record.timeIn == null)
-    record.timeIn = new Date(existingRecord.timeIn);
-  if (existingRecord.timeOut != null && record.timeOut == null)
-    record.timeOut = new Date(existingRecord.timeOut);
+  // preserve the prior and opposite times when from input, don't merge when it is an edit
+  if (merge) {
+    if (existingRecord.timeIn != null && record.timeIn == null)
+      record.timeIn = new Date(existingRecord.timeIn);
+    if (existingRecord.timeOut != null && record.timeOut == null)
+      record.timeOut = new Date(existingRecord.timeOut);
+  }
 
   //build the time record
-  const stationID = data.station.id;
-  const timeInISO: string | null = record.timeIn == null ? null : record.timeIn.toISOString();
-  const timeOutISO: string | null = record.timeOut == null ? null : record.timeOut.toISOString();
-  const modifiedISO: string | null =
-    record.timeModified == null ? null : record.timeModified.toISOString();
-  const sent: number = Number(record.sent);
+  const stationID = stationId;
+  const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
+  const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
+  const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+  const sent = Number(record.sent);
   const comments = record.note;
   const verbose = false;
 
@@ -168,15 +177,15 @@ function updateTimeRecord(record: RunnerDB, existingRecord: RunnerDB): [Database
   return [DatabaseStatus.Updated, message];
 }
 
-function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
+function insertTimeRecord(record: RunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
+  const stationId = settings.getSync("station.id") as number;
 
-  const stationID = data.station.id;
-  const timeInISO: string | null = record.timeIn == null ? null : record.timeIn.toISOString();
-  const timeOutISO: string | null = record.timeOut == null ? null : record.timeOut.toISOString();
-  const modifiedISO: string | null =
-    record.timeModified == null ? null : record.timeModified.toISOString();
-  const sent: number = Number(record.sent);
+  const stationID = stationId;
+  const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
+  const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
+  const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+  const sent = Number(record.sent);
   const comments = record.note;
   const verbose = false;
 
@@ -204,5 +213,21 @@ function insertTimeRecord(record: RunnerDB): [DatabaseStatus, string] {
   }
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+  return [DatabaseStatus.Created, message];
+}
+
+export function markTimeRecordAsSent(bibId: number) {
+  const db = getDatabaseConnection();
+
+  try {
+    db.prepare(`UPDATE StaEvents SET sent = ? WHERE "bibId" = ?`).run(Number(true), bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  const message = `timing-record:sent ${bibId}`;
   return [DatabaseStatus.Created, message];
 }

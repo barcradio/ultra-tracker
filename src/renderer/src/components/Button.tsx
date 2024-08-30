@@ -16,6 +16,7 @@ export const Button = classed.button({
       solid: "border-solid"
     },
     size: {
+      xs: "p-0 m-0 text-sm border-0",
       sm: "py-0.5 px-1 text-base",
       md: "py-1 px-2 text-lg",
       lg: "py-2 px-3 text-xl"

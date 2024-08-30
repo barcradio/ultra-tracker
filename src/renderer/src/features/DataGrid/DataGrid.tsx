@@ -1,40 +1,79 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useParentHeight } from "~/hooks/useParentRect";
 import { classed } from "~/lib/classed";
 import { Headers } from "./Headers";
 import { InitialSortState, useSortState } from "./hooks/useSortState";
 import { TableContent } from "./TableContent";
-import { ColumnDef, WithId } from "./types";
+import { ColumnDef } from "./types";
 
-interface Props<T extends WithId> {
+interface Props<T extends object> {
   data: T[];
   columns: ColumnDef<T>;
   initialSort?: InitialSortState<T>;
   actionButtons?: (row: T) => ReactNode;
   className?: string;
   headerClassName?: string;
+  getKey?: (row: T) => string | number;
+  overscan?: number;
+  showFooter?: boolean;
 }
 
-const Table = classed.table("w-full font-display text-on-component", {});
+const Table = classed.table("overflow-auto w-full font-display text-on-component");
 
-export function DataGrid<T extends WithId>(props: Props<T>) {
-  const [compareFn, setSortField, sortState] = useSortState<T>(props.initialSort);
-  const sortedData = [...props.data].sort(compareFn);
+export function DataGrid<T extends object>(props: Props<T>) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const height = useParentHeight(parentRef);
 
-  return (
-    <Table className={props.className}>
+  const [compareFn, setSortField, sortState] = useSortState<T>({
+    initial: props.initialSort,
+    columns: props.columns
+  });
+
+  // Memoize to prevent re-sorting on every render
+  const sortedData = useMemo(() => [...props.data].sort(compareFn), [compareFn, props.data]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: props.data.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 40,
+    overscan: props.overscan ?? 10
+  });
+
+  const handleSetSortField = (field: keyof T) => {
+    setSortField(field);
+    rowVirtualizer.scrollToIndex(0);
+  };
+
+  const getSection = (type: "header" | "footer") => {
+    return (
       <Headers<T>
+        type={type}
         data={props.data}
         columns={props.columns}
-        setSortField={setSortField}
+        setSortField={handleSetSortField}
         sortState={sortState}
         actionButtons={props.actionButtons}
         className={props.headerClassName}
       />
-      <TableContent<T>
-        data={sortedData}
-        columns={props.columns}
-        actionButtons={props.actionButtons}
-      />
-    </Table>
+    );
+  };
+
+  return (
+    <div ref={parentRef} className="overflow-y-auto overflow-x-hidden" style={{ height }}>
+      <div>
+        <Table className={props.className}>
+          {getSection("header")}
+          <TableContent<T>
+            rowVirtualizer={rowVirtualizer}
+            data={sortedData}
+            columns={props.columns}
+            actionButtons={props.actionButtons}
+            getKey={props.getKey}
+          />
+          {props.showFooter && getSection("footer")}
+        </Table>
+      </div>
+    </div>
   );
 }

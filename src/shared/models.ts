@@ -1,3 +1,5 @@
+import { EntryMode } from "./enums";
+
 /**
  * Custom models (types) for ultra-tracker
  */
@@ -39,11 +41,11 @@ export type AthleteDB = {
   age: number;
   city: string;
   state: string;
-  emergencyPhone: string;
+  emergencyPhone: number;
   emergencyName: string;
   dns: boolean | undefined;
   dnf: boolean | undefined;
-  dnfStation: number | undefined;
+  dnfStation: string | undefined;
   dnfDateTime: Date | null;
 };
 
@@ -108,24 +110,6 @@ export type DNXRecord = {
   dnsDateTime: string;
   note: string;
 };
-
-// Status enums
-export enum DatabaseStatus {
-  Created,
-  Updated,
-  Deleted,
-  Duplicate,
-  NotFound,
-  Error,
-  Success
-}
-
-export enum EntryMode {
-  Normal,
-  Fast,
-  InOnly,
-  OutOnly
-}
 
 export type EventLogRec = {
   index: number;

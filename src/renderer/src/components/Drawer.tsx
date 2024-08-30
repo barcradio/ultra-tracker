@@ -1,9 +1,9 @@
 import { ReactNode, useEffect, useRef } from "react";
-import FocusTrap from "focus-trap-react";
 import { createPortal } from "react-dom";
 import CloseIcon from "~/assets/icons/xmark.svg?react";
-import { usePortalRoot } from "~/hooks/usePortalRoot";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { classed } from "~/lib/classed";
+import { Backdrop } from "./Backdrop";
 import { Button } from "./Button";
 
 interface Props {
@@ -55,18 +55,6 @@ const DrawerElement = classed.div(
   }
 );
 
-const Backdrop = classed.button(
-  "fixed top-0 left-0 w-full h-full transition-all duration-200 ease-in-out bg-surface-secondary",
-  {
-    variants: {
-      open: {
-        true: "opacity-50 pointer-events-auto z-index-10",
-        false: "opacity-0 pointer-events-none"
-      }
-    }
-  }
-);
-
 export function Drawer(props: Props) {
   const { open, handleClose, children, position } = props;
   const portalRef = usePortalRoot();
@@ -97,26 +85,24 @@ export function Drawer(props: Props) {
   }, [open, handleClose]);
 
   return createPortal(
-    <FocusTrap active={open}>
-      <div aria-hidden={!open}>
-        <DrawerElement
-          position={position ?? "left"}
-          role="dialog"
-          open={open}
-          className={props.className}
-        >
-          {props.showCloseIcon !== false && (
-            <div className="fixed top-0 right-0 p-2">
-              <Button onClick={handleClose} variant="ghost" color="neutral">
-                <CloseIcon width={22} height={22} />
-              </Button>
-            </div>
-          )}
-          {children}
-        </DrawerElement>
-        <Backdrop open={open} onClick={handleClose} />
-      </div>
-    </FocusTrap>,
+    <div aria-hidden={!open}>
+      <DrawerElement
+        position={position ?? "left"}
+        role="dialog"
+        open={open}
+        className={props.className}
+      >
+        {props.showCloseIcon !== false && (
+          <div className="fixed top-0 right-0 p-2">
+            <Button onClick={handleClose} variant="ghost" color="neutral">
+              <CloseIcon width={22} height={22} />
+            </Button>
+          </div>
+        )}
+        {open && children}
+      </DrawerElement>
+      <Backdrop open={open} onClick={handleClose} />
+    </div>,
     portalRef.current
   );
 }

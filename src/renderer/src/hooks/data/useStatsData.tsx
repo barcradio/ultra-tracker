@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useIpcRenderer } from "./useIpcRenderer";
+import { useIpcRenderer } from "../useIpcRenderer";
 
 export interface Stats {
   registeredAthletes: number;
@@ -8,6 +8,7 @@ export interface Stats {
   throughStation: number;
   finishedRace: number;
   totalDNS: number;
+  previousDNF: number;
   stationDNF: number;
   totalDNF: number;
   warnings: number;

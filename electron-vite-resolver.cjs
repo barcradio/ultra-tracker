@@ -131,9 +131,9 @@ const resolvePath = (source, file, options) => {
     return { found: true, path: resolvedPath };
   };
 
-  log("\nIN FILE", ` ${file}`);
+  log("\nIN FILE", `${file}`);
 
-  if (isCore(source)) {
+  if (file.includes("node_modules") || isCore(source)) {
     log("RESOLVED", source);
     return { found: true, path: null };
   }

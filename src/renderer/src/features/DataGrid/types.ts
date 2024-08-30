@@ -1,16 +1,15 @@
 import { ReactNode } from "react";
 
-export type WithId = { id: string | number };
-
-export type Column<T extends WithId> = {
+export type Column<T extends object> = {
   [K in keyof T]: {
     field: K;
-    name: string;
+    name?: string;
     width?: number | string;
     sortable?: boolean;
+    sortFn?: (a: T, b: T) => number;
     render?: (value: T[K], row: T) => ReactNode;
     align?: "left" | "right";
   };
 }[keyof T];
 
-export type ColumnDef<T extends WithId> = Column<T>[];
+export type ColumnDef<T extends object> = Column<T>[];

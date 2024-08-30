@@ -1,6 +1,6 @@
 import { Button, Stack } from "~/components";
-import * as dbUtilHooks from "~/hooks/useDatabaseUtilities";
-import * as dialogHooks from "~/hooks/useFileDialogs";
+import * as dbUtilHooks from "~/hooks/ipc/useDatabaseUtilities";
+import * as dialogHooks from "~/hooks/ipc/useFileDialogs";
 import { useToasts } from "../Toasts/useToasts";
 
 export function DBsettingsHub() {
@@ -12,6 +12,7 @@ export function DBsettingsHub() {
   const clearDatabaseMutation = dbUtilHooks.useClearDatabase();
   const importRunnersFile = dialogHooks.useImportRunnersFromCSV();
   const exportRunnersFile = dialogHooks.useExportRunnersToCSV();
+  const exportIncrementalFile = dialogHooks.useExportRunnersToIncrementalCSV();
   const { createToast } = useToasts();
 
   const importAthletesFile = () => {
@@ -37,6 +38,11 @@ export function DBsettingsHub() {
   const createRunnerCSVFile = () => {
     createToast({ message: "Exporting to CSV file", type: "info" });
     exportRunnersFile.mutate("ping from the renderer!");
+  };
+
+  const createIncrementalCSVFile = () => {
+    createToast({ message: "Exporting to CSV file", type: "info" });
+    exportIncrementalFile.mutate("ping from the renderer!");
   };
 
   const importRunnerCSVFile = () => {
@@ -78,8 +84,11 @@ export function DBsettingsHub() {
         </Stack>
         <Stack direction="col">
           <b>Data Tools</b>
+          <Button color="primary" size="md" onClick={createIncrementalCSVFile}>
+            Export Incremental CSV File
+          </Button>
           <Button color="primary" size="md" onClick={createRunnerCSVFile}>
-            Export to CSV File
+            Export Full CSV File
           </Button>
         </Stack>
         <Stack direction="col">
@@ -91,7 +100,7 @@ export function DBsettingsHub() {
             Clear Database
           </Button>
           <Button color="warning" variant="outlined" onClick={importRunnerCSVFile}>
-            Import from CSV File
+            Recover Data from CSV File
           </Button>
         </Stack>
       </Stack>
