@@ -2,6 +2,7 @@ import fs from "fs";
 import { parse } from "csv-parse";
 import settings from "electron-settings";
 import { getDatabaseConnection } from "./connect-db";
+import { logEvent } from "./eventLogger-db";
 import { DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNXRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
@@ -316,6 +317,7 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
 export function updateAthleteDNS(record: DNXRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnsValue = true;
+  const verbose = false;
 
   try {
     const query = db.prepare(`UPDATE Athletes SET dns = ? WHERE bibId = ?`);
@@ -323,6 +325,16 @@ export function updateAthleteDNS(record: DNXRecord): DatabaseResponse {
 
     const query2 = db.prepare(`UPDATE StaEvents SET note = ? WHERE bibId = ?`);
     query2.run(record.note, record.bibId);
+    logEvent(
+      record.bibId,
+      Number(record.stationId),
+      "",
+      record.dnsDateTime,
+      record.dnsDateTime,
+      "Set athlete DNS time.",
+      false,
+      verbose
+    );
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -337,6 +349,7 @@ export function updateAthleteDNS(record: DNXRecord): DatabaseResponse {
 export function updateAthleteDNF(record: DNXRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnfValue = true;
+  const verbose = false;
   const dnfDateTime = parseCSVDate(record.dnsDateTime).toISOString();
 
   try {
@@ -347,6 +360,16 @@ export function updateAthleteDNF(record: DNXRecord): DatabaseResponse {
 
     const query2 = db.prepare(`UPDATE StaEvents SET note = ? WHERE bibId = ?`);
     query2.run(record.note, record.bibId);
+    logEvent(
+      record.bibId,
+      Number(record.stationId),
+      dnfDateTime,
+      dnfDateTime,
+      dnfDateTime,
+      record.note,
+      false,
+      verbose
+    );
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
