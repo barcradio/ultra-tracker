@@ -3,8 +3,8 @@ import { parse } from "csv-parse";
 import { app } from "electron";
 import settings from "electron-settings";
 import { formatDate } from "$renderer/lib/datetimes";
-import { RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseStatus, RecordStatus } from "$shared/enums";
+import { RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
@@ -244,7 +244,7 @@ export async function exportRunnersAsCSV() {
 function writeToCSV(filename: string, queryResult, incremental: boolean) {
   const fs = require("fs");
   const eventName = settings.getSync("event.name") as string;
-  const stationName = settings.getSync("station.name") as string;
+  const stationIdentifier = settings.getSync("station.identifier") as string;
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);
@@ -252,26 +252,23 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
 
     // title row
     const event = eventName;
-    const station = stationName;
+    const station = stationIdentifier;
     //const disclaimer = "All times are based off of the system they were recorded on.";
-    //index,sent,bibId,timeIn,timeOut,note
-    const headerText = `${event},${station}`; //TODO fix the headers
+    const headerText = `${event},${station}`;
     stream.write(headerText + "\n");
 
-    //header row
     for (const row of queryResult as RunnerDB[]) {
-      // headers
+      let rowText = "";
+      const bSent = Boolean(row.sent);
+      // header row
+      // index,sent,bibId,timeIn,timeOut,note
       if (sequence == -1) {
         const rowText = `${row.index},${row.sent},${row.bibId},${row.timeIn},${row.timeOut},${row.note}`;
         stream.write(rowText + "\n");
         sequence++;
         continue;
       }
-    }
 
-    for (const row of queryResult as RunnerDB[]) {
-      let rowText = "";
-      const bSent = Boolean(row.sent);
       if (!incremental || (incremental && !bSent)) {
         rowText =
           `${row.index},` +
@@ -282,7 +279,6 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
           `${row.note}`;
         stream.write(rowText + "\n");
       }
-      sequence++;
     }
     stream.on("error", reject);
     stream.end(resolve);

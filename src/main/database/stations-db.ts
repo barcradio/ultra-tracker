@@ -1,9 +1,9 @@
 import settings from "electron-settings";
 import { DatabaseStatus, EntryMode } from "$shared/enums";
 import { DatabaseResponse } from "$shared/types";
-import { Operator, Station, StationDB } from "../../shared/models";
 import { getDatabaseConnection } from "./connect-db";
-import { clearStationsTable, createStationsTable } from "./tables-db";
+import { clearStationsTable } from "./tables-db";
+import { Operator, Station, StationDB } from "../../shared/models";
 import { selectStationsFile } from "../lib/file-dialogs";
 
 export async function LoadStations() {
