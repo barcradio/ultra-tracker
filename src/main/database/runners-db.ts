@@ -3,8 +3,8 @@ import { parse } from "csv-parse";
 import { app } from "electron";
 import settings from "electron-settings";
 import { formatDate } from "$renderer/lib/datetimes";
-import { DatabaseStatus } from "$shared/enums";
 import { RunnerCSV, RunnerDB } from "$shared/models";
+import { DatabaseStatus, RecordStatus } from "$shared/enums";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
@@ -150,8 +150,9 @@ export async function importRunnersFromCSV() {
           timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
           timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
           timeModified: new Date(),
-          sent: false
           note: timing.note.replaceAll(",", ""),
+          sent: false,
+          status: RecordStatus.OK
         };
 
         function parseCSVDate(timingDate: string): Date {

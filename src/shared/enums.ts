@@ -14,3 +14,14 @@ export enum EntryMode {
   InOnly,
   OutOnly
 }
+
+export enum RecordType {
+  In,
+  Out,
+  InOut
+}
+
+export enum RecordStatus {
+  OK,
+  Duplicate
+}
