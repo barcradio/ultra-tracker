@@ -200,7 +200,7 @@ function updateTimeRecord(
 
       logEvent(
         record.bibId,
-        Number(record.stationId),
+        String(record.stationId), //better to use identifier
         timeInISO == null ? "" : timeInISO,
         timeOutISO == null ? "" : timeOutISO,
         modifiedISO == null ? "" : modifiedISO,
@@ -247,7 +247,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
 
     logEvent(
       record.bibId,
-      Number(record.stationId),
+      String(record.stationId), //better to use identifier
       timeInISO == null ? "" : timeInISO,
       timeOutISO == null ? "" : timeOutISO,
       modifiedISO == null ? "" : modifiedISO,
