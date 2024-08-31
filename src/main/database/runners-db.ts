@@ -6,6 +6,7 @@ import { DatabaseStatus, RecordStatus } from "$shared/enums";
 import { RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
+import { getColumnNamesFromTable } from "./tables-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
 import { AppPaths, loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
 
@@ -277,19 +278,18 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
     let sequence = -1;
 
     // title row
-    const event = eventName;
-    const station = stationIdentifier;
     //const disclaimer = "All times are based off of the system they were recorded on.";
-    const headerText = `${event},${station}`;
+    const headerText = `${eventName},${stationIdentifier}`;
     stream.write(headerText + "\n");
 
+    const columnNames = getColumnNamesFromTable("StaEvents");
     for (const row of queryResult as RunnerDB[]) {
       let rowText = "";
       const bSent = Boolean(row.sent);
       // header row
       // index,sent,bibId,timeIn,timeOut,note
       if (sequence == -1) {
-        const rowText = `${row.index},${row.sent},${row.bibId},${row.timeIn},${row.timeOut},${row.note}`;
+        const rowText = `${columnNames[0]},${columnNames[7]},${columnNames[1]},${columnNames[3]},${columnNames[4]},${columnNames[6]}`;
         stream.write(rowText + "\n");
         sequence++;
         continue;
