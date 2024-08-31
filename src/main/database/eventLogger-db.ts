@@ -3,7 +3,7 @@ import { getDatabaseConnection } from "./connect-db";
 
 export function logEvent(
   bibId: number,
-  stationId: number,
+  stationId: string,
   timeIn: string,
   timeOut: string,
   timeModified: string,

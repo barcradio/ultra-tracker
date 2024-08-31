@@ -333,11 +333,11 @@ export function updateAthleteDNS(record: DNXRecord): DatabaseResponse {
     query2.run(record.note.replaceAll(",", ""), record.bibId);
     logEvent(
       record.bibId,
-      Number(record.stationId),
+      record.stationId,
       "",
       record.dnsDateTime,
       record.dnsDateTime,
-      "Set athlete DNS time.",
+      `Set(DNS): bibId:${record.bibId} station:'${record.stationId}'`,
       false,
       verbose
     );
@@ -368,11 +368,11 @@ export function updateAthleteDNF(record: DNXRecord): DatabaseResponse {
     query2.run(record.note.replaceAll(",", ""), record.bibId);
     logEvent(
       record.bibId,
-      Number(record.stationId),
+      record.stationId,
       dnfDateTime,
       dnfDateTime,
       dnfDateTime,
-      record.note,
+      `Set(DNF): bibId: ${record.bibId} station: '${record.stationId}' note: '${record.note}'`,
       false,
       verbose
     );
