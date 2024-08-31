@@ -51,7 +51,7 @@ export function initStatEngine() {
   stats.addStat("stationDNF", () => dbAthlete.GetStationDNF());
   stats.addStat("totalDNF", () => dbAthlete.GetTotalDNF());
   stats.addStat("warnings", (input) => input.defaultValue);
-  stats.addStat("errors", (input) => input.defaultValue);
+  stats.addStat("errors", () => dbRunners.GetRunnersWithDuplicateStatus());
 
   stats; // const engine: StatEngine<"defaultValue" | "inStation" | "throughStation">
 

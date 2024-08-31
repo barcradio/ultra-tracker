@@ -26,6 +26,11 @@ export function GetRunnersOutStation(): number {
   return count[0] == null ? invalidResult : count[0];
 }
 
+export function GetRunnersWithDuplicateStatus(): number {
+  const count = getRunnersWithDuplicateStatus();
+  return count[0] == null ? invalidResult : count[0];
+}
+
 function getTotalRunners(): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
@@ -87,6 +92,28 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `GetRunnersInStation From StaEvents Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
+  console.log(message);
+
+  return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+}
+
+function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE status == 1`).get();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `GetRunnersInStation From StaEvents Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
   console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
