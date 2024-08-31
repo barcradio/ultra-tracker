@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
-import { Button, Drawer, Stack, TextInput } from "~/components";
+import { Button, Drawer, Modal, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
 import { RunnerWithSequence } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
@@ -22,6 +22,7 @@ const getErrorMessage = (error: FieldError): string => {
 
 export function EditRunner(props: Props) {
   const { createToast } = useToasts();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
@@ -51,8 +52,9 @@ export function EditRunner(props: Props) {
     handleClose();
   };
 
-  const handleClose = () => {
+  const handleClose = (confirmOpen?: boolean) => {
     form.reset(props.runner); // Reset the form to the original runner
+    setIsConfirmOpen(confirmOpen ?? false);
     setIsOpen(false);
   };
 
@@ -154,13 +156,19 @@ export function EditRunner(props: Props) {
             <Button
               variant="ghost"
               color="danger"
-              onClick={() => handleDeleteRunner()}
+              onClick={() => handleClose(true)}
               size="lg"
               type="button"
             >
               DELETE
             </Button>
-            <Button variant="ghost" color="neutral" onClick={handleClose} size="lg" type="button">
+            <Button
+              variant="ghost"
+              color="neutral"
+              onClick={() => handleClose()}
+              size="lg"
+              type="button"
+            >
               Cancel
             </Button>
             <Button variant="solid" color="primary" size="lg" type="submit">
@@ -169,6 +177,20 @@ export function EditRunner(props: Props) {
           </Stack>
         </Stack>
       </Drawer>
+      <Modal
+        open={isConfirmOpen}
+        setOpen={setIsConfirmOpen}
+        title="Confirmation"
+        showCloseButton
+        affirmativeText="Confirm"
+        onAffirmative={handleDeleteRunner}
+      >
+        <div className="text-center">
+          Are you sure you want to delete the timing record for Runner #
+          {selectedRunner.state.runner}?
+          <span className="font-medium text-danger"> This action cannot be undone.</span>
+        </div>
+      </Modal>
     </>
   );
 }

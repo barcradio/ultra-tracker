@@ -5,7 +5,7 @@ export const Backdrop = classed.button(
   {
     variants: {
       open: {
-        true: "opacity-50 pointer-events-auto z-index-10",
+        true: "opacity-50 pointer-events-auto",
         false: "opacity-0 pointer-events-none"
       }
     }

@@ -79,7 +79,7 @@ export function Sidebar() {
         </Stack>
       </SidebarElement>
 
-      {createPortal(<Backdrop open={expanded} />, portalRoot?.current)}
+      {createPortal(<Backdrop open={expanded} id="sidebar-backrop" />, portalRoot?.current)}
     </>
   );
 }
