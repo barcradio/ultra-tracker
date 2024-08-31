@@ -3,7 +3,7 @@ import { parse } from "csv-parse";
 import appSettings from "electron-settings";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
-import { clearAthletesTable } from "./tables-db";
+import { clearAthletesTable, createAthletesTable } from "./tables-db";
 import { DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNXRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
@@ -26,6 +26,7 @@ export async function LoadAthletes() {
 
   // this is entirely destructive, will lose any notes and DNS/DNF tags that aren't saved to a file.
   clearAthletesTable();
+  createAthletesTable();
 
   const athleteFilePath = await loadAthleteFile();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
