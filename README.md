@@ -73,16 +73,16 @@ An Electron application with React and TypeScript.
      pnpm dev
    ```
 
-9. To refresh your cloned version of ultra-tracker to get the latest changes
+9. To retrieve the latest changes to your ultra-tracker repository's cloned (remote) version. (Your database and config files will not be changed)
     ```bash
       # For Windows, Linux or MacOS 
-      # remove the ultra-tracker directory (del or rm or rmdir or ???)
-      # Repeat steps 4 through 7
+      # git pull
+      # Repeat steps 6 through 7 before running before continuing or performing builds (below)
    ```
 
 10. To assist in editing code, logic, or UI, the repository folder can easily be opened with VSCode and the recommended extensions will be installed.
 
-    The VSCode launch settings are configured in the project to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
+    The VSCode launch settings are configured in the repository to run the app.  It runs with a debugger attached by default, but can also be run without, using the launch controls.
 
     [VSCode website](https://code.visualstudio.com/)
 
