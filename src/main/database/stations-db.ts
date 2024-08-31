@@ -2,7 +2,7 @@ import appSettings from "electron-settings";
 import { DatabaseStatus, EntryMode } from "$shared/enums";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
-import { clearStationsTable } from "./tables-db";
+import { clearStationsTable, createStationsTable } from "./tables-db";
 import { Operator, Station, StationDB } from "../../shared/models";
 import { selectStationsFile } from "../lib/file-dialogs";
 
@@ -16,8 +16,9 @@ export async function LoadStations() {
   for (const index in stationData) {
     if (GetStations().length > 0) {
       clearStationsTable();
+      createStationsTable();
     }
-    if (index == "event") await appSettings.set("event.name", stationData.event[0]);
+    if (index == "event") await appSettings.set("event.name", stationData.event.name);
 
     if (index == "stations") {
       for (const key in stationData.stations) {
