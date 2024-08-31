@@ -1,5 +1,7 @@
-import BarcLogo from "~/assets/barc.svg";
+import BarcLogoDark from "~/assets/barc_dark.svg?react";
+import BarcLogoLight from "~/assets/barc_light.svg?react";
 import { Stack } from "~/components";
+import { useTheme } from "~/hooks/dom/useTheme";
 
 const useIdentity = () => {
   return {
@@ -9,6 +11,7 @@ const useIdentity = () => {
 };
 
 export function Footer() {
+  const { theme } = useTheme();
   const { aidStation, callsign } = useIdentity();
 
   return (
@@ -26,7 +29,11 @@ export function Footer() {
         </p>
       </Stack>
 
-      <img src={BarcLogo} alt="Barc Logo" className="pr-4" width="180px" />
+      {theme === "dark" ? (
+        <BarcLogoDark className="pr-4" width="180px" />
+      ) : (
+        <BarcLogoLight className="pr-4" width="180px" />
+      )}
     </Stack>
   );
 }

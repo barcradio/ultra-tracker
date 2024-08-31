@@ -1,12 +1,9 @@
 import ThemeIcon from "~/assets/icons/theme.svg?react";
+import { useTheme } from "~/hooks/dom/useTheme";
 import { SidebarButton } from "./SidebarButton";
 
 export function ThemeToggle() {
-  const toggleTheme = () => {
-    const html = document.documentElement;
-    html.classList.toggle("dark");
-    html.classList.toggle("light");
-  };
+  const { toggleTheme } = useTheme();
 
   return (
     <SidebarButton icon={ThemeIcon} onClick={toggleTheme}>
