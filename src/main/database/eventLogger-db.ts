@@ -1,4 +1,6 @@
 import { DatabaseStatus } from "$shared/enums";
+import { EventLogRec } from "$shared/models";
+import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 
 export function logEvent(
@@ -32,4 +34,25 @@ export function logEvent(
     return [DatabaseStatus.Error, "Unable to add logEvent record."];
   }
   return [DatabaseStatus.Success, ""];
+}
+
+export function getEventLogs(verbose: boolean = false): DatabaseResponse<EventLogRec[]> {
+  const db = getDatabaseConnection();
+  let queryResult;
+
+  try {
+    queryResult = db.prepare(`SELECT * FROM EventLog WHERE verbose = ?`).all(Number(verbose));
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.log(`Failed to get log records: ${e.message}`);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  queryResult.forEach((row) => {
+    row.timeIn = row.timeIn == "" ? null : new Date(row.timeIn);
+    row.timeOut = row.timeOut == "" ? null : new Date(row.timeOut);
+    row.timeModified = row.timeModified == "" ? null : new Date(row.timeModified);
+  });
+  return [queryResult, DatabaseStatus.Success, ""];
 }

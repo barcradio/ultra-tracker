@@ -2,7 +2,7 @@ import { ipcMain } from "electron";
 import * as stats from "../lib/stat-engine";
 import { Handler } from "../types";
 
-const calculateStats: Handler<{ any }> = () => {
+const calculateStats: Handler = () => {
   return stats.Calculate();
 };
 
