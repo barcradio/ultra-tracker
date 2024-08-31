@@ -15,7 +15,23 @@ export function validateDatabaseTables() {
   }
 }
 
-// TODO: These should be moved to a separate file, but that creates a circular dependency
+export function getColumnNamesFromTable(tableName: string): string[] {
+  const db = getDatabaseConnection();
+  let columnNames: string[] = [];
+  const stmt = db.prepare(`SELECT * FROM ${tableName}`);
+  toColumnNames(stmt);
+
+  for (const row of toColumnNames(stmt)) {
+    columnNames = row as string[];
+  }
+
+  return columnNames;
+}
+
+function* toColumnNames(stmt) {
+  yield stmt.columns().map((column) => column.name);
+}
+
 export function CreateTables() {
   const result =
     createAthletesTable() &&
