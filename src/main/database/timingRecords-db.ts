@@ -2,50 +2,77 @@ import appSettings from "electron-settings";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
-import { DatabaseStatus, RecordStatus } from "../../shared/enums";
+import { DatabaseStatus, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
+
+interface TypedRunnerDB extends RunnerDB {
+  recordType: RecordType;
+}
 
 export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
   let status: DatabaseStatus = DatabaseStatus.Error;
   let message: string = "";
 
-  const recordExistsWithBib = getTimeRecordbyBib(record)[0];
-  const recordExistsWithIndex = getTimeRecordbyIndex(record)[0];
+  // identify type of change
+  const incomingRecord: TypedRunnerDB = checkRecordType(record);
+  const bibSearch = getTimeRecordbyBib(record)[0];
+  const recordWithBib = bibSearch ? checkRecordType(bibSearch) : bibSearch;
+  const indexSearch = getTimeRecordbyIndex(record)[0];
+  const recordWithIndex = indexSearch ? checkRecordType(indexSearch) : indexSearch;
 
   // new record
-  if (!recordExistsWithBib && !recordExistsWithIndex) {
-    record.status = RecordStatus.OK;
-    [status, message] = insertTimeRecord(record);
+  if (!recordWithBib && !recordWithIndex) {
+    incomingRecord.status = RecordStatus.OK;
+    [status, message] = insertTimeRecord(incomingRecord);
   }
 
-  // only record with bib exists, this is a duplicate
-  if (recordExistsWithBib && !recordExistsWithIndex) {
-    record.status = RecordStatus.Duplicate;
-    [status, message] = insertTimeRecord(record);
+  // previous record with bib found
+  if (recordWithBib && !recordWithIndex) {
+    if (
+      ((recordWithBib.timeIn && incomingRecord.recordType == RecordType.Out) ||
+        (recordWithBib.timeOut && incomingRecord.recordType == RecordType.In)) &&
+      recordWithBib.recordType != RecordType.InOut
+    ) {
+      incomingRecord.status = RecordStatus.OK; // adding opposite time, not a duplicate
+      incomingRecord.note = recordWithBib.note.concat(" ", incomingRecord.note); // preserve note
+      [status, message] = updateTimeRecord(incomingRecord, recordWithBib, true);
+    } else {
+      incomingRecord.status = RecordStatus.Duplicate; // this is a true duplicate
+      [status, message] = insertTimeRecord(incomingRecord);
+    }
   }
 
   // only record with index exists, probably updating bib number on correct record, merge them
-  if (!recordExistsWithBib && recordExistsWithIndex) {
-    record.status = RecordStatus.OK;
-    [status, message] = updateTimeRecord(record, recordExistsWithIndex, true);
+  if (!recordWithBib && recordWithIndex) {
+    incomingRecord.status = RecordStatus.OK;
+    [status, message] = updateTimeRecord(incomingRecord, recordWithIndex, true);
   }
 
   //both queries succeed exist and are equal, but the incoming object is not, we are updating normally, replace don't merge
-  if (recordExistsWithBib && recordExistsWithIndex) {
-    if (JSON.stringify(recordExistsWithBib) === JSON.stringify(recordExistsWithIndex)) {
-      if (JSON.stringify(record) !== JSON.stringify(recordExistsWithIndex)) {
-        record.status = RecordStatus.OK;
-        [status, message] = updateTimeRecord(record, recordExistsWithIndex, false);
+  if (recordWithBib && recordWithIndex) {
+    if (JSON.stringify(recordWithBib) === JSON.stringify(recordWithIndex)) {
+      if (JSON.stringify(incomingRecord) !== JSON.stringify(recordWithIndex)) {
+        incomingRecord.status = RecordStatus.OK;
+        [status, message] = updateTimeRecord(incomingRecord, recordWithIndex, false);
       }
     } else {
-      //we are updating the current record, but is now a duplicate
-      record.status = RecordStatus.Duplicate;
-      [status, message] = updateTimeRecord(record, recordExistsWithIndex, false);
+      //we are updating the current record, but it is still duplicating another record!
+      incomingRecord.status = RecordStatus.Duplicate;
+      [status, message] = updateTimeRecord(incomingRecord, recordWithIndex, false);
     }
   }
 
   console.log(message);
   return [status, message];
+}
+
+function checkRecordType(record: RunnerDB): TypedRunnerDB {
+  let type!: RecordType;
+  if (record.timeIn && record.timeOut) type = RecordType.InOut as RecordType;
+  if (record.timeIn && !record.timeOut) type = RecordType.In as RecordType;
+  if (!record.timeIn && record.timeOut) type = RecordType.Out as RecordType;
+
+  return { ...record, recordType: type };
 }
 
 export function getTimeRecordbyBib(record: RunnerDB): DatabaseResponse<RunnerDB> {
@@ -122,8 +149,8 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
 }
 
 function updateTimeRecord(
-  record: RunnerDB,
-  existingRecord: RunnerDB,
+  record: TypedRunnerDB,
+  existingRecord: TypedRunnerDB,
   merge: boolean
 ): DatabaseResponse {
   const db = getDatabaseConnection();
@@ -197,7 +224,7 @@ function updateTimeRecord(
   return [DatabaseStatus.Updated, message];
 }
 
-function insertTimeRecord(record: RunnerDB): DatabaseResponse {
+function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
   const stationId = appSettings.getSync("station.id") as number;
 
@@ -255,10 +282,11 @@ export function markTimeRecordAsSent(bibId: number) {
   return [DatabaseStatus.Created, message];
 }
 
-function isDuplicate(record: RunnerDB): RunnerDB {
+function isDuplicate(record: TypedRunnerDB): TypedRunnerDB {
   if (record.status == RecordStatus.Duplicate) {
     record.bibId = Number(record.bibId) + 0.2;
-    record.note = "[Duplicate]" + record.note;
+    const typeStr = RecordType[record.recordType];
+    record.note = `[Duplicate:${typeStr}] ` + record.note;
   }
   return record;
 }
