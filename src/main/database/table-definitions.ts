@@ -5,7 +5,7 @@ export const stationEvents: string = `
       timeOut DATETIME,
       timeModified DATETIME,
       note TEXT,
-      sent BOOLEAN DEFAULT (FALSE);
+      sent BOOLEAN DEFAULT (FALSE),
       status INTEGER`;
 
 /* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
@@ -17,8 +17,7 @@ export const eventLog: string = `
       timeOut DATETIME,
       timeModified DATETIME,
       note TEXT,
-      sent BOOLEAN DEFAULT (FALSE)
-      status INTEGER`;
+      sent BOOLEAN DEFAULT (FALSE)`;
 
 /*  The Athletes table is used to store the data submitted before the 
     start of the race listing all persons and their emergency contact information.
