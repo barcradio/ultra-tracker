@@ -12,12 +12,13 @@ export const stationEvents: string = `
     of all events to provide a searchable log in a */
 export const eventLog: string = `
       bibId INTEGER DEFAULT (0),
-      stationId INTEGER,
+      stationId TEXT,
       timeIn DATETIME,
       timeOut DATETIME,
       timeModified DATETIME,
-      note TEXT,
-      sent BOOLEAN DEFAULT (FALSE)`;
+      comments TEXT,
+      sent BOOLEAN DEFAULT (FALSE),
+      verbose BOOLEAN DEFAULT (FALSE)`;
 
 /*  The Athletes table is used to store the data submitted before the 
     start of the race listing all persons and their emergency contact information.
