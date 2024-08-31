@@ -34,6 +34,7 @@ function useTimingMutation(channel: string, options?: TimingMutationOptions) {
     onSuccess: () => {
       // Invalidate the queries to refetch the data,
       // so that the new/updated timing record is displayed
+      queryClient.invalidateQueries({ queryKey: ["event-logs"] });
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
       queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     }
@@ -54,10 +55,7 @@ export const useDeleteTiming = () => useTimingMutation("delete-timing-record");
 //      const existing = data?.find((r) => r.runner == runner.runner);
 //      if (!existing) return
 //      if (existing.in && runner.in && existing.in.getTime() != runner.in.getTime()) {
-//        createToast({ type: "warning", message: `Overrode #${runner.runner}'s previous In Time` });
-
-//      if (existing.out && runner.out && existing.out.getTime() != runner.out.getTime()) {
-//        createToast({ type: "warning", message: `Overrode #${runner.runner}'s previous Out Time` });
+//        createToast({ type: "warning", message: `Overrode #${runner.runner}'s previous In Time`}); // if (existing.out && runner.out existing.out.getTime() != runner.out.getTime()) { createToast({ type:"warning", message:`Overrode #${runner.runner}'s previous Out Time` });
 //      }
 //    };
 

@@ -20,7 +20,7 @@ export const eventLog: string = `
       sent BOOLEAN DEFAULT (FALSE),
       verbose BOOLEAN DEFAULT (FALSE)`;
 
-/*  The Athletes table is used to store the data submitted before the 
+/*  The Athletes table is used to store the data submitted before the
     start of the race listing all persons and their emergency contact information.
     There is still the possibility that additional runners could be added after the start.*/
 export const athletes: string = `
