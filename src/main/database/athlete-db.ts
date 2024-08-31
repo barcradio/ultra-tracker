@@ -172,7 +172,6 @@ function GetCountFromAthletes(columnName: string): DatabaseResponse<number> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `GetCountFromAthletesTable: ${queryResult[`COUNT(${columnName})`]}`;
-  console.log(message);
 
   return [queryResult[`COUNT(${columnName})`] as number, DatabaseStatus.Success, message];
 }
@@ -199,7 +198,6 @@ function GetCountFromAthletesWithWhere(
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `GetCountFromAthletes Where '${whereStatement}':${queryResult[`COUNT(${columnName})`]}`;
-  console.log(message);
 
   return [queryResult[`COUNT(${columnName})`] as number, DatabaseStatus.Success, message];
 }

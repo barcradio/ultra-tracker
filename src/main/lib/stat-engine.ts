@@ -18,6 +18,7 @@ class StatEngine<K extends string = "defaultValue"> {
     return this.stats.reduce(
       (result, stat) => {
         result[stat.name] = stat.stat(result);
+        // console.debug(`stat: ${stat.name}: ${result[stat.name]}`);
         return result;
       },
       { defaultValue }
@@ -59,7 +60,6 @@ export function initStatEngine() {
 }
 
 export function Calculate() {
-  console.log("[Stats: Calculate]");
   const result = stats.calculate();
   return result;
 }

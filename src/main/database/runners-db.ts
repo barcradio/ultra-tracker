@@ -49,7 +49,6 @@ function getTotalRunners(): DatabaseResponse<number> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `GetTotalRunnersFromStaEvents: ${queryResult["COUNT(bibId)"]}`;
-  console.log(message);
 
   return [queryResult["COUNT(bibId)"] as number, DatabaseStatus.Success, message];
 }
@@ -71,7 +70,6 @@ function getRunnersInStation(): DatabaseResponse<number> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `GetRunnersInStation From StaEvents Where 'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
-  console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -93,7 +91,6 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `GetRunnersInStation From StaEvents Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
-  console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -115,7 +112,6 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `GetRunnersInStation From StaEvents Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
-  console.log(message);
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -137,7 +133,6 @@ export function readRunnersTable(): DatabaseResponse<RunnerDB[]> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `GetRunnersTable from StaEvents: ${queryResult.length}`;
-  console.log(message);
 
   queryResult.forEach((row: RunnerDB) => {
     row.timeIn = row.timeIn == null ? null : new Date(row.timeIn);
