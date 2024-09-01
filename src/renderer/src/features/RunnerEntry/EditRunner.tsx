@@ -124,6 +124,7 @@ export function EditRunner(props: Props) {
                 <TextInput
                   className="w-20"
                   type="number"
+                  step="0.1"
                   label="Bib"
                   placeholder="Runner"
                   error={form.formState.errors.runner}
