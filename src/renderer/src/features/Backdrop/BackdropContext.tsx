@@ -1,6 +1,8 @@
 import { MouseEventHandler, ReactNode, createContext } from "react";
+import { createPortal } from "react-dom";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { classed } from "~/lib/classed";
-import { useBackdrop } from "./useBackdrop";
+import { useBackdrops } from "./useBackdrops";
 
 export interface BackdropContext {
   addBackdrop: (
@@ -28,12 +30,16 @@ export const Backdrop = classed.button(
 );
 
 export function BackdropProvider({ children }: { children: ReactNode }) {
-  const { addBackdrop, removeBackdrop, shouldShowBackdrop, handleBackdropClick } = useBackdrop();
+  const portalRoot = usePortalRoot();
+  const { addBackdrop, removeBackdrop, showBackdrop, handleBackdropClick } = useBackdrops();
 
   return (
     <BackdropContext.Provider value={{ addBackdrop, removeBackdrop }}>
       {children}
-      <Backdrop open={shouldShowBackdrop} onClick={handleBackdropClick} />
+      {createPortal(
+        <Backdrop open={showBackdrop} onClick={handleBackdropClick} />,
+        portalRoot?.current
+      )}
     </BackdropContext.Provider>
   );
 }
