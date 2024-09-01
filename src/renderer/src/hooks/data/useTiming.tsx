@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RunnerDB } from "$shared/models";
 import { Runner } from "./useRunnerData";
+import { useHandleErrorToasts } from "../useHandleErrors";
 import { useIpcRenderer } from "../useIpcRenderer";
 
 // import { useToasts } from "~/features/Toasts/useToasts";
@@ -18,23 +19,21 @@ const runnerToRunnerDB = (runner: Runner): RunnerDB => ({
   status: -1 // will be set by the backend
 });
 
-interface TimingMutationOptions {
-  onMutate?: (runner: Runner) => void;
-}
-
-function useTimingMutation(channel: string, options?: TimingMutationOptions) {
+function useTimingMutation(channel: string) {
   const ipcRenderer = useIpcRenderer();
   const queryClient = useQueryClient();
+  const handleError = useHandleErrorToasts();
 
   return useMutation({
-    mutationFn: (timeRecord: Runner) => {
-      options?.onMutate?.(timeRecord);
-      return ipcRenderer.invoke(channel, runnerToRunnerDB(timeRecord));
+    mutationFn: async (timeRecord: Runner) => {
+      const response = await ipcRenderer.invoke(channel, runnerToRunnerDB(timeRecord));
+      const [status, message] = response;
+      handleError(status, message);
     },
     onSuccess: () => {
       // Invalidate the queries to refetch the data,
       // so that the new/updated timing record is displayed
-      queryClient.invalidateQueries({ queryKey: ["event-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
       queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     }
@@ -44,20 +43,3 @@ function useTimingMutation(channel: string, options?: TimingMutationOptions) {
 export const useEditTiming = () => useTimingMutation("edit-timing-record");
 export const useCreateTiming = () => useTimingMutation("add-timing-record");
 export const useDeleteTiming = () => useTimingMutation("delete-timing-record");
-
-// This was a temporary UX improvement that will be replaced by a more robust error handling mechanism later.
-// May need elements of this for handling RecordStatus property on records
-// export const useCreateTiming = () => {
-//   const { createToast } = useToasts();
-//   const { data } = useRunnerData();
-
-//    const onMutate = (runner: Runner) => {
-//      const existing = data?.find((r) => r.runner == runner.runner);
-//      if (!existing) return
-//      if (existing.in && runner.in && existing.in.getTime() != runner.in.getTime()) {
-//        createToast({ type: "warning", message: `Overrode #${runner.runner}'s previous In Time`}); // if (existing.out && runner.out existing.out.getTime() != runner.out.getTime()) { createToast({ type:"warning", message:`Overrode #${runner.runner}'s previous Out Time` });
-//      }
-//    };
-
-//   return useTimingMutation("add-timing-record", { onMutate });
-// };

@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { RunnerDB } from "$shared/models";
+import { DatabaseResponse } from "$shared/types";
+import { useHandleErrorToasts } from "../useHandleErrors";
 import { useIpcRenderer } from "../useIpcRenderer";
 
 export interface Runner {
@@ -15,13 +17,20 @@ export interface RunnerWithSequence extends Runner {
 }
 
 export function useRunnerData() {
+  const handleError = useHandleErrorToasts();
   const ipcRenderer = useIpcRenderer();
 
   return useQuery({
     queryKey: ["runners-table"],
     queryFn: async (): Promise<RunnerWithSequence[]> => {
-      const dataset = await ipcRenderer.invoke("get-runners-table");
-      return dataset.map((runner: RunnerDB, index: number) => ({
+      const response = await ipcRenderer.invoke("get-runners-table");
+      const [data, status, message]: DatabaseResponse<RunnerDB[]> = response;
+
+      const success = handleError(status, message);
+
+      if (!success) return [];
+
+      return data!.map((runner: RunnerDB, index: number) => ({
         id: runner.index,
         sequence: index + 1,
         runner: runner.bibId,

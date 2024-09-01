@@ -4,7 +4,7 @@ import { ColumnDef, DataGrid } from "../DataGrid";
 function useStats() {
   const { data: statsData } = useStatsData();
 
-  if (statsData == undefined) return [];
+  if (!statsData) return [];
 
   return [
     {

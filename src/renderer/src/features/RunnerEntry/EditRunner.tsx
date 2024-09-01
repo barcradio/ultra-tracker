@@ -65,7 +65,7 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
-  const { data: athlete } = useAthlete(form.watch("runner"));
+  const { data: athlete } = useAthlete(form.watch("runner"), isOpen);
 
   // Temporary state for DNF
   const [dnf, setDnf] = useState<string | null>(null);
@@ -100,7 +100,7 @@ export function EditRunner(props: Props) {
               Sequence {selectedRunner.state.sequence}
             </h1>
 
-            <Stack align="center" justify="between" className="w-full mb-6">
+            <Stack align="center" justify="between" className="mb-6 w-full">
               <Button
                 type="button"
                 variant="ghost"

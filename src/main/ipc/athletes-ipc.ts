@@ -4,7 +4,7 @@ import { DatabaseResponse } from "$shared/types";
 import { GetAthleteByBib, GetAthletes } from "../database/athlete-db";
 import { Handler } from "../types";
 
-const getAthletesTable: Handler<AthleteDB> = () => {
+const getAthletesTable: Handler<DatabaseResponse<AthleteDB>> = () => {
   return GetAthletes();
 };
 
