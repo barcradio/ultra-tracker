@@ -1,18 +1,21 @@
 import * as dbAthlete from "../database/athlete-db";
 import * as dbRunners from "../database/runners-db";
 
-class StatEngine<K extends string = "defaultValue"> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private stats: any[] = [];
+type StatFn = (value: Record<string, number>) => number;
 
-  addStat<L extends string>(
-    name: L,
-    stat: (input: { [P in K]: number }) => number
-  ): asserts this is StatEngine<K | L> {
+interface Stat {
+  name: string;
+  stat: StatFn;
+}
+
+class StatEngine {
+  private stats: Stat[] = [];
+
+  addStat(name: string, stat: StatFn) {
     this.stats.push({ name, stat });
   }
 
-  calculate(): { [P in K]: number } {
+  calculate(): Record<string, number> {
     const defaultValue: number = -999;
 
     return this.stats.reduce(
