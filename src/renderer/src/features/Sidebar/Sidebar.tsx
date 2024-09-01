@@ -56,12 +56,12 @@ export function Sidebar() {
           <SidebarLink to="/logs" icon={LogsIcon}>
             Logs
           </SidebarLink>
-          <SidebarLink to="/database" icon={DatabaseIcon}>
-            Database
-          </SidebarLink>
         </div>
         <div>
           <ThemeToggle />
+          <SidebarLink to="/database" icon={DatabaseIcon}>
+            Database
+          </SidebarLink>
           <SidebarLink to="/settings" icon={SettingsIcon}>
             Settings
           </SidebarLink>
