@@ -1,5 +1,8 @@
 # Ultra-tracker Help
 
+## Initial Configuration Steps
++ ...
+
 ## Operating Instructions
 
 The left side bar of the Ultra-tracker is used to select different panels or to provide selection of different options affecting the entire application. **The viewing grids showing the log entries allow sorting of each column by mouse clicking on the column header. It will display an ascending order or a descending order for each column (except for the notes column).**
