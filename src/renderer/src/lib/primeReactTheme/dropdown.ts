@@ -14,36 +14,36 @@ const TRANSITIONS = {
 export const DropdownPT: DropdownPassThroughOptions = {
   root: (params) => ({
     className: classNames(
-      "inline-flex relative cursor-pointer select-none",
-      "rounded-md transition-colors duration-200 ease-in-out",
-      "border-2 bg-surface-tertiary border-component",
-      "w-full md:w-56",
-      "focus:outline-none hover:border-component-hover",
+      "inline-flex relative my-0.5 cursor-pointer select-none group/dropdown",
+      "rounded-md transition-colors duration-200 ease-in-out bg-surface-secondary",
+      "w-full focus:outline-none grow",
       { "opacity-60 cursor-default pointer-events-none select-none": params?.props.disabled }
     )
   }),
   input: (params) => ({
     className: classNames(
-      "block flex overflow-hidden relative flex-auto whitespace-nowrap cursor-pointer overflow-ellipsis",
-      "bg-transparent border-0 text-on-surface",
-      "dark:text-white/80",
-      "p-3 text-base bg-transparent rounded transition duration-200 appearance-none font-display",
+      "block flex overflow-hidden relative flex-auto uppercase whitespace-nowrap cursor-pointer overflow-ellipsis",
+      "bg-transparent",
+      "py-2 px-3 bg-transparent rounded transition duration-200 appearance-none font-display",
       "font-medium focus:shadow-none focus:outline-none",
       { "pr-7": params?.props.showClear }
     )
   }),
-  trigger: {
+  trigger: (params) => ({
     className: classNames(
-      "flex justify-center items-center shrink-0",
-      "w-12 bg-transparent rounded-tr-lg rounded-br-lg text-on-surface"
+      "flex justify-center items-center transition duration-200 ease-in-out shrink-0",
+      "group-hover/dropdown:text-on-surface-hover",
+      { "transform rotate-180 text-on-surface-hover": params?.state.overlayVisible },
+      { "text-on-surface": !params?.state.overlayVisible },
+      "w-12 bg-transparent rounded-tr-lg rounded-br-lg"
     )
-  },
+  }),
   wrapper: (params) => {
     return {
+      style: { scrollbarWidth: "none" },
       className: classNames(
         "overflow-auto max-h-[200px]",
-        "border-0 shadow-lg text-on-surface",
-        "dark:bg-surfrce-tertiary",
+        "shadow-lg text-on-surface",
         { "rounded-br-lg rounded-bl-lg": params?.props.filter },
         { "rounded-lg": !params?.props.filter }
       )
@@ -53,18 +53,19 @@ export const DropdownPT: DropdownPassThroughOptions = {
   item: (params) => ({
     className: classNames(
       "overflow-hidden relative whitespace-nowrap cursor-pointer font-display",
-      "p-3 m-0 rounded-none border-0 transition duration-200",
+      "p-3 m-0 rounded-none transition duration-200",
       {
-        "font-semibold text-primary bg-surface hover:text-primary-hover": params?.context.selected
+        "font-semibold text-on-component bg-surface hover:text-on-surface-hover":
+          params?.context.selected
       },
       {
-        "font-medium bg-surface-tertiary text-on-surface hover:bg-surface hover:text-on-surface-hover":
+        "font-medium bg-surface-secondary text-on-surface hover:bg-surface hover:text-on-surface-hover":
           !params?.context.selected
       }
     )
   }),
-  itemLabel: { className: "font-medium" },
-  itemGroupLabel: { className: "font-semibold" },
+  itemLabel: { className: "font-medium uppercase" },
+  itemGroupLabel: { className: "font-semibold uppercase" },
   itemGroup: {
     className: classNames(
       "p-3 m-0 border-b-2 cursor-auto text-on-component bg-component-strong border-component font-display"
@@ -72,7 +73,7 @@ export const DropdownPT: DropdownPassThroughOptions = {
   },
   header: {
     className: classNames(
-      "p-3 mt-0 rounded-tl-lg rounded-tr-lg border-b text-on-surface bg-surface-tertiary border-component font-display"
+      "p-3 mt-0 rounded-tl-lg rounded-tr-lg border-b text-on-surface bg-surface-secondary border-component font-display"
     )
   },
   filterContainer: { className: "relative bg-surface" },
@@ -81,7 +82,7 @@ export const DropdownPT: DropdownPassThroughOptions = {
     className: classNames(
       "pr-7 -mr-7",
       "w-full",
-      "pl-5 font-medium transition duration-200 appearance-none outline-none font-display text-on-surface bg-surface-tertiary"
+      "pl-5 font-medium transition duration-200 appearance-none outline-none font-display text-on-surface bg-surface-secondary"
     )
   },
   filterIcon: { className: "absolute top-1/2 -mt-2" },

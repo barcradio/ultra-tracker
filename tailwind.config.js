@@ -16,6 +16,13 @@ module.exports = {
       fontFamily: {
         'display': ['IBM Plex Mono', 'sans-serif'],
       },
+      width: {
+        "104": "26rem",
+        "112": "28rem",
+        "120": "30rem",
+        "128": "32rem",
+        "144": "36rem",
+      },
       animation: {
         "bounce-right-in": "ease-in-out bounce-right-in 0.75s",
         "bounce-right-out": "ease-in-out bounce-right-out 0.75s",
