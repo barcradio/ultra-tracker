@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DatabaseStatus } from "$shared/enums";
 import { RunnerDB } from "$shared/models";
 import { Runner } from "./useRunnerData";
-import { useHandleErrorToasts } from "../useHandleErrors";
+import { ToastOnStatus, useHandleStatusToasts } from "../useHandleStatusToasts";
 import { useIpcRenderer } from "../useIpcRenderer";
 
 // import { useToasts } from "~/features/Toasts/useToasts";
@@ -19,16 +20,20 @@ const runnerToRunnerDB = (runner: Runner): RunnerDB => ({
   status: -1 // will be set by the backend
 });
 
-function useTimingMutation(channel: string) {
+interface TimingMutationOptions {
+  toastsOnStatus?: ToastOnStatus<Runner>;
+}
+
+function useTimingMutation(channel: string, options: TimingMutationOptions = {}) {
   const ipcRenderer = useIpcRenderer();
   const queryClient = useQueryClient();
-  const handleError = useHandleErrorToasts();
+  const handleError = useHandleStatusToasts(options.toastsOnStatus);
 
   return useMutation({
     mutationFn: async (timeRecord: Runner) => {
       const response = await ipcRenderer.invoke(channel, runnerToRunnerDB(timeRecord));
       const [status, message] = response;
-      handleError(status, message);
+      handleError(status, message, timeRecord);
     },
     onSuccess: () => {
       // Invalidate the queries to refetch the data,
@@ -40,6 +45,26 @@ function useTimingMutation(channel: string) {
   });
 }
 
-export const useEditTiming = () => useTimingMutation("edit-timing-record");
 export const useCreateTiming = () => useTimingMutation("add-timing-record");
-export const useDeleteTiming = () => useTimingMutation("delete-timing-record");
+
+export const useEditTiming = () => {
+  return useTimingMutation("edit-timing-record", {
+    toastsOnStatus: {
+      [DatabaseStatus.Updated]: (runner) => ({
+        message: `Runner #${runner?.runner} updated!`,
+        type: "success"
+      })
+    }
+  });
+};
+
+export const useDeleteTiming = () => {
+  return useTimingMutation("delete-timing-record", {
+    toastsOnStatus: {
+      [DatabaseStatus.Deleted]: (runner) => ({
+        message: `Runner #${runner?.runner} deleted!`,
+        type: "success"
+      })
+    }
+  });
+};

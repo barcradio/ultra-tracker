@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { AthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
-import { useHandleErrorToasts } from "../useHandleErrors";
+import { useHandleStatusToasts } from "../useHandleStatusToasts";
 import { useIpcRenderer } from "../useIpcRenderer";
 
 export function useAthlete(bibNumber: number, enabled: boolean = true) {
   const ipcRenderer = useIpcRenderer();
-  const handleErrors = useHandleErrorToasts();
+  const handleErrors = useHandleStatusToasts();
 
   return useQuery({
     enabled,

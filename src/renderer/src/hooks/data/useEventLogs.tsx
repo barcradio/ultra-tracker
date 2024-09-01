@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { EventLogRec } from "$shared/models";
-import { useHandleErrorToasts } from "../useHandleErrors";
+import { useHandleStatusToasts } from "../useHandleStatusToasts";
 import { useIpcRenderer } from "../useIpcRenderer";
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 
 export function useEventLogs(props?: Props) {
   const ipcRenderer = useIpcRenderer();
-  const handleErrors = useHandleErrorToasts();
+  const handleErrors = useHandleStatusToasts();
 
   return useQuery({
     queryKey: ["event-logs"],

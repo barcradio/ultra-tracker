@@ -39,7 +39,6 @@ export function EditRunner(props: Props) {
       form.reset({ ...data });
       setIsOpen(false);
       editTiming.mutate(data);
-      createToast({ message: `Runner #${data.runner} updated`, type: "success" }); // TODO: need to determine if successful
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -50,7 +49,6 @@ export function EditRunner(props: Props) {
 
   const handleDeleteRunner = () => {
     deleteTiming.mutate(selectedRunner.state);
-    createToast({ message: "Runner deleted", type: "success" }); // TODO: need to determine if successful
     setIsConfirmOpen(true);
     setIsOpen(false);
   };

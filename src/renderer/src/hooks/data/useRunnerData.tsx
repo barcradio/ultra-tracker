@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
-import { useHandleErrorToasts } from "../useHandleErrors";
+import { useHandleStatusToasts } from "../useHandleStatusToasts";
 import { useIpcRenderer } from "../useIpcRenderer";
 
 export interface Runner {
@@ -17,7 +17,7 @@ export interface RunnerWithSequence extends Runner {
 }
 
 export function useRunnerData() {
-  const handleError = useHandleErrorToasts();
+  const handleError = useHandleStatusToasts();
   const ipcRenderer = useIpcRenderer();
 
   return useQuery({
