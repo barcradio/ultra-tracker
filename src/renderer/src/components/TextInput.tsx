@@ -5,7 +5,7 @@ import { classed } from "~/lib/classed";
 import { Stack } from "./Stack";
 
 export const InputBaseStyles =
-  "p-2 w-full rounded-md border-2 outline-none bg-surface-secondary text-on-component font-display placeholder:text-component-strong border-component";
+  "p-2 w-full font-medium rounded-md border-2 outline-none bg-surface-secondary font-display placeholder:text-component-strong border-component";
 
 const Input = classed.input({
   base: InputBaseStyles,
@@ -13,6 +13,10 @@ const Input = classed.input({
     hasError: {
       true: "border-warning",
       false: "border-component"
+    },
+    isDisabled: {
+      true: "text-on-surface",
+      false: "text-on-component"
     }
   },
   defaultVariants: {
@@ -35,14 +39,19 @@ export interface TextInputProps extends InputProps {
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>((props, ref) => {
   return (
-    <Stack direction="col" className="gap-1 w-full">
+    <Stack direction="col" className={`gap-1 ${props.className}`}>
       <Stack direction="row" align="center" className="gap-2.5">
         {props.label && <Label {...props.labelProps}>{props.label}</Label>}
         {props.error && (
           <WarningIcon width={20} className="fill-warning animate-in slide-in-from-left" />
         )}
       </Stack>
-      <Input {...props} ref={ref} hasError={Boolean(props.error)} />
+      <Input
+        {...props}
+        ref={ref}
+        hasError={Boolean(props.error)}
+        isDisabled={Boolean(props.disabled)}
+      />
     </Stack>
   );
 });
