@@ -3,6 +3,7 @@ import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
+import { useAthlete } from "~/hooks/data/useAthlete";
 import { RunnerWithSequence } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
@@ -64,6 +65,8 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
+  const { data: athlete } = useAthlete(form.watch("runner"));
+
   // Temporary state for DNF
   const [dnf, setDnf] = useState<string | null>(null);
 
@@ -97,7 +100,7 @@ export function EditRunner(props: Props) {
               Sequence {selectedRunner.state.sequence}
             </h1>
 
-            <Stack align="center" justify="between" className="w-full">
+            <Stack align="center" justify="between" className="w-full mb-6">
               <Button
                 type="button"
                 variant="ghost"
@@ -119,15 +122,25 @@ export function EditRunner(props: Props) {
             </Stack>
 
             <Stack className="gap-4 w-full" direction="col">
-              <TextInput
-                type="number"
-                label="Runner Bib"
-                placeholder="Runner"
-                error={form.formState.errors.runner}
-                {...form.register("runner", {
-                  required: "Runner is required"
-                })}
-              />
+              <Stack className="gap-4 w-full" direction="row" align="center" justify="stretch">
+                <TextInput
+                  className="w-20"
+                  type="number"
+                  label="Bib"
+                  placeholder="Runner"
+                  error={form.formState.errors.runner}
+                  {...form.register("runner", {
+                    required: "Runner is required"
+                  })}
+                />
+                <TextInput
+                  width="w-full"
+                  className="grow"
+                  label="Name"
+                  value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
+                  disabled
+                />
+              </Stack>
               <DatePicker
                 name="in"
                 label="In Time"
@@ -167,6 +180,7 @@ export function EditRunner(props: Props) {
                 />
               </Stack>
               <TextInput
+                className="w-full"
                 label="Note"
                 placeholder="Note"
                 error={form.formState.errors.note}
