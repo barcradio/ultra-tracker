@@ -1,6 +1,6 @@
-import { ReactNode, useEffect, useId } from "react";
+import { ReactNode, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useBackdropContext } from "~/features/Backdrop/useBackdropContext";
+import { useAttachBackdrop } from "~/features/Backdrop/useAttachBackdrop";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { classed } from "~/lib/classed";
 import { Button } from "./Button";
@@ -20,36 +20,35 @@ interface PropsWithAffirm extends Props {
   onAffirmative: () => void;
 }
 
-const ModalElement = classed.div("text-on-component font-display", {
-  variants: {
-    size: {
-      sm: "w-[24rem]",
-      md: "w-[32rem]",
-      lg: "w-[48rem]",
-      auto: "w-auto"
+const ModalElement = classed.div(
+  "cursor-default pointer-events-auto text-on-component font-display",
+  {
+    variants: {
+      size: {
+        sm: "w-[24rem]",
+        md: "w-[32rem]",
+        lg: "w-[48rem]",
+        auto: "w-auto"
+      }
     }
   }
-});
+);
 
 export function Modal(props: Props | PropsWithAffirm) {
+  const { setOpen, open } = props;
   const portalRoot = usePortalRoot();
-  const backdrops = useBackdropContext();
-  const modalId = useId();
-
   const affirmativeButton: boolean = props["affirmativeText"] && props["onAffirmative"];
 
-  useEffect(() => {
-    if (props.open) {
-      backdrops.addBackdrop(`modal-${modalId}`);
-    } else {
-      backdrops.removeBackdrop(`modal-${modalId}`);
-    }
-  }, [props.open, backdrops, modalId]);
+  const handleClose = useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
+
+  useAttachBackdrop(open, handleClose);
 
   return createPortal(
     props.open && (
       <Stack
-        className="fixed top-0 left-0 z-50 w-screen h-screen animate-in zoom-in-75 fade-in"
+        className="fixed top-0 left-0 z-50 w-screen h-screen cursor-pointer pointer-events-none animate-in zoom-in-75 fade-in"
         justify="center"
         align="center"
       >
@@ -60,7 +59,7 @@ export function Modal(props: Props | PropsWithAffirm) {
           <div className="py-4 px-4 bg-component">{props.children}</div>
           {(affirmativeButton || props.showCloseButton) && (
             <Stack justify="end" className="gap-2 p-3 rounded-b-lg bg-component">
-              <Button variant="ghost" color="neutral" onClick={() => props.setOpen(false)}>
+              <Button variant="ghost" color="neutral" onClick={handleClose}>
                 Close
               </Button>
               {affirmativeButton && (

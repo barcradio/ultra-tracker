@@ -1,25 +1,33 @@
-import { useCallback, useState } from "react";
+import { MouseEventHandler, useCallback, useState } from "react";
+
+interface Backdrop {
+  id: string;
+  handler?: MouseEventHandler<HTMLButtonElement>;
+}
 
 export function useBackdrop() {
-  const [backdrops, setBackdrops] = useState<string[]>([]);
+  const [backdrops, setBackdrops] = useState<Backdrop[]>([]);
 
   const addBackdrop = useCallback(
-    (backdropId: string | number) => {
-      if (backdrops.includes(backdropId.toString())) return;
-      setBackdrops((prev) => [...prev, backdropId.toString()]);
+    (backdropId: string | number, handler?: MouseEventHandler<HTMLButtonElement>) => {
+      setBackdrops((prev) => [...prev, { id: backdropId.toString(), handler }]);
     },
-    [backdrops]
+    []
   );
 
-  const removeBackdrop = useCallback(
-    (backdropId: string | number) => {
-      if (!backdrops.includes(backdropId.toString())) return;
-      setBackdrops((prev) => prev.filter((id) => id !== backdropId.toString()));
+  const removeBackdrop = useCallback((backdropId: string | number) => {
+    setBackdrops((prev) => prev.filter((backdrop) => backdrop.id !== backdropId.toString()));
+  }, []);
+
+  const handleBackdropClick: MouseEventHandler<HTMLButtonElement> = useCallback(
+    (event) => {
+      const topBackdrop = backdrops[backdrops.length - 1];
+      if (topBackdrop?.handler) topBackdrop.handler(event);
     },
     [backdrops]
   );
 
   const shouldShowBackdrop = backdrops.length > 0;
 
-  return { addBackdrop, removeBackdrop, shouldShowBackdrop };
+  return { addBackdrop, removeBackdrop, shouldShowBackdrop, handleBackdropClick };
 }

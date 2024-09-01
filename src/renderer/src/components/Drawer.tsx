@@ -1,7 +1,7 @@
-import { ReactNode, useEffect, useId, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import CloseIcon from "~/assets/icons/xmark.svg?react";
-import { useBackdropContext } from "~/features/Backdrop/useBackdropContext";
+import { useAttachBackdrop } from "~/features/Backdrop/useAttachBackdrop";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { classed } from "~/lib/classed";
 import { Button } from "./Button";
@@ -60,19 +60,16 @@ export function Drawer(props: Props) {
   const portalRef = usePortalRoot();
   const bodyRef = useRef(document.querySelector("body"));
 
-  const backdrops = useBackdropContext();
-  const drawerId = useId();
+  useAttachBackdrop(open, handleClose);
 
   // Disable scrolling when the drawer is open
   useEffect(() => {
     if (open) {
-      backdrops.addBackdrop(`drawer-${drawerId}`);
       bodyRef.current!.style.overflow = "hidden";
     } else {
-      backdrops.removeBackdrop(`drawer-${drawerId}`);
       bodyRef.current!.style.overflow = "";
     }
-  }, [open, backdrops, drawerId]);
+  }, [open]);
 
   // Close the drawer when the escape key is pressed
   useEffect(() => {

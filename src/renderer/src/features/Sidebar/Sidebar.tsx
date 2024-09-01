@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
 import DatabaseIcon from "~/assets/icons/database.svg?react";
 import HelpIcon from "~/assets/icons/help.svg?react";
@@ -10,7 +10,7 @@ import { Stack } from "~/components/Stack";
 import { classed } from "~/lib/classed";
 import { SidebarLink } from "./SidebarLink";
 import { ThemeToggle } from "./ThemeToggle";
-import { useBackdropContext } from "../Backdrop/useBackdropContext";
+import { useAttachBackdrop } from "../Backdrop/useAttachBackdrop";
 
 const SidebarElement = classed.div({
   base: "overflow-hidden fixed z-50 pt-8 pb-2 h-full duration-100 ease-in-out bg-surface-secondary transition-width group",
@@ -36,16 +36,7 @@ export function Sidebar() {
   const location = useLocation();
   useEffect(() => setExpand(false), [location.pathname]);
 
-  const backdrops = useBackdropContext();
-  const backdropId = useId();
-
-  useEffect(() => {
-    if (expanded) {
-      backdrops.addBackdrop(`sidebar-${backdropId}`);
-    } else {
-      backdrops.removeBackdrop(`sidebar-${backdropId}`);
-    }
-  }, [expanded, backdrops, backdropId]);
+  useAttachBackdrop(expanded);
 
   return (
     <SidebarElement

@@ -49,13 +49,18 @@ export function EditRunner(props: Props) {
   const handleDeleteRunner = () => {
     deleteTiming.mutate(selectedRunner.state);
     createToast({ message: "Runner deleted", type: "success" }); // TODO: need to determine if successful
-    handleClose();
+    setIsConfirmOpen(true);
+    setIsOpen(false);
   };
 
-  const handleClose = (confirmOpen?: boolean) => {
+  const handleClose = () => {
     form.reset(props.runner); // Reset the form to the original runner
-    setIsConfirmOpen(confirmOpen ?? false);
     setIsOpen(false);
+  };
+
+  const handleOpenDelete = () => {
+    handleClose();
+    setIsConfirmOpen(true);
   };
 
   return (
@@ -156,7 +161,7 @@ export function EditRunner(props: Props) {
             <Button
               variant="ghost"
               color="danger"
-              onClick={() => handleClose(true)}
+              onClick={() => handleOpenDelete()}
               size="lg"
               type="button"
             >
