@@ -31,7 +31,7 @@ export const CalendarPT: CalendarPassThroughOptions = {
   // Input
   input: {
     root: {
-      className: `p-2 w-full rounded-l-md cursor-pointer bg-surface-secondary font-display text-on-on-component`,
+      className: `p-2 w-full font-medium rounded-l-md cursor-pointer bg-surface-secondary font-display text-on-on-component`,
       readOnly: "readonly"
     }
   },

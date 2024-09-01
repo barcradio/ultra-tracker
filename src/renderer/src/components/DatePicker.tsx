@@ -29,7 +29,7 @@ export function DatePicker<T extends FieldValues>(props: Props<T>) {
       rules={props.rules}
       name={props.name}
       render={({ field, fieldState }) => (
-        <Stack direction="col" className="gap-1 w-full">
+        <Stack direction="col" className="gap-1 w-full grow">
           <Stack direction="row" align="center" className="gap-2.5">
             {props.label && <Label {...props.labelProps}>{props.label}</Label>}
             {fieldState.error && (

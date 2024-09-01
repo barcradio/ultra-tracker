@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
-import { Button, Drawer, Modal, Stack, TextInput } from "~/components";
+import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
+import { useAthlete } from "~/hooks/data/useAthlete";
 import { RunnerWithSequence } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
@@ -24,6 +25,7 @@ export function EditRunner(props: Props) {
   const { createToast } = useToasts();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
 
@@ -63,6 +65,11 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
+  const { data: athlete } = useAthlete(form.watch("runner"), isOpen);
+
+  // Temporary state for DNF
+  const [dnf, setDnf] = useState<string | null>(null);
+
   return (
     <>
       <Button
@@ -77,109 +84,140 @@ export function EditRunner(props: Props) {
         open={isOpen}
         handleClose={handleClose}
         position="right"
-        className="w-96 font-display"
+        className="w-104 font-display"
         showCloseIcon={false}
       >
-        <Stack className="gap-6 px-6 pt-8" direction="col" as="form" onSubmit={handleSaveRunner}>
-          <h1 className="w-full text-4xl font-bold text-center uppercase font-display">
-            Sequence {selectedRunner.state.sequence}
-          </h1>
+        <Stack
+          className="gap-6 py-8 px-6 h-full"
+          direction="col"
+          justify="between"
+          align="center"
+          as="form"
+          onSubmit={handleSaveRunner}
+        >
+          <span className="w-full">
+            <h1 className="w-full text-4xl font-bold text-center uppercase font-display">
+              Sequence {selectedRunner.state.sequence}
+            </h1>
 
-          <Stack align="center" justify="between" className="w-full">
-            <Button
-              type="button"
-              variant="ghost"
-              color="primary"
-              className="text-xl underline"
-              onClick={() => selectedRunner.previous()}
-            >
-              {"< PREV"}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              color="primary"
-              className="text-xl underline"
-              onClick={() => selectedRunner.next()}
-            >
-              {"NEXT >"}
-            </Button>
-          </Stack>
+            <Stack align="center" justify="between" className="mb-6 w-full">
+              <Button
+                type="button"
+                variant="ghost"
+                color="primary"
+                className="text-xl underline"
+                onClick={() => selectedRunner.previous()}
+              >
+                {"< PREV"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                color="primary"
+                className="text-xl underline"
+                onClick={() => selectedRunner.next()}
+              >
+                {"NEXT >"}
+              </Button>
+            </Stack>
 
-          <Stack className="gap-4 w-full" direction="col">
-            <TextInput
-              type="number"
-              label="Runner Bib"
-              placeholder="Runner"
-              error={form.formState.errors.runner}
-              {...form.register("runner", {
-                required: "Runner is required"
-              })}
-            />
-            <DatePicker
-              name="in"
-              label="In Time"
-              control={form.control}
-              rules={{
-                validate: (value, { out: outTime }) => {
-                  if (value && outTime && value > outTime)
-                    return "Runners cannot exit station before entering";
-                  return true;
-                }
-              }}
-              showTime
-              showSeconds
-            />
-            <DatePicker
-              name="out"
-              label="Out Time"
-              control={form.control}
-              rules={{
-                validate: (value, { in: inTime }) => {
-                  if (value && inTime && value < inTime)
-                    return "Runners cannot exit station before entering";
-                  return true;
-                }
-              }}
-              showTime
-              showSeconds
-            />
-            <TextInput
-              label="Note"
-              placeholder="Note"
-              error={form.formState.errors.note}
-              {...form.register("note", {
-                validate: (value) => {
-                  if (value.includes(",")) return "Commas are not allowed in the notes field";
-                  return true;
-                }
-              })}
-            />
-          </Stack>
+            <Stack className="gap-4 w-full" direction="col">
+              <Stack className="gap-4 w-full" direction="row" align="center" justify="stretch">
+                <TextInput
+                  className="w-20"
+                  type="number"
+                  label="Bib"
+                  placeholder="Runner"
+                  error={form.formState.errors.runner}
+                  {...form.register("runner", {
+                    required: "Runner is required"
+                  })}
+                />
+                <TextInput
+                  width="w-full"
+                  className="grow"
+                  label="Name"
+                  value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
+                  disabled
+                />
+              </Stack>
+              <DatePicker
+                name="in"
+                label="In Time"
+                control={form.control}
+                rules={{
+                  validate: (value, { out: outTime }) => {
+                    if (value && outTime && value > outTime)
+                      return "Runners cannot exit station before entering";
+                    return true;
+                  }
+                }}
+                showTime
+                showSeconds
+              />
+              <Stack direction="row" align="end" justify="stretch" className="gap-6 w-full">
+                <DatePicker
+                  name="out"
+                  label="Out Time"
+                  control={form.control}
+                  rules={{
+                    validate: (value, { in: inTime }) => {
+                      if (value && inTime && value < inTime)
+                        return "Runners cannot exit station before entering";
+                      return true;
+                    }
+                  }}
+                  showTime
+                  showSeconds
+                />
+                <Select
+                  className="w-72 grow-0"
+                  label="DNF"
+                  value={dnf}
+                  onChange={(value) => setDnf(value)}
+                  options={["Medical", "Withdrew", "Time", "None"]}
+                  placeholder="DNF"
+                />
+              </Stack>
+              <TextInput
+                className="w-full"
+                label="Note"
+                placeholder="Note"
+                error={form.formState.errors.note}
+                {...form.register("note", {
+                  validate: (value) => {
+                    if (value.includes(",")) return "Commas are not allowed in the notes field";
+                    return true;
+                  }
+                })}
+              />
+            </Stack>
 
-          <Stack className="gap-2 w-full" justify="end" align="center" direction="row">
-            <Button
-              variant="ghost"
-              color="danger"
-              onClick={() => handleOpenDelete()}
-              size="lg"
-              type="button"
-            >
-              DELETE
-            </Button>
-            <Button
-              variant="ghost"
-              color="neutral"
-              onClick={() => handleClose()}
-              size="lg"
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button variant="solid" color="primary" size="lg" type="submit">
-              Apply
-            </Button>
-          </Stack>
+            <Stack className="gap-8 mt-4 w-full" justify="center" align="center" direction="row">
+              <Button
+                variant="ghost"
+                color="neutral"
+                onClick={() => handleClose()}
+                size="lg"
+                type="button"
+              >
+                Cancel
+              </Button>
+              <Button variant="solid" color="primary" size="lg" type="submit">
+                Apply
+              </Button>
+            </Stack>
+          </span>
+
+          <Button
+            variant="solid"
+            color="danger"
+            onClick={() => handleOpenDelete()}
+            size="lg"
+            type="button"
+          >
+            DELETE
+          </Button>
         </Stack>
       </Drawer>
       <Modal

@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
 import DatabaseIcon from "~/assets/icons/database.svg?react";
+import ExportIcon from "~/assets/icons/export.svg?react";
 import HelpIcon from "~/assets/icons/help.svg?react";
 import LogsIcon from "~/assets/icons/logs.svg?react";
 import RunnerIcon from "~/assets/icons/runner.svg?react";
 import SearchIcon from "~/assets/icons/search.svg?react";
 import SettingsIcon from "~/assets/icons/settings.svg?react";
 import { Stack } from "~/components/Stack";
+import { useAttachBackdrop } from "~/features/Backdrop";
 import { classed } from "~/lib/classed";
 import { SidebarLink } from "./SidebarLink";
 import { ThemeToggle } from "./ThemeToggle";
-import { useAttachBackdrop } from "../Backdrop/useAttachBackdrop";
 
 const SidebarElement = classed.div({
   base: "overflow-hidden fixed z-50 pt-8 pb-2 h-full duration-100 ease-in-out bg-surface-secondary transition-width group",
@@ -56,12 +57,15 @@ export function Sidebar() {
           <SidebarLink to="/logs" icon={LogsIcon}>
             Logs
           </SidebarLink>
-          <SidebarLink to="/database" icon={DatabaseIcon}>
-            Database
+          <SidebarLink to="/export" icon={ExportIcon}>
+            Export
           </SidebarLink>
         </div>
         <div>
           <ThemeToggle />
+          <SidebarLink to="/database" icon={DatabaseIcon}>
+            Database
+          </SidebarLink>
           <SidebarLink to="/settings" icon={SettingsIcon}>
             Settings
           </SidebarLink>

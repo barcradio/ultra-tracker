@@ -20,6 +20,7 @@ const SettingsLazyImport = createFileRoute('/settings')()
 const RosterLazyImport = createFileRoute('/roster')()
 const LogsLazyImport = createFileRoute('/logs')()
 const HelpLazyImport = createFileRoute('/help')()
+const ExportLazyImport = createFileRoute('/export')()
 const DatabaseLazyImport = createFileRoute('/database')()
 const IndexLazyImport = createFileRoute('/')()
 
@@ -44,6 +45,11 @@ const HelpLazyRoute = HelpLazyImport.update({
   path: '/help',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/help.lazy').then((d) => d.Route))
+
+const ExportLazyRoute = ExportLazyImport.update({
+  path: '/export',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/export.lazy').then((d) => d.Route))
 
 const DatabaseLazyRoute = DatabaseLazyImport.update({
   path: '/database',
@@ -71,6 +77,13 @@ declare module '@tanstack/react-router' {
       path: '/database'
       fullPath: '/database'
       preLoaderRoute: typeof DatabaseLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/export': {
+      id: '/export'
+      path: '/export'
+      fullPath: '/export'
+      preLoaderRoute: typeof ExportLazyImport
       parentRoute: typeof rootRoute
     }
     '/help': {
@@ -109,6 +122,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
   DatabaseLazyRoute,
+  ExportLazyRoute,
   HelpLazyRoute,
   LogsLazyRoute,
   RosterLazyRoute,
@@ -125,6 +139,7 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/",
         "/database",
+        "/export",
         "/help",
         "/logs",
         "/roster",
@@ -136,6 +151,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/database": {
       "filePath": "database.lazy.tsx"
+    },
+    "/export": {
+      "filePath": "export.lazy.tsx"
     },
     "/help": {
       "filePath": "help.lazy.tsx"
