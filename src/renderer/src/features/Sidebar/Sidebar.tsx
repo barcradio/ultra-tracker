@@ -7,10 +7,10 @@ import RunnerIcon from "~/assets/icons/runner.svg?react";
 import SearchIcon from "~/assets/icons/search.svg?react";
 import SettingsIcon from "~/assets/icons/settings.svg?react";
 import { Stack } from "~/components/Stack";
+import { useAttachBackdrop } from "~/features/Backdrop";
 import { classed } from "~/lib/classed";
 import { SidebarLink } from "./SidebarLink";
 import { ThemeToggle } from "./ThemeToggle";
-import { useAttachBackdrop } from "../Backdrop/useAttachBackdrop";
 
 const SidebarElement = classed.div({
   base: "overflow-hidden fixed z-50 pt-8 pb-2 h-full duration-100 ease-in-out bg-surface-secondary transition-width group",

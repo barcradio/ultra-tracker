@@ -5,7 +5,7 @@ interface Backdrop {
   handler?: MouseEventHandler<HTMLButtonElement>;
 }
 
-export function useBackdrop() {
+export function useBackdrops() {
   const [backdrops, setBackdrops] = useState<Backdrop[]>([]);
 
   const addBackdrop = useCallback(
@@ -27,7 +27,7 @@ export function useBackdrop() {
     [backdrops]
   );
 
-  const shouldShowBackdrop = backdrops.length > 0;
+  const showBackdrop = backdrops.length > 0;
 
-  return { addBackdrop, removeBackdrop, shouldShowBackdrop, handleBackdropClick };
+  return { addBackdrop, removeBackdrop, showBackdrop, handleBackdropClick };
 }

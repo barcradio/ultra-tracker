@@ -1,5 +1,5 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
-import { BackdropProvider } from "~/features/Backdrop/BackdropContext";
+import { BackdropProvider } from "~/features/Backdrop";
 import { Footer } from "~/features/Footer/Footer";
 import { Header } from "~/features/Header/Header";
 import { Sidebar } from "~/features/Sidebar/Sidebar";
