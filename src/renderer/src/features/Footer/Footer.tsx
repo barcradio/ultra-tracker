@@ -2,17 +2,11 @@ import BarcLogoDark from "~/assets/barc_dark.svg?react";
 import BarcLogoLight from "~/assets/barc_light.svg?react";
 import { Stack } from "~/components";
 import { useTheme } from "~/hooks/dom/useTheme";
-
-const useIdentity = () => {
-  return {
-    aidStation: "12 Ranger Dip",
-    callsign: "N8MLS"
-  };
-};
+import { useStationIdentity } from "../../hooks/data/useStationIdentity";
 
 export function Footer() {
   const { theme } = useTheme();
-  const { aidStation, callsign } = useIdentity();
+  const { data } = useStationIdentity();
 
   return (
     <Stack
@@ -22,10 +16,10 @@ export function Footer() {
     >
       <Stack direction="col">
         <p className="text-on-component">
-          <span className="font-bold">Aid Station</span> - {aidStation}
+          <span className="font-bold">Aid Station</span> - {data?.aidStation}
         </p>
         <p className="text-on-component">
-          <span className="font-bold">Operator Callsign</span> - {callsign}
+          <span className="font-bold">Operator Callsign</span> - {data?.callsign}
         </p>
       </Stack>
 

@@ -3,7 +3,7 @@ import { DatabaseStatus, EntryMode } from "$shared/enums";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { clearStationsTable, createStationsTable } from "./tables-db";
-import { Operator, Station, StationDB } from "../../shared/models";
+import { Operator, Station, StationDB, StationIdentity } from "../../shared/models";
 import { selectStationsFile } from "../lib/file-dialogs";
 
 export async function LoadStations() {
@@ -18,16 +18,81 @@ export async function LoadStations() {
       clearStationsTable();
       createStationsTable();
     }
-    if (index == "event") await appSettings.set("event.name", stationData.event.name);
+    if (index == "event") {
+      await appSettings.set("event.name", stationData.event.name);
+      await appSettings.set("event.starttime", stationData.event.starttime);
+      await appSettings.set("event.endtime", stationData.event.endtime);
+    }
 
     if (index == "stations") {
+      const stations: Station[] = GetStations();
+      if (stations == null) createStationsTable();
+
+      if (GetStations().length > 0) {
+        clearStationsTable();
+        createStationsTable();
+      }
+
       for (const key in stationData.stations) {
         insertStation(stationData[index][key]);
       }
     }
   }
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  setStation(stationIdentifier);
 
   return `${stationFilePath}\r\n${stationData.stations.length} stations imported`;
+}
+
+export async function setStation(stationIdentifier: string) {
+  const selectedStation: Station | null = GetStationByIdentifier(stationIdentifier)?.[0];
+  if (!selectedStation) return;
+
+  // this is the schema for rank of operators in the event file
+  // const rankWords = [
+  //   "primary",
+  //   "secondary",
+  //   "tertiary",
+  //   "quaternary",
+  //   "quinary",
+  //   "senary",
+  //   "septenary",
+  //   "octonary",
+  //   "nonary",
+  //   "denary"
+  // ];
+
+  await appSettings.set("station.name", selectedStation.name);
+  await appSettings.set("station.identifier", selectedStation.identifier);
+  await appSettings.set("station.entrymode", selectedStation.entrymode);
+
+  for (const key in selectedStation.operators as Operator[]) {
+    await appSettings.set(`station.operators.${key}.name`, selectedStation.operators[key].fullname);
+    await appSettings.set(
+      `station.operators.${key}.callsign`,
+      selectedStation.operators[key].callsign
+    );
+    await appSettings.set(`station.operators.${key}.phone`, selectedStation.operators[key].phone);
+    await appSettings.set(
+      `station.operators.${key}.shiftBegin`,
+      selectedStation.operators[key].shiftBegin as unknown as string
+    );
+    await appSettings.set(
+      `station.operators.${key}.shiftEnd`,
+      selectedStation.operators[key].shiftEnd as unknown as string
+    );
+  }
+}
+
+export function GetStationIdentity(): StationIdentity {
+  const stationName = appSettings.getSync("station.name") as string;
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const stationCallsign = appSettings.getSync("station.operators.primary.callsign") as string;
+
+  return {
+    aidStation: `${stationIdentifier.split("-", 1)} ${stationName}`,
+    callsign: stationCallsign
+  };
 }
 
 export function GetStations(): Station[] {
@@ -80,7 +145,7 @@ export function GetStationByIdentifier(identifier: string): DatabaseResponse<Sta
     operators: ops as Operator[]
   };
 
-  message = `stations:Found station with identifier: ${station.name}`;
+  message = `stations:Found station with identifier: ${station.identifier}`;
   console.log(message);
   return [station, DatabaseStatus.Success, message];
 }

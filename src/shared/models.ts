@@ -101,6 +101,11 @@ export type Operator = {
   shiftEnd: Date;
 };
 
+export interface StationIdentity {
+  aidStation: string;
+  callsign: string;
+}
+
 export type DNSRecord = {
   stationId: string;
   bibId: number;
