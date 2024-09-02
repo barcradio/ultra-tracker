@@ -333,13 +333,15 @@ export function updateAthleteDNS(record: DNSRecord): DatabaseResponse {
     const query = db.prepare(`UPDATE Athletes SET dns = ?, note = ? WHERE bibId = ?`);
     query.run(Number(dnsValue), record.note.replaceAll(",", ""), record.bibId);
 
+    const dnsDateTime = parseCSVDate(record.dnsDateTime).toISOString();
+
     logEvent(
       record.bibId,
       record.stationId,
       "",
-      record.dnsDateTime,
-      record.dnsDateTime,
-      `Set(DNS): bibId:${record.bibId} station:'${record.stationId}'`,
+      "",
+      dnsDateTime,
+      `[Set](DNS): bibId:${record.bibId} station:'${record.stationId}'`,
       false,
       verbose
     );
@@ -371,10 +373,10 @@ export function updateAthleteDNF(record: DNFRecord): DatabaseResponse {
     logEvent(
       record.bibId,
       record.stationId,
+      "",
       dnfDateTime,
       dnfDateTime,
-      dnfDateTime,
-      `Set(DNF): bibId: ${record.bibId} type: '${record.dnfType}' station: '${record.stationId}' note: '${record.note}'`,
+      `[Set](DNF): bibId: ${record.bibId} type: '${record.dnfType}' station: '${record.stationId}' note: '${record.note}'`,
       false,
       verbose
     );
@@ -385,14 +387,14 @@ export function updateAthleteDNF(record: DNFRecord): DatabaseResponse {
     }
   }
 
-  function parseCSVDate(timingDate: string): Date {
-    const event = new Date(Date.parse(timingDate));
-    event.setFullYear(new Date().getFullYear());
-    return event;
-  }
-
   const message = `athlete:update bibId: ${record.bibId}, dnf: ${dnfValue}, dnfStation: ${record.stationId}, dnfDateTime: ${dnfDateTime}, note: ${record.note}`;
   return [DatabaseStatus.Updated, message];
+}
+
+function parseCSVDate(timingDate: string): Date {
+  const event = new Date(Date.parse(timingDate));
+  event.setFullYear(new Date().getFullYear());
+  return event;
 }
 
 export function syncAthleteNote(bibId: number, note: string, direction: SyncDirection) {
