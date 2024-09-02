@@ -1,5 +1,6 @@
 import appSettings from "electron-settings";
 import { DatabaseResponse } from "$shared/types";
+import * as dbAthletes from "./athlete-db";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { DatabaseStatus, RecordStatus, RecordType } from "../../shared/enums";
@@ -176,7 +177,6 @@ function updateTimeRecord(
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
-  const note = record.note.replaceAll(",", "");
   const sent = Number(record.sent);
   const status = Number(record.status);
   const verbose = false;
@@ -184,7 +184,7 @@ function updateTimeRecord(
   try {
     // if bib number is changing, then update by index
     if (existingRecord != null && existingRecord.bibId != record.bibId) {
-      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ?, status = ? WHERE "index" = ?`;
+      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, sent = ?, status = ? WHERE "index" = ?`;
       const query = db.prepare(queryString);
       query.run(
         record.bibId,
@@ -192,11 +192,12 @@ function updateTimeRecord(
         timeInISO,
         timeOutISO,
         modifiedISO,
-        note,
         sent,
         status,
         record.index
       );
+
+      dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Incoming);
 
       logEvent(
         record.bibId,
@@ -209,9 +210,10 @@ function updateTimeRecord(
         verbose
       );
     } else {
-      queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, note = ?, sent = ?, status = ? WHERE bibId = ?`;
+      queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, sent = ?, status = ? WHERE bibId = ?`;
       const query = db.prepare(queryString);
-      query.run(stationID, timeInISO, timeOutISO, modifiedISO, note, sent, status, record.bibId);
+      query.run(stationID, timeInISO, timeOutISO, modifiedISO, sent, status, record.bibId);
+      dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Incoming);
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -234,16 +236,17 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
-  const note = record.note.replaceAll(",", "");
   const sent = Number(record.sent);
   const status = Number(record.status);
   const verbose = false;
 
   try {
-    const query = db.prepare(
-      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, note, sent, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    const stmt = db.prepare(
+      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, sent, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    query.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, note, sent, status);
+    stmt.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, sent, status);
+
+    dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Outgoing);
 
     logEvent(
       record.bibId,
