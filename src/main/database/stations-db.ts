@@ -48,19 +48,19 @@ export async function setStation(stationIdentifier: string) {
   const selectedStation: Station | null = GetStationByIdentifier(stationIdentifier)?.[0];
   if (!selectedStation) return;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const rankWords = [
-    "primary",
-    "secondary",
-    "tertiary",
-    "quaternary",
-    "quinary",
-    "senary",
-    "septenary",
-    "octonary",
-    "nonary",
-    "denary"
-  ];
+  // this is the schema for rank of operators in the event file
+  // const rankWords = [
+  //   "primary",
+  //   "secondary",
+  //   "tertiary",
+  //   "quaternary",
+  //   "quinary",
+  //   "senary",
+  //   "septenary",
+  //   "octonary",
+  //   "nonary",
+  //   "denary"
+  // ];
 
   await appSettings.set("station.name", selectedStation.name);
   await appSettings.set("station.identifier", selectedStation.identifier);
