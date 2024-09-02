@@ -35,8 +35,10 @@ export const athletes: string = `
       emergencyPhone INTEGER,
       dns INTEGER,
       dnf INTEGER,
-      dnfStation INTEGER,
-      dnfDateTime DATETIME`;
+      dnfType TEXT,
+      dnfStation TEXT,
+      dnfDateTime DATETIME,
+      note TEXT`;
 
 /*  The Stations table is used to store the operators and the number of the runner station. */
 export const stations = `
