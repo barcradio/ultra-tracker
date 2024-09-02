@@ -8,6 +8,14 @@ export enum DatabaseStatus {
   Success
 }
 
+export enum DNFType {
+  None = "none",
+  Withdrew = "withdrew",
+  Timeout = "timeout",
+  Medical = "medical",
+  Unknown = "unknown"
+}
+
 export enum EntryMode {
   Normal,
   Fast,
