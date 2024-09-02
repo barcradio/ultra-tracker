@@ -269,11 +269,11 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   return [DatabaseStatus.Created, message];
 }
 
-export function markTimeRecordAsSent(bibId: number) {
+export function markTimeRecordAsSent(bibId: number, value: boolean) {
   const db = getDatabaseConnection();
 
   try {
-    db.prepare(`UPDATE StaEvents SET sent = ? WHERE "bibId" = ?`).run(Number(true), bibId);
+    db.prepare(`UPDATE StaEvents SET sent = ? WHERE "bibId" = ?`).run(value, bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);

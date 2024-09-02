@@ -116,6 +116,26 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
 
+function getRunnersNotSent(): DatabaseResponse<RunnerDB> {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let message: string = "";
+
+  try {
+    queryResult = db.prepare(`SELECT * FROM StaEvents WHERE sent == 0`).all();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `GetRunnersNotSent Succeeded`;
+  return [queryResult, DatabaseStatus.Success, message];
+}
+
 export function readRunnersTable(): DatabaseResponse<RunnerDB[]> {
   const db = getDatabaseConnection();
   let queryResult;
@@ -192,7 +212,6 @@ export async function importRunnersFromCSV() {
 
 export function exportUnsentRunnersAsCSV() {
   const path = require("path");
-  const db = getDatabaseConnection();
   const stationId = appSettings.getSync("station.id") as number;
   let fileIndex = appSettings.getSync("incrementalFileIndex") as number;
   let queryResult;
@@ -212,7 +231,8 @@ export function exportUnsentRunnersAsCSV() {
   if (filePath == undefined) return "Invalid file name";
 
   try {
-    queryResult = db.prepare(`SELECT * FROM StaEvents WHERE sent == 0`).all();
+    queryResult = getRunnersNotSent();
+    if (queryResult == null) return `Failed to get unsent runners`;
 
     if (queryResult.length == 0) {
       const previousIndex = fileIndex - 1;
@@ -224,10 +244,6 @@ export function exportUnsentRunnersAsCSV() {
       const previousFilename = `Aid${formattedStationId}times_${formattedPreviousIndex}i.csv`;
       return `No unsent records, previous file: ${previousFilename}`;
     }
-
-    writeToCSV(filePath, queryResult, true);
-    fileIndex++;
-    appSettings.setSync("incrementalFileIndex", fileIndex);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -235,8 +251,22 @@ export function exportUnsentRunnersAsCSV() {
     }
   }
 
-  for (const key in queryResult) {
-    markTimeRecordAsSent(queryResult[key].bibId);
+  try {
+    for (const key in queryResult) {
+      markTimeRecordAsSent(queryResult[key].bibId, true); //set flag before export
+    }
+
+    writeToCSV(filePath, queryResult, true);
+    fileIndex++;
+    appSettings.setSync("incrementalFileIndex", fileIndex);
+  } catch (e) {
+    if (e instanceof Error) {
+      for (const key in queryResult) {
+        markTimeRecordAsSent(queryResult[key].bibId, false); //reset flag if failed
+      }
+      console.error(e.message);
+      return e.message;
+    }
   }
 
   return `Incremental file export successful: ${fileName}`;
