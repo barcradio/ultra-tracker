@@ -229,6 +229,7 @@ function updateTimeRecord(
 function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
   const stationId = appSettings.getSync("station.id") as number;
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
 
   //build the time record
   isDuplicate(record);
@@ -250,7 +251,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
 
     logEvent(
       record.bibId,
-      String(record.stationId), //better to use identifier
+      stationIdentifier,
       timeInISO == null ? "" : timeInISO,
       timeOutISO == null ? "" : timeOutISO,
       modifiedISO == null ? "" : modifiedISO,
