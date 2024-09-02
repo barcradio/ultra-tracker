@@ -5,7 +5,7 @@ import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearAthletesTable, createAthletesTable } from "./tables-db";
 import { DatabaseStatus } from "../../shared/enums";
-import { AthleteDB, DNXRecord } from "../../shared/models";
+import { AthleteDB, DNFRecord, DNSRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
 import { loadAthleteFile, loadDNFFromCSV, loadDNSFromCSV } from "../lib/file-dialogs";
 
@@ -64,7 +64,7 @@ export async function LoadDNS() {
       delimiter: ",",
       columns: headers
     },
-    (error, result: DNXRecord[]) => {
+    (error, result: DNSRecord[]) => {
       if (error) {
         console.error(error);
         return `${result.length} dnsRecords: ${error}`;
@@ -81,7 +81,7 @@ export async function LoadDNS() {
 }
 
 export async function LoadDNF() {
-  const headers = ["stationId", "bibId", "dnfDateTime", "note"];
+  const headers = ["stationId", "bibId", "dnfType", "dnfDateTime", "note"];
   const athleteFilePath = await loadDNFFromCSV();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
 
@@ -91,7 +91,7 @@ export async function LoadDNF() {
       delimiter: ",",
       columns: headers
     },
-    (error, result: DNXRecord[]) => {
+    (error, result: DNFRecord[]) => {
       if (error) {
         console.error(error);
         return `${result.length} dnfRecords: ${error}`;
@@ -118,13 +118,13 @@ export function GetTotalDNS(): number {
 }
 
 export function GetTotalDNF(): number {
-  const count = GetCountFromAthletesWithWhere("dnf", `dnf == 1`);
+  const count = GetCountFromAthletesWithWhere("dnf", `dnf == ${Number(true)}`);
   return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetStationDNF(): number {
-  const stationName = appSettings.getSync("station.name") as string;
-  const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${stationName}'`);
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${stationIdentifier}'`);
   return count[0] == null ? invalidResult : count[0];
 }
 
@@ -134,7 +134,7 @@ export function GetPreviousDNF(): number {
   let queryResult;
 
   try {
-    queryResult = db.prepare(`SELECT * FROM Athletes WHERE dnf = ?`).all(Number(true));
+    queryResult = db.prepare(`SELECT * FROM Athletes WHERE dnf == ?`).all(Number(true));
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -260,10 +260,12 @@ export function GetAthleteFromColumn(
     state: queryResult.state,
     emergencyPhone: queryResult.emergencyPhone,
     emergencyName: queryResult.emergencyName,
-    dns: false,
-    dnf: false,
-    dnfStation: "",
-    dnfDateTime: null
+    dns: queryResult.dns,
+    dnf: queryResult.dnf,
+    dnfType: queryResult.dnfType,
+    dnfStation: queryResult.dnfStation,
+    dnfDateTime: queryResult.dnfDateTime,
+    note: queryResult.note
   };
 
   message = `athletes:Found athlete with bibId: ${runner.bibId}`;
@@ -285,12 +287,14 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   const emergencyName: string = athlete.emergencyName;
   const dns: number = Number(false);
   const dnf: number = Number(false);
-  const dnfStation = -1;
+  const dnfType = null;
+  const dnfStation = null;
   const dnfDateTime = null;
+  const note = null;
 
   try {
     const query = db.prepare(
-      `INSERT INTO Athletes (bibId, firstName, lastName, gender, age, city, state, emergencyPhone, emergencyName, dns, dnf, dnfStation, dnfDateTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Athletes (bibId, firstName, lastName, gender, age, city, state, emergencyPhone, emergencyName, dns, dnf, dnfType, dnfStation, dnfDateTime, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     query.run(
       bibId,
@@ -304,8 +308,10 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
       emergencyName,
       dns,
       dnf,
+      dnfType,
       dnfStation,
-      dnfDateTime
+      dnfDateTime,
+      note
     );
   } catch (e) {
     if (e instanceof Error) {
@@ -318,17 +324,15 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   return [DatabaseStatus.Created, message];
 }
 
-export function updateAthleteDNS(record: DNXRecord): DatabaseResponse {
+export function updateAthleteDNS(record: DNSRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnsValue = true;
   const verbose = false;
 
   try {
-    const query = db.prepare(`UPDATE Athletes SET dns = ? WHERE bibId = ?`);
-    query.run(Number(dnsValue), record.bibId);
+    const query = db.prepare(`UPDATE Athletes SET dns = ?, note = ? WHERE bibId = ?`);
+    query.run(Number(dnsValue), record.note.replaceAll(",", ""), record.bibId);
 
-    const query2 = db.prepare(`UPDATE StaEvents SET note = ? WHERE bibId = ?`);
-    query2.run(record.note.replaceAll(",", ""), record.bibId);
     logEvent(
       record.bibId,
       record.stationId,
@@ -350,27 +354,27 @@ export function updateAthleteDNS(record: DNXRecord): DatabaseResponse {
   return [DatabaseStatus.Updated, message];
 }
 
-export function updateAthleteDNF(record: DNXRecord): DatabaseResponse {
+export function updateAthleteDNF(record: DNFRecord): DatabaseResponse {
   const db = getDatabaseConnection();
-  const dnfValue = true;
+  const dnfValue = Number(true);
+  const dnfDateTime = parseCSVDate(record.dnfDateTime).toISOString();
   const verbose = false;
-  const dnfDateTime = parseCSVDate(record.dnsDateTime).toISOString();
 
   try {
     const query = db.prepare(
-      `UPDATE Athletes SET dnf = ?, dnfStation = ?, dnfDateTime = ? WHERE bibId = ?`
+      `UPDATE Athletes SET dnf = ?, dnfType = ?, dnfStation = ?, dnfDateTime = ? WHERE bibId = ?`
     );
-    query.run(Number(dnfValue), record.stationId, dnfDateTime, record.bibId);
+    query.run(dnfValue, record.dnfType, record.stationId, dnfDateTime, record.bibId);
 
-    const query2 = db.prepare(`UPDATE StaEvents SET note = ? WHERE bibId = ?`);
-    query2.run(record.note.replaceAll(",", ""), record.bibId);
+    syncAthleteNote(record.bibId, record.note, SyncDirection.Outgoing);
+
     logEvent(
       record.bibId,
       record.stationId,
       dnfDateTime,
       dnfDateTime,
       dnfDateTime,
-      `Set(DNF): bibId: ${record.bibId} station: '${record.stationId}' note: '${record.note}'`,
+      `Set(DNF): bibId: ${record.bibId} type: '${record.dnfType}' station: '${record.stationId}' note: '${record.note}'`,
       false,
       verbose
     );
@@ -389,4 +393,45 @@ export function updateAthleteDNF(record: DNXRecord): DatabaseResponse {
 
   const message = `athlete:update bibId: ${record.bibId}, dnf: ${dnfValue}, dnfStation: ${record.stationId}, dnfDateTime: ${dnfDateTime}, note: ${record.note}`;
   return [DatabaseStatus.Updated, message];
+}
+
+export function syncAthleteNote(bibId: number, note: string, direction: SyncDirection) {
+  const db = getDatabaseConnection();
+  const athleteResult = GetAthleteByBib(bibId);
+  let combinedNote = "";
+
+  if (athleteResult[1] != DatabaseStatus.Success) return;
+
+  const athlete = athleteResult[0];
+  const athleteNote = athlete?.note == undefined ? "" : athlete?.note;
+
+  switch (direction) {
+    case SyncDirection.Incoming:
+      combinedNote = note.replaceAll(",", "");
+      break;
+
+    case SyncDirection.Outgoing:
+      combinedNote = note.replaceAll(",", "");
+      combinedNote = note.replaceAll(athleteNote, "");
+      combinedNote = athleteNote.concat(" ", combinedNote);
+      break;
+  }
+
+  try {
+    db.prepare(`UPDATE StaEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
+    db.prepare(`UPDATE Athletes SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  const message = `[sync][note](athlete<->timingRecord) bib:${bibId} note: ${combinedNote}`;
+  return [DatabaseStatus.Updated, message];
+}
+
+export enum SyncDirection {
+  Incoming,
+  Outgoing
 }

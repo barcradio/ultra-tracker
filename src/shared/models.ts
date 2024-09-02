@@ -46,8 +46,10 @@ export type AthleteDB = {
   emergencyName: string;
   dns: boolean | undefined;
   dnf: boolean | undefined;
+  dnfType: string | undefined;
   dnfStation: string | undefined;
   dnfDateTime: Date | null;
+  note: string | undefined;
 };
 
 export type TimingRecord = {
@@ -99,10 +101,18 @@ export type Operator = {
   shiftEnd: Date;
 };
 
-export type DNXRecord = {
+export type DNSRecord = {
   stationId: string;
   bibId: number;
   dnsDateTime: string;
+  note: string;
+};
+
+export type DNFRecord = {
+  stationId: string;
+  bibId: number;
+  dnfType: string;
+  dnfDateTime: string;
   note: string;
 };
 
