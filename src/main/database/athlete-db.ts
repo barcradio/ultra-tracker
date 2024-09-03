@@ -7,7 +7,7 @@ import { clearAthletesTable, createAthletesTable } from "./tables-db";
 import { DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNFRecord, DNSRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
-import { loadAthleteFile, loadDNFFromCSV, loadDNSFromCSV } from "../lib/file-dialogs";
+import * as dialogs from "../lib/file-dialogs";
 
 const invalidResult = -999;
 
@@ -28,7 +28,7 @@ export async function LoadAthletes() {
   clearAthletesTable();
   createAthletesTable();
 
-  const athleteFilePath = await loadAthleteFile();
+  const athleteFilePath = await dialogs.loadAthleteFile();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
 
   parse(
@@ -55,7 +55,7 @@ export async function LoadAthletes() {
 
 export async function LoadDNS() {
   const headers = ["stationId", "bibId", "dnsDateTime", "note"];
-  const athleteFilePath = await loadDNSFromCSV();
+  const athleteFilePath = await dialogs.loadDNSFromCSV();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
 
   parse(
@@ -82,7 +82,7 @@ export async function LoadDNS() {
 
 export async function LoadDNF() {
   const headers = ["stationId", "bibId", "dnfType", "dnfDateTime", "note"];
-  const athleteFilePath = await loadDNFFromCSV();
+  const athleteFilePath = await dialogs.loadDNFFromCSV();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
 
   parse(

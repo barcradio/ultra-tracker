@@ -8,7 +8,7 @@ import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { getColumnNamesFromTable } from "./tables-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
-import { AppPaths, loadRunnersFromCSV, saveRunnersToCSV } from "../lib/file-dialogs";
+import * as dialogs from "../lib/file-dialogs";
 
 const invalidResult = -999;
 
@@ -164,7 +164,7 @@ export function readRunnersTable(): DatabaseResponse<RunnerDB[]> {
 
 export async function importRunnersFromCSV() {
   const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "note"];
-  const runnerCSVFilePath = await loadRunnersFromCSV();
+  const runnerCSVFilePath = await dialogs.loadRunnersFromCSV();
   const fileContent = fs.readFileSync(runnerCSVFilePath[0], { encoding: "utf-8" });
   const stationId = (await appSettings.get("station.id")) as number;
 
@@ -227,7 +227,7 @@ export function exportUnsentRunnersAsCSV() {
   });
 
   const fileName: string = `Aid${formattedStationId}times_${formattedIndex}i.csv`;
-  const filePath: string = path.join(AppPaths.userRoot, fileName);
+  const filePath: string = path.join(dialogs.AppPaths.userRoot, fileName);
   if (filePath == undefined) return "Invalid file name";
 
   try {
@@ -279,11 +279,65 @@ export async function exportRunnersAsCSV() {
 
   try {
     queryResult = db.prepare(`SELECT * FROM StaEvents`).all();
-    filename = await saveRunnersToCSV();
+    filename = await dialogs.saveRunnersToCSV();
 
     if (filename == undefined) return "Invalid file name";
 
     writeToCSV(filename, queryResult, false);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return e.message;
+    }
+  }
+  return `File Export Successful: ${filename}`;
+}
+
+export async function exportDNSAsCSV() {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let filename: string = "";
+
+  const stmt = `SELECT * FROM Athletes WHERE dns == 1`;
+
+  try {
+    queryResult = db.prepare(stmt).all();
+    filename = await dialogs.saveDNSRunnersToCSV();
+
+    if (filename == undefined) return "Invalid file name";
+
+    writeDNSToCSV(filename, queryResult);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return e.message;
+    }
+  }
+  return `File Export Successful: ${filename}`;
+}
+
+export async function exportDNFAsCSV() {
+  const db = getDatabaseConnection();
+  let queryResult;
+  let filename: string = "";
+  const stationIdentifier = appSettings.getSync("station.identifier") as number;
+
+  const stmt = `
+    SELECT t1.dnf, t1.dnfType, t1.dnfStation, t1.dnfDateTime, t2.*
+    FROM Athletes t1 INNER JOIN StaEvents t2
+    ON t2.bibId IN (t1.bibId, t1.dnf, t1.dnfStation)
+    WHERE t1.bibId = t2.bibId
+    AND t1.dnf == 1
+    AND t1.dnfStation == ?
+  `;
+
+  try {
+    queryResult = db.prepare(stmt).all(stationIdentifier);
+    filename = await dialogs.saveDNFRunnersToCSV();
+
+    if (filename == undefined) return "Invalid file name";
+
+    writeDNFToCSV(filename, queryResult);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -325,6 +379,80 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
           `${row.note}`;
         stream.write(rowText + "\n");
       }
+    }
+    stream.on("error", reject);
+    stream.end(resolve);
+  });
+}
+
+interface DNFRunnerDB extends RunnerDB {
+  dnf: number;
+  dnfType: string;
+  dnfStation: string;
+  dnfDateTime: string;
+}
+
+function writeDNSToCSV(filename: string, queryResult) {
+  const fs = require("fs");
+  const eventName = appSettings.getSync("event.name") as string;
+  const eventStartTime = appSettings.getSync("event.starttime") as string;
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const startLineIdentifier = appSettings.getSync("event.startline") as string;
+
+  return new Promise((resolve, reject) => {
+    const stream = fs.createWriteStream(filename);
+
+    // title row
+    const headerText = `${eventName},${stationIdentifier}`;
+    stream.write(headerText + "\n");
+
+    // header row
+    // stationId,bibId,dnsDateTime,note
+    const columnNames = ["stationId", "bibId", "dnsDateTime", "note"];
+    const rowText = `${columnNames[0]},${columnNames[1]},${columnNames[2]},${columnNames[3]}`;
+    stream.write(rowText + "\n");
+
+    for (const row of queryResult as RunnerDB[]) {
+      let rowText = "";
+      rowText =
+        `${startLineIdentifier},` +
+        `${row.bibId},` +
+        `${eventStartTime == null ? "" : formatDate(new Date(eventStartTime))},` +
+        `${row.note}`;
+      stream.write(rowText + "\n");
+    }
+    stream.on("error", reject);
+    stream.end(resolve);
+  });
+}
+
+function writeDNFToCSV(filename: string, queryResult) {
+  const fs = require("fs");
+  const eventName = appSettings.getSync("event.name") as string;
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+
+  return new Promise((resolve, reject) => {
+    const stream = fs.createWriteStream(filename);
+
+    // title row
+    const headerText = `${eventName},${stationIdentifier}`;
+    stream.write(headerText + "\n");
+
+    // header row
+    // stationId,bibId,dnfType,dnfDateTime,note
+    const columnNames = ["stationId", "bibId", "dnfType", "dnfDateTime", "note"];
+    const rowText = `${columnNames[0]},${columnNames[1]},${columnNames[2]},${columnNames[3]},${columnNames[4]}`;
+    stream.write(rowText + "\n");
+
+    for (const row of queryResult as DNFRunnerDB[]) {
+      let rowText = "";
+      rowText =
+        `${row.dnfStation},` +
+        `${row.bibId},` +
+        `${row.dnfType},` +
+        `${row.dnfDateTime == null ? "" : formatDate(new Date(row.dnfDateTime))},` +
+        `${row.note}`;
+      stream.write(rowText + "\n");
     }
     stream.on("error", reject);
     stream.end(resolve);
