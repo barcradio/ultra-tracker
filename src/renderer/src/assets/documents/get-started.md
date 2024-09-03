@@ -138,15 +138,15 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 **Releases**: [https://github.com/barcradio/ultra-tracker/releases](https://github.com/barcradio/ultra-tracker/releases)
 
 ## Contributors
-| <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Callsign**</div> | <div style="width:200px;fontSize:larger">**GitHub**</div> |
-| :------------------- | :----------- | :----------------------------------------------------- |
-| **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)           |
-| **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)             |
-| **Russ Leikis**      | KE7VFI       | [**@rleikis**](https://github.com/rleikis)             |
-| **Jorden Luke**      | KF7YEM       | [**@JordenLuke**](https://github.com/JordenLuke)       |
-| **Brian Marble**     | KG7AFQ       | [**@brianmarble**](https://github.com/brianmarble)     |
-| **Mitch Smith**      | N8MLS        | [**@pxls2prnt**](https://github.com/pxls2prnt)         |
-| **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)           |
+> | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Callsign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
+> | :------------------- | :----------- | :----------------------------------------------------- |
+> | **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)           |
+> | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)             |
+> | **Russ Leikis**      | KE7VFI       | [**@rleikis**](https://github.com/rleikis)             |
+> | **Jorden Luke**      | KF7YEM       | [**@JordenLuke**](https://github.com/JordenLuke)       |
+> | **Brian Marble**     | KG7AFQ       | [**@brianmarble**](https://github.com/brianmarble)     |
+> | **Mitch Smith**      | N8MLS        | [**@pxls2prnt**](https://github.com/pxls2prnt)         |
+> | **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)           |
 
 ## License
 [MIT](https://opensource.org/license/mit) ©2024 [Bridgerland Amatuer Radio Club](https://barconline.org/)
