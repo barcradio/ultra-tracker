@@ -1,10 +1,27 @@
 import { Stack } from "~/components";
+import { Tag } from "~/components/Tag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 import { DNFType } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
 import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
+
+const renderDNFTag = (dnfType?: DNFType) => {
+  switch (dnfType) {
+    case DNFType.Withdrew:
+      return <Tag color="turquoise">Withdrew</Tag>;
+    case DNFType.Timeout:
+      return <Tag color="purple">Time</Tag>;
+    case DNFType.Medical:
+      return <Tag color="red">Medical</Tag>;
+    case DNFType.Unknown:
+      return <Tag color="red">Unknown</Tag>;
+    case DNFType.None:
+    default:
+      return <> </>;
+  }
+};
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
@@ -23,17 +40,17 @@ export function RunnerEntry() {
     {
       field: "in",
       name: "In Time",
-      render: (value) => formatDate(value)
+      render: formatDate
     },
     {
       field: "out",
       name: "Out Time",
-      render: (value) => formatDate(value)
+      render: formatDate
     },
     {
       field: "dnfType",
       name: "DNF",
-      render: (value) => value == (DNFType.None || undefined ? "" : value)
+      render: renderDNFTag
     },
     {
       field: "note",
