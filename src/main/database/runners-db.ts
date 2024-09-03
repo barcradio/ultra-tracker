@@ -3,7 +3,7 @@ import { parse } from "csv-parse";
 import appSettings from "electron-settings";
 import { formatDate } from "$renderer/lib/datetimes";
 import { DatabaseStatus, RecordStatus } from "$shared/enums";
-import { RunnerCSV, RunnerDB } from "$shared/models";
+import { RunnerCSV, RunnerDB, RunnerAthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { getColumnNamesFromTable } from "./tables-db";
@@ -136,13 +136,21 @@ function getRunnersNotSent(): DatabaseResponse<RunnerDB> {
   return [queryResult, DatabaseStatus.Success, message];
 }
 
-export function readRunnersTable(): DatabaseResponse<RunnerDB[]> {
+export function readRunnersTable<T>(
+  includeDNF: T
+): T extends true ? DatabaseResponse<RunnerAthleteDB[]> : DatabaseResponse<RunnerDB[]> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
 
+  const statement = includeDNF
+    ? `SELECT StaEvents.*, Athletes.dnf, Athletes.dnfType
+       FROM "StaEvents" LEFT JOIN "Athletes" 
+       ON StaEvents.bibId = Athletes.bibId`
+    : `SELECT * FROM StaEvents`;
+
   try {
-    queryResult = db.prepare(`SELECT * FROM StaEvents`).all();
+    queryResult = db.prepare(statement).all();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
