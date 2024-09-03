@@ -42,8 +42,8 @@ Entry of numbers and times is assisted by using some specific keys on both an 88
 
 *10-key entry is recommended for all stations.*
 
-> | **In**         | **Out**           | **In and Out**  |
-> | :------------- | :---------------- | :------------- |
+> | <div style="width:150px;fontSize:larger">**In**</div> | <div style="width:150px;fontSize:larger">**Out**</div> | <div style="width:150px;fontSize:larger">**In and Out**</div> |
+> | :------------- | :---------------- | :-------------- |
 > | [Equal]        | [Minus]           | [Slash]         |
 > | [Enter]        | [Numpad-Subtract] | [Backslash]     |
 > | [Numpad-Add]   |                   | [Numpad-Divide] |
@@ -138,14 +138,14 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 **Releases**: [https://github.com/barcradio/ultra-tracker/releases](https://github.com/barcradio/ultra-tracker/releases)
 
 ## Contributors
-| **Name**             | **Callsign** | **GitHub / Social**                                    |
+| <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Callsign**</div> | <div style="width:200px;fontSize:larger">**GitHub**</div> |
 | :------------------- | :----------- | :----------------------------------------------------- |
-| **Jaren Glenn**      | n/a          | [**@derethil**](https://github.com/derethil)           |
+| **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)           |
 | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)             |
 | **Russ Leikis**      | KE7VFI       | [**@rleikis**](https://github.com/rleikis)             |
 | **Jorden Luke**      | KF7YEM       | [**@JordenLuke**](https://github.com/JordenLuke)       |
 | **Brian Marble**     | KG7AFQ       | [**@brianmarble**](https://github.com/brianmarble)     |
-| **Mitch Smith**      | N8MLS        | [**@N8MLS**](https://github.com/N8MLS)                 |
+| **Mitch Smith**      | N8MLS        | [**@pxls2prnt**](https://github.com/pxls2prnt)         |
 | **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)           |
 
 ## License
