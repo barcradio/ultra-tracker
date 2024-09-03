@@ -6,6 +6,7 @@ import { DatePicker } from "~/components/DatePicker";
 import { useAthlete } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
+import { DNFType } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { useToasts } from "../Toasts/useToasts";
 
@@ -64,9 +65,6 @@ export function EditRunner(props: Props) {
   };
 
   const { data: athlete } = useAthlete(form.watch("runner"), isOpen);
-
-  // Temporary state for DNF
-  const [dnf, setDnf] = useState<string | null>(null);
 
   return (
     <>
@@ -170,11 +168,13 @@ export function EditRunner(props: Props) {
                   showSeconds
                 />
                 <Select
+                  onChange={(value) => {
+                    form.setValue("dnfType", value ? (value as DNFType) : DNFType.None);
+                  }}
                   className="w-72 grow-0"
                   label="DNF"
-                  value={dnf}
-                  onChange={(value) => setDnf(value)}
-                  options={["Medical", "Withdrew", "Time", "None"]}
+                  value={form.watch("dnfType")}
+                  options={["medical", "withdrew", "time", "none"]}
                   placeholder="DNF"
                 />
               </Stack>

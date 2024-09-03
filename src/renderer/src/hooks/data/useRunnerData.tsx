@@ -16,7 +16,7 @@ export interface Runner {
 export interface RunnerEx extends Runner {
   sequence: number;
   dnf: boolean;
-  dnfType?: DNFType;
+  dnfType: DNFType;
 }
 
 export function useRunnerData() {
@@ -41,7 +41,7 @@ export function useRunnerData() {
         out: runner.timeOut,
         note: runner.note,
         dnf: runner.dnf ?? false,
-        dnfType: runner.dnfType
+        dnfType: runner.dnfType ?? DNFType.None
       }));
     }
   });

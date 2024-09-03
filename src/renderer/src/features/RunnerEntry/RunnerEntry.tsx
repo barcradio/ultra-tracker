@@ -23,6 +23,12 @@ const renderDNFTag = (dnfType?: DNFType) => {
   }
 };
 
+const sortDNF = (a: RunnerEx, b: RunnerEx) => {
+  if (a.dnfType == DNFType.None) return -1;
+  if (b.dnfType == DNFType.None) return 1;
+  return a.dnfType.localeCompare(b.dnfType);
+};
+
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
 
@@ -30,27 +36,33 @@ export function RunnerEntry() {
     {
       field: "sequence",
       name: "Seq",
-      align: "right"
+      align: "right",
+      width: "10%"
     },
     {
       field: "runner",
       name: "Bib",
-      align: "right"
+      align: "right",
+      width: "10%"
     },
     {
       field: "in",
       name: "In Time",
-      render: formatDate
+      render: formatDate,
+      width: "15%"
     },
     {
       field: "out",
       name: "Out Time",
-      render: formatDate
+      render: formatDate,
+      width: "15%"
     },
     {
       field: "dnfType",
       name: "DNF",
-      render: renderDNFTag
+      render: renderDNFTag,
+      sortFn: sortDNF,
+      width: "10%"
     },
     {
       field: "note",
