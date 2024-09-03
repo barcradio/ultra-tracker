@@ -1,19 +1,10 @@
 import { ReactNode } from "react";
 import { Virtualizer } from "@tanstack/react-virtual";
-import { classed } from "~/lib/classed";
+import { Cell, CellWrapper } from "./Cell";
 import { useKeyFn } from "./hooks/useKeyFn";
 import { useVirtualPadding } from "./hooks/useVirtualPadding";
 import { Row } from "./Row";
 import { Column } from "./types";
-
-const Cell = classed.td("py-1 px-4 h-full text-sm font-medium text-end", {
-  variants: {
-    align: {
-      right: "text-right",
-      left: "text-left"
-    }
-  }
-});
 
 interface Props<T extends object> {
   data: T[];
@@ -57,9 +48,9 @@ export function TableContent<T extends object>(props: Props<T>) {
             </Cell>
           ))}
           {props.actionButtons && (
-            <Cell align="right" className="p-0 opacity-0 group-hover:opacity-100 h-inherit">
+            <CellWrapper align="right" className="p-0 opacity-0 group-hover:opacity-100 h-inherit">
               {props.actionButtons(props.data[row.index])}
-            </Cell>
+            </CellWrapper>
           )}
         </Row>
       ))}

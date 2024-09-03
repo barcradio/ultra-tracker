@@ -19,7 +19,7 @@ interface Props<T extends object> {
   showFooter?: boolean;
 }
 
-const Table = classed.table("overflow-auto w-full font-display text-on-component");
+const Table = classed.table("overflow-auto w-full table-fixed font-display text-on-component");
 
 export function DataGrid<T extends object>(props: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
