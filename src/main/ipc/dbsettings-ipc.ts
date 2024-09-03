@@ -25,14 +25,6 @@ const importRunnersFile: Handler<string> = () => {
   return dbRunners.importRunnersFromCSV();
 };
 
-const exportRunnersFile: Handler<string> = () => {
-  return dbRunners.exportRunnersAsCSV();
-};
-
-const exportIncrementalRunnersFile: Handler<string> = () => {
-  return dbRunners.exportUnsentRunnersAsCSV();
-};
-
 const initializeDatabase: Handler<string> = () => {
   return dbTables.CreateTables();
 };
@@ -47,8 +39,6 @@ export const initdbSettingsHandlers = () => {
   ipcMain.handle("load-dns-file", loadDNSFile);
   ipcMain.handle("load-dnf-file", loadDNFFile);
   ipcMain.handle("import-runners-file", importRunnersFile);
-  ipcMain.handle("export-runners-file", exportRunnersFile);
-  ipcMain.handle("export-incremental-file", exportIncrementalRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);
   ipcMain.handle("clear-database", clearDatabase);
 };

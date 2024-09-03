@@ -2,7 +2,7 @@
 import { ipcMain } from "electron";
 import appSettings from "electron-settings";
 import { resetAppSettings } from "../../preload/data";
-import * as dbAthlete from "../database/athlete-db";
+import * as dbAthletes from "../database/athlete-db";
 import { Handler } from "../types";
 
 const runnerLookup: Handler = () => {
@@ -11,7 +11,7 @@ const runnerLookup: Handler = () => {
   let message: string = "";
 
   try {
-    const result = dbAthlete.GetAthleteByBib(randomBib);
+    const result = dbAthletes.GetAthleteByBib(randomBib);
     const runner = result[0];
 
     if (!runner) {
