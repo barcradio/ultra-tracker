@@ -4,14 +4,14 @@ import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
 import { useAthlete } from "~/hooks/data/useAthlete";
-import { RunnerWithSequence } from "~/hooks/data/useRunnerData";
+import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { useToasts } from "../Toasts/useToasts";
 
 interface Props {
-  runner: RunnerWithSequence;
-  runners: RunnerWithSequence[];
+  runner: RunnerEx;
+  runners: RunnerEx[];
 }
 
 const getErrorMessage = (error: FieldError): string => {

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { DNFType } from "$shared/enums";
 import { RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { useHandleStatusToasts } from "../useHandleStatusToasts";
@@ -12,8 +13,9 @@ export interface Runner {
   note: string;
 }
 
-export interface RunnerWithSequence extends Runner {
+export interface RunnerEx extends Runner {
   sequence: number;
+  dnfType: DNFType;
 }
 
 export function useRunnerData() {
@@ -22,7 +24,7 @@ export function useRunnerData() {
 
   return useQuery({
     queryKey: ["runners-table"],
-    queryFn: async (): Promise<RunnerWithSequence[]> => {
+    queryFn: async (): Promise<RunnerEx[]> => {
       const response = await ipcRenderer.invoke("get-runners-table");
       const [data, status, message]: DatabaseResponse<RunnerDB[]> = response;
 
@@ -36,7 +38,8 @@ export function useRunnerData() {
         runner: runner.bibId,
         in: runner.timeIn,
         out: runner.timeOut,
-        note: runner.note
+        note: runner.note,
+        dnfType: DNFType.Unknown // TODO: get athlete dnf info
       }));
     }
   });

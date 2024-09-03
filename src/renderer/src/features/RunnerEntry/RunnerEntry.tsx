@@ -1,20 +1,23 @@
 import { Stack } from "~/components";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
+import { DNFType } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { RunnerWithSequence, useRunnerData } from "../../hooks/data/useRunnerData";
+import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
 
-  const columns: ColumnDef<RunnerWithSequence> = [
+  const columns: ColumnDef<RunnerEx> = [
     {
       field: "sequence",
+      name: "Seq",
       align: "right"
     },
     {
       field: "runner",
+      name: "Bib",
       align: "right"
     },
     {
@@ -28,8 +31,15 @@ export function RunnerEntry() {
       render: (value) => formatDate(value)
     },
     {
+      field: "dnfType",
+      name: "DNF",
+      render: (value) => value == (DNFType.None || undefined ? "" : value)
+    },
+    {
       field: "note",
-      sortable: false
+      name: "Notes",
+      sortable: false,
+      width: "30%"
     }
   ];
 
