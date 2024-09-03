@@ -37,7 +37,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
     count: props.data.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40,
-    overscan: props.overscan ?? 10
+    overscan: props.overscan ?? 0
   });
 
   const handleSetSortField = (field: keyof T) => {
