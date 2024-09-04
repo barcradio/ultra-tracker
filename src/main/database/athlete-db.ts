@@ -73,7 +73,7 @@ export async function LoadDNS() {
       console.log("Result", result);
 
       result.slice(1).forEach((dnsRecord) => {
-        updateAthleteDNS(dnsRecord);
+        updateAthleteDNSFromCSV(dnsRecord);
       });
       return `${athleteFilePath}\r\n${result.length} dnsRecords imported`;
     }
@@ -100,7 +100,7 @@ export async function LoadDNF() {
       console.log("Result", result);
 
       result.slice(1).forEach((dnfRecord) => {
-        updateAthleteDNF(dnfRecord);
+        updateAthleteDNFFromCSV(dnfRecord);
       });
       return `${athleteFilePath}\r\n${result.length} dnfRecords imported`;
     }
@@ -349,7 +349,7 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   return [DatabaseStatus.Created, message];
 }
 
-export function updateAthleteDNS(record: DNSRecord): DatabaseResponse {
+export function updateAthleteDNSFromCSV(record: DNSRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnsValue = true;
   const verbose = false;
