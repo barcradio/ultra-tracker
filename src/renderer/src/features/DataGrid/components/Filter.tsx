@@ -2,6 +2,7 @@ import { MouseEvent, useRef } from "react";
 import { OverlayPanel } from "primereact/overlaypanel";
 import DotsVerticalIcon from "~/assets/icons/dots-vertical.svg?react";
 import { Button } from "~/components";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { Column } from "../types";
 
 interface Props<T extends object> {
@@ -10,6 +11,7 @@ interface Props<T extends object> {
 }
 
 export function Filter<T extends object>(props: Props<T>) {
+  const portalRoot = usePortalRoot();
   const panelRef = useRef<OverlayPanel>(null);
 
   if (props.column.filterable === false) return null;
@@ -21,7 +23,11 @@ export function Filter<T extends object>(props: Props<T>) {
 
   return (
     <>
-      <OverlayPanel ref={panelRef} onMouseLeave={(event) => panelRef.current?.toggle(event)}>
+      <OverlayPanel
+        ref={panelRef}
+        onMouseLeave={(event) => panelRef.current?.toggle(event)}
+        appendTo={portalRoot?.current}
+      >
         Hello
       </OverlayPanel>
       <Button
