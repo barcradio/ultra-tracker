@@ -83,5 +83,11 @@ export function Stats() {
     }
   ];
 
-  return <DataGrid data={stats} columns={Columns} headerClassName="text-primary" />;
+  return (
+    <DataGrid
+      data={stats}
+      columns={Columns}
+      classNames={{ header: "text-primary", table: "table-auto" }}
+    />
+  );
 }
