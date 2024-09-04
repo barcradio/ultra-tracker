@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { classed } from "~/lib/classed";
 import { Filter, Row, Section } from "./components";
 import { SortIcon } from "./components/SortIcon";
+import { FilterState } from "./hooks/useFilterState";
 import { SortState } from "./hooks/useSortState";
 import { Column } from "./types";
 
@@ -18,8 +19,10 @@ const HeaderContainer = classed.button(
 );
 
 interface Props<T extends object> {
-  data: T[];
   columns: Column<T>[];
+  filterState: FilterState<T>;
+  setFilter: (field: keyof T, filter: string) => void;
+  removeFilter: (field: keyof T) => void;
   sortState: SortState<T>;
   setSortField: (field: keyof T) => void;
   actionButtons?: (row: T) => ReactNode;
@@ -33,6 +36,8 @@ export function Headers<T extends object>(props: Props<T>) {
     return width;
   };
 
+  const isDisabled = (column: Column<T>) => column.sortable === false || props.type === "footer";
+
   return (
     <Section type={props.type}>
       <Row>
@@ -43,15 +48,18 @@ export function Headers<T extends object>(props: Props<T>) {
             className="relative rounded-s bg-component-strong"
           >
             <HeaderContainer
-              className={props.className}
+              className={`header-container ${props.className}`}
               align={column.align ?? "left"}
-              onClick={() => props.setSortField(column.field as keyof T)}
-              disabled={column.sortable === false || props.type === "footer"}
-              type="button"
+              disabled={isDisabled(column)}
+              onClick={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (isDisabled(column)) return;
+                props.setSortField(column.field as keyof T);
+              }}
             >
               {props.type === "header" && (
                 <>
-                  <Filter column={column} />
+                  <Filter column={column} {...props} />
                   <SortIcon column={column} sortState={props.sortState} />
                 </>
               )}

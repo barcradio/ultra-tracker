@@ -38,16 +38,15 @@ export interface TextInputProps extends InputProps {
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>((props, ref) => {
+  const { label, error, labelProps, ...rest } = props;
   return (
     <Stack direction="col" className={`gap-1 ${props.className}`}>
       <Stack direction="row" align="center" className="gap-2.5">
-        {props.label && <Label {...props.labelProps}>{props.label}</Label>}
-        {props.error && (
-          <WarningIcon width={20} className="fill-warning animate-in slide-in-from-left" />
-        )}
+        {label && <Label {...labelProps}>{label}</Label>}
+        {error && <WarningIcon width={20} className="fill-warning animate-in slide-in-from-left" />}
       </Stack>
       <Input
-        {...props}
+        {...rest}
         ref={ref}
         hasError={Boolean(props.error)}
         isDisabled={Boolean(props.disabled)}
