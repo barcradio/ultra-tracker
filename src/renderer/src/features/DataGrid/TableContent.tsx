@@ -47,7 +47,10 @@ export function TableContent<T extends object>(props: Props<T>) {
             </Cell>
           ))}
           {props.actionButtons && (
-            <CellWrapper align="right" className="p-0 opacity-0 group-hover:opacity-100 h-inherit">
+            <CellWrapper
+              align="right"
+              className="p-0 opacity-0 h-inherit group-hover/row:opacity-100"
+            >
               {props.actionButtons(props.data[row.index])}
             </CellWrapper>
           )}

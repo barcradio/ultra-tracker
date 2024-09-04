@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
 import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
-import { Row, Section } from "./components";
+import { Filter, Row, Section } from "./components";
 import { SortState } from "./hooks/useSortState";
 import { Column } from "./types";
 
 const HeaderButton = classed.button(
-  "flex justify-between items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase",
+  "flex justify-between items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase group/header",
   {
     variants: {
       align: {
@@ -79,6 +79,7 @@ export function Headers<T extends object>(props: Props<T>) {
                     height={18}
                   />
                 )}
+                <Filter data={props.data} column={column} />
                 {column.name ?? String(column.field)}
               </HeaderButton>
             )}
