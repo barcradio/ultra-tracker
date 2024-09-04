@@ -12,7 +12,7 @@ const renderDNFTag = (dnfType?: DNFType) => {
     case DNFType.Withdrew:
       return <Tag color="turquoise">Withdrew</Tag>;
     case DNFType.Timeout:
-      return <Tag color="purple">Time</Tag>;
+      return <Tag color="purple">Timeout</Tag>;
     case DNFType.Medical:
       return <Tag color="red">Medical</Tag>;
     case DNFType.Unknown:

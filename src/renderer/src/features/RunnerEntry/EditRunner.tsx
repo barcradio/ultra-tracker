@@ -174,7 +174,7 @@ export function EditRunner(props: Props) {
                   className="w-72 grow-0"
                   label="DNF"
                   value={form.watch("dnfType")}
-                  options={["medical", "withdrew", "time", "none"]}
+                  options={["medical", "withdrew", "timeout", "none"]}
                   placeholder="DNF"
                 />
               </Stack>
