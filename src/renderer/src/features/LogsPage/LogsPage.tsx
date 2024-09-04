@@ -9,29 +9,35 @@ export function LogsPage() {
   const columns: ColumnDef<EventLogRec> = [
     {
       field: "bibId",
-      name: "Bib#"
+      name: "Bib",
+      width: "7%"
     },
     {
       field: "stationId",
-      name: "Station"
+      name: "Station",
+      width: "15%"
     },
     {
       field: "timeIn",
       name: "Time In",
-      render: (value) => formatDate(value)
+      render: formatDate,
+      width: "13%"
     },
     {
       field: "timeOut",
       name: "Time Out",
-      render: (value) => formatDate(value)
+      render: formatDate,
+      width: "13%"
     },
     {
       field: "timeModified",
       name: "Logged At",
-      render: (value) => formatDate(value)
+      render: formatDate,
+      width: "13%"
     },
     {
-      field: "comments"
+      field: "comments",
+      sortable: false
     }
   ];
 
@@ -39,7 +45,7 @@ export function LogsPage() {
     <DataGrid
       data={data ?? []}
       columns={columns}
-      getKey={({ timeModified }) => timeModified?.toISOString() ?? ""}
+      getKey={({ index }) => index}
       initialSort={{ field: "timeModified", ascending: false }}
     />
   );

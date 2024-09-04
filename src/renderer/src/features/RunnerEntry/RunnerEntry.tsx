@@ -1,35 +1,75 @@
 import { Stack } from "~/components";
+import { Tag } from "~/components/Tag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
+import { DNFType } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { RunnerWithSequence, useRunnerData } from "../../hooks/data/useRunnerData";
+import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
+
+const renderDNFTag = (dnfType?: DNFType) => {
+  switch (dnfType) {
+    case DNFType.Withdrew:
+      return <Tag color="turquoise">Withdrew</Tag>;
+    case DNFType.Timeout:
+      return <Tag color="purple">Time</Tag>;
+    case DNFType.Medical:
+      return <Tag color="red">Medical</Tag>;
+    case DNFType.Unknown:
+      return <Tag color="red">Unknown</Tag>;
+    case DNFType.None:
+    default:
+      return <> </>;
+  }
+};
+
+const sortDNF = (a: RunnerEx, b: RunnerEx) => {
+  if (a.dnfType == DNFType.None) return -1;
+  if (b.dnfType == DNFType.None) return 1;
+  return a.dnfType.localeCompare(b.dnfType);
+};
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
 
-  const columns: ColumnDef<RunnerWithSequence> = [
+  const columns: ColumnDef<RunnerEx> = [
     {
       field: "sequence",
-      align: "right"
+      name: "Seq",
+      align: "right",
+      width: "10%"
     },
     {
       field: "runner",
-      align: "right"
+      name: "Bib",
+      align: "right",
+      width: "10%"
     },
     {
       field: "in",
       name: "In Time",
-      render: (value) => formatDate(value)
+      render: formatDate,
+      width: "15%"
     },
     {
       field: "out",
       name: "Out Time",
-      render: (value) => formatDate(value)
+      render: formatDate,
+      width: "15%"
+    },
+    {
+      field: "dnfType",
+      name: "DNF",
+      render: renderDNFTag,
+      sortFn: sortDNF,
+      width: "12%"
     },
     {
       field: "note",
-      sortable: false
+      name: "Notes",
+      sortable: false,
+      width: "30%",
+      render: (note) => note || ""
     }
   ];
 

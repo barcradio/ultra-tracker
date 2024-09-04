@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToasts } from "~/features/Toasts/useToasts";
-import { RunnerWithSequence } from "~/hooks/data/useRunnerData";
+import { RunnerEx } from "~/hooks/data/useRunnerData";
 
-export function useSelectRunnerForm(runner: RunnerWithSequence, runners: RunnerWithSequence[]) {
+export function useSelectRunnerForm(runner: RunnerEx, runners: RunnerEx[]) {
   const { createToast } = useToasts();
   const [currentRunner, setCurrentRunner] = useState(runner);
 
-  const form = useForm<RunnerWithSequence>({
+  const form = useForm<RunnerEx>({
     defaultValues: runner,
     values: currentRunner
   });

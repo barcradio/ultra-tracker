@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { RunnerDB } from "$shared/models";
+import { DNFType } from "$shared/enums";
+import { RunnerAthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { useHandleStatusToasts } from "../useHandleStatusToasts";
 import { useIpcRenderer } from "../useIpcRenderer";
@@ -12,8 +13,10 @@ export interface Runner {
   note: string;
 }
 
-export interface RunnerWithSequence extends Runner {
+export interface RunnerEx extends Runner {
   sequence: number;
+  dnf: boolean;
+  dnfType: DNFType;
 }
 
 export function useRunnerData() {
@@ -22,21 +25,23 @@ export function useRunnerData() {
 
   return useQuery({
     queryKey: ["runners-table"],
-    queryFn: async (): Promise<RunnerWithSequence[]> => {
-      const response = await ipcRenderer.invoke("get-runners-table");
-      const [data, status, message]: DatabaseResponse<RunnerDB[]> = response;
+    queryFn: async (): Promise<RunnerEx[]> => {
+      const response = await ipcRenderer.invoke("get-runners-table", { includeDNF: true });
+      const [data, status, message]: DatabaseResponse<RunnerAthleteDB[]> = response;
 
       const success = handleError(status, message);
 
       if (!success) return [];
 
-      return data!.map((runner: RunnerDB, index: number) => ({
+      return data!.map((runner, index) => ({
         id: runner.index,
         sequence: index + 1,
         runner: runner.bibId,
         in: runner.timeIn,
         out: runner.timeOut,
-        note: runner.note
+        note: runner.note,
+        dnf: runner.dnf ?? false,
+        dnfType: runner.dnfType ?? DNFType.None
       }));
     }
   });
