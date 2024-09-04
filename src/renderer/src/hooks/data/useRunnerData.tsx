@@ -15,6 +15,7 @@ export interface Runner {
 
 export interface RunnerEx extends Runner {
   sequence: number;
+  //dns: boolean;
   dnf: boolean;
   dnfType: DNFType;
 }

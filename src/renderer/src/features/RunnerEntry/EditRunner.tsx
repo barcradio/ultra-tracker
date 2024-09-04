@@ -29,6 +29,7 @@ export function EditRunner(props: Props) {
 
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
+  //const setAthleteDNS = useSetAthleteDNS();
   const setAthleteDNF = useSetAthleteDNF();
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
@@ -41,6 +42,7 @@ export function EditRunner(props: Props) {
       form.reset({ ...data });
       setIsOpen(false);
       editTiming.mutate(data);
+      //setAthleteDNS.mutate(data);
       data.dnf = (data.dnfType as DNFType) != DNFType.None;
       setAthleteDNF.mutate(data);
     },

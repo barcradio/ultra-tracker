@@ -273,6 +273,24 @@ export function GetAthleteFromColumn(
   return [runner, DatabaseStatus.Success, message];
 }
 
+export function SetDNSOnAthlete(bibId: number, dnsValue: boolean): DatabaseResponse {
+  const db = getDatabaseConnection();
+  let message: string = "";
+
+  try {
+    const query = db.prepare(`UPDATE Athletes SET dns = ? WHERE bibId = ?`);
+    query.run(Number(dnsValue), bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  message = `athlete:update bibId: ${bibId}, dns: ${dnsValue}`;
+  return [DatabaseStatus.Updated, message];
+}
+
 export function SetDNFOnAthlete(
   bibId: number,
   dnfValue: boolean,
