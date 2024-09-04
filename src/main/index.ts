@@ -77,6 +77,16 @@ app.on("ready", async () => {
   });
 
   openDevToolsOnDomReady(mainWindow);
+
+  // Prevent navigation in the main window
+  const handleRedirect = (event: Electron.Event, url: string) => {
+    if (url !== mainWindow.webContents.getURL()) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  };
+
+  mainWindow.webContents.on("will-navigate", handleRedirect);
 });
 
 app.on("browser-window-created", (_, window) => {
