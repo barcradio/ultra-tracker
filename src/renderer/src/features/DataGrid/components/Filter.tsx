@@ -21,7 +21,9 @@ export function Filter<T extends object>(props: Props<T>) {
 
   return (
     <>
-      <OverlayPanel ref={panelRef}>Hello</OverlayPanel>
+      <OverlayPanel ref={panelRef} onMouseLeave={(event) => panelRef.current?.toggle(event)}>
+        Hello
+      </OverlayPanel>
       <Button
         variant="ghost"
         color="neutral"
