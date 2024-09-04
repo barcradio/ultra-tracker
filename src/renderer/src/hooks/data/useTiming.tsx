@@ -39,7 +39,6 @@ function useTimingMutation(channel: string, options: TimingMutationOptions = {})
       // Invalidate the queries to refetch the data,
       // so that the new/updated timing record is displayed
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
-      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
       queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     }
   });
