@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
-import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
 import { Filter, Row, Section } from "./components";
+import { SortIcon } from "./components/SortIcon";
 import { SortState } from "./hooks/useSortState";
 import { Column } from "./types";
 
@@ -17,25 +17,6 @@ const HeaderButton = classed.button(
   }
 );
 
-const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200 fill-on-surface", {
-  variants: {
-    ascending: {
-      false: "transform rotate-180"
-    },
-    active: {
-      true: "opacity-100",
-      false: "opacity-0"
-    },
-    align: {
-      right: "left-0",
-      left: "right-0"
-    }
-  },
-  defaultVariants: {
-    align: "right"
-  }
-});
-
 interface Props<T extends object> {
   data: T[];
   columns: Column<T>[];
@@ -47,8 +28,6 @@ interface Props<T extends object> {
 }
 
 export function Headers<T extends object>(props: Props<T>) {
-  const isActive = (field: keyof T) => props.sortState.field === field;
-
   const width = (width: Column<T>["width"]) => {
     if (typeof width === "number") return `${width}px`;
     return width;
@@ -63,26 +42,21 @@ export function Headers<T extends object>(props: Props<T>) {
             style={{ width: width(column.width) }}
             className="relative rounded-s bg-component-strong"
           >
-            {column.field !== null && (
-              <HeaderButton
-                className={props.className}
-                align={column.align ?? "left"}
-                onClick={() => props.setSortField(column.field as keyof T)}
-                disabled={column.sortable === false || props.type === "footer"}
-                type="button"
-              >
-                {props.type === "header" && (
-                  <SortIcon
-                    active={isActive(column.field)}
-                    ascending={props.sortState.ascending}
-                    align={column.align ?? "left"}
-                    height={18}
-                  />
-                )}
-                <Filter data={props.data} column={column} />
-                {column.name ?? String(column.field)}
-              </HeaderButton>
-            )}
+            <HeaderButton
+              className={props.className}
+              align={column.align ?? "left"}
+              onClick={() => props.setSortField(column.field as keyof T)}
+              disabled={column.sortable === false || props.type === "footer"}
+              type="button"
+            >
+              {props.type === "header" && (
+                <>
+                  <SortIcon column={column} sortState={props.sortState} />
+                  <Filter data={props.data} column={column} />
+                </>
+              )}
+              {column.name ?? String(column.field)}
+            </HeaderButton>
           </th>
         ))}
         {props.actionButtons && <th className="relative bg-component-strong" />}
