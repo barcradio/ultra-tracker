@@ -1,19 +1,6 @@
 import { CalendarPassThroughOptions } from "primereact/calendar";
 import { classNames } from "primereact/utils";
 
-const TRANSITIONS = {
-  overlay: {
-    timeout: 150,
-    classNames: {
-      enter: "opacity-0 scale-90",
-      enterActive:
-        "opacity-100 transition-opacity transition-transform duration-150 ease-in !scale-100",
-      exit: "opacity-100",
-      exitActive: "transition-opacity duration-150 ease-linear !opacity-0"
-    }
-  }
-};
-
 export const CalendarPT: CalendarPassThroughOptions = {
   // Root
   root: {
@@ -145,5 +132,13 @@ export const CalendarPT: CalendarPassThroughOptions = {
     )
   },
   // Transitions
-  transition: TRANSITIONS.overlay
+  transition: {
+    timeout: 150,
+    classNames: {
+      enter: "opacity-0 scale-y-90",
+      enterActive: "opacity-100 transition duration-150 ease-in !scale-y-100",
+      exit: "opacity-100",
+      exitActive: "transition-opacity duration-150 ease-linear !opacity-0"
+    }
+  }
 };
