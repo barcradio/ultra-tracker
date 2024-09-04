@@ -62,13 +62,14 @@ export function RunnerEntry() {
       name: "DNF",
       render: renderDNFTag,
       sortFn: sortDNF,
-      width: "10%"
+      width: "12%"
     },
     {
       field: "note",
       name: "Notes",
       sortable: false,
-      width: "30%"
+      width: "30%",
+      render: (note) => note || ""
     }
   ];
 

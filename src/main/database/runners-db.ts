@@ -3,7 +3,7 @@ import { parse } from "csv-parse";
 import appSettings from "electron-settings";
 import { formatDate } from "$renderer/lib/datetimes";
 import { DatabaseStatus, RecordStatus } from "$shared/enums";
-import { RunnerCSV, RunnerDB, RunnerAthleteDB } from "$shared/models";
+import { RunnerAthleteDB, RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { getColumnNamesFromTable } from "./tables-db";
@@ -145,7 +145,7 @@ export function readRunnersTable<T>(
 
   const statement = includeDNF
     ? `SELECT StaEvents.*, Athletes.dnf, Athletes.dnfType
-       FROM "StaEvents" LEFT JOIN "Athletes" 
+       FROM "StaEvents" LEFT JOIN "Athletes"
        ON StaEvents.bibId = Athletes.bibId`
     : `SELECT * FROM StaEvents`;
 
