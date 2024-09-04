@@ -7,7 +7,7 @@ import { useIpcRenderer } from "../useIpcRenderer";
 
 export interface Runner {
   id: number;
-  runner: number;
+  bibId: number;
   in: Date | null;
   out: Date | null;
   note: string;
@@ -15,6 +15,7 @@ export interface Runner {
 
 export interface RunnerEx extends Runner {
   sequence: number;
+  //dns: boolean;
   dnf: boolean;
   dnfType: DNFType;
 }
@@ -36,7 +37,7 @@ export function useRunnerData() {
       return data!.map((runner, index) => ({
         id: runner.index,
         sequence: index + 1,
-        runner: runner.bibId,
+        bibId: runner.bibId,
         in: runner.timeIn,
         out: runner.timeOut,
         note: runner.note,

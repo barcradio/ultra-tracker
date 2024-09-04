@@ -27,7 +27,7 @@ export interface RunnerCSV {
 export interface Runner {
   id: number;
   sequence: number;
-  runner: number;
+  bibId: number;
   in: Date | string;
   out: Date | string;
   note: string;

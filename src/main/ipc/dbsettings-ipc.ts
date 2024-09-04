@@ -9,7 +9,9 @@ const loadStationFile: Handler<string> = () => {
   return dbStations.LoadStations();
 };
 
-const loadAthletesFile: Handler<string> = () => {
+const loadAthletesFile: Handler<string> = (event, args) => {
+  console.log(`mainFrame URL: ${event.sender.mainFrame.url}`);
+  console.log(args);
   return dbAthlete.LoadAthletes();
 };
 

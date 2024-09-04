@@ -14,7 +14,7 @@ export function RunnerFormStats() {
 
     createTiming.mutate({
       id: -1,
-      runner: parseInt(bibNumber),
+      bibId: parseInt(bibNumber),
       in: type == RecordType.In || type == RecordType.InOut ? new Date() : null,
       out: type == RecordType.Out || type == RecordType.InOut ? new Date() : null,
       note: ""

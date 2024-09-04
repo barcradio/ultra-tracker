@@ -3,7 +3,7 @@ import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
-import { useAthlete } from "~/hooks/data/useAthlete";
+import { useAthlete, useSetAthleteDNF } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { DNFType } from "$shared/enums";
@@ -29,6 +29,8 @@ export function EditRunner(props: Props) {
 
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
+  //const setAthleteDNS = useSetAthleteDNS();
+  const setAthleteDNF = useSetAthleteDNF();
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
@@ -40,6 +42,9 @@ export function EditRunner(props: Props) {
       form.reset({ ...data });
       setIsOpen(false);
       editTiming.mutate(data);
+      //setAthleteDNS.mutate(data);
+      data.dnf = (data.dnfType as DNFType) != DNFType.None;
+      setAthleteDNF.mutate(data);
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -64,7 +69,7 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
-  const { data: athlete } = useAthlete(form.watch("runner"), isOpen);
+  const { data: athlete } = useAthlete(form.watch("bibId"), isOpen);
 
   return (
     <>
@@ -125,9 +130,9 @@ export function EditRunner(props: Props) {
                   step="0.1"
                   label="Bib"
                   placeholder="Runner"
-                  error={form.formState.errors.runner}
-                  {...form.register("runner", {
-                    required: "Runner is required"
+                  error={form.formState.errors.bibId}
+                  {...form.register("bibId", {
+                    required: "Bib# is required"
                   })}
                 />
                 <TextInput
@@ -174,7 +179,7 @@ export function EditRunner(props: Props) {
                   className="w-72 grow-0"
                   label="DNF"
                   value={form.watch("dnfType")}
-                  options={["medical", "withdrew", "time", "none"]}
+                  options={["medical", "withdrew", "timeout", "none"]}
                   placeholder="DNF"
                 />
               </Stack>
@@ -228,9 +233,8 @@ export function EditRunner(props: Props) {
         onAffirmative={handleDeleteRunner}
       >
         <div className="text-center">
-          Are you sure you want to delete the timing record for Runner #
-          {selectedRunner.state.runner}?
-          <span className="font-medium text-danger"> This action cannot be undone.</span>
+          Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}
+          ?<span className="font-medium text-danger"> This action cannot be undone.</span>
         </div>
       </Modal>
     </>

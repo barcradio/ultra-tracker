@@ -10,7 +10,7 @@ import { useIpcRenderer } from "../useIpcRenderer";
 
 const runnerToRunnerDB = (runner: Runner): RunnerDB => ({
   index: runner.id,
-  bibId: runner.runner,
+  bibId: runner.bibId,
   stationId: -1, // will be set by the backend
   timeIn: runner.in?.toString() == "Invalid Date" ? null : runner.in,
   timeOut: runner.out?.toString() == "Invalid Date" ? null : runner.out,
@@ -39,7 +39,6 @@ function useTimingMutation(channel: string, options: TimingMutationOptions = {})
       // Invalidate the queries to refetch the data,
       // so that the new/updated timing record is displayed
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
-      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
       queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     }
   });
@@ -51,7 +50,7 @@ export const useEditTiming = () => {
   return useTimingMutation("edit-timing-record", {
     toastsOnStatus: {
       [DatabaseStatus.Updated]: (runner) => ({
-        message: `Runner #${runner?.runner} updated!`,
+        message: `Runner #${runner?.bibId} updated!`,
         type: "success"
       })
     }
@@ -62,7 +61,7 @@ export const useDeleteTiming = () => {
   return useTimingMutation("delete-timing-record", {
     toastsOnStatus: {
       [DatabaseStatus.Deleted]: (runner) => ({
-        message: `Runner #${runner?.runner} deleted!`,
+        message: `Runner #${runner?.bibId} deleted!`,
         type: "success"
       })
     }
