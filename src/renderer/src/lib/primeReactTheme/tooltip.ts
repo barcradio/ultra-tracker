@@ -28,6 +28,6 @@ export const TooltipPT: TooltipPassThroughOptions = {
   }),
   text: {
     className:
-      "p-3 whitespace-pre-line break-words rounded-md text-on-component bg-surface-tertiary font-display font-medium"
+      "p-3 font-medium whitespace-pre-line break-words rounded-md text-on-component bg-surface-tertiary font-display"
   }
 };
