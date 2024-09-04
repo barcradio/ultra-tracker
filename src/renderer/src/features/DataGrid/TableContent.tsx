@@ -1,9 +1,8 @@
 import { ReactNode } from "react";
 import { Virtualizer } from "@tanstack/react-virtual";
-import { Cell, CellWrapper } from "./Cell";
+import { Cell, CellWrapper, Row } from "./components";
 import { useKeyFn } from "./hooks/useKeyFn";
 import { useVirtualPadding } from "./hooks/useVirtualPadding";
-import { Row } from "./Row";
 import { Column } from "./types";
 
 interface Props<T extends object> {

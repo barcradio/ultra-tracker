@@ -1,9 +1,8 @@
 import { ReactNode } from "react";
 import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
+import { Row, Section } from "./components";
 import { SortState } from "./hooks/useSortState";
-import { Row } from "./Row";
-import { Section } from "./Section";
 import { Column } from "./types";
 
 const HeaderButton = classed.button(
