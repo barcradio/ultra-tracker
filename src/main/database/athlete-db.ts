@@ -4,7 +4,7 @@ import appSettings from "electron-settings";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearAthletesTable, createAthletesTable } from "./tables-db";
-import { DatabaseStatus } from "../../shared/enums";
+import { DNFType, DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNFRecord, DNSRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
 import * as dialogs from "../lib/file-dialogs";
@@ -273,6 +273,31 @@ export function GetAthleteFromColumn(
   return [runner, DatabaseStatus.Success, message];
 }
 
+export function SetDNFOnAthlete(
+  bibId: number,
+  dnfValue: boolean,
+  dnfType: DNFType
+): DatabaseResponse {
+  const db = getDatabaseConnection();
+  let message: string = "";
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+
+  try {
+    const query = db.prepare(
+      `UPDATE Athletes SET dnf = ?, dnfType = ?, dnfStation = ? WHERE bibId = ?`
+    );
+    query.run(Number(dnfValue), dnfType, stationIdentifier, bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  message = `athlete:update bibId: ${bibId}, dnf: ${dnfValue}, dnfType: ${dnfType}`;
+  return [DatabaseStatus.Updated, message];
+}
+
 export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   const db = getDatabaseConnection();
 
@@ -356,7 +381,7 @@ export function updateAthleteDNS(record: DNSRecord): DatabaseResponse {
   return [DatabaseStatus.Updated, message];
 }
 
-export function updateAthleteDNF(record: DNFRecord): DatabaseResponse {
+export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnfValue = Number(true);
   const dnfDateTime = parseCSVDate(record.dnfDateTime).toISOString();

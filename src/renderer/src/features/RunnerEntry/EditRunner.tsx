@@ -3,7 +3,7 @@ import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
-import { useAthlete } from "~/hooks/data/useAthlete";
+import { useAthlete, useSetAthleteDNF } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { DNFType } from "$shared/enums";
@@ -29,6 +29,7 @@ export function EditRunner(props: Props) {
 
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
+  const setAthleteDNF = useSetAthleteDNF();
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
@@ -40,6 +41,8 @@ export function EditRunner(props: Props) {
       form.reset({ ...data });
       setIsOpen(false);
       editTiming.mutate(data);
+      data.dnf = (data.dnfType as DNFType) != DNFType.None;
+      setAthleteDNF.mutate(data);
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
