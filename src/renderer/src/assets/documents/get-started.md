@@ -49,6 +49,8 @@ Entry of numbers and times is assisted by using some specific keys on both an 88
 > | [Numpad-Add]   |                   | [Numpad-Divide] |
 > | [Numpad-Enter] |                   |                 |
 
+![keyboard-layout.png](./img/keyboard-layout.png)
+
 ## Search Page
 The purpose of this page is to function as an full list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and notes entries.
 
