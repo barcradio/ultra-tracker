@@ -64,7 +64,7 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
-  const { data: athlete } = useAthlete(form.watch("runner"), isOpen);
+  const { data: athlete } = useAthlete(form.watch("bibId"), isOpen);
 
   return (
     <>
@@ -125,9 +125,9 @@ export function EditRunner(props: Props) {
                   step="0.1"
                   label="Bib"
                   placeholder="Runner"
-                  error={form.formState.errors.runner}
-                  {...form.register("runner", {
-                    required: "Runner is required"
+                  error={form.formState.errors.bibId}
+                  {...form.register("bibId", {
+                    required: "Bib# is required"
                   })}
                 />
                 <TextInput
@@ -228,9 +228,8 @@ export function EditRunner(props: Props) {
         onAffirmative={handleDeleteRunner}
       >
         <div className="text-center">
-          Are you sure you want to delete the timing record for Runner #
-          {selectedRunner.state.runner}?
-          <span className="font-medium text-danger"> This action cannot be undone.</span>
+          Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}
+          ?<span className="font-medium text-danger"> This action cannot be undone.</span>
         </div>
       </Modal>
     </>

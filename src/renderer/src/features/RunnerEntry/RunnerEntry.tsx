@@ -40,7 +40,7 @@ export function RunnerEntry() {
       width: "10%"
     },
     {
-      field: "runner",
+      field: "bibId",
       name: "Bib",
       align: "right",
       width: "10%"
