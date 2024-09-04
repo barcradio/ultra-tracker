@@ -7,13 +7,19 @@ import { InitialSortState, useSortState } from "./hooks/useSortState";
 import { TableContent } from "./TableContent";
 import { ColumnDef } from "./types";
 
+interface GridClassNames {
+  root: string;
+  table: string;
+  header: string;
+  // NOTE: Can add more as needed
+}
+
 interface Props<T extends object> {
   data: T[];
   columns: ColumnDef<T>;
   initialSort?: InitialSortState<T>;
   actionButtons?: (row: T) => ReactNode;
-  className?: string;
-  headerClassName?: string;
+  classNames?: Partial<GridClassNames>;
   getKey?: (row: T) => string | number;
   overscan?: number;
   showFooter?: boolean;
@@ -54,15 +60,19 @@ export function DataGrid<T extends object>(props: Props<T>) {
         setSortField={handleSetSortField}
         sortState={sortState}
         actionButtons={props.actionButtons}
-        className={props.headerClassName}
+        className={props.classNames?.header}
       />
     );
   };
 
   return (
-    <div ref={parentRef} className="overflow-y-auto overflow-x-hidden" style={{ height }}>
+    <div
+      ref={parentRef}
+      className={`overflow-y-auto overflow-x-hidden ${props.classNames?.root}`}
+      style={{ height }}
+    >
       <div>
-        <Table className={props.className}>
+        <Table className={props.classNames?.table}>
           {getSection("header")}
           <TableContent<T>
             rowVirtualizer={rowVirtualizer}
