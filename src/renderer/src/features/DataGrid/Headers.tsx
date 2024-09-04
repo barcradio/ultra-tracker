@@ -5,13 +5,13 @@ import { SortIcon } from "./components/SortIcon";
 import { SortState } from "./hooks/useSortState";
 import { Column } from "./types";
 
-const HeaderButton = classed.button(
-  "flex justify-between items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase group/header",
+const HeaderContainer = classed.button(
+  "flex gap-3 justify-end items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase group/header",
   {
     variants: {
       align: {
-        right: "flex-row-reverse",
-        left: "flex-row"
+        right: "flex-row",
+        left: "flex-row-reverse"
       }
     }
   }
@@ -42,7 +42,7 @@ export function Headers<T extends object>(props: Props<T>) {
             style={{ width: width(column.width) }}
             className="relative rounded-s bg-component-strong"
           >
-            <HeaderButton
+            <HeaderContainer
               className={props.className}
               align={column.align ?? "left"}
               onClick={() => props.setSortField(column.field as keyof T)}
@@ -51,12 +51,12 @@ export function Headers<T extends object>(props: Props<T>) {
             >
               {props.type === "header" && (
                 <>
+                  <Filter column={column} />
                   <SortIcon column={column} sortState={props.sortState} />
-                  <Filter data={props.data} column={column} />
                 </>
               )}
               {column.name ?? String(column.field)}
-            </HeaderButton>
+            </HeaderContainer>
           </th>
         ))}
         {props.actionButtons && <th className="relative bg-component-strong" />}
