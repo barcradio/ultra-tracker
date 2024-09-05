@@ -298,13 +298,19 @@ export function SetDNFOnAthlete(
 ): DatabaseResponse {
   const db = getDatabaseConnection();
   let message: string = "";
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  let stationIdentifier: string | null = appSettings.getSync("station.identifier") as string;
+  let dnf: DNFType | null = dnfType;
+
+  if (!dnfValue) {
+    stationIdentifier = null;
+    dnf = null;
+  }
 
   try {
     const query = db.prepare(
       `UPDATE Athletes SET dnf = ?, dnfType = ?, dnfStation = ? WHERE bibId = ?`
     );
-    query.run(Number(dnfValue), dnfType, stationIdentifier, bibId);
+    query.run(Number(dnfValue), dnf, stationIdentifier, bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
