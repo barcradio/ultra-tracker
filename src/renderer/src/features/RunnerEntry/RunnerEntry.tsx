@@ -31,25 +31,25 @@ export function RunnerEntry() {
       field: "sequence",
       name: "Seq",
       align: "right",
-      width: "10%"
+      width: "8%"
     },
     {
       field: "bibId",
       name: "Bib",
       align: "right",
-      width: "10%"
+      width: "8%"
     },
     {
       field: "in",
       name: "In Time",
       render: formatDate,
-      width: "15%"
+      width: "17%"
     },
     {
       field: "out",
       name: "Out Time",
       render: formatDate,
-      width: "15%"
+      width: "17%"
     },
     {
       field: "dnfType",
