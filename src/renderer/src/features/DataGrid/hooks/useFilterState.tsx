@@ -28,7 +28,7 @@ export function useFilterState<T extends object>({ columns }: { columns: Column<
     [setFilters]
   );
 
-  const performFilter = useCallback((value: T[keyof T], filterValue: string) => {
+  const performFilter = useCallback((value: unknown, filterValue: string) => {
     if (!value) return false;
 
     const fieldString = value instanceof Date ? formatDate(value) : String(value);
