@@ -23,20 +23,6 @@ const renderDNFTag = (dnfType?: DNFType) => {
   }
 };
 
-// Providing this lets the DNF sorting algorithm group DNFed runners together.
-const valueFnDNF = (dnfType: DNFType) => {
-  switch (dnfType) {
-    case DNFType.Withdrew:
-    case DNFType.Timeout:
-    case DNFType.Medical:
-    case DNFType.Unknown:
-      return dnfType;
-    case DNFType.None:
-    default:
-      return "";
-  }
-};
-
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
 
@@ -69,7 +55,7 @@ export function RunnerEntry() {
       field: "dnfType",
       name: "DNF",
       render: renderDNFTag,
-      valueFn: ({ dnfType }) => valueFnDNF(dnfType),
+      valueFn: ({ dnfType }) => (dnfType === DNFType.None ? "" : dnfType), // Group DNFs together on sort
       width: "12%"
     },
     {
