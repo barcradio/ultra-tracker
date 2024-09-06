@@ -47,6 +47,7 @@ export function TableContent<T extends object>(props: Props<T>) {
               {renderCell(column, props.data[row.index])}
             </Cell>
           ))}
+          {!props.actionButtons && <CellWrapper />}
           {props.actionButtons && (
             <CellWrapper
               align="right"

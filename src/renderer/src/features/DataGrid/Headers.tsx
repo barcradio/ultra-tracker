@@ -68,11 +68,11 @@ export function Headers<T extends object>(props: Props<T>) {
             </HeaderContainer>
           </th>
         ))}
-        {props.actionButtons && (
-          <th className="relative text-right bg-component-strong">
+        <th className="relative text-right bg-component-strong" style={{ width: "3%" }}>
+          {props.type === "header" && (
             <ResetButton removeFilter={props.removeFilter} filterState={props.filterState} />
-          </th>
-        )}
+          )}
+        </th>
       </Row>
     </Section>
   );
