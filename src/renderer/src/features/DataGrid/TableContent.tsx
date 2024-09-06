@@ -22,6 +22,7 @@ export function TableContent<T extends object>(props: Props<T>) {
 
   const renderCell = (column: Column<T>, row: T) => {
     if (column.render) return column.render(row[column.field], row);
+    if (column.valueFn) return String(column.valueFn(row));
     if (column.field === null) return "";
     return String(row[column.field]);
   };

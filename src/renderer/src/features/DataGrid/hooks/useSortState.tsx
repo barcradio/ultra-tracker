@@ -34,38 +34,38 @@ export function useSortState<T extends object>({ initial, columns }: Props<T>) {
     }
   };
 
-  const defaultCompareFn = useCallback(
-    (a: T, b: T) => {
+  const compareFn = useCallback(
+    (a: T[keyof T], b: T[keyof T]) => {
       if (field === null) return 0;
-      const aValue = a[field];
-      const bValue = b[field];
-      if (aValue === bValue) return 0;
-      return aValue > bValue ? 1 : -1;
+      if (a === b) return 0;
+      if (!a) return 1;
+      if (!b) return -1;
+      return a > b ? 1 : -1;
     },
     [field]
   );
 
-  const givenSortFn = useMemo(
-    () => columns.find((column) => column.field === field)?.sortFn,
+  const valueFn = useMemo(
+    () => columns.find((column) => column.field === field)?.valueFn,
     [field, columns]
   );
 
-  const compareFn = useCallback(
+  const sortFn = useCallback(
     (a: T, b: T) => {
       if (field === null) return 0;
 
-      if (givenSortFn) {
-        if (ascending) return givenSortFn(a, b);
-        return givenSortFn(b, a);
+      if (valueFn) {
+        if (ascending) return compareFn(valueFn(a), valueFn(b));
+        return compareFn(valueFn(b), valueFn(a));
       } else {
-        if (ascending) return defaultCompareFn(a, b);
-        return defaultCompareFn(b, a);
+        if (ascending) return compareFn(a[field], b[field]);
+        return compareFn(b[field], a[field]);
       }
     },
-    [field, givenSortFn, ascending, defaultCompareFn]
+    [field, valueFn, ascending, compareFn]
   );
 
   const sortState = { field, ascending };
 
-  return [compareFn, setSort, sortState] as const;
+  return [sortFn, setSort, sortState] as const;
 }

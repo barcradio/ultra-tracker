@@ -23,12 +23,6 @@ const renderDNFTag = (dnfType?: DNFType) => {
   }
 };
 
-const sortDNF = (a: RunnerEx, b: RunnerEx) => {
-  if (a.dnfType == DNFType.None) return -1;
-  if (b.dnfType == DNFType.None) return 1;
-  return a.dnfType.localeCompare(b.dnfType);
-};
-
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
 
@@ -61,7 +55,6 @@ export function RunnerEntry() {
       field: "dnfType",
       name: "DNF",
       render: renderDNFTag,
-      sortFn: sortDNF,
       width: "12%"
     },
     {

@@ -27,11 +27,10 @@ export function useFilterState<T extends object>({ columns }: { columns: Column<
     [setFilters]
   );
 
-  const defaultFilterFn = useCallback((row: T, field: keyof T, filterValue: string) => {
-    const columnValue = row[field];
-    if (!columnValue) return false;
+  const performFilter = useCallback((value: T[keyof T], filterValue: string) => {
+    if (!value) return false;
 
-    const fieldString = columnValue instanceof Date ? formatDate(columnValue) : String(columnValue);
+    const fieldString = value instanceof Date ? formatDate(value) : String(value);
 
     return fieldString.toLowerCase().includes(filterValue.toLowerCase());
   }, []);
@@ -40,16 +39,20 @@ export function useFilterState<T extends object>({ columns }: { columns: Column<
     (row: T) => {
       if (Object.keys(filters).length === 0) return true;
       return Object.entries(filters).every(([field, filter]) => {
-        const columnValue = row[field as keyof T];
-        if (!columnValue) return false;
+        // Get basic field value from row
+        const fieldValue = row[field as keyof T];
+        const valueFn = columns.find((column) => column.field === field)?.valueFn;
+        // If no value or value getter, filter fails
+        if (!fieldValue && !valueFn) return false;
 
-        const columnFilterFn = columns.find((column) => column.field === field)?.filterFn;
+        // If value getter is present, use it to get value
+        const value = valueFn ? valueFn(row) : fieldValue;
 
-        if (columnFilterFn) return columnFilterFn(filter as string, columnValue as T[keyof T], row);
-        return defaultFilterFn(row, field as keyof T, filter as string);
+        // Perform filter on value
+        return performFilter(value, filter as string);
       });
     },
-    [filters, defaultFilterFn, columns]
+    [filters, performFilter, columns]
   );
 
   return { setFilter, removeFilter, filterFn, filterState: filters };
