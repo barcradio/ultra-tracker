@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useSessionStorage } from "@uidotdev/usehooks";
 import objectHash from "object-hash";
 import { ColumnDef } from "../types";
@@ -45,11 +45,14 @@ export function useSortState<T extends object>({ initial, columns }: Props<T>) {
     [field]
   );
 
+  const givenSortFn = useMemo(
+    () => columns.find((column) => column.field === field)?.sortFn,
+    [field, columns]
+  );
+
   const compareFn = useCallback(
     (a: T, b: T) => {
       if (field === null) return 0;
-
-      const givenSortFn = columns.find((column) => column.field === field)?.sortFn;
 
       if (givenSortFn) {
         if (ascending) return givenSortFn(a, b);
@@ -59,7 +62,7 @@ export function useSortState<T extends object>({ initial, columns }: Props<T>) {
         return defaultCompareFn(b, a);
       }
     },
-    [field, columns, ascending, defaultCompareFn]
+    [field, givenSortFn, ascending, defaultCompareFn]
   );
 
   const sortState = { field, ascending };

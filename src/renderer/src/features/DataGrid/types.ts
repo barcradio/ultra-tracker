@@ -5,6 +5,7 @@ export type Column<T extends object> = {
     field: K;
     name?: string;
     width?: number | string;
+    filterFn?: (filter: string, value: T[K], row: T) => boolean;
     filterable?: boolean;
     sortable?: boolean;
     sortFn?: (a: T, b: T) => number;
