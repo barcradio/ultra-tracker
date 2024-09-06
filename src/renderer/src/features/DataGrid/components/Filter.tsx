@@ -43,11 +43,6 @@ export function Filter<T extends object>(props: Props<T>) {
     event.stopPropagation();
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    panelRef.current?.hide();
-  };
-
   useEffect(() => {
     if (debouncedValue === "") {
       removeFilter(column.field);
@@ -60,7 +55,7 @@ export function Filter<T extends object>(props: Props<T>) {
 
   return (
     <>
-      <OverlayPanel ref={panelRef} onMouseLeave={handleClose} appendTo={portalRoot?.current}>
+      <OverlayPanel ref={panelRef} appendTo={portalRoot?.current} showCloseIcon>
         <TextInput
           label={`${column.name ?? String(column.field)} Contains`}
           labelProps={{ className: "text-sm" }}

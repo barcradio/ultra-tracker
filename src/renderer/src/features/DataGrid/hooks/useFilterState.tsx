@@ -27,23 +27,29 @@ export function useFilterState<T extends object>({ columns }: { columns: Column<
     [setFilters]
   );
 
+  const defaultFilterFn = useCallback((row: T, field: keyof T, filterValue: string) => {
+    const columnValue = row[field];
+    if (!columnValue) return false;
+
+    const fieldString = columnValue instanceof Date ? formatDate(columnValue) : String(columnValue);
+
+    return fieldString.toLowerCase().includes(filterValue.toLowerCase());
+  }, []);
+
   const filterFn = useCallback(
     (row: T) => {
       if (Object.keys(filters).length === 0) return true;
       return Object.entries(filters).every(([field, filter]) => {
-        const filterField = field as keyof T;
-        const filterValue = (filter as string).toLowerCase();
-        const fieldValue = row[filterField];
+        const columnValue = row[field as keyof T];
+        if (!columnValue) return false;
 
-        if (!fieldValue) return false;
+        const columnFilterFn = columns.find((column) => column.field === field)?.filterFn;
 
-        const fieldValueString =
-          fieldValue instanceof Date ? formatDate(fieldValue) : String(fieldValue);
-
-        return fieldValueString.toLowerCase().includes(filterValue.toLowerCase());
+        if (columnFilterFn) return columnFilterFn(filter as string, columnValue as T[keyof T], row);
+        return defaultFilterFn(row, field as keyof T, filter as string);
       });
     },
-    [filters]
+    [filters, defaultFilterFn, columns]
   );
 
   return { setFilter, removeFilter, filterFn, filterState: filters };
