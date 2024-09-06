@@ -5,8 +5,9 @@ export type Column<T extends object> = {
     field: K;
     name?: string;
     width?: number | string;
+    valueFn?: (row: T) => T[K];
+    filterable?: boolean;
     sortable?: boolean;
-    sortFn?: (a: T, b: T) => number;
     render?: (value: T[K], row: T) => ReactNode;
     align?: "left" | "right";
   };

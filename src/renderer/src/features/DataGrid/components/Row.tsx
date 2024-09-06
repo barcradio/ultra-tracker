@@ -1,6 +1,6 @@
 import { classed } from "~/lib/classed";
 
-export const Row = classed.tr("duration-75 transition-color group hover:bg-component-hover", {
+export const Row = classed.tr("duration-75 transition-color group/row hover:bg-component-hover", {
   variants: {
     even: {
       false: "bg-component",

@@ -1,9 +1,8 @@
 import { ReactNode } from "react";
 import { Virtualizer } from "@tanstack/react-virtual";
-import { Cell, CellWrapper } from "./Cell";
+import { Cell, CellWrapper, Row } from "./components";
 import { useKeyFn } from "./hooks/useKeyFn";
 import { useVirtualPadding } from "./hooks/useVirtualPadding";
-import { Row } from "./Row";
 import { Column } from "./types";
 
 interface Props<T extends object> {
@@ -23,6 +22,7 @@ export function TableContent<T extends object>(props: Props<T>) {
 
   const renderCell = (column: Column<T>, row: T) => {
     if (column.render) return column.render(row[column.field], row);
+    if (column.valueFn) return String(column.valueFn(row));
     if (column.field === null) return "";
     return String(row[column.field]);
   };
@@ -47,8 +47,12 @@ export function TableContent<T extends object>(props: Props<T>) {
               {renderCell(column, props.data[row.index])}
             </Cell>
           ))}
+          {!props.actionButtons && <CellWrapper />}
           {props.actionButtons && (
-            <CellWrapper align="right" className="p-0 opacity-0 group-hover:opacity-100 h-inherit">
+            <CellWrapper
+              align="right"
+              className="p-0 opacity-0 h-inherit group-hover/row:opacity-100"
+            >
               {props.actionButtons(props.data[row.index])}
             </CellWrapper>
           )}

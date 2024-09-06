@@ -3,9 +3,6 @@ import { AthleteDB } from "$shared/models";
 import { EmergencyContact } from "./EmergencyContact";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
-const fullName = (athlete: AthleteDB) => `${athlete.firstName} ${athlete.lastName}`;
-const stateCity = (athlete: AthleteDB) => `${athlete.state}, ${athlete.city}`;
-
 export function RosterPage() {
   const { data } = useAthletes();
 
@@ -18,8 +15,7 @@ export function RosterPage() {
     {
       field: "firstName",
       name: "Name",
-      render: (_, athlete) => fullName(athlete),
-      sortFn: (a, b) => fullName(a).localeCompare(fullName(b)),
+      valueFn: (athelete) => `${athelete.firstName} ${athelete.lastName}`,
       width: "18%"
     },
     {
@@ -35,7 +31,7 @@ export function RosterPage() {
       name: "Location",
       width: "20%",
       render: (state, { city }) => `${city}, ${state}`,
-      sortFn: (a, b) => stateCity(a).localeCompare(stateCity(b))
+      valueFn: (athlete) => `${athlete.state}, ${athlete.city}`
     },
     {
       field: "emergencyName",

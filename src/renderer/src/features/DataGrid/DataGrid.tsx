@@ -3,6 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useParentHeight } from "~/hooks/useParentRect";
 import { classed } from "~/lib/classed";
 import { Headers } from "./Headers";
+import { useFilterState } from "./hooks/useFilterState";
 import { InitialSortState, useSortState } from "./hooks/useSortState";
 import { TableContent } from "./TableContent";
 import { ColumnDef } from "./types";
@@ -36,11 +37,14 @@ export function DataGrid<T extends object>(props: Props<T>) {
     columns: props.columns
   });
 
+  const { filterFn, ...filterState } = useFilterState<T>({ columns: props.columns });
+
   // Memoize to prevent re-sorting on every render
   const sortedData = useMemo(() => [...props.data].sort(compareFn), [compareFn, props.data]);
+  const filteredData = useMemo(() => sortedData.filter(filterFn), [filterFn, sortedData]);
 
   const rowVirtualizer = useVirtualizer({
-    count: props.data.length,
+    count: filteredData.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40,
     overscan: props.overscan ?? 0
@@ -54,8 +58,8 @@ export function DataGrid<T extends object>(props: Props<T>) {
   const getSection = (type: "header" | "footer") => {
     return (
       <Headers<T>
+        {...filterState}
         type={type}
-        data={props.data}
         columns={props.columns}
         setSortField={handleSetSortField}
         sortState={sortState}
@@ -76,7 +80,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
           {getSection("header")}
           <TableContent<T>
             rowVirtualizer={rowVirtualizer}
-            data={sortedData}
+            data={filteredData}
             columns={props.columns}
             actionButtons={props.actionButtons}
             getKey={props.getKey}

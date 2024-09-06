@@ -1,45 +1,29 @@
 import { ReactNode } from "react";
-import ArrowIcon from "~/assets/icons/arrow-up.svg?react";
 import { classed } from "~/lib/classed";
+import { Filter, Row, Section } from "./components";
+import { ResetButton } from "./components/ResetButton";
+import { SortIcon } from "./components/SortIcon";
+import { FilterState } from "./hooks/useFilterState";
 import { SortState } from "./hooks/useSortState";
-import { Row } from "./Row";
-import { Section } from "./Section";
 import { Column } from "./types";
 
-const HeaderButton = classed.button(
-  "flex justify-between items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase",
+const HeaderContainer = classed.button(
+  "flex gap-3 justify-end items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase group/header",
   {
     variants: {
       align: {
-        right: "flex-row-reverse",
-        left: "flex-row"
+        right: "flex-row",
+        left: "flex-row-reverse"
       }
     }
   }
 );
 
-const SortIcon = classed(ArrowIcon, "absolute px-4 transition duration-200 fill-on-surface", {
-  variants: {
-    ascending: {
-      false: "transform rotate-180"
-    },
-    active: {
-      true: "opacity-100",
-      false: "opacity-0"
-    },
-    align: {
-      right: "left-0",
-      left: "right-0"
-    }
-  },
-  defaultVariants: {
-    align: "right"
-  }
-});
-
 interface Props<T extends object> {
-  data: T[];
   columns: Column<T>[];
+  filterState: FilterState<T>;
+  setFilter: (field: keyof T, filter: string) => void;
+  removeFilter: (field?: keyof T) => void;
   sortState: SortState<T>;
   setSortField: (field: keyof T) => void;
   actionButtons?: (row: T) => ReactNode;
@@ -48,12 +32,12 @@ interface Props<T extends object> {
 }
 
 export function Headers<T extends object>(props: Props<T>) {
-  const isActive = (field: keyof T) => props.sortState.field === field;
-
   const width = (width: Column<T>["width"]) => {
     if (typeof width === "number") return `${width}px`;
     return width;
   };
+
+  const isDisabled = (column: Column<T>) => column.sortable === false || props.type === "footer";
 
   return (
     <Section type={props.type}>
@@ -64,28 +48,31 @@ export function Headers<T extends object>(props: Props<T>) {
             style={{ width: width(column.width) }}
             className="relative rounded-s bg-component-strong"
           >
-            {column.field !== null && (
-              <HeaderButton
-                className={props.className}
-                align={column.align ?? "left"}
-                onClick={() => props.setSortField(column.field as keyof T)}
-                disabled={column.sortable === false || props.type === "footer"}
-                type="button"
-              >
-                {props.type === "header" && (
-                  <SortIcon
-                    active={isActive(column.field)}
-                    ascending={props.sortState.ascending}
-                    align={column.align ?? "left"}
-                    height={18}
-                  />
-                )}
-                {column.name ?? String(column.field)}
-              </HeaderButton>
-            )}
+            <HeaderContainer
+              className={`header-container ${props.className}`}
+              align={column.align ?? "left"}
+              disabled={isDisabled(column)}
+              onClick={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (isDisabled(column)) return;
+                props.setSortField(column.field as keyof T);
+              }}
+            >
+              {props.type === "header" && (
+                <>
+                  <Filter column={column} {...props} />
+                  <SortIcon column={column} sortState={props.sortState} />
+                </>
+              )}
+              {column.name ?? String(column.field)}
+            </HeaderContainer>
           </th>
         ))}
-        {props.actionButtons && <th className="relative bg-component-strong" />}
+        <th className="relative text-right bg-component-strong" style={{ width: "3%" }}>
+          {props.type === "header" && (
+            <ResetButton removeFilter={props.removeFilter} filterState={props.filterState} />
+          )}
+        </th>
       </Row>
     </Section>
   );
