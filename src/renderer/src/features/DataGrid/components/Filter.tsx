@@ -55,7 +55,12 @@ export function Filter<T extends object>(props: Props<T>) {
 
   return (
     <>
-      <OverlayPanel ref={panelRef} appendTo={portalRoot?.current} showCloseIcon>
+      <OverlayPanel
+        ref={panelRef}
+        appendTo={portalRoot?.current}
+        showCloseIcon
+        onHide={() => setOpen(false)}
+      >
         <TextInput
           label={`${column.name ?? String(column.field)} Contains`}
           labelProps={{ className: "text-sm" }}

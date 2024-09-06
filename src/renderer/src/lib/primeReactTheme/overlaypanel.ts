@@ -11,7 +11,8 @@ export const OverlayPanelPT: OverlayPanelPassThroughOptions = {
     )
   },
   closeButton: {
-    className: "flex overflow-hidden absolute top-0 right-0 justify-center items-center w-6 h-6"
+    className:
+      "flex overflow-hidden absolute top-0 right-0 justify-center items-center m-2 w-6 h-6 transition-colors duration-150 text-on-surface hover:text-on-surface-hover"
   },
   content: { className: "flex items-center p-5" },
   transition: {

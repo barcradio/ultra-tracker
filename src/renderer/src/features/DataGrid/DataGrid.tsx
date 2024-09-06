@@ -43,8 +43,6 @@ export function DataGrid<T extends object>(props: Props<T>) {
   const sortedData = useMemo(() => [...props.data].sort(compareFn), [compareFn, props.data]);
   const filteredData = useMemo(() => sortedData.filter(filterFn), [filterFn, sortedData]);
 
-  console.log(filteredData, sortedData);
-
   const rowVirtualizer = useVirtualizer({
     count: filteredData.length,
     getScrollElement: () => parentRef.current,
