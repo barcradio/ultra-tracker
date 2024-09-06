@@ -18,7 +18,8 @@ export function useFilterState<T extends object>({ columns }: { columns: Column<
   );
 
   const removeFilter = useCallback(
-    (field: keyof T) => {
+    (field?: keyof T) => {
+      if (!field) return setFilters({});
       setFilters((prev) => {
         delete prev[field];
         return { ...prev };

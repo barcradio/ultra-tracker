@@ -43,6 +43,7 @@ export function Filter<T extends object>(props: Props<T>) {
     event.stopPropagation();
   };
 
+  // Update filter state when debounced value changes
   useEffect(() => {
     if (debouncedValue === "") {
       removeFilter(column.field);
@@ -50,6 +51,11 @@ export function Filter<T extends object>(props: Props<T>) {
       setFilter(column.field, debouncedValue);
     }
   }, [column.field, debouncedValue, removeFilter, setFilter]);
+
+  // Set value to filter state when filter is removed
+  useEffect(() => {
+    if (!props.filterState[column.field]) setValue("");
+  }, [column.field, props.filterState]);
 
   if (column.filterable === false) return null;
 

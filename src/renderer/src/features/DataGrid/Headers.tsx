@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { classed } from "~/lib/classed";
 import { Filter, Row, Section } from "./components";
+import { ResetButton } from "./components/ResetButton";
 import { SortIcon } from "./components/SortIcon";
 import { FilterState } from "./hooks/useFilterState";
 import { SortState } from "./hooks/useSortState";
@@ -22,7 +23,7 @@ interface Props<T extends object> {
   columns: Column<T>[];
   filterState: FilterState<T>;
   setFilter: (field: keyof T, filter: string) => void;
-  removeFilter: (field: keyof T) => void;
+  removeFilter: (field?: keyof T) => void;
   sortState: SortState<T>;
   setSortField: (field: keyof T) => void;
   actionButtons?: (row: T) => ReactNode;
@@ -67,7 +68,11 @@ export function Headers<T extends object>(props: Props<T>) {
             </HeaderContainer>
           </th>
         ))}
-        {props.actionButtons && <th className="relative bg-component-strong" />}
+        {props.actionButtons && (
+          <th className="relative text-right bg-component-strong">
+            <ResetButton removeFilter={props.removeFilter} filterState={props.filterState} />
+          </th>
+        )}
       </Row>
     </Section>
   );
