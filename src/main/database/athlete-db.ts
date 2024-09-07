@@ -469,7 +469,7 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
   }
 
   try {
-    db.prepare(`UPDATE StaEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
+    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
     db.prepare(`UPDATE Athletes SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
   } catch (e) {
     if (e instanceof Error) {

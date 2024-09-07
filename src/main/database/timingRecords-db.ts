@@ -82,7 +82,7 @@ export function getTimeRecordbyBib(record: RunnerDB): DatabaseResponse<RunnerDB>
   let queryResult;
   let message: string = "";
 
-  queryString = `SELECT * FROM StaEvents WHERE bibId = ?`;
+  queryString = `SELECT * FROM StationEvents WHERE bibId = ?`;
   try {
     const query = db.prepare(queryString);
     queryResult = query.get(record.bibId);
@@ -107,7 +107,7 @@ export function getTimeRecordbyIndex(record: RunnerDB): DatabaseResponse<RunnerD
   let queryResult;
   let message: string = "";
 
-  queryString = `SELECT * FROM StaEvents WHERE "index" = ?`;
+  queryString = `SELECT * FROM StationEvents WHERE "index" = ?`;
   try {
     const query = db.prepare(queryString);
     queryResult = query.get(record.index);
@@ -133,7 +133,7 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
   const searchResult = getTimeRecordbyIndex(record);
 
   if (searchResult != null) {
-    queryString = `DELETE FROM StaEvents WHERE "index" = ?`;
+    queryString = `DELETE FROM StationEvents WHERE "index" = ?`;
     try {
       const query = db.prepare(queryString);
       query.run(record.index);
@@ -172,7 +172,7 @@ function updateTimeRecord(
   }
 
   //build the time record
-  isDuplicate(record);
+  processDuplicate(record);
   const stationID = stationId;
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
@@ -184,7 +184,7 @@ function updateTimeRecord(
   try {
     // if bib number is changing, then update by index
     if (existingRecord != null && existingRecord.bibId != record.bibId) {
-      queryString = `UPDATE StaEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, sent = ?, status = ? WHERE "index" = ?`;
+      queryString = `UPDATE StationEvents SET bibId = ?, stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, sent = ?, status = ? WHERE "index" = ?`;
       const query = db.prepare(queryString);
       query.run(
         record.bibId,
@@ -210,7 +210,7 @@ function updateTimeRecord(
         verbose
       );
     } else {
-      queryString = `UPDATE StaEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, sent = ?, status = ? WHERE bibId = ?`;
+      queryString = `UPDATE StationEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, sent = ?, status = ? WHERE bibId = ?`;
       const query = db.prepare(queryString);
       query.run(stationID, timeInISO, timeOutISO, modifiedISO, sent, status, record.bibId);
       dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Incoming);
@@ -232,7 +232,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   const stationIdentifier = appSettings.getSync("station.identifier") as string;
 
   //build the time record
-  isDuplicate(record);
+  processDuplicate(record);
   const stationID = stationId;
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
@@ -243,7 +243,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
 
   try {
     const stmt = db.prepare(
-      `INSERT INTO StaEvents (bibId, stationId, timeIn, timeOut, timeModified, sent, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO StationEvents (bibId, stationId, timeIn, timeOut, timeModified, sent, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
     stmt.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, sent, status);
 
@@ -274,7 +274,7 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
   const db = getDatabaseConnection();
 
   try {
-    db.prepare(`UPDATE StaEvents SET sent = ? WHERE "bibId" = ?`).run(value, bibId);
+    db.prepare(`UPDATE StationEvents SET sent = ? WHERE "bibId" = ?`).run(value, bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -286,7 +286,7 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
   return [DatabaseStatus.Created, message];
 }
 
-function isDuplicate(record: TypedRunnerDB): TypedRunnerDB {
+function processDuplicate(record: TypedRunnerDB): TypedRunnerDB {
   if (record.status == RecordStatus.Duplicate) {
     record.bibId = Number(record.bibId) + 0.2;
     const typeStr = RecordType[record.recordType];

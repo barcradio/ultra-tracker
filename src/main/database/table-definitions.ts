@@ -1,4 +1,4 @@
-export const stationEvents: string = `
+export const StationEvents: string = `
       bibId INTEGER DEFAULT (0),
       stationId INTEGER,
       timeIn DATETIME,
@@ -10,7 +10,7 @@ export const stationEvents: string = `
 
 /* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
     of all events to provide a searchable log in a */
-export const eventLog: string = `
+export const EventLog: string = `
       bibId INTEGER DEFAULT (0),
       stationId TEXT,
       timeIn DATETIME,
@@ -23,7 +23,7 @@ export const eventLog: string = `
 /*  The Athletes table is used to store the data submitted before the
     start of the race listing all persons and their emergency contact information.
     There is still the possibility that additional runners could be added after the start.*/
-export const athletes: string = `
+export const Athletes: string = `
       bibId INTEGER DEFAULT (0),
       firstName TEXT,
       lastName TEXT,
@@ -41,7 +41,7 @@ export const athletes: string = `
       note TEXT`;
 
 /*  The Stations table is used to store the operators and the number of the runner station. */
-export const stations = `
+export const Stations = `
       name TEXT,
       identifier TEXT,
       description TEXT,
@@ -57,7 +57,7 @@ export const stations = `
 /*  The Output table is used to store the final data that is displayed in the Adilas database and is
     the combination of all stations data.  If another station sends a csv file of their report, that data
     will be loaded into the table to indicate the overall progress of a given runner for display.*/
-export const output = `
+export const Output = `
       bibId INTEGER DEFAULT (0),
       inJSON BLOB,
       outJSON BLOB,

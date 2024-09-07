@@ -38,7 +38,7 @@ function getTotalRunners(): DatabaseResponse<number> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT COUNT(bibId) FROM StaEvents`).get();
+    queryResult = db.prepare(`SELECT COUNT(bibId) FROM StationEvents`).get();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -59,7 +59,7 @@ function getRunnersInStation(): DatabaseResponse<number> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NULL`).get();
+    queryResult = db.prepare(`SELECT COUNT(*) FROM StationEvents WHERE timeOut IS NULL`).get();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -69,7 +69,7 @@ function getRunnersInStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StaEvents Where 'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From StationEvents Where 'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -80,7 +80,7 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE timeOut IS NOT NULL`).get();
+    queryResult = db.prepare(`SELECT COUNT(*) FROM StationEvents WHERE timeOut IS NOT NULL`).get();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -90,7 +90,7 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StaEvents Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From StationEvents Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -101,7 +101,7 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM StaEvents WHERE status == 1`).get();
+    queryResult = db.prepare(`SELECT COUNT(*) FROM StationEvents WHERE status == 1`).get();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -111,7 +111,7 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StaEvents Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From StationEvents Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -122,7 +122,7 @@ function getRunnersNotSent(): DatabaseResponse<RunnerDB> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT * FROM StaEvents WHERE sent == 0`).all();
+    queryResult = db.prepare(`SELECT * FROM StationEvents WHERE sent == 0`).all();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -144,10 +144,10 @@ export function readRunnersTable<T>(
   let message: string = "";
 
   const statement = includeDNF
-    ? `SELECT StaEvents.*, Athletes.dnf, Athletes.dnfType
-       FROM "StaEvents" LEFT JOIN "Athletes"
-       ON StaEvents.bibId = Athletes.bibId`
-    : `SELECT * FROM StaEvents`;
+    ? `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType
+       FROM "StationEvents" LEFT JOIN "Athletes"
+       ON StationEvents.bibId = Athletes.bibId`
+    : `SELECT * FROM StationEvents`;
 
   try {
     queryResult = db.prepare(statement).all();
@@ -160,7 +160,7 @@ export function readRunnersTable<T>(
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersTable from StaEvents: ${queryResult.length}`;
+  message = `GetRunnersTable from StationEvents: ${queryResult.length}`;
 
   queryResult.forEach((row: RunnerDB) => {
     row.timeIn = row.timeIn == null ? null : new Date(row.timeIn);
@@ -286,7 +286,7 @@ export async function exportRunnersAsCSV() {
   let filename: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT * FROM StaEvents`).all();
+    queryResult = db.prepare(`SELECT * FROM StationEvents`).all();
     filename = await dialogs.saveRunnersToCSV();
 
     if (filename == undefined) return "Invalid file name";
@@ -332,7 +332,7 @@ export async function exportDNFAsCSV() {
 
   const stmt = `
     SELECT t1.dnf, t1.dnfType, t1.dnfStation, t1.dnfDateTime, t2.*
-    FROM Athletes t1 INNER JOIN StaEvents t2
+    FROM Athletes t1 INNER JOIN StationEvents t2
     ON t2.bibId IN (t1.bibId, t1.dnf, t1.dnfStation)
     WHERE t1.bibId = t2.bibId
     AND t1.dnf == 1
@@ -370,7 +370,7 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
 
     // header row
     // index,sent,bibId,timeIn,timeOut,note
-    const columnNames = getColumnNamesFromTable("StaEvents");
+    const columnNames = getColumnNamesFromTable("StationEvents");
     const rowText = `${columnNames[0]},${columnNames[7]},${columnNames[1]},${columnNames[3]},${columnNames[4]},${columnNames[6]}`;
     stream.write(rowText + "\n");
 
