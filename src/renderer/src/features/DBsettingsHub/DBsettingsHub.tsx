@@ -39,13 +39,9 @@ export function DBsettingsHub() {
   };
 
   const initializeDatabase = () => {
-    createToast({ message: "Initialize database", type: "info" });
-    initializeDatabaseMutation.mutate("ping from the renderer!");
-  };
-
-  const clearDatabase = () => {
-    createToast({ message: "Loading Stations file", type: "info" });
-    clearDatabaseMutation.mutate("ping from the renderer!");
+    createToast({ message: "Reinitializing database!", type: "danger" });
+    clearDatabaseMutation.mutate("Clearing Database of all tables!");
+    initializeDatabaseMutation.mutate("Initializing Database!");
   };
 
   return (
@@ -73,10 +69,7 @@ export function DBsettingsHub() {
         <Stack direction="col">
           <b>Developer Tools</b>
           <Button color="warning" variant="outlined" onClick={initializeDatabase}>
-            Init Database
-          </Button>
-          <Button color="warning" variant="outlined" onClick={clearDatabase}>
-            Clear Database
+            Recreate Database
           </Button>
           <Button color="warning" variant="outlined" onClick={importRunnerCSVFile}>
             Recover Data from CSV File
