@@ -247,7 +247,11 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
     );
     stmt.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, sent, status);
 
-    dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Outgoing);
+    if (record.status == RecordStatus.Duplicate) {
+      setTimingRecordNote(record.bibId, record.note);
+    } else {
+      dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Outgoing);
+    }
 
     logEvent(
       record.bibId,
@@ -268,6 +272,23 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
   return [DatabaseStatus.Created, message];
+}
+
+export function setTimingRecordNote(bibId: number, note: string) {
+  const db = getDatabaseConnection();
+  const imcomingNote = !note ? "" : note.replaceAll(",", "");
+
+  try {
+    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(imcomingNote, bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  const message = `[set][note](timingRecord) bib:${bibId} note: ${imcomingNote}`;
+  return [DatabaseStatus.Updated, message];
 }
 
 export function markTimeRecordAsSent(bibId: number, value: boolean) {
