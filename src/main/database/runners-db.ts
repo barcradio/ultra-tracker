@@ -200,7 +200,7 @@ export async function importRunnersFromCSV() {
           timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
           timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
           timeModified: new Date(),
-          note: timing.note.replaceAll(",", ""),
+          note: !timing.note ? "" : timing.note.replaceAll(",", ""),
           sent: false,
           status: RecordStatus.OK
         };

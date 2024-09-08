@@ -190,7 +190,8 @@ export function EditRunner(props: Props) {
                 error={form.formState.errors.note}
                 {...form.register("note", {
                   validate: (value) => {
-                    if (value.includes(",")) return "Commas are not allowed in the notes field";
+                    if (value)
+                      if (value.includes(",")) return "Commas are not allowed in the notes field";
                     return true;
                   }
                 })}
