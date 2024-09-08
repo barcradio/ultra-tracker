@@ -1,7 +1,6 @@
 import { getDatabaseConnection } from "./connect-db";
 import * as tableDefs from "./table-definitions";
 
-let tableCount = 0;
 const expectedTableNames = {
   Athletes: "Athletes",
   EventLog: "EventLog",
@@ -22,7 +21,6 @@ export function validateDatabaseTables() {
   console.log("validateDatabaseTables");
 
   const tableNames = getTableNames();
-  tableCount = tableNames.length;
 
   for (const key in expectedTableNames) {
     type TableDef = keyof typeof tableDefs;
@@ -69,10 +67,6 @@ export function getColumnNamesFromTable(tableName: string): string[] {
   return columnNames;
 }
 
-function* toTableNames(stmt) {
-  yield stmt.names().map((table) => table.name);
-}
-
 function* toColumnNames(stmt) {
   yield stmt.columns().map((column) => column.name);
 }
@@ -98,7 +92,6 @@ function createTable(tableName: string, tabledefinition: string): boolean {
       ${tabledefinition}
       )`
     ).run();
-    tableCount++;
     console.log(`Created '${tableName}' table`);
     return true;
   } catch (e: unknown) {
@@ -133,7 +126,6 @@ function clearTable(tableName: string): boolean {
   try {
     db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
 
-    tableCount--;
     console.log(`Dropped '${tableName}' table`);
     return true;
   } catch (e: unknown) {
