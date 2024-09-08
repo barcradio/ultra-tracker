@@ -13,11 +13,17 @@ export function SettingsHub() {
   const clearDatabaseMutation = dbUtilHooks.useClearDatabase();
   const importRunnersFile = dialogHooks.useImportRunnersFromCSV();
   const resetAppSettingsMutation = settingsHooks.useResetAppSettings();
+  const rfidInitMutation = settingsHooks.useRFIDInitialize();
   const { createToast } = useToasts();
 
   const resetAppSettings = () => {
     createToast({ message: "App Settings: Resetting", type: "info" });
     resetAppSettingsMutation.mutate("resetAppSettings");
+  };
+
+  const rfidInitialize = () => {
+    createToast({ message: "App Settings: Resetting", type: "info" });
+    rfidInitMutation.mutate("resetAppSettings");
   };
 
   const importAthletesFile = () => {
@@ -77,6 +83,12 @@ export function SettingsHub() {
       </div>
       <div>
         <Stack direction="row" align="stretch">
+          <Stack direction="col">
+            <b>RFID Configuration [Start Line only]</b>
+            <Button color="neutral" variant="outlined" onClick={rfidInitialize}>
+              Initialize RFID
+            </Button>
+          </Stack>
           <Stack direction="col">
             <b>App Settings</b>
             <Button color="warning" variant="outlined" onClick={resetAppSettings}>
