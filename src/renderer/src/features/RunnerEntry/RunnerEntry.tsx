@@ -31,38 +31,37 @@ export function RunnerEntry() {
       field: "sequence",
       name: "Seq",
       align: "right",
-      width: "10%"
+      width: "80px"
     },
     {
       field: "bibId",
       name: "Bib",
       align: "right",
-      width: "10%"
+      width: "80px"
     },
     {
       field: "in",
       name: "In Time",
       render: formatDate,
-      width: "15%"
+      width: "160px"
     },
     {
       field: "out",
       name: "Out Time",
       render: formatDate,
-      width: "15%"
+      width: "160px"
     },
     {
       field: "dnfType",
       name: "DNF",
       render: renderDNFTag,
       valueFn: ({ dnfType }) => (dnfType === DNFType.None ? "" : dnfType), // Group DNFs together on sort
-      width: "12%"
+      width: "118px"
     },
     {
       field: "note",
       name: "Notes",
       sortable: false,
-      width: "30%",
       render: (note) => note || ""
     }
   ];
