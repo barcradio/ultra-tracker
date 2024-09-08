@@ -31,13 +31,13 @@ export function RunnerEntry() {
       field: "sequence",
       name: "Seq",
       align: "right",
-      width: "75px"
+      width: "80px"
     },
     {
       field: "bibId",
       name: "Bib",
       align: "right",
-      width: "75px"
+      width: "80px"
     },
     {
       field: "in",
