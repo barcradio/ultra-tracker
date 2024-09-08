@@ -54,6 +54,9 @@ export function Sidebar() {
           <SidebarLink to="/roster" icon={SearchIcon}>
             Roster
           </SidebarLink>
+          <SidebarLink to="/stations" icon={DatabaseIcon}>
+            Stations
+          </SidebarLink>
           <SidebarLink to="/logs" icon={LogsIcon}>
             Logs
           </SidebarLink>
@@ -63,9 +66,6 @@ export function Sidebar() {
         </div>
         <div>
           <ThemeToggle />
-          <SidebarLink to="/database" icon={DatabaseIcon}>
-            Database
-          </SidebarLink>
           <SidebarLink to="/settings" icon={SettingsIcon}>
             Settings
           </SidebarLink>
