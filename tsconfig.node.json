@@ -6,7 +6,7 @@
 		"src/preload/**/*",
 		"src/shared/**/*",
 		"src/renderer/src/lib/*",
-		"src/api/**/*"
+		"src/main/api/**/*"
 	],
 	"compilerOptions": {
 		"composite": true,
@@ -16,7 +16,7 @@
 			"$renderer/*": ["./src/renderer/src/*"],
 			"$shared/*": ["./src/shared/*"],
 			"$preload/*": ["./src/preload/*"],
-			"$api/*": ["./src/api/*"]
+			"$api/*": ["src/main/api/*"]
 		},
 		"baseUrl": "."
 	}

@@ -10,8 +10,8 @@
 import { ipcMain } from 'electron';
 import { EventEmitter } from "events";
 import WebSocket from "ws";
-import * as dbTimings from "../main/database/timingRecords-db";
 import appSettings from "electron-settings";
+import * as dbTimings from "../database/timingRecords-db";
 
 // Define interfaces to type the expected JSON data structure
 interface RFIDData {
