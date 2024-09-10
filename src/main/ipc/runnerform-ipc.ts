@@ -6,8 +6,15 @@ import * as dbTimings from "../database/timingRecords-db";
 import * as stats from "../lib/stat-engine";
 import { Handler } from "../types";
 
-const getRunnersTable: Handler<DatabaseResponse<RunnerDB[]>> = () => {
-  const dataset = dbRunners.readRunnersTable();
+interface GetRunnersTableOptions {
+  includeDNF: boolean;
+}
+
+const getRunnersTable: Handler<GetRunnersTableOptions, DatabaseResponse<RunnerDB[]>> = (
+  _,
+  options
+) => {
+  const dataset = dbRunners.readRunnersTable(options);
   return dataset;
 };
 

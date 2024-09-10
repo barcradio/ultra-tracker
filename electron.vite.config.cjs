@@ -26,6 +26,7 @@ module.exports = defineConfig({
     }
   },
   renderer: {
+    publicDir: resolve(__dirname, "src/renderer/public"),
     resolve: {
       alias: {
         "~": resolve(__dirname, "src/renderer/src"),

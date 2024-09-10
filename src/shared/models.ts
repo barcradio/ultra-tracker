@@ -1,4 +1,4 @@
-import { EntryMode, RecordType } from "./enums";
+import { DNFType, EntryMode, RecordType } from "./enums";
 
 /**
  * Custom models (types) for ultra-tracker
@@ -27,7 +27,7 @@ export interface RunnerCSV {
 export interface Runner {
   id: number;
   sequence: number;
-  runner: number;
+  bibId: number;
   in: Date | string;
   out: Date | string;
   note: string;
@@ -46,7 +46,7 @@ export type AthleteDB = {
   emergencyName: string;
   dns: boolean | undefined;
   dnf: boolean | undefined;
-  dnfType: string | undefined;
+  dnfType: DNFType | undefined;
   dnfStation: string | undefined;
   dnfDateTime: Date | null;
   note: string | undefined;
@@ -132,3 +132,5 @@ export type EventLogRec = {
   sent: boolean | undefined;
   verbose: boolean | undefined;
 };
+
+export type RunnerAthleteDB = RunnerDB & Pick<AthleteDB, "dnf" | "dnfType">;

@@ -6,13 +6,6 @@ export const data = {
 };
 
 export const initializeDefaultAppSettings = () => {
-  appSettings.configure({
-    atomicSave: true,
-    fileName: "settings.json",
-    numSpaces: 2,
-    prettify: true
-  });
-
   appSettings.set({
     targetLanguage: "eng",
     event: {
@@ -43,7 +36,22 @@ export const initializeDefaultAppSettings = () => {
   });
 };
 
+export const configureAppSettings = () => {
+  appSettings.configure({
+    atomicSave: true,
+    fileName: "settings.json",
+    numSpaces: 2,
+    prettify: true
+  });
+};
+
 export const resetAppSettings = () => {
   appSettings.reset();
+  initializeDefaultAppSettings();
+};
+
+export const getAppSettings = () => {
+  appSettings.reset();
+  configureAppSettings();
   initializeDefaultAppSettings();
 };

@@ -4,11 +4,11 @@ import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { clearStationsTable, createStationsTable } from "./tables-db";
 import { Operator, Station, StationDB, StationIdentity } from "../../shared/models";
-import { selectStationsFile } from "../lib/file-dialogs";
+import * as dialogs from "../lib/file-dialogs";
 
 export async function LoadStations() {
   //const devStationData = require("$resources/config/stations.json");
-  const stationFilePath = await selectStationsFile();
+  const stationFilePath = await dialogs.selectStationsFile();
   const stationData = require(stationFilePath[0]); // natively imports JSON data to object
 
   if (!stationData) return "Invalid JSON file.";
@@ -34,6 +34,11 @@ export async function LoadStations() {
       }
 
       for (const key in stationData.stations) {
+        if (key == "0")
+          await appSettings.set("event.startline", stationData[index][key].identifier);
+        if (key == (stationData.stations.length - 1).toString())
+          await appSettings.set("event.finishline", stationData[index][key].identifier);
+
         insertStation(stationData[index][key]);
       }
     }

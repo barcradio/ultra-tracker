@@ -112,6 +112,64 @@ export const saveRunnersToCSV = async (): Promise<string> => {
   return result.filePath as string;
 };
 
+export const saveDNSRunnersToCSV = async (): Promise<string> => {
+  const stationId = appSettings.getSync("station.id") as number;
+  const formattedStationId = stationId.toLocaleString("en-US", {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+
+  const dialogConfig = {
+    title: "Specify a DNS export file",
+    defaultPath: path.join(AppPaths.userRoot, `Aid${formattedStationId}-dns`),
+    filters: [
+      { name: "Comma-Separated Values", extensions: ["csv"] },
+      { name: "All Files", extensions: ["*"] }
+    ]
+  };
+
+  const result = await openFileDialog("showSaveDialog", dialogConfig)
+    .then((result) => {
+      console.log(result.canceled);
+      console.log(result.filePath);
+      return result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
+  return result.filePath as string;
+};
+
+export const saveDNFRunnersToCSV = async (): Promise<string> => {
+  const stationId = appSettings.getSync("station.id") as number;
+  const formattedStationId = stationId.toLocaleString("en-US", {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+
+  const dialogConfig = {
+    title: "Specify a DNF export file",
+    defaultPath: path.join(AppPaths.userRoot, `Aid${formattedStationId}-dnf`),
+    filters: [
+      { name: "Comma-Separated Values", extensions: ["csv"] },
+      { name: "All Files", extensions: ["*"] }
+    ]
+  };
+
+  const result = await openFileDialog("showSaveDialog", dialogConfig)
+    .then((result) => {
+      console.log(result.canceled);
+      console.log(result.filePath);
+      return result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
+  return result.filePath as string;
+};
+
 const openFileDialog = (method, params) => {
   return dialog[method](params);
 };

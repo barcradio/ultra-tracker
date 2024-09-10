@@ -1,16 +1,6 @@
 import { DropdownPassThroughOptions } from "primereact/dropdown";
 import { classNames } from "primereact/utils";
 
-const TRANSITIONS = {
-  overlay: {
-    timeout: 150,
-    enterFromClass: "opacity-0 scale-75",
-    enterActiveClass: "transition-opacity transition-transform duration-150 ease-in",
-    leaveActiveClass: "transition-opacity duration-150 ease-linear",
-    leaveToClass: "opacity-0"
-  }
-};
-
 export const DropdownPT: DropdownPassThroughOptions = {
   root: (params) => ({
     className: classNames(
@@ -42,7 +32,7 @@ export const DropdownPT: DropdownPassThroughOptions = {
     return {
       style: { scrollbarWidth: "none" },
       className: classNames(
-        "overflow-auto max-h-[200px]",
+        "overflow-auto max-h-[200px] bg-surface-secondary",
         "shadow-lg text-on-surface",
         { "rounded-br-lg rounded-bl-lg": params?.props.filter },
         { "rounded-lg": !params?.props.filter }
@@ -87,5 +77,13 @@ export const DropdownPT: DropdownPassThroughOptions = {
   },
   filterIcon: { className: "absolute top-1/2 -mt-2" },
   clearIcon: { className: "absolute right-12 top-1/2 -mt-2 text-on-surface" },
-  transition: TRANSITIONS.overlay
+  transition: {
+    timeout: 300,
+    classNames: {
+      enter: "opacity-0 scale-y-75",
+      enterActive: "opacity-100 transition duration-100 ease-in !scale-y-100",
+      exit: "transition duration-150 ease-out",
+      exitActive: "opacity-0"
+    }
+  }
 };

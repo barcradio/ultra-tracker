@@ -3,15 +3,16 @@ import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
-import { useAthlete } from "~/hooks/data/useAthlete";
-import { RunnerWithSequence } from "~/hooks/data/useRunnerData";
+import { useAthlete, useSetAthleteDNF } from "~/hooks/data/useAthlete";
+import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
+import { DNFType } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { useToasts } from "../Toasts/useToasts";
 
 interface Props {
-  runner: RunnerWithSequence;
-  runners: RunnerWithSequence[];
+  runner: RunnerEx;
+  runners: RunnerEx[];
 }
 
 const getErrorMessage = (error: FieldError): string => {
@@ -28,6 +29,8 @@ export function EditRunner(props: Props) {
 
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
+  //const setAthleteDNS = useSetAthleteDNS();
+  const setAthleteDNF = useSetAthleteDNF();
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
@@ -39,6 +42,9 @@ export function EditRunner(props: Props) {
       form.reset({ ...data });
       setIsOpen(false);
       editTiming.mutate(data);
+      //setAthleteDNS.mutate(data);
+      data.dnf = (data.dnfType as DNFType) != DNFType.None;
+      setAthleteDNF.mutate(data);
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -63,10 +69,7 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
-  const { data: athlete } = useAthlete(form.watch("runner"), isOpen);
-
-  // Temporary state for DNF
-  const [dnf, setDnf] = useState<string | null>(null);
+  const { data: athlete } = useAthlete(form.watch("bibId"), isOpen);
 
   return (
     <>
@@ -127,9 +130,9 @@ export function EditRunner(props: Props) {
                   step="0.1"
                   label="Bib"
                   placeholder="Runner"
-                  error={form.formState.errors.runner}
-                  {...form.register("runner", {
-                    required: "Runner is required"
+                  error={form.formState.errors.bibId}
+                  {...form.register("bibId", {
+                    required: "Bib# is required"
                   })}
                 />
                 <TextInput
@@ -170,11 +173,13 @@ export function EditRunner(props: Props) {
                   showSeconds
                 />
                 <Select
+                  onChange={(value) => {
+                    form.setValue("dnfType", value ? (value as DNFType) : DNFType.None);
+                  }}
                   className="w-72 grow-0"
                   label="DNF"
-                  value={dnf}
-                  onChange={(value) => setDnf(value)}
-                  options={["Medical", "Withdrew", "Time", "None"]}
+                  value={form.watch("dnfType")}
+                  options={["medical", "withdrew", "timeout", "none"]}
                   placeholder="DNF"
                 />
               </Stack>
@@ -185,7 +190,8 @@ export function EditRunner(props: Props) {
                 error={form.formState.errors.note}
                 {...form.register("note", {
                   validate: (value) => {
-                    if (value.includes(",")) return "Commas are not allowed in the notes field";
+                    if (value)
+                      if (value.includes(",")) return "Commas are not allowed in the notes field";
                     return true;
                   }
                 })}
@@ -228,9 +234,8 @@ export function EditRunner(props: Props) {
         onAffirmative={handleDeleteRunner}
       >
         <div className="text-center">
-          Are you sure you want to delete the timing record for Runner #
-          {selectedRunner.state.runner}?
-          <span className="font-medium text-danger"> This action cannot be undone.</span>
+          Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}
+          ?<span className="font-medium text-danger"> This action cannot be undone.</span>
         </div>
       </Modal>
     </>

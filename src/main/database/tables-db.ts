@@ -1,25 +1,64 @@
 import { getDatabaseConnection } from "./connect-db";
 import * as tableDefs from "./table-definitions";
 
-let tableCount = 0;
+const expectedTableNames = {
+  Athletes: "Athletes",
+  EventLog: "EventLog",
+  StationEvents: "StationEvents",
+  Stations: "Stations",
+  EventGrid: "Output"
+};
+
+interface Table {
+  type: string;
+  name: string;
+  tbl_name: string;
+  rootpage: number;
+  sql: string;
+}
 
 export function validateDatabaseTables() {
-  const db = getDatabaseConnection();
-  const query = db.prepare(
-    `SELECT count(*) FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'`
-  );
-  const result = query.get() as Record<string, number>;
+  console.log("validateDatabaseTables");
 
-  if (result["count(*)"] < tableCount) {
-    CreateTables();
+  const tableNames = getTableNames();
+
+  for (const key in expectedTableNames) {
+    type TableDef = keyof typeof tableDefs;
+    const name = expectedTableNames[key] as TableDef;
+
+    if (!tableNames.find((element) => element == name)) {
+      console.log(`Table not found: ${expectedTableNames[key]}`);
+      createTable(expectedTableNames[key], tableDefs[name]); // eslint-disable-line import/namespace
+    }
   }
+}
+
+export function getTableNames(): string[] {
+  const db = getDatabaseConnection();
+  const tableNames: string[] = [];
+
+  try {
+    const stmt = db.prepare(
+      `SELECT * FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'`
+    );
+
+    for (const table of stmt.iterate()) {
+      const t: Table = table as unknown as Table;
+      tableNames.push(t.name as string);
+    }
+
+    console.log(`Found tables: ${tableNames}`);
+  } catch (e: unknown) {
+    if (e instanceof Error) console.log(`Failed to find table names: ${e.message}`);
+  }
+
+  return tableNames;
 }
 
 export function getColumnNamesFromTable(tableName: string): string[] {
   const db = getDatabaseConnection();
   let columnNames: string[] = [];
   const stmt = db.prepare(`SELECT * FROM ${tableName}`);
-  toColumnNames(stmt);
 
   for (const row of toColumnNames(stmt)) {
     columnNames = row as string[];
@@ -45,6 +84,7 @@ export function CreateTables() {
 
 function createTable(tableName: string, tabledefinition: string): boolean {
   const db = getDatabaseConnection();
+
   try {
     db.prepare(
       `CREATE TABLE IF NOT EXISTS ${tableName} (
@@ -52,8 +92,6 @@ function createTable(tableName: string, tabledefinition: string): boolean {
       ${tabledefinition}
       )`
     ).run();
-
-    tableCount++;
     console.log(`Created '${tableName}' table`);
     return true;
   } catch (e: unknown) {
@@ -62,11 +100,15 @@ function createTable(tableName: string, tabledefinition: string): boolean {
   }
 }
 
-export const createAthletesTable = () => createTable("Athletes", tableDefs.athletes);
-export const createEventLogTable = () => createTable("EventLog", tableDefs.eventLog);
-export const createStationEventsTable = () => createTable("StaEvents", tableDefs.stationEvents);
-export const createStationsTable = () => createTable("Stations", tableDefs.stations);
-export const createOutputTable = () => createTable("Output", tableDefs.output);
+export const createAthletesTable = () =>
+  createTable(expectedTableNames.Athletes, tableDefs.Athletes);
+export const createEventLogTable = () =>
+  createTable(expectedTableNames.EventLog, tableDefs.EventLog);
+export const createStationEventsTable = () =>
+  createTable(expectedTableNames.StationEvents, tableDefs.StationEvents);
+export const createStationsTable = () =>
+  createTable(expectedTableNames.Stations, tableDefs.Stations);
+export const createOutputTable = () => createTable(expectedTableNames.EventGrid, tableDefs.Output);
 
 export function ClearTables() {
   const result =
@@ -84,7 +126,6 @@ function clearTable(tableName: string): boolean {
   try {
     db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
 
-    tableCount--;
     console.log(`Dropped '${tableName}' table`);
     return true;
   } catch (e: unknown) {
@@ -93,8 +134,8 @@ function clearTable(tableName: string): boolean {
   }
 }
 
-export const clearAthletesTable = () => clearTable("Athletes");
-export const clearEventsTable = () => clearTable("EventLog");
-export const clearRunnersTable = () => clearTable("StaEvents");
-export const clearStationsTable = () => clearTable("Stations");
-export const clearOutputTable = () => clearTable("Output");
+export const clearAthletesTable = () => clearTable(expectedTableNames.Athletes);
+export const clearEventsTable = () => clearTable(expectedTableNames.EventLog);
+export const clearRunnersTable = () => clearTable(expectedTableNames.StationEvents);
+export const clearStationsTable = () => clearTable(expectedTableNames.Stations);
+export const clearOutputTable = () => clearTable(expectedTableNames.EventGrid);

@@ -4,10 +4,10 @@ import appSettings from "electron-settings";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearAthletesTable, createAthletesTable } from "./tables-db";
-import { DatabaseStatus } from "../../shared/enums";
+import { DNFType, DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNFRecord, DNSRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
-import { loadAthleteFile, loadDNFFromCSV, loadDNSFromCSV } from "../lib/file-dialogs";
+import * as dialogs from "../lib/file-dialogs";
 
 const invalidResult = -999;
 
@@ -28,7 +28,7 @@ export async function LoadAthletes() {
   clearAthletesTable();
   createAthletesTable();
 
-  const athleteFilePath = await loadAthleteFile();
+  const athleteFilePath = await dialogs.loadAthleteFile();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
 
   parse(
@@ -55,7 +55,7 @@ export async function LoadAthletes() {
 
 export async function LoadDNS() {
   const headers = ["stationId", "bibId", "dnsDateTime", "note"];
-  const athleteFilePath = await loadDNSFromCSV();
+  const athleteFilePath = await dialogs.loadDNSFromCSV();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
 
   parse(
@@ -73,7 +73,7 @@ export async function LoadDNS() {
       console.log("Result", result);
 
       result.slice(1).forEach((dnsRecord) => {
-        updateAthleteDNS(dnsRecord);
+        updateAthleteDNSFromCSV(dnsRecord);
       });
       return `${athleteFilePath}\r\n${result.length} dnsRecords imported`;
     }
@@ -82,7 +82,7 @@ export async function LoadDNS() {
 
 export async function LoadDNF() {
   const headers = ["stationId", "bibId", "dnfType", "dnfDateTime", "note"];
-  const athleteFilePath = await loadDNFFromCSV();
+  const athleteFilePath = await dialogs.loadDNFFromCSV();
   const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
 
   parse(
@@ -100,7 +100,7 @@ export async function LoadDNF() {
       console.log("Result", result);
 
       result.slice(1).forEach((dnfRecord) => {
-        updateAthleteDNF(dnfRecord);
+        updateAthleteDNFFromCSV(dnfRecord);
       });
       return `${athleteFilePath}\r\n${result.length} dnfRecords imported`;
     }
@@ -273,6 +273,55 @@ export function GetAthleteFromColumn(
   return [runner, DatabaseStatus.Success, message];
 }
 
+export function SetDNSOnAthlete(bibId: number, dnsValue: boolean): DatabaseResponse {
+  const db = getDatabaseConnection();
+  let message: string = "";
+
+  try {
+    const query = db.prepare(`UPDATE Athletes SET dns = ? WHERE bibId = ?`);
+    query.run(Number(dnsValue), bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  message = `athlete:update bibId: ${bibId}, dns: ${dnsValue}`;
+  return [DatabaseStatus.Updated, message];
+}
+
+export function SetDNFOnAthlete(
+  bibId: number,
+  dnfValue: boolean,
+  dnfType: DNFType
+): DatabaseResponse {
+  const db = getDatabaseConnection();
+  let message: string = "";
+  let stationIdentifier: string | null = appSettings.getSync("station.identifier") as string;
+  let dnf: DNFType | null = dnfType;
+
+  if (!dnfValue) {
+    stationIdentifier = null;
+    dnf = null;
+  }
+
+  try {
+    const query = db.prepare(
+      `UPDATE Athletes SET dnf = ?, dnfType = ?, dnfStation = ? WHERE bibId = ?`
+    );
+    query.run(Number(dnfValue), dnf, stationIdentifier, bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  message = `athlete:update bibId: ${bibId}, dnf: ${dnfValue}, dnfType: ${dnfType}`;
+  return [DatabaseStatus.Updated, message];
+}
+
 export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   const db = getDatabaseConnection();
 
@@ -324,7 +373,7 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   return [DatabaseStatus.Created, message];
 }
 
-export function updateAthleteDNS(record: DNSRecord): DatabaseResponse {
+export function updateAthleteDNSFromCSV(record: DNSRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnsValue = true;
   const verbose = false;
@@ -356,7 +405,7 @@ export function updateAthleteDNS(record: DNSRecord): DatabaseResponse {
   return [DatabaseStatus.Updated, message];
 }
 
-export function updateAthleteDNF(record: DNFRecord): DatabaseResponse {
+export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
   const db = getDatabaseConnection();
   const dnfValue = Number(true);
   const dnfDateTime = parseCSVDate(record.dnfDateTime).toISOString();
@@ -409,18 +458,18 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
 
   switch (direction) {
     case SyncDirection.Incoming:
-      combinedNote = note.replaceAll(",", "");
+      combinedNote = !note ? "" : note.replaceAll(",", "");
       break;
 
     case SyncDirection.Outgoing:
-      combinedNote = note.replaceAll(",", "");
-      combinedNote = note.replaceAll(athleteNote, "");
+      combinedNote = !note ? "" : note.replaceAll(",", "");
+      combinedNote = !note ? "" : note.replaceAll(athleteNote, "");
       combinedNote = athleteNote.concat(" ", combinedNote);
       break;
   }
 
   try {
-    db.prepare(`UPDATE StaEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
+    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
     db.prepare(`UPDATE Athletes SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
   } catch (e) {
     if (e instanceof Error) {

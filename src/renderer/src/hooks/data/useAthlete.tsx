@@ -1,6 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useToasts } from "~/features/Toasts/useToasts";
 import { AthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
+import { RunnerEx } from "./useRunnerData";
 import { useHandleStatusToasts } from "../useHandleStatusToasts";
 import { useIpcRenderer } from "../useIpcRenderer";
 
@@ -18,5 +20,16 @@ export function useAthlete(bibNumber: number, enabled: boolean = true) {
       const success = handleErrors(status, message);
       return success ? data : null;
     }
+  });
+}
+
+export function useSetAthleteDNF() {
+  const ipcRenderer = useIpcRenderer();
+  const { createToast } = useToasts();
+
+  return useMutation({
+    mutationFn: (data: RunnerEx) => ipcRenderer.invoke("set-athlete-dnf", data),
+    onSuccess: (data) => createToast({ message: data, type: "success" }),
+    onError: (error) => console.error(error)
   });
 }

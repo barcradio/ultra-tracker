@@ -8,8 +8,8 @@ import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
-import { initializeDefaultAppSettings } from "../preload/data";
 import { RFIDWebSocketProcessor } from "../api/rfid-processor";
+import { configureAppSettings, initializeDefaultAppSettings } from "../preload/data";
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -42,9 +42,7 @@ function createWindow(): BrowserWindow {
   const rfidReaderUrl = "wss://192.168.0.25/ws";
   const rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, (idhex, timestamp) => {
     // Send the data to the renderer process via IPC
-    console.log(
-      ` ID: ${idhex}, Timestamp: ${timestamp}`
-    );
+    console.log(` ID: ${idhex}, Timestamp: ${timestamp}`);
     mainWindow.webContents.send("runner-data", { idhex, timestamp });
   });
 
@@ -72,6 +70,8 @@ app.on("ready", async () => {
 
   await installDevTools();
 
+  configureAppSettings();
+
   const firstRun = require("electron-first-run");
   if (firstRun()) {
     initializeDefaultAppSettings();
@@ -98,6 +98,16 @@ app.on("ready", async () => {
   });
 
   openDevToolsOnDomReady(mainWindow);
+
+  // Prevent navigation in the main window
+  const handleRedirect = (event: Electron.Event, url: string) => {
+    if (url !== mainWindow.webContents.getURL()) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  };
+
+  mainWindow.webContents.on("will-navigate", handleRedirect);
 });
 
 app.on("browser-window-created", (_, window) => {
