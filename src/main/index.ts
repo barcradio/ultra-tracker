@@ -9,6 +9,7 @@ import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
 import { initializeDefaultAppSettings } from "../preload/data";
+import { RFIDWebSocketProcessor } from "../api/rfid-processor";
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -35,6 +36,28 @@ function createWindow(): BrowserWindow {
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: "deny" };
+  });
+
+  // Initialize RFID WebSocket
+  const rfidReaderUrl = "wss://192.168.0.25/ws";
+  const rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, (idhex, timestamp) => {
+    // Send the data to the renderer process via IPC
+    console.log(
+      ` ID: ${idhex}, Timestamp: ${timestamp}`
+    );
+    mainWindow.webContents.send("runner-data", { idhex, timestamp });
+  });
+
+  rfidWebSocketProcessor.on("connected", () => {
+    console.log("RFID WebSocket connected");
+  });
+
+  rfidWebSocketProcessor.on("disconnected", () => {
+    console.log("RFID WebSocket disconnected");
+  });
+
+  rfidWebSocketProcessor.on("error", (error) => {
+    console.error("RFID WebSocket error:", error);
   });
 
   return mainWindow;
