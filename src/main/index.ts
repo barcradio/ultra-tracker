@@ -39,7 +39,7 @@ function createWindow(): BrowserWindow {
   });
 
   // Initialize RFID WebSocket
-  const rfidReaderUrl = "wss://192.168.0.25/ws";
+  const rfidReaderUrl = "wss://FXR90C94E1C/ws"; //truying to connect via host name.
   const rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl);
 
   rfidWebSocketProcessor.on("connected", () => {
