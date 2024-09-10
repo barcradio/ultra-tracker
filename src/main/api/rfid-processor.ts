@@ -3,7 +3,7 @@
 // THis is to inteefae with the ZEBRA FXR90 RFID scanner.  Cureently Exepcts to Recive a Similar looking 
 // form the scanner"
  {"data":{"eventNum":5938,"format":"epc","idHex":"000000000000000000000343"},"timestamp":"2024-09-05T01:07:01.785-0600","type":"CUSTOM"}
-/ whree idhex is the the Bib nuber and the time stame is the time when the bib was reed 
+/ where idhex is the the Bib nuber and the time stamp is the time when the bib was reed 
 /
 / USER APPS repo for Zebra https://github.com/ZebraDevs/RFID_ZIOTC_Examples
 */
@@ -26,7 +26,7 @@ interface RFIDMessage {
 }
 
 export class RFIDWebSocketProcessor {
-  private ws: WebSocket;
+  private ws: WebSocket | null = null;
   private isConnected: boolean = false;
   private reconnectInterval: number = 5000; // milliseconds
   private maxReconnectAttempts: number = 10;
@@ -57,8 +57,8 @@ export class RFIDWebSocketProcessor {
 
     this.ws.on("message", (data) => {
       this.buffer += data.toString();
-      console.log("Received data:", data.toString());
-      this.processIncomingMessages(data.toString());
+      console.debug("Received data:", data.toString());
+      this.processIncomingMessages();
     });
 
     this.ws.on("close", () => {
@@ -87,45 +87,64 @@ export class RFIDWebSocketProcessor {
     }
   }
 
-  private processIncomingMessages(concatenatedMessage: string): void {
-    const jsonObjects = concatenatedMessage.match(/{.*?}(?=\{|\s*$)/g);
+  private processIncomingMessages(): void {
+    // Extract JSON objects from buffer
+    const jsonObjects = this.buffer.match(/{.*?}(?=\{|\s*$)/g);
 
-    if (jsonObjects) {
-      // Parse each JSON object
-      const parsedObjects: RFIDMessage[] = jsonObjects.map(
-        (jsonStr) => JSON.parse(jsonStr) as RFIDMessage
-      );
+    if (!jsonObjects) {
+      console.log("No valid JSON objects found");
+      return;
+    }
 
-      // Output the parsed objects
-      parsedObjects.forEach((obj) => {
-        //test if the RFID is a bear100;
+    // Process each parsed JSON object
+    jsonObjects.forEach((jsonStr) => {
+      try {
+        const obj = JSON.parse(jsonStr) as RFIDMessage;
+
+        // Check if the RFID matches Bear 100 regex
         if (this.RFIDregex.test(obj.data.idHex)) {
-          const idhex = parseInt(obj.data.idHex);
-          const timestamp = new Date(obj.timestamp);
-
-          dbTimings.insertOrUpdateTimeRecord({
-            index: -1, // will be set by the backend
-            bibId: idhex,
-            stationId: -1, // will be set by the backend
-            timeIn: timestamp,
-            timeOut: timestamp,
-            timeModified: timestamp,
-            note: "RFID",
-            sent: false, // will be set by the backend
-            status: -1 // will be set by the backend
-          });
+          this.handleDatabaseInsert(obj);
         } else {
           console.log("Not Bear 100 regex");
         }
+      } catch (error) {
+        console.error("Failed to parse JSON:", error, "Raw JSON:", jsonStr);
+      }
+      // Clear processed part of the buffer and retain any partial data if any
+      const lastProcessedObjectIndex = this.buffer.lastIndexOf(jsonObjects[jsonObjects.length - 1]);
+      this.buffer = this.buffer.slice(
+        lastProcessedObjectIndex + jsonObjects[jsonObjects.length - 1].length
+      );
+    });
+  }
+
+  private handleDatabaseInsert(obj: RFIDMessage): void {
+    const idhex = parseInt(obj.data.idHex);
+    const timestamp = new Date(obj.timestamp);
+
+    try {
+      dbTimings.insertOrUpdateTimeRecord({
+        index: -1, // Set by backend
+        bibId: idhex,
+        stationId: -1, // Set by backend
+        timeIn: timestamp,
+        timeOut: timestamp,
+        timeModified: timestamp,
+        note: "RFID",
+        sent: false, // Set by backend
+        status: -1 // Set by backend
       });
-    } else {
-      console.log("No valid JSON objects found");
+      console.log(`RFID processed: ${idhex}`);
+    } catch (error) {
+      console.error("Error updating database:", error);
     }
   }
+
   public connnect(addr: string) {
     this.url = "wss://" + addr + "/ws";
     this.handleReconnection();
   }
+
   public disconnect(): void {
     this.ws.clos(1000, "CLient Closing Connection");
   }
