@@ -2,13 +2,13 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
+import { RFIDWebSocketProcessor } from "./api/rfid-processor";
 import { createDatabaseConnection } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
-import { RFIDWebSocketProcessor } from "../api/rfid-processor";
 import { configureAppSettings, initializeDefaultAppSettings } from "../preload/data";
 
 function createWindow(): BrowserWindow {
@@ -40,11 +40,7 @@ function createWindow(): BrowserWindow {
 
   // Initialize RFID WebSocket
   const rfidReaderUrl = "wss://192.168.0.25/ws";
-  const rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, (idhex, timestamp) => {
-    // Send the data to the renderer process via IPC
-    console.log(` ID: ${idhex}, Timestamp: ${timestamp}`);
-    mainWindow.webContents.send("runner-data", { idhex, timestamp });
-  });
+  const rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl);
 
   rfidWebSocketProcessor.on("connected", () => {
     console.log("RFID WebSocket connected");

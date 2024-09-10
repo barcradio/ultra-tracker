@@ -7,10 +7,9 @@
 /
 / USER APPS repo for Zebra https://github.com/ZebraDevs/RFID_ZIOTC_Examples
 */
-import { ipcMain } from 'electron';
+//import { ipcMain } from 'electron';
 import { EventEmitter } from "events";
 import WebSocket from "ws";
-import appSettings from "electron-settings";
 import * as dbTimings from "../database/timingRecords-db";
 
 // Define interfaces to type the expected JSON data structure
@@ -34,17 +33,13 @@ export class RFIDWebSocketProcessor {
   private reconnectAttempts: number = 0;
   private eventEmitter: EventEmitter = new EventEmitter();
   private errorCount: number = 0;
-  private lastError?: Error;
   private buffer: string = "";
   private RFIDregex = /0{20}/;
   private url: string = "";
 
   // runner info queue
 
-  constructor(
-    url: string,
-    private messageHandler?: (idHex: number, timestamp: Date) => void // Custom handler
-  ) {
+  constructor(url: string) {
     this.url = url;
     this.setupWebSocket();
   }
@@ -62,7 +57,7 @@ export class RFIDWebSocketProcessor {
 
     this.ws.on("message", (data) => {
       this.buffer += data.toString();
-      // console.log("Received data:", data.toString());
+      console.log("Received data:", data.toString());
       this.processIncomingMessages(data.toString());
     });
 
@@ -75,7 +70,6 @@ export class RFIDWebSocketProcessor {
 
     this.ws.on("error", (error) => {
       this.errorCount++;
-      this.lastError = error;
       console.error("WebSocket error:", error);
       this.eventEmitter.emit("error", error);
     });
@@ -95,7 +89,7 @@ export class RFIDWebSocketProcessor {
 
   private processIncomingMessages(concatenatedMessage: string): void {
     const jsonObjects = concatenatedMessage.match(/{.*?}(?=\{|\s*$)/g);
-    const stationIdentifier = appSettings.getSync("station.indentifier") as string;
+
     if (jsonObjects) {
       // Parse each JSON object
       const parsedObjects: RFIDMessage[] = jsonObjects.map(
@@ -110,23 +104,16 @@ export class RFIDWebSocketProcessor {
           const timestamp = new Date(obj.timestamp);
 
           dbTimings.insertOrUpdateTimeRecord({
-            index: -1,
+            index: -1, // will be set by the backend
             bibId: idhex,
-            stationId: stationIdentifier,
+            stationId: -1, // will be set by the backend
             timeIn: timestamp,
             timeOut: timestamp,
             timeModified: timestamp,
             note: "RFID",
-            sent: false,
-            status: -1
+            sent: false, // will be set by the backend
+            status: -1 // will be set by the backend
           });
-
-
-      //    if (this.messageHandler) {
-//
-      //      this.messageHandler(idhex, timestamp);
-      //    }
-      //    //ipcMain.emit("runner-data", { idhex, timestamp });
         } else {
           console.log("Not Bear 100 regex");
         }
