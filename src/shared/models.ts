@@ -68,7 +68,9 @@ export type StationDB = {
   dropbags: boolean;
   crewaccess: boolean;
   paceraccess: boolean;
+  shiftBegin: string;
   cutofftime: string;
+  shiftEnd: string;
   entrymode: number;
   operators: string;
 };
@@ -82,7 +84,9 @@ export type Station = {
   dropbags: boolean;
   crewaccess: boolean;
   paceraccess: boolean;
+  shiftBegin: Date;
   cutofftime: Date;
+  shiftEnd: Date;
   entrymode: EntryMode;
   operators: Operator[];
 };
@@ -97,8 +101,6 @@ export type Operator = {
   fullname: string;
   callsign: string;
   phone: number;
-  shiftBegin: Date;
-  shiftEnd: Date;
 };
 
 export interface StationIdentity {

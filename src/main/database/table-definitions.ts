@@ -50,7 +50,9 @@ export const Stations = `
       dropbags INTEGER,
       crewaccess INTEGER,
       paceraccess INTEGER,
+      shiftBegin DATETIME,
       cutofftime DATETIME,
+      shiftEnd DATETIME,
       entrymode INTEGER,
       operators BLOB`;
 
