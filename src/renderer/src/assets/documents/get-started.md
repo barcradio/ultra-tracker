@@ -5,25 +5,24 @@
 2. [Sidebar](#sidebar)
 3. [Stats Page](#stats-page)
    1. [Keyboard shortcuts](#keyboard-shortcuts)
-4. [Search Page](#search-page)
+4. [Roster Page](#roster-page)
 5. [Logs Page](#logs-page)
 6. [Export Page](#export-page)
-7. [Theme Page](#theme-page)
-8. [Database Page](#database-page)
-   1. [Recovery Procedure](#recovery-procedure)
-9. [Settings Page](#settings-page)
-10. [About Ultra-tracker](#about-ultra-tracker)
-11. [Contributors](#contributors)
-12. [License](#license)
+7. [Theme Page](#theme-page)   
+8. [Settings Page](#settings-page)
+	1. [Recovery Procedure](#recovery-procedure)
+9. [About Ultra-tracker](#about-ultra-tracker)
+10. [Contributors](#contributors)
+11. [License](#license)
 
 ---
 
 ## Initial Setup
-1. Load the Stations File.
-1. Select Station location and set operator callsign.
-1. Load the Athletes File.
-1. Load the DNS File.
-1. Load the DNF File.
+1. Load the Stations File
+1. Select Station location and set operator callsign
+1. Load the Athletes File
+1. Load the DNS File
+1. Load the DNF File
 
 ## Sidebar
 The left side bar is used to select different pages.  Select from Stats, Roster, Logs, Export, Theme, Database, Settings and Help.
@@ -51,8 +50,8 @@ Entry of numbers and times is assisted by using some specific keys on both an 88
 
 ![keyboard-layout.png](./img/keyboard-layout.png)
 
-## Search Page
-The purpose of this page is to function as an full list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and notes entries.
+## Roster Page
+The purpose of this page is to provide the full list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and note entries.
 
 
 ## Logs Page
@@ -63,21 +62,29 @@ The purpose of this page is to display and export the station log file that is a
 
 ## Export Page
 - **Export Incremental CSV File**
+This function exports a .csv file of the station entries containing unsent or edited records, contains BibID,TimeIn, TimeOut, DNF/DNS status and any notes made by the operator
+(Sending only the recent results allows for much shorter files being routinely sent to the network database via radio.) It will also autmatically name itself and increment the filename for you
+
 - **Export Full CSV File**
+This function exports a full .csv file of all entries containing each athlete and their TimeIn, TimeOut, DNF/DNS status and any notes made by the operator of **all events** that have **been entered**. 
+
 - **Export DNS File**
+
 - **Export DNF File**
+
 
 ## Theme Page
 This is a global selection that allows two different color/shading options for use during daylight or nighttime operation.
 
+## Settings Page
+This page has selections for entering the Station name, number, location in lat/long coordinates and operators names and callsigns.
 
-## Database Page
-The database page allows the operator to initialize the database and to load data for various input files needed for proper program operation. By default, system initialization files will be located in user documents directory and file reading/writing selection dialogs will open to this directory.
+It also allows the operator to import the various input files and manage the database needed for proper program operation. By default, system initialization files will be located in user documents directory and file reading/writing selection dialogs will open to this directory.
 * Windows: `%userprofile%\Documents\ultra-tracker\`
 * Linux: `$HOME/Documents/ultra-tracker`
 * MacOS:  `/Users/username/Documents/ultra-tracker`
 
-<span style="color:red">**Warning: Some of the functions in the app (marked in RED) are completely destructive to the local database and MUST NOT be performed during normal operation.**</span>
+<span style="color:red">**Warning: Some of the functions here(marked in RED) are completely destructive to the local database and MUST NOT be performed during normal operation.**</span>
 
 <span style="color:orange">The orange functions are provided as a means to completely recover after a major database error and other methods have not corrected the issue.</span>
 
@@ -95,39 +102,26 @@ This function loads a .csv file, supplied by race organizers, containing all of 
 - **Load DNF File**
 This function loads a .csv file, supplied by race organizers, containing all of the athletes known to have **not finished** the race.
 
-- **Export Recent Events File**  
-This function exports a .csv file of the station entries containing each athlete and their TimeIn, TimeOut, DNF/DNS status and any notes made by the operator of those events that have **Not already been sent**.
-(Sending only the recent results allows for much shorter files being routinely sent to the network database via radio.)
+- **Initialize RFID**
 
+- **Reset App Settings** 
 
-- **Export All Events File**
-This function exports a .csv file of the station entries containing each athlete and their TimeIn, TimeOut, DNF/DNS status and any notes made by the operator of **all events** that have **been entered**.  
-
-  -  > Sending all results since the start of the race >results in **longer files** being sent to the network database via radio.
-
-
-- **Destroy and Init Database**
+- **Recreate Database**
 This function is the means where *ALL* **database entries and tables are removed** resulting in the loss of *ALL* setup data and entry history!  The intent is to allow recovery of a major database corruption event and the rapid rebuild and subsequent return to normal operation by the operator.
-   While the previous button of "Destroy and Init Database" is drastic, this allows us to now rebuild the database and application back to the previous state!
+   While the previous button of "Recreate Database" is drastic, this allows us to now rebuild the database and application back to the previous state!
 
-**Import History File to Database**
+**Recover Data From CSV File**
 This function imports **ALL of the entries** that have previously been made by the operator since the start of this race event!  The Ultra-tracker application has been automatically producing a file containing EVERY entry made by the operator continuously during normal operation! This function will restore all of this data to restore the program to the previous state automatically.
-
 
 ### Recovery Procedure
 If instructed to do so
-<span style="color:orange">After the "Destroy and Init Database" has been performed, perform the following steps:</span>
+<span style="color:orange">After the "Recreate Database" has been performed, perform the following steps:</span>
 
 1. Load the Stations File.
 1. Load the Athletes File.
 1. Load the DNS File.
 1. Load the DNF File.
 1. Import History File to DB.
-
-
-## Settings Page
-This page has selections for entering the Station name, number, location in lat/long coordinates and operators names and callsigns.
-
 
 ## About Ultra-tracker
 A cross-platform desktop application for tracking athletes during ultra marathons.
