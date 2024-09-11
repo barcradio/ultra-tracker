@@ -203,9 +203,9 @@ function updateTimeRecord(
       logEvent(
         record.bibId,
         stationIdentifier,
-        timeInISO == null ? "" : timeInISO,
-        timeOutISO == null ? "" : timeOutISO,
-        modifiedISO == null ? "" : modifiedISO,
+        timeInISO,
+        timeOutISO,
+        modifiedISO,
         `[Update](Time): bibId:(${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`,
         record.sent,
         verbose
@@ -257,9 +257,9 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
     logEvent(
       record.bibId,
       stationIdentifier,
-      timeInISO == null ? "" : timeInISO,
-      timeOutISO == null ? "" : timeOutISO,
-      modifiedISO == null ? "" : modifiedISO,
+      timeInISO,
+      timeOutISO,
+      modifiedISO,
       `[Add](Time): bibId:(${record.bibId}), ${RecordStatus[record.status]}`,
       record.sent,
       verbose
