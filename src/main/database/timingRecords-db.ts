@@ -295,7 +295,7 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
   const db = getDatabaseConnection();
 
   try {
-    db.prepare(`UPDATE StationEvents SET sent = ? WHERE "bibId" = ?`).run(value, bibId);
+    db.prepare(`UPDATE StationEvents SET sent = ? WHERE "bibId" = ?`).run(Number(value), bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
