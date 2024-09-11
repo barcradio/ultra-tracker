@@ -68,6 +68,7 @@ export async function setStation(stationIdentifier: string) {
   // ];
 
   await appSettings.set("station.name", selectedStation.name);
+  await appSettings.set("station.id", Number(selectedStation.identifier.split("-", 1)));
   await appSettings.set("station.identifier", selectedStation.identifier);
   await appSettings.set("station.entrymode", selectedStation.entrymode);
 
@@ -91,11 +92,11 @@ export async function setStation(stationIdentifier: string) {
 
 export function GetStationIdentity(): StationIdentity {
   const stationName = appSettings.getSync("station.name") as string;
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const stationId = appSettings.getSync("station.id") as number;
   const stationCallsign = appSettings.getSync("station.operators.primary.callsign") as string;
 
   return {
-    aidStation: `${stationIdentifier.split("-", 1)} ${stationName}`,
+    aidStation: `${stationId} ${stationName}`,
     callsign: stationCallsign
   };
 }
