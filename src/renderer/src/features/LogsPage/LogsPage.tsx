@@ -8,14 +8,20 @@ export function LogsPage() {
 
   const columns: ColumnDef<EventLogRec> = [
     {
-      field: "bibId",
-      name: "Bib",
-      width: "7%"
+      field: "timeModified",
+      name: "Timestamp",
+      render: formatDate,
+      width: "13%"
     },
     {
       field: "stationId",
       name: "Station",
       width: "15%"
+    },
+    {
+      field: "bibId",
+      name: "Bib",
+      width: "7%"
     },
     {
       field: "timeIn",
@@ -26,12 +32,6 @@ export function LogsPage() {
     {
       field: "timeOut",
       name: "Time Out",
-      render: formatDate,
-      width: "13%"
-    },
-    {
-      field: "timeModified",
-      name: "Logged At",
       render: formatDate,
       width: "13%"
     },

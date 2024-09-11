@@ -206,7 +206,7 @@ function updateTimeRecord(
         timeInISO == null ? "" : timeInISO,
         timeOutISO == null ? "" : timeOutISO,
         modifiedISO == null ? "" : modifiedISO,
-        "Update timing record",
+        `[Update](Time): bibId:(${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`,
         record.sent,
         verbose
       );
@@ -260,7 +260,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
       timeInISO == null ? "" : timeInISO,
       timeOutISO == null ? "" : timeOutISO,
       modifiedISO == null ? "" : modifiedISO,
-      "Add time record",
+      `[Add](Time): bibId:(${record.bibId}), ${RecordStatus[record.status]}`,
       record.sent,
       verbose
     );
