@@ -11,6 +11,10 @@ import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
 import { configureAppSettings, initializeDefaultAppSettings } from "../preload/data";
 
+// Initialize RFID WebSocket
+const rfidReaderUrl = "wss://FXR90C94E1C/ws"; //truying to connect via host name.
+let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
+
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1440,
@@ -37,10 +41,7 @@ function createWindow(): BrowserWindow {
     shell.openExternal(details.url);
     return { action: "deny" };
   });
-
-  // Initialize RFID WebSocket
-  const rfidReaderUrl = "wss://FXR90C94E1C/ws"; //truying to connect via host name.
-  const rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl);
+  rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl);
 
   rfidWebSocketProcessor.on("connected", () => {
     console.log("RFID WebSocket connected");
@@ -88,6 +89,10 @@ app.on("ready", async () => {
   app.on("activate", function () {
     app.on("window-all-closed", () => {
       if (process.platform !== "darwin") {
+        if (rfidWebSocketProcessor) {
+          rfidWebSocketProcessor.disconnect();
+          rfidWebSocketProcessor = null;
+        }
         app.quit();
       }
     });
