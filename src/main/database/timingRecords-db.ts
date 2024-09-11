@@ -276,7 +276,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
 
 export function setTimingRecordNote(bibId: number, note: string) {
   const db = getDatabaseConnection();
-  const imcomingNote = !note ? "" : note.replaceAll(",", "");
+  const incomingNote = !note ? "" : note.replaceAll(",", "").trimStart();
 
   try {
     db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(imcomingNote, bibId);

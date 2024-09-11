@@ -458,13 +458,13 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
 
   switch (direction) {
     case SyncDirection.Incoming:
-      combinedNote = !note ? "" : note.replaceAll(",", "");
+      combinedNote = !note ? "" : note.replaceAll(",", "").trimStart();
       break;
 
     case SyncDirection.Outgoing:
       combinedNote = !note ? "" : note.replaceAll(",", "");
       combinedNote = !note ? "" : note.replaceAll(athleteNote, "");
-      combinedNote = athleteNote.concat(" ", combinedNote);
+      combinedNote = athleteNote.concat(" ", combinedNote).trimStart();
       break;
   }
 
