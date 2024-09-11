@@ -156,6 +156,7 @@ function updateTimeRecord(
 ): DatabaseResponse {
   const db = getDatabaseConnection();
   const stationId = appSettings.getSync("station.id") as number;
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
   let queryString = "";
 
   // scrub any string values coming from the UI
@@ -201,11 +202,11 @@ function updateTimeRecord(
 
       logEvent(
         record.bibId,
-        String(record.stationId), //better to use identifier
+        stationIdentifier,
         timeInISO == null ? "" : timeInISO,
         timeOutISO == null ? "" : timeOutISO,
         modifiedISO == null ? "" : modifiedISO,
-        "Update Timing record",
+        "Update timing record",
         record.sent,
         verbose
       );
@@ -259,7 +260,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
       timeInISO == null ? "" : timeInISO,
       timeOutISO == null ? "" : timeOutISO,
       modifiedISO == null ? "" : modifiedISO,
-      "Update time record",
+      "Add time record",
       record.sent,
       verbose
     );
