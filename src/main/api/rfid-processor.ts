@@ -7,7 +7,6 @@
 /
 / USER APPS repo for Zebra https://github.com/ZebraDevs/RFID_ZIOTC_Examples
 */
-//import { ipcMain } from 'electron';
 import { EventEmitter } from "events";
 import WebSocket from "ws";
 import * as dbTimings from "../database/timingRecords-db";
@@ -39,7 +38,10 @@ export class RFIDWebSocketProcessor {
 
   // runner info queue
 
-  constructor(url: string) {
+  constructor(
+    url: string,
+    private dataBaseUpdated?: () => void
+  ) {
     this.url = url;
     this.setupWebSocket();
   }
@@ -57,7 +59,7 @@ export class RFIDWebSocketProcessor {
 
     this.ws.on("message", (data) => {
       this.buffer += data.toString();
-      console.debug("Received data:", data.toString());
+      //console.debug("Received data:", data.toString());
       this.processIncomingMessages();
     });
 
@@ -134,7 +136,10 @@ export class RFIDWebSocketProcessor {
         sent: false, // Set by backend
         status: -1 // Set by backend
       });
-      console.log(`RFID processed: ${idhex}`);
+      //console.log(`RFID processed: ${idhex}`);
+      if (this.dataBaseUpdated) {
+        this.dataBaseUpdated();
+      }
     } catch (error) {
       console.error("Error updating database:", error);
     }

@@ -41,7 +41,9 @@ function createWindow(): BrowserWindow {
     shell.openExternal(details.url);
     return { action: "deny" };
   });
-  rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl);
+  rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, () => {
+    mainWindow.webContents.send("read-rfid");
+  });
 
   rfidWebSocketProcessor.on("connected", () => {
     console.log("RFID WebSocket connected");
