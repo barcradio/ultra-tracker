@@ -1,0 +1,33 @@
+{
+  "targetLanguage": "eng",
+  "event": {
+    "name": "ultra-marathon-2024",
+    "startline": "0-start-line",
+    "starttime": "00:00:00 Jan 01 2024",
+    "finishline": "99-finish-line",
+    "endtime": "00:00:00 Jan 01 2024"
+  },
+  "station": {
+    "id": 0,
+    "identifier": "0-first-station",
+    "name": "Default Station",
+    "entryMode": 0,
+    "shiftBegin": "00:00:00 Jan 01 2024",
+    "cutofftime": "00:00:00 Jan 01 2024",
+    "shiftEnd": "00:00:00 Jan 01 2024",
+    "entrymode": 0,
+    "operators": {
+      "primary": {
+        "name": "",
+        "callsign": "",
+        "phone": ""
+      },
+      "secondary": {
+        "name": "",
+        "callsign": "",
+        "phone": ""
+      }
+    }
+  },
+  "incrementalFileIndex": 1
+}
