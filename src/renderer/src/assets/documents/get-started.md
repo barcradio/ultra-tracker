@@ -103,7 +103,7 @@ This function loads a .csv file, supplied by race organizers, containing all of 
 This function loads a .csv file, supplied by race organizers, containing all of the athletes known to have **not finished** the race.
 
 - **Initialize RFID**
-
+Starts RFID reader service for the Zebra FXR90 
 - **Reset App Settings** 
 
 - **Recreate Database**
