@@ -3,7 +3,7 @@ import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
 import { DatePicker } from "~/components/DatePicker";
-import { useAthlete, useSetAthleteDNF } from "~/hooks/data/useAthlete";
+import { useAthlete, useSetAthleteStatus } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { DNFType } from "$shared/enums";
@@ -29,8 +29,7 @@ export function EditRunner(props: Props) {
 
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
-  //const setAthleteDNS = useSetAthleteDNS();
-  const setAthleteDNF = useSetAthleteDNF();
+  const setAthlete = useSetAthleteStatus();
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
@@ -42,9 +41,8 @@ export function EditRunner(props: Props) {
       form.reset({ ...data });
       setIsOpen(false);
       editTiming.mutate(data);
-      //setAthleteDNS.mutate(data);
       data.dnf = (data.dnfType as DNFType) != DNFType.None;
-      setAthleteDNF.mutate(data);
+      setAthlete.mutate(data);
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -157,29 +155,37 @@ export function EditRunner(props: Props) {
                 showTime
                 showSeconds
               />
+              <DatePicker
+                name="out"
+                label="Out Time"
+                control={form.control}
+                rules={{
+                  validate: (value, { in: inTime }) => {
+                    if (value && inTime && value < inTime)
+                      return "Runners cannot exit station before entering";
+                    return true;
+                  }
+                }}
+                showTime
+                showSeconds
+              />
               <Stack direction="row" align="end" justify="stretch" className="gap-6 w-full">
-                <DatePicker
-                  name="out"
-                  label="Out Time"
-                  control={form.control}
-                  rules={{
-                    validate: (value, { in: inTime }) => {
-                      if (value && inTime && value < inTime)
-                        return "Runners cannot exit station before entering";
-                      return true;
-                    }
-                  }}
-                  showTime
-                  showSeconds
-                />
                 <Select
                   onChange={(value) => {
                     form.setValue("dnfType", value ? (value as DNFType) : DNFType.None);
                   }}
-                  className="w-72 grow-0"
+                  className="w-1/2"
                   label="DNF"
                   value={form.watch("dnfType")}
                   options={["medical", "withdrew", "timeout", "none"]}
+                  placeholder="DNF"
+                />
+                <Select
+                  onChange={(value) => form.setValue("dns", value === "dns")}
+                  className="w-1/2"
+                  label="DNS"
+                  value={form.watch("dns") ? "dns" : "none"}
+                  options={["dns", "none"]}
                   placeholder="DNF"
                 />
               </Stack>

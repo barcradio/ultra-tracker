@@ -12,8 +12,8 @@ const getAthleteByBib: Handler<number, DatabaseResponse<AthleteDB>> = (_, bib) =
   return dbAthletes.GetAthleteByBib(bib);
 };
 
-const setAthleteDNS: Handler<[number, boolean]> = (_, [bibId, dns]) => {
-  return dbAthletes.SetDNSOnAthlete(bibId, dns);
+const setAthleteDNS: Handler<RunnerAthleteDB> = (_, data) => {
+  return dbAthletes.SetDNSOnAthlete(data.bibId, data.dns!);
 };
 
 const setAthleteDNF: Handler<RunnerAthleteDB> = (_, data) => {
