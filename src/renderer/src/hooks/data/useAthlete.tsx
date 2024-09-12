@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { AthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
@@ -23,13 +23,21 @@ export function useAthlete(bibNumber: number, enabled: boolean = true) {
   });
 }
 
-export function useSetAthleteDNF() {
+export function useSetAthleteStatus() {
   const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
   const { createToast } = useToasts();
 
   return useMutation({
-    mutationFn: (data: RunnerEx) => ipcRenderer.invoke("set-athlete-dnf", data),
-    onSuccess: (data) => createToast({ message: data, type: "success" }),
+    mutationFn: (data: RunnerEx) => {
+      queryClient.invalidateQueries({ queryKey: ["runner-table"] });
+      return Promise.all([
+        ipcRenderer.invoke("set-athlete-dnf", data),
+        ipcRenderer.invoke("set-athlete-dns", data)
+      ]);
+    },
+
+    onSuccess: (data) => data.forEach((message) => createToast({ message, type: "success" })),
     onError: (error) => console.error(error)
   });
 }

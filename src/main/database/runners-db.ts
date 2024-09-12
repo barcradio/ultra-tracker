@@ -144,7 +144,7 @@ export function readRunnersTable<T>(
   let message: string = "";
 
   const statement = includeDNF
-    ? `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType
+    ? `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dns
        FROM "StationEvents" LEFT JOIN "Athletes"
        ON StationEvents.bibId = Athletes.bibId`
     : `SELECT * FROM StationEvents`;

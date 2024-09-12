@@ -135,4 +135,4 @@ export type EventLogRec = {
   verbose: boolean | undefined;
 };
 
-export type RunnerAthleteDB = RunnerDB & Pick<AthleteDB, "dnf" | "dnfType">;
+export type RunnerAthleteDB = RunnerDB & Pick<AthleteDB, "dnf" | "dnfType" | "dns">;
