@@ -35,7 +35,7 @@ export function useSortState<T extends object>({ initial, columns }: Props<T>) {
   };
 
   const compareFn = useCallback(
-    (a: T[keyof T], b: T[keyof T]) => {
+    (a: unknown, b: unknown) => {
       if (field === null) return 0;
       if (a === b) return 0;
       if (!a) return 1;
