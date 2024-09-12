@@ -1,5 +1,9 @@
 {
-    "event": "bear-100-2024",
+    "event": {
+        "name": "bear-100-2024",
+        "starttime": "06:00:00 Sept 27 2024",
+        "endtime": "18:00:00 Sept 28 2024"
+    },
     "stations": [
         {
             "name": "Start Line",
@@ -14,17 +18,22 @@
             "dropbags": false,
             "crewaccess": true,
             "paceraccess": false,
-            "cutofftime": "06:00:00 Sept 27",
+            "shiftBegin": "05:00:00 Aug 27 2024",
+            "cutofftime": "06:00:00 Sept 27 2024",
+            "shiftEnd": "07:00:00 Aug 27 2024",
             "entrymode": 1,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Logan Peak",
@@ -39,17 +48,22 @@
             "dropbags": false,
             "crewaccess": false,
             "paceraccess": false,
-            "cutofftime": "10:15:00 Sept 27",
+            "shiftBegin": "07:00:00 Aug 27 2024",
+            "cutofftime": "09:30:00 Aug 27 2024",
+            "shiftEnd": "09:30:00 Aug 27 2024",
             "entrymode": 1,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Leatham Hollow",
@@ -64,17 +78,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": false,
-            "cutofftime": "13:00:00 Sept 27",
+            "shiftBegin": "08:30:00 Aug 27 2024",
+            "cutofftime": "13:00:00 Sept 27 2024",
+            "shiftEnd": "14:00:00 Aug 27 2024",
             "entrymode": 1,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Upper Richards Hollow",
@@ -89,17 +108,22 @@
             "dropbags": true,
             "crewaccess": false,
             "paceraccess": false,
-            "cutofftime": "16:00:00 Sept 27",
+            "shiftBegin": "09:30:00 Aug 27 2024",
+            "cutofftime": "16:00:00 Sept 27 2024",
+            "shiftEnd": "16:30:00 Aug 27 2024",
             "entrymode": 1,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Right Hand Fork",
@@ -114,17 +138,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "19:00:00 Sept 27",
+            "shiftBegin": "11:00:00 Sept 27 2024",
+            "cutofftime": "19:00:00 Sept 27 2024",
+            "shiftEnd": "19:30:00 Sept 27 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Temple Fork",
@@ -139,17 +168,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "22:30:00 Sept 27",
+            "shiftBegin": "12:00:00 Sept 27 2024",
+            "cutofftime": "22:30:00 Sept 27 2024",
+            "shiftEnd": "23:00:00 Sept 27 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Tony Grove",
@@ -164,17 +198,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "01:00:00 Sept 28",
+            "shiftBegin": "13:30:00 Sept 27 2024",
+            "cutofftime": "01:00:00 Sept 28 2024",
+            "shiftEnd": "01:30:00 Sept 28 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Franklin Trailhead",
@@ -189,17 +228,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "05:00:00 Sept 28",
+            "shiftBegin": "15:15:00 Sept 27 2024",
+            "cutofftime": "05:00:00 Sept 28 2024",
+            "shiftEnd": "05:30:00 Sept 28 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Logan River",
@@ -214,17 +258,22 @@
             "dropbags": true,
             "crewaccess": false,
             "paceraccess": false,
-            "cutofftime": "08:30:00 Sept 28",
+            "shiftBegin": "16:45:00 Sept 27 2024",
+            "cutofftime": "08:30:00 Sept 28 2024",
+            "shiftEnd": "09:00:00 Sept 28 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Beaver Mt. Lodge",
@@ -239,17 +288,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "11:00:00 Sept 28",
+            "shiftBegin": "18:00:00 Sept 27 2024",
+            "cutofftime": "11:00:00 Sept 28 2024",
+            "shiftEnd": "11:30:00 Sept 28 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Gibson Basin",
@@ -264,17 +318,22 @@
             "dropbags": false,
             "crewaccess": false,
             "paceraccess": false,
-            "cutofftime": "12:45:00 Sept 28",
+            "shiftBegin": "19:15:00 Sept 27 2024",
+            "cutofftime": "12:45:00 Sept 28 2024",
+            "shiftEnd": "13:15:00 Sept 28 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Beaver Creek Campground",
@@ -289,17 +348,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "14:15:00 Sept 28",
+            "shiftBegin": "20:00:00 Sept 27 2024",
+            "cutofftime": "14:15:00 Sept 28 2024",
+            "shiftEnd": "14:45:00 Sept 28 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Ranger Dip",
@@ -314,17 +378,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "16:15:00 Sept 28",
+            "shiftBegin": "21:30:00 Sept 27 2024",
+            "cutofftime": "16:15:00 Sept 28 2024",
+            "shiftEnd": "16:45:00 Sept 28 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         },
         {
             "name": "Finish Line",
@@ -339,17 +408,22 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": true,
-            "cutofftime": "18:00:00 Sept 28",
+            "shiftBegin": "23:00:00 Sept 27 2024",
+            "cutofftime": "18:00:00 Sept 28 2024",
+            "shiftEnd": "18:30:00 Sept 28 2024",
             "entrymode": 0,
-            "operators": [
-                {
-                    "name": "",
+            "operators": {
+                "primary": {
+                    "fullname": "",
                     "callsign": "",
-                    "phone": "999-999-9999",
-                    "shiftBegin": "00:00:00 Jan 01",
-                    "shiftEnd": "00:00:00 Jan 01"
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
                 }
-            ]
+            }
         }
     ]
 }

@@ -6,9 +6,9 @@ import { getDatabaseConnection } from "./connect-db";
 export function logEvent(
   bibId: number,
   stationId: string,
-  timeIn: string,
-  timeOut: string,
-  timeModified: string,
+  timeIn: string | null,
+  timeOut: string | null,
+  timeModified: string | null,
   comments: string,
   sent: boolean,
   verbose: boolean
@@ -22,9 +22,9 @@ export function logEvent(
     queryResult.run(
       bibId,
       stationId,
-      timeIn,
-      timeOut,
-      timeModified,
+      timeIn == null ? "" : timeIn,
+      timeOut == null ? "" : timeOut,
+      timeModified == null ? "" : timeModified,
       comments,
       Number(sent),
       Number(verbose)

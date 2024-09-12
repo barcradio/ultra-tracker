@@ -53,23 +53,13 @@ export async function setStation(stationIdentifier: string) {
   const selectedStation: Station | null = GetStationByIdentifier(stationIdentifier)?.[0];
   if (!selectedStation) return;
 
-  // this is the schema for rank of operators in the event file
-  // const rankWords = [
-  //   "primary",
-  //   "secondary",
-  //   "tertiary",
-  //   "quaternary",
-  //   "quinary",
-  //   "senary",
-  //   "septenary",
-  //   "octonary",
-  //   "nonary",
-  //   "denary"
-  // ];
-
   await appSettings.set("station.name", selectedStation.name);
+  await appSettings.set("station.id", Number(selectedStation.identifier.split("-", 1)));
   await appSettings.set("station.identifier", selectedStation.identifier);
   await appSettings.set("station.entrymode", selectedStation.entrymode);
+  await appSettings.set(`station.shiftBegin`, selectedStation.shiftBegin as unknown as string);
+  await appSettings.set(`station.cutofftime`, selectedStation.cutofftime as unknown as string);
+  await appSettings.set(`station.shiftEnd`, selectedStation.shiftEnd as unknown as string);
 
   for (const key in selectedStation.operators as Operator[]) {
     await appSettings.set(`station.operators.${key}.name`, selectedStation.operators[key].fullname);
@@ -78,24 +68,16 @@ export async function setStation(stationIdentifier: string) {
       selectedStation.operators[key].callsign
     );
     await appSettings.set(`station.operators.${key}.phone`, selectedStation.operators[key].phone);
-    await appSettings.set(
-      `station.operators.${key}.shiftBegin`,
-      selectedStation.operators[key].shiftBegin as unknown as string
-    );
-    await appSettings.set(
-      `station.operators.${key}.shiftEnd`,
-      selectedStation.operators[key].shiftEnd as unknown as string
-    );
   }
 }
 
 export function GetStationIdentity(): StationIdentity {
   const stationName = appSettings.getSync("station.name") as string;
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const stationId = appSettings.getSync("station.id") as number;
   const stationCallsign = appSettings.getSync("station.operators.primary.callsign") as string;
 
   return {
-    aidStation: `${stationIdentifier.split("-", 1)} ${stationName}`,
+    aidStation: `${stationId} ${stationName}`,
     callsign: stationCallsign
   };
 }
@@ -145,7 +127,9 @@ export function GetStationByIdentifier(identifier: string): DatabaseResponse<Sta
     dropbags: queryResult.dropbags,
     crewaccess: queryResult.crewaccess,
     paceraccess: queryResult.paceraccess,
+    shiftBegin: new Date(queryResult.shiftBegin),
     cutofftime: new Date(queryResult.cutofftime),
+    shiftEnd: new Date(queryResult.shiftEnd),
     entrymode: queryResult.entrymode as EntryMode,
     operators: ops as Operator[]
   };
@@ -166,13 +150,15 @@ export function insertStation(station: Station): DatabaseResponse {
   const dropbags: number = Number(station.dropbags);
   const crewaccess: number = Number(station.crewaccess);
   const paceraccess: number = Number(station.paceraccess);
+  const shiftBegin: string = new Date(station.shiftBegin).toISOString();
   const cutofftime: string = new Date(station.cutofftime).toISOString();
+  const shiftEnd: string = new Date(station.shiftEnd).toISOString();
   const entrymode: number = Number(station.entrymode);
   const operators: string = JSON.stringify(station.operators);
 
   try {
     const query = db.prepare(
-      `INSERT INTO Stations (name, identifier, description, location, dropbags, crewaccess, paceraccess, distance, cutofftime, entrymode, operators) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Stations (name, identifier, description, location, dropbags, crewaccess, paceraccess, distance, shiftBegin, cutofftime, shiftEnd, entrymode, operators) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     query.run(
       name,
@@ -183,7 +169,9 @@ export function insertStation(station: Station): DatabaseResponse {
       crewaccess,
       paceraccess,
       distance,
+      shiftBegin,
       cutofftime,
+      shiftEnd,
       entrymode,
       operators
     );

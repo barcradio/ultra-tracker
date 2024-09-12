@@ -239,7 +239,7 @@ export function exportUnsentRunnersAsCSV() {
   if (filePath == undefined) return "Invalid file name";
 
   try {
-    queryResult = getRunnersNotSent();
+    queryResult = getRunnersNotSent()[0];
     if (queryResult == null) return `Failed to get unsent runners`;
 
     if (queryResult.length == 0) {

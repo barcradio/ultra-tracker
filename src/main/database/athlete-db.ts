@@ -387,8 +387,8 @@ export function updateAthleteDNSFromCSV(record: DNSRecord): DatabaseResponse {
     logEvent(
       record.bibId,
       record.stationId,
-      "",
-      "",
+      null,
+      null,
       dnsDateTime,
       `[Set](DNS): bibId:${record.bibId} station:'${record.stationId}'`,
       false,
@@ -422,7 +422,7 @@ export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
     logEvent(
       record.bibId,
       record.stationId,
-      "",
+      null,
       dnfDateTime,
       dnfDateTime,
       `[Set](DNF): bibId: ${record.bibId} type: '${record.dnfType}' station: '${record.stationId}' note: '${record.note}'`,
@@ -458,13 +458,13 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
 
   switch (direction) {
     case SyncDirection.Incoming:
-      combinedNote = !note ? "" : note.replaceAll(",", "");
+      combinedNote = !note ? "" : note.replaceAll(",", "").trimStart();
       break;
 
     case SyncDirection.Outgoing:
       combinedNote = !note ? "" : note.replaceAll(",", "");
       combinedNote = !note ? "" : note.replaceAll(athleteNote, "");
-      combinedNote = athleteNote.concat(" ", combinedNote);
+      combinedNote = athleteNote.concat(" ", combinedNote).trimStart();
       break;
   }
 

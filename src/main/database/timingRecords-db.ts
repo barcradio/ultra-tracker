@@ -156,6 +156,7 @@ function updateTimeRecord(
 ): DatabaseResponse {
   const db = getDatabaseConnection();
   const stationId = appSettings.getSync("station.id") as number;
+  const stationIdentifier = appSettings.getSync("station.identifier") as string;
   let queryString = "";
 
   // scrub any string values coming from the UI
@@ -201,11 +202,11 @@ function updateTimeRecord(
 
       logEvent(
         record.bibId,
-        String(record.stationId), //better to use identifier
-        timeInISO == null ? "" : timeInISO,
-        timeOutISO == null ? "" : timeOutISO,
-        modifiedISO == null ? "" : modifiedISO,
-        "Update Timing record",
+        stationIdentifier,
+        timeInISO,
+        timeOutISO,
+        modifiedISO,
+        `[Update](Time): bibId:(${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`,
         record.sent,
         verbose
       );
@@ -256,10 +257,10 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
     logEvent(
       record.bibId,
       stationIdentifier,
-      timeInISO == null ? "" : timeInISO,
-      timeOutISO == null ? "" : timeOutISO,
-      modifiedISO == null ? "" : modifiedISO,
-      "Update time record",
+      timeInISO,
+      timeOutISO,
+      modifiedISO,
+      `[Add](Time): bibId:(${record.bibId}), ${RecordStatus[record.status]}`,
       record.sent,
       verbose
     );
@@ -276,10 +277,10 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
 
 export function setTimingRecordNote(bibId: number, note: string) {
   const db = getDatabaseConnection();
-  const imcomingNote = !note ? "" : note.replaceAll(",", "");
+  const incomingNote = !note ? "" : note.replaceAll(",", "").trimStart();
 
   try {
-    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(imcomingNote, bibId);
+    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(incomingNote, bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -287,7 +288,7 @@ export function setTimingRecordNote(bibId: number, note: string) {
     }
   }
 
-  const message = `[set][note](timingRecord) bib:${bibId} note: ${imcomingNote}`;
+  const message = `[set][note](timingRecord) bib:${bibId} note: ${incomingNote}`;
   return [DatabaseStatus.Updated, message];
 }
 
@@ -295,7 +296,7 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
   const db = getDatabaseConnection();
 
   try {
-    db.prepare(`UPDATE StationEvents SET sent = ? WHERE "bibId" = ?`).run(value, bibId);
+    db.prepare(`UPDATE StationEvents SET sent = ? WHERE "bibId" = ?`).run(Number(value), bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
