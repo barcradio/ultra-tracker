@@ -1,3 +1,4 @@
+import appSettings from "electron-settings";
 import { DatabaseStatus } from "$shared/enums";
 import { EventLogRec } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
@@ -5,7 +6,7 @@ import { getDatabaseConnection } from "./connect-db";
 
 export function logEvent(
   bibId: number,
-  stationId: string,
+  stationId: string | null,
   timeIn: string | null,
   timeOut: string | null,
   timeModified: string | null,
@@ -14,6 +15,7 @@ export function logEvent(
   verbose: boolean
 ): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
+  const stationIdentifier: string | null = appSettings.getSync("station.identifier") as string;
 
   try {
     const queryResult = db.prepare(
@@ -21,7 +23,7 @@ export function logEvent(
     );
     queryResult.run(
       bibId,
-      stationId,
+      stationId == null ? stationIdentifier : stationId,
       timeIn == null ? "" : timeIn,
       timeOut == null ? "" : timeOut,
       timeModified == null ? "" : timeModified,

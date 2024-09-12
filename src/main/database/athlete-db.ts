@@ -291,6 +291,17 @@ export function SetDNSOnAthlete(bibId: number, dnsValue: boolean): DatabaseRespo
     }
   }
 
+  logEvent(
+    bibId,
+    null,
+    null,
+    null,
+    new Date().toISOString(),
+    `[Set](DNS): bib:${bibId}, value:${dnsValue}`,
+    false,
+    false
+  );
+
   message = `athlete:update bibId: ${bibId}, dns: ${dnsValue}`;
   return [DatabaseStatus.Updated, message];
 }
@@ -321,6 +332,17 @@ export function SetDNFOnAthlete(
       return [DatabaseStatus.Error, e.message];
     }
   }
+
+  logEvent(
+    bibId,
+    null,
+    null,
+    null,
+    new Date().toISOString(),
+    `[Set](DNF): bib:${bibId}, value:${dnfValue}`,
+    false,
+    false
+  );
 
   message = `athlete:update bibId: ${bibId}, dnf: ${dnfValue}, dnfType: ${dnfType}`;
   return [DatabaseStatus.Updated, message];
