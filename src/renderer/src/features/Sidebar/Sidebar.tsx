@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
-import DatabaseIcon from "~/assets/icons/database.svg?react";
 import ExportIcon from "~/assets/icons/export.svg?react";
 import HelpIcon from "~/assets/icons/help.svg?react";
 import LogsIcon from "~/assets/icons/logs.svg?react";
