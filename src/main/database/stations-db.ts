@@ -82,18 +82,27 @@ export function GetStationIdentity(): StationIdentity {
   };
 }
 
-export function GetStations(): Station[] {
+export function GetStations(): DatabaseResponse<StationDB[]> {
   const db = getDatabaseConnection();
+  let message: string = "";
+  let queryResult: StationDB[] | null = null;
 
   try {
     const query = db.prepare(`SELECT * FROM Stations`);
-    const dataset = query.all();
-    console.log(`table Read Stations - records:${dataset.length}`);
-    return dataset as Station[];
+    queryResult = query.all() as StationDB[] | null;
   } catch (e) {
-    if (e instanceof Error) console.error(e.message);
-    return [];
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
   }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read Stations - records:${queryResult?.length}`;
+
+  console.log(message);
+  return [queryResult, DatabaseStatus.Success, message];
 }
 
 export function GetStationByIdentifier(identifier: string): DatabaseResponse<Station> {
