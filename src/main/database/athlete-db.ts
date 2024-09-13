@@ -123,14 +123,18 @@ export function GetTotalDNF(): number {
 }
 
 export function GetStationDNF(): number {
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const stationIdentifier: string | null = appSettings.getSync("station.identifier") as string;
+  if (!stationIdentifier) return invalidResult;
+
   const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${stationIdentifier}'`);
   return count[0] == null ? invalidResult : count[0];
 }
 
 export function GetPreviousDNF(): number {
   const db = getDatabaseConnection();
-  const stationId = appSettings.getSync("station.id") as number;
+  const stationId: number | null = appSettings.getSync("station.id") as number;
+  if (!stationId) return invalidResult;
+
   let queryResult;
 
   try {
@@ -287,6 +291,17 @@ export function SetDNSOnAthlete(bibId: number, dnsValue: boolean): DatabaseRespo
     }
   }
 
+  logEvent(
+    bibId,
+    null,
+    null,
+    null,
+    new Date().toISOString(),
+    `[Set](DNS): bib:${bibId}, value:${dnsValue}`,
+    false,
+    false
+  );
+
   message = `athlete:update bibId: ${bibId}, dns: ${dnsValue}`;
   return [DatabaseStatus.Updated, message];
 }
@@ -317,6 +332,17 @@ export function SetDNFOnAthlete(
       return [DatabaseStatus.Error, e.message];
     }
   }
+
+  logEvent(
+    bibId,
+    null,
+    null,
+    null,
+    new Date().toISOString(),
+    `[Set](DNF): bib:${bibId}, value:${dnfValue}`,
+    false,
+    false
+  );
 
   message = `athlete:update bibId: ${bibId}, dnf: ${dnfValue}, dnfType: ${dnfType}`;
   return [DatabaseStatus.Updated, message];

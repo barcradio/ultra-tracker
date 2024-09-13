@@ -9,7 +9,7 @@ import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
-import { configureAppSettings, initializeDefaultAppSettings } from "../preload/data";
+import * as appSettings from "../preload/data";
 
 // Initialize RFID WebSocket
 const rfidReaderUrl = "wss://FXR90C94E1C/ws"; //truying to connect via host name.
@@ -69,17 +69,11 @@ app.on("ready", async () => {
 
   await installDevTools();
 
-  configureAppSettings();
-
-  const firstRun = require("electron-first-run");
-  if (firstRun()) {
-    initializeDefaultAppSettings();
-  }
-
+  appSettings.firstRun();
+  initUserDirectories();
   createDatabaseConnection();
   validateDatabaseTables();
   initializeIpcHandlers();
-  initUserDirectories();
   initStatEngine();
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {

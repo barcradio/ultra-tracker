@@ -41,9 +41,6 @@ importers:
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
-      electron-first-run:
-        specifier: ^3.0.0
-        version: 3.0.0
       electron-settings:
         specifier: ^4.0.4
         version: 4.0.4(electron@28.3.3)
@@ -1777,9 +1774,6 @@ packages:
   electron-devtools-installer@3.2.0:
     resolution: {integrity: sha512-t3UczsYugm4OAbqvdImMCImIMVdFzJAHgbwHpkl5jmfu1izVgUcP/mnrPqJIpEeCK1uZGpt+yHgWEN+9EwoYhQ==}
 
-  electron-first-run@3.0.0:
-    resolution: {integrity: sha512-+GV8XX3vtVE9r+yuASNxsXm3FErdUnJAle4nvzBOPlEKT4Nuj044s3hgXkZh3aMupyMMYrNT+y4HVDUTOUABeg==}
-
   electron-publish@24.13.1:
     resolution: {integrity: sha512-2ZgdEqJ8e9D17Hwp5LEq5mLQPjqU3lv/IALvgp+4W8VeNhryfGhYEQC/PgDPMrnWUp+l60Ou5SJLsu+k4mhQ8A==}
 
@@ -2781,10 +2775,6 @@ packages:
 
   magic-string@0.30.11:
     resolution: {integrity: sha512-+Wri9p0QHMy+545hKww7YAu5NyzF8iomPL/RQazugQ9+Ez4Ic3mERMd8ZTX5rfK944j+560ZJi8iAwgak1Ac7A==}
-
-  make-dir@3.1.0:
-    resolution: {integrity: sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==}
-    engines: {node: '>=8'}
 
   make-fetch-happen@9.1.0:
     resolution: {integrity: sha512-+zopwDy7DNknmwPQplem5lAZX/eCOzSvSNNcSKm5eVwTkOBzoktEfXsa9L23J/GIRhxRsaxzkPEhrJEpE2F4Gg==}
@@ -6043,10 +6033,6 @@ snapshots:
       tslib: 2.6.3
       unzip-crx-3: 0.2.0
 
-  electron-first-run@3.0.0:
-    dependencies:
-      make-dir: 3.1.0
-
   electron-publish@24.13.1:
     dependencies:
       '@types/fs-extra': 9.0.13
@@ -7286,10 +7272,6 @@ snapshots:
   magic-string@0.30.11:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
-
-  make-dir@3.1.0:
-    dependencies:
-      semver: 6.3.1
 
   make-fetch-happen@9.1.0:
     dependencies:
