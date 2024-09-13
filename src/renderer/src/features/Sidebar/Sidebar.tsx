@@ -4,9 +4,10 @@ import DatabaseIcon from "~/assets/icons/database.svg?react";
 import ExportIcon from "~/assets/icons/export.svg?react";
 import HelpIcon from "~/assets/icons/help.svg?react";
 import LogsIcon from "~/assets/icons/logs.svg?react";
+import RosterIcon from "~/assets/icons/roster.svg?react";
 import RunnerIcon from "~/assets/icons/runner.svg?react";
-import SearchIcon from "~/assets/icons/search.svg?react";
 import SettingsIcon from "~/assets/icons/settings.svg?react";
+import StationIcon from "~/assets/icons/station.svg?react";
 import { Stack } from "~/components/Stack";
 import { useAttachBackdrop } from "~/features/Backdrop";
 import { classed } from "~/lib/classed";
@@ -51,10 +52,10 @@ export function Sidebar() {
           <SidebarLink to="/" icon={RunnerIcon}>
             Stats
           </SidebarLink>
-          <SidebarLink to="/roster" icon={SearchIcon}>
+          <SidebarLink to="/roster" icon={RosterIcon}>
             Roster
           </SidebarLink>
-          <SidebarLink to="/stations" icon={DatabaseIcon}>
+          <SidebarLink to="/stations" icon={StationIcon}>
             Stations
           </SidebarLink>
           <SidebarLink to="/logs" icon={LogsIcon}>
