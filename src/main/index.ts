@@ -2,7 +2,7 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
-import { RFIDWebSocketProcessor } from "./api/rfid-processor";
+import { DisconnectRFIDReader } from "./api/rfid-processor";
 import { createDatabaseConnection } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
@@ -10,10 +10,6 @@ import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
 import * as appSettings from "../preload/data";
-
-// Initialize RFID WebSocket
-const rfidReaderUrl = "wss://FXR90C94E1C/ws"; //truying to connect via host name.
-let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -40,21 +36,6 @@ function createWindow(): BrowserWindow {
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: "deny" };
-  });
-  rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, () => {
-    mainWindow.webContents.send("read-rfid");
-  });
-
-  rfidWebSocketProcessor.on("connected", () => {
-    console.log("RFID WebSocket connected");
-  });
-
-  rfidWebSocketProcessor.on("disconnected", () => {
-    console.log("RFID WebSocket disconnected");
-  });
-
-  rfidWebSocketProcessor.on("error", (error) => {
-    console.error("RFID WebSocket error:", error);
   });
 
   return mainWindow;
@@ -85,10 +66,7 @@ app.on("ready", async () => {
   app.on("activate", function () {
     app.on("window-all-closed", () => {
       if (process.platform !== "darwin") {
-        if (rfidWebSocketProcessor) {
-          rfidWebSocketProcessor.disconnect();
-          rfidWebSocketProcessor = null;
-        }
+        DisconnectRFIDReader();
         app.quit();
       }
     });
