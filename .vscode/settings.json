@@ -1,6 +1,9 @@
 {
   "tailwindCSS.experimental.classRegex": [
-    ["classed(?:\\.\\w*)?\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+    [
+      "classed(?:\\.\\w*)?\\(([^)]*)\\)",
+      "[\"'`]([^\"'`]*).*?[\"'`]"
+    ]
   ],
   "files.eol": "\n",
   "[typescript]": {
@@ -8,5 +11,8 @@
   },
   "[markdown]": {
     "editor.tabSize": 2
-  }
+  },
+  "cSpell.words": [
+    "RFID"
+  ]
 }
