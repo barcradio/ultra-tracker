@@ -18,7 +18,7 @@ export function useRFIDInitialize() {
   const { createToast } = useToasts();
 
   return useMutation({
-    mutationFn: (message: string) => ipcRenderer.invoke("rfid-initialize", message),
+    mutationFn: (message: string) => ipcRenderer.invoke("initialize-rfid", message),
     onSuccess: (data) => createToast({ message: data, type: "success" }),
     onError: (error) => console.error(error)
   });
