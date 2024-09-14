@@ -3,8 +3,7 @@ import { Button, Stack, TextInput } from "~/components";
 import { useCreateTiming } from "~/hooks/data/useTiming";
 import { RecordType } from "$shared/enums";
 import { Stats } from "./Stats";
-import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";;
-
+import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";
 
 export function RunnerFormStats() {
   const inputRef = useRef<HTMLInputElement>(null);
