@@ -1,5 +1,6 @@
-import { ipcMain } from "electron";
+import { GetWebContents } from "../lib/webContents";
 
 export const hasReadRFID = () => {
-  ipcMain.emit("read-rfid");
+  const webContents = GetWebContents();
+  webContents?.send("read-rfid");
 };
