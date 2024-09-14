@@ -1,6 +1,6 @@
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { BrowserWindow, WebContents, app, shell } from "electron";
+import { BrowserWindow, app, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
 import { DisconnectRFIDReader } from "./api/rfid-processor";
 import { createDatabaseConnection } from "./database/connect-db";
@@ -10,7 +10,6 @@ import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
 import * as appSettings from "../preload/data";
-import { hasReadRFID } from "./ipc/rfid-emitter";
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
