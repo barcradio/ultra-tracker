@@ -1,9 +1,8 @@
 /*
 / RFID Web Sockets 
-// This is to interface with the ZEBRA FXR90 RFID scanner.  Cureently Exepcts to Recive a Similar looking 
-// form the scanner"
+// This is to interface with the ZEBRA FXR90 RFID scanner.  Currently Expects to receive Similar looking form the scanner"
  {"data":{"eventNum":5938,"format":"epc","idHex":"000000000000000000000343"},"timestamp":"2024-09-05T01:07:01.785-0600","type":"CUSTOM"}
-/ where idhex is the the Bib nuber and the time stamp is the time when the bib was reed 
+/ where idhex is the the Bib number and the time stamp is the time when the bib was reed 
 /
 / USER APPS repo for Zebra https://github.com/ZebraDevs/RFID_ZIOTC_Examples
 */
@@ -75,7 +74,7 @@ export class RFIDWebSocketProcessor {
   private eventEmitter: EventEmitter = new EventEmitter();
   private errorCount: number = 0;
   private buffer: string = "";
-  private RFIDregex = /0{20}/;
+  private RFIRegex = /0{20}/;
   private url: string = "";
 
   // runner info queue
@@ -146,7 +145,7 @@ export class RFIDWebSocketProcessor {
         const obj = JSON.parse(jsonStr) as RFIDMessage;
 
         // Check if the RFID matches Bear 100 regex
-        if (this.RFIDregex.test(obj.data.idHex)) {
+        if (this.RFIRegex.test(obj.data.idHex)) {
           this.handleDatabaseInsert(obj);
         } else {
           console.log("Not Bear 100 regex");
@@ -187,7 +186,7 @@ export class RFIDWebSocketProcessor {
     }
   }
 
-  public connnect(addr: string) {
+  public connect(addr: string) {
     this.url = "wss://" + addr + "/ws";
     this.handleReconnection();
   }
