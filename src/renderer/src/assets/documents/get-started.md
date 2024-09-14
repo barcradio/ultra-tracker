@@ -21,11 +21,11 @@
 ## Initial Setup
 1. Copy the event files into the default folder location (see settings section below for path)
 1. Load the Stations File
-  1. Select Station location and set operator callsign
+   1. Select Station location and set operator callsign
 1. Load the Athletes File
 1. Load the DNS File
 1. Load the DNF File
-2. Go to stats screen and begin logging athletes
+1. Go to stats screen and begin logging athletes
 
 ## Sidebar
 The left side bar is used to select different pages.  Select from Stats, Roster, Logs, Export, Theme, Database, Settings and Help.
