@@ -1,6 +1,6 @@
 /*
-/ RFID web Socketts 
-// THis is to inteefae with the ZEBRA FXR90 RFID scanner.  Cureently Exepcts to Recive a Similar looking 
+/ RFID Web Sockets 
+// This is to interface with the ZEBRA FXR90 RFID scanner.  Cureently Exepcts to Recive a Similar looking 
 // form the scanner"
  {"data":{"eventNum":5938,"format":"epc","idHex":"000000000000000000000343"},"timestamp":"2024-09-05T01:07:01.785-0600","type":"CUSTOM"}
 / where idhex is the the Bib nuber and the time stamp is the time when the bib was reed 
@@ -10,6 +10,11 @@
 import { EventEmitter } from "events";
 import WebSocket from "ws";
 import * as dbTimings from "../database/timingRecords-db";
+import * as rfidEmitter from "../ipc/rfid-emitter";
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
+const rfidReaderUrl = "wss://FXR90C94E1C/ws"; //trying to connect via host name.
 
 // Define interfaces to type the expected JSON data structure
 interface RFIDData {
@@ -22,6 +27,43 @@ interface RFIDMessage {
   data: RFIDData;
   timestamp: string;
   type: string;
+}
+
+export function InitializeRFIDReader() {
+  const rfidRead = rfidEmitter.hasReadRFID;
+  rfidWebSocketProcessor = null;
+
+  try {
+    rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, rfidRead);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(`This RFID is broke: ${e.message}`);
+      //TODO: return state to client
+    }
+  }
+
+  if (!rfidWebSocketProcessor) return; //TODO: return state to client
+
+  rfidWebSocketProcessor.on("connected", () => {
+    console.log("RFID WebSocket connected");
+  });
+
+  rfidWebSocketProcessor.on("disconnected", () => {
+    console.log("RFID WebSocket disconnected");
+  });
+
+  rfidWebSocketProcessor.on("error", (error) => {
+    console.error("RFID WebSocket error:", error);
+  });
+
+  //TODO: return state to client
+}
+
+export function DisconnectRFIDReader() {
+  if (rfidWebSocketProcessor) {
+    rfidWebSocketProcessor.disconnect();
+    rfidWebSocketProcessor = null;
+  }
 }
 
 export class RFIDWebSocketProcessor {
