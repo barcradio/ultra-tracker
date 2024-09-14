@@ -22,8 +22,8 @@ export function SettingsHub() {
   };
 
   const rfidInitialize = () => {
-    createToast({ message: "App Settings: Resetting", type: "info" });
-    rfidInitMutation.mutate("resetAppSettings");
+    createToast({ message: "RFID: Initializing ", type: "info" });
+    rfidInitMutation.mutate("Initialize RFID...");
   };
 
   const importAthletesFile = () => {
