@@ -2,11 +2,13 @@ import BarcLogoDark from "~/assets/barc_dark.svg?react";
 import BarcLogoLight from "~/assets/barc_light.svg?react";
 import { Stack } from "~/components";
 import { useTheme } from "~/hooks/dom/useTheme";
-import { useStationIdentity } from "../../hooks/data/useStationIdentity";
+import { useStation } from "../../hooks/data/useStation";
 
 export function Footer() {
   const { theme } = useTheme();
-  const { data } = useStationIdentity();
+  const { data: station } = useStation();
+
+  const stationDisplay = `${station?.identifier.split("-", 1)[0]} ${station?.name}`;
 
   return (
     <Stack
@@ -16,10 +18,11 @@ export function Footer() {
     >
       <Stack direction="col">
         <p className="text-on-component">
-          <span className="font-bold">Aid Station</span> - {data?.aidStation}
+          <span className="font-bold">Aid Station</span> - {stationDisplay}
         </p>
         <p className="text-on-component">
-          <span className="font-bold">Operator Callsign</span> - {data?.callsign}
+          {/* TODO: Callsign */}
+          <span className="font-bold">Operator Callsign</span> - todo callsign
         </p>
       </Stack>
 

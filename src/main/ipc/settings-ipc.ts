@@ -5,9 +5,8 @@ import { resetAppSettings } from "../../preload/data";
 import * as rfid from "../lib/rfid-util";
 import { Handler } from "../types";
 
-// TODO: need to figure out how to provide renderer with app settings.
-const getAppSettings: Handler = () => {
-  return appSettings;
+const getAppSettings: Handler<string, object> = (_, path: string) => {
+  return appSettings.get(path);
 };
 
 const resetSettings: Handler<string> = () => {

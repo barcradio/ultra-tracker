@@ -1,9 +1,9 @@
 import appSettings from "electron-settings";
-import { DatabaseStatus, EntryMode } from "$shared/enums";
-import { DatabaseResponse } from "$shared/types";
+import { DatabaseStatus } from "$shared/enums";
+import { DatabaseResponse, SetStationIdentityParams } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { clearStationsTable, createStationsTable } from "./tables-db";
-import { Operator, Station, StationDB, StationIdentity } from "../../shared/models";
+import { Station, StationDB } from "../../shared/models";
 import * as dialogs from "../lib/file-dialogs";
 
 export async function LoadStations() {
@@ -25,7 +25,7 @@ export async function LoadStations() {
     }
 
     if (index == "stations") {
-      const stations: Station[] = GetStations();
+      const [stations] = GetStations();
       if (stations == null) createStationsTable();
 
       if (GetStations().length > 0) {
@@ -54,14 +54,14 @@ export async function setStation(stationIdentifier: string) {
   if (!selectedStation) return;
 
   await appSettings.set("station.name", selectedStation.name);
-  await appSettings.set("station.id", Number(selectedStation.identifier.split("-", 1)));
+  await appSettings.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
   await appSettings.set("station.identifier", selectedStation.identifier);
   await appSettings.set("station.entrymode", selectedStation.entrymode);
   await appSettings.set(`station.shiftBegin`, selectedStation.shiftBegin as unknown as string);
   await appSettings.set(`station.cutofftime`, selectedStation.cutofftime as unknown as string);
   await appSettings.set(`station.shiftEnd`, selectedStation.shiftEnd as unknown as string);
 
-  for (const key in selectedStation.operators as Operator[]) {
+  for (const key in selectedStation.operators) {
     await appSettings.set(`station.operators.${key}.name`, selectedStation.operators[key].fullname);
     await appSettings.set(
       `station.operators.${key}.callsign`,
@@ -71,21 +71,10 @@ export async function setStation(stationIdentifier: string) {
   }
 }
 
-export function GetStationIdentity(): StationIdentity {
-  const stationName = appSettings.getSync("station.name") as string;
-  const stationId = appSettings.getSync("station.id") as number;
-  const stationCallsign = appSettings.getSync("station.operators.primary.callsign") as string;
-
-  return {
-    aidStation: `${stationId} ${stationName}`,
-    callsign: stationCallsign
-  };
-}
-
-export function SetStationIdentity(identity: StationIdentity) {
-  appSettings.setSync("station.name", identity.aidStation);
-  appSettings.setSync("station.operators.primary.callsign", identity.callsign);
-  return true;
+export async function SetStationIdentity(params: SetStationIdentityParams) {
+  await setStation(params.identifier);
+  // TODO: Implement current operator callsign
+  return appSettings.getSync("station") as unknown as Station;
 }
 
 export function GetStations(): DatabaseResponse<StationDB[]> {
@@ -145,8 +134,8 @@ export function GetStationByIdentifier(identifier: string): DatabaseResponse<Sta
     shiftBegin: new Date(queryResult.shiftBegin),
     cutofftime: new Date(queryResult.cutofftime),
     shiftEnd: new Date(queryResult.shiftEnd),
-    entrymode: queryResult.entrymode as EntryMode,
-    operators: ops as Operator[]
+    entrymode: queryResult.entrymode,
+    operators: ops
   };
 
   message = `stations:Found station with identifier: ${station.identifier}`;
