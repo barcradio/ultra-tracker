@@ -38,5 +38,6 @@ export enum RFIDReaderStatus {
   Connected,
   Connecting,
   NoDevice,
+  Disconnected,
   Error
 }

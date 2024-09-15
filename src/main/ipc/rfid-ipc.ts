@@ -7,6 +7,12 @@ const startRFID: Handler<string> = () => {
   return rfid.InitializeRFIDReader();
 };
 
+const disconnectRFID: Handler<string> = () => {
+  rfid.DisconnectRFIDReader();
+  return "RFID Disconnected";
+};
+
 export const initRFIDHandlers = () => {
   ipcMain.handle("initialize-rfid", startRFID);
+  ipcMain.handle("disconnect-RFID", disconnectRFID);
 };
