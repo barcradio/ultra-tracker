@@ -4,11 +4,21 @@ import { Stack } from "~/components";
 import { useTheme } from "~/hooks/dom/useTheme";
 import { useStation } from "../../hooks/data/useStation";
 
-export function Footer() {
-  const { theme } = useTheme();
+function useFooterInfo() {
   const { data: station } = useStation();
 
-  const stationDisplay = `${station?.identifier.split("-", 1)[0]} ${station?.name}`;
+  console.log(station?.operators);
+
+  const title = `${station?.identifier.split("-", 1)[0]} ${station?.name}`;
+  const operator = Object.values(station?.operators ?? {}).find((operator) => operator.active);
+  const callsign = operator ? operator.callsign : "No Active Operator";
+
+  return { title, callsign };
+}
+
+export function Footer() {
+  const { theme } = useTheme();
+  const { title, callsign } = useFooterInfo();
 
   return (
     <Stack
@@ -18,11 +28,10 @@ export function Footer() {
     >
       <Stack direction="col">
         <p className="text-on-component">
-          <span className="font-bold">Aid Station</span> - {stationDisplay}
+          <span className="font-bold">Aid Station</span> - {title}
         </p>
         <p className="text-on-component">
-          {/* TODO: Callsign */}
-          <span className="font-bold">Operator Callsign</span> - todo callsign
+          <span className="font-bold">Operator Callsign</span> - {callsign}
         </p>
       </Stack>
 

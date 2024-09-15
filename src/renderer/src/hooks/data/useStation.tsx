@@ -10,8 +10,8 @@ export function useStation() {
   return useQuery({
     queryKey: ["station"],
     queryFn: async (): Promise<Station> => {
-      const data = await ipcRenderer.invoke("app-settings", "station");
-      return data;
+      const station: Station = await ipcRenderer.invoke("app-settings", "station");
+      return station;
     }
   });
 }
@@ -31,7 +31,7 @@ export function useSetStationIdentity() {
       }
 
       createToast({ message: "Station Identity Updated", type: "success" });
-      queryClient.setQueryData(["station"], newStation);
+      queryClient.invalidateQueries({ queryKey: ["station"] });
     }
   });
 }

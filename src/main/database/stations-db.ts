@@ -18,6 +18,7 @@ export async function LoadStations() {
       clearStationsTable();
       createStationsTable();
     }
+
     if (index == "event") {
       await appSettings.set("event.name", stationData.event.name);
       await appSettings.set("event.starttime", stationData.event.starttime);
@@ -62,19 +63,36 @@ export async function setStation(stationIdentifier: string) {
   await appSettings.set(`station.shiftEnd`, selectedStation.shiftEnd as unknown as string);
 
   for (const key in selectedStation.operators) {
-    await appSettings.set(`station.operators.${key}.name`, selectedStation.operators[key].fullname);
+    await appSettings.set(
+      `station.operators.${key}.fullname`,
+      selectedStation.operators[key].fullname
+    );
     await appSettings.set(
       `station.operators.${key}.callsign`,
       selectedStation.operators[key].callsign
     );
     await appSettings.set(`station.operators.${key}.phone`, selectedStation.operators[key].phone);
+    await appSettings.set(`station.operators.${key}.active`, false);
   }
+
+  await appSettings.set("station.operators.primary.active", true);
 }
 
 export async function SetStationIdentity(params: SetStationIdentityParams) {
   await setStation(params.identifier);
-  // TODO: Implement current operator callsign
-  return appSettings.getSync("station") as unknown as Station;
+  const settings = appSettings.getSync("station") as unknown as Station;
+
+  const key = Object.keys(settings.operators).find(
+    (operator) => settings.operators[operator].callsign == params.callsign
+  );
+
+  for (const operator in settings.operators) {
+    await appSettings.set(`station.operators.${operator}.active`, false);
+  }
+
+  appSettings.setSync(`station.operators.${key}.active`, true);
+
+  return settings;
 }
 
 export function GetStations(): DatabaseResponse<StationDB[]> {
@@ -162,7 +180,7 @@ export function insertStation(station: Station): DatabaseResponse {
 
   try {
     const query = db.prepare(
-      `INSERT INTO Stations (name, identifier, description, location, dropbags, crewaccess, paceraccess, distance, shiftBegin, cutofftime, shiftEnd, entrymode, operators) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Stations (name, identifier, description, location, dropbags, crewaccess, paceraccess, distance, shiftBegin, cutofftime, shiftEnd, entrymode, operators) VALUES (?, ?, ?)`
     );
     query.run(
       name,
