@@ -82,6 +82,12 @@ export function GetStationIdentity(): StationIdentity {
   };
 }
 
+export function SetStationIdentity(identity: StationIdentity) {
+  appSettings.setSync("station.name", identity.aidStation);
+  appSettings.setSync("station.operators.primary.callsign", identity.callsign);
+  return true;
+}
+
 export function GetStations(): DatabaseResponse<StationDB[]> {
   const db = getDatabaseConnection();
   let message: string = "";

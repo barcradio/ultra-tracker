@@ -11,7 +11,14 @@ const getStations: Handler<DatabaseResponse<StationDB>> = () => {
 const getStationIdentity: Handler<StationIdentity> = () => {
   return dbStations.GetStationIdentity();
 };
+
+const setStationIdentity: Handler<StationIdentity, void> = (_, identity) => {
+  dbStations.SetStationIdentity(identity);
+  return true;
+};
+
 export const initStationHandlers = () => {
   ipcMain.handle("get-stations-list", getStations);
   ipcMain.handle("get-station-identity", getStationIdentity);
+  ipcMain.handle("set-station-identity", setStationIdentity);
 };
