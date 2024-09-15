@@ -1,8 +1,10 @@
 import { type Stats, useStatsData } from "../../hooks/data/useStatsData";
+import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 function useStats() {
   const { data: statsData } = useStatsData();
+  useInvalidateRunnersOnRFID();
 
   if (!statsData) return [];
 

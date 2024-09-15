@@ -6,10 +6,16 @@ export function useInvalidateRunnersOnRFID() {
   const queryClient = useQueryClient();
   const ipcRenderer = useIpcRenderer();
 
-  // Only attach the ipc handler on the first render
   useEffect(() => {
-    ipcRenderer.on("read-rfid", () => {
+    const handleRFIDRead = () => {
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
-    });
+    };
+
+    ipcRenderer.on("read-rfid", handleRFIDRead);
+
+    // Cleanup function
+    return () => {
+      ipcRenderer.removeAllListeners("read-rfid");
+    };
   }, [ipcRenderer, queryClient]);
 }
