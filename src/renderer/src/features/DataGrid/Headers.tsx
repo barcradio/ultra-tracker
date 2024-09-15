@@ -7,10 +7,14 @@ import { FilterState } from "./hooks/useFilterState";
 import { SortState } from "./hooks/useSortState";
 import { Column } from "./types";
 
-const HeaderContainer = classed.button(
+const HeaderContainer = classed.div(
   "flex gap-3 justify-end items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase group/header",
   {
     variants: {
+      disabled: {
+        true: "cursor-default",
+        false: "cursor-pointer"
+      },
       align: {
         right: "flex-row",
         left: "flex-row-reverse"

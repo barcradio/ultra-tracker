@@ -88,7 +88,7 @@ export type Station = {
   cutofftime: Date;
   shiftEnd: Date;
   entrymode: EntryMode;
-  operators: Operator[];
+  operators: Record<string, Operator>;
 };
 
 export type Location = {
@@ -101,12 +101,8 @@ export type Operator = {
   fullname: string;
   callsign: string;
   phone: number;
+  active: boolean;
 };
-
-export interface StationIdentity {
-  aidStation: string;
-  callsign: string;
-}
 
 export type DNSRecord = {
   stationId: string;

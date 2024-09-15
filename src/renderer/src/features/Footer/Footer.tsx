@@ -2,11 +2,23 @@ import BarcLogoDark from "~/assets/barc_dark.svg?react";
 import BarcLogoLight from "~/assets/barc_light.svg?react";
 import { Stack } from "~/components";
 import { useTheme } from "~/hooks/dom/useTheme";
-import { useStationIdentity } from "../../hooks/data/useStationIdentity";
+import { useStation } from "../../hooks/data/useStation";
+
+function useFooterInfo() {
+  const { data: station } = useStation();
+
+  console.log(station?.operators);
+
+  const title = `${station?.identifier.split("-", 1)[0]} ${station?.name}`;
+  const operator = Object.values(station?.operators ?? {}).find((operator) => operator.active);
+  const callsign = operator ? operator.callsign : "No Active Operator";
+
+  return { title, callsign };
+}
 
 export function Footer() {
   const { theme } = useTheme();
-  const { data } = useStationIdentity();
+  const { title, callsign } = useFooterInfo();
 
   return (
     <Stack
@@ -16,10 +28,10 @@ export function Footer() {
     >
       <Stack direction="col">
         <p className="text-on-component">
-          <span className="font-bold">Aid Station</span> - {data?.aidStation}
+          <span className="font-bold">Aid Station</span> - {title}
         </p>
         <p className="text-on-component">
-          <span className="font-bold">Operator Callsign</span> - {data?.callsign}
+          <span className="font-bold">Operator Callsign</span> - {callsign}
         </p>
       </Stack>
 

@@ -16,7 +16,7 @@ const renderDNFTag = (dnfType?: DNFType) => {
     case DNFType.Medical:
       return <Tag color="red">Medical</Tag>;
     case DNFType.Unknown:
-      return <Tag color="red">Unknown</Tag>;
+      return <Tag color="gray">Unknown</Tag>;
     case DNFType.None:
     default:
       return <> </>;

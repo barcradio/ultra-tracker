@@ -5,7 +5,7 @@ import { classed } from "~/lib/classed";
 import { Stack } from "./Stack";
 
 export const InputBaseStyles =
-  "p-2 w-full font-medium rounded-md border-2 outline-none bg-surface-secondary font-display placeholder:text-component-strong border-component";
+  "p-2 w-full font-medium rounded-md border-2 outline-none bg-surface-secondary font-display light:placeholder:text-on-surface-hover border-component dark:placeholder:text-component-strong";
 
 const Input = classed.input({
   base: InputBaseStyles,
