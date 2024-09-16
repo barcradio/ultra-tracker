@@ -24,7 +24,10 @@ jobs:
         run: pnpm config set virtual-store-dir-max-length 80
 
       - if: matrix.os == 'ubuntu-latest'
-        run: sudo apt install ruby ruby-devsudo gem install fpm
+        run: sudo apt install ruby ruby-dev
+
+      - if: matrix.os == 'ubuntu-latest'
+        run: sudo gem install fpm
 
       - name: Install Node.js v${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -63,3 +66,4 @@ jobs:
             dist/*.yml
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          USE_SYSTEM_FPM: true
