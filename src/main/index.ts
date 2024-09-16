@@ -8,6 +8,7 @@ import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { initStatEngine } from "./lib/stat-engine";
+import * as logger from "./lib/logger";
 import * as appSettings from "../preload/data";
 
 function createWindow(): BrowserWindow {
@@ -49,6 +50,7 @@ app.on("ready", async () => {
 
   await installDevTools();
 
+  logger.initialize();
   appSettings.firstRun();
   initUserDirectories();
   createDatabaseConnection();
@@ -67,6 +69,7 @@ app.on("ready", async () => {
       if (process.platform !== "darwin") {
         app.quit();
       }
+      logger.shutdown();
     });
   });
 
