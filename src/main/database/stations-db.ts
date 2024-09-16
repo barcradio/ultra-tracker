@@ -180,7 +180,7 @@ export function insertStation(station: Station): DatabaseResponse {
 
   try {
     const query = db.prepare(
-      `INSERT INTO Stations (name, identifier, description, location, dropbags, crewaccess, paceraccess, distance, shiftBegin, cutofftime, shiftEnd, entrymode, operators) VALUES (?, ?, ?)`
+      `INSERT INTO Stations (name, identifier, description, location, dropbags, crewaccess, paceraccess, distance, shiftBegin, cutofftime, shiftEnd, entrymode, operators) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     query.run(
       name,
