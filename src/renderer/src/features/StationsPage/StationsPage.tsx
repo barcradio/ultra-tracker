@@ -24,7 +24,7 @@ export function StationsPage() {
   const { data: currentOperators } = useStationOperators(identityForm.watch("identifier"));
 
   useEffect(() => {
-    if (currentOperators) setValue("callsign", currentOperators["primary"].callsign);
+    if (currentOperators) setValue("callsign", currentOperators["primary"]?.callsign);
   }, [currentOperators, setValue]);
 
   return (
