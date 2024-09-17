@@ -43,7 +43,8 @@ export async function LoadAthletes() {
         return `${result.length} athletes: ${error}`;
       }
 
-      console.log("Result", result);
+      //no need to log every athlete to the log
+      //console.log("Result", result);
 
       result.slice(1).forEach((athlete) => {
         insertAthlete(athlete);
