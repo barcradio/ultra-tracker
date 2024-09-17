@@ -17,7 +17,7 @@ const setAthleteDNS: Handler<RunnerAthleteDB> = (_, data) => {
 };
 
 const setAthleteDNF: Handler<RunnerAthleteDB> = (_, data) => {
-  return dbAthletes.SetDNFOnAthlete(data.bibId, data.dnf!, data.dnfType!);
+  return dbAthletes.SetDNFOnAthlete(data.bibId, data.timeOut, data.dnf!, data.dnfType!);
 };
 
 export const initAthleteHandlers = () => {
