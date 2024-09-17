@@ -14,11 +14,6 @@ export async function LoadStations() {
   if (!stationData) return "Invalid JSON file.";
 
   for (const index in stationData) {
-    if (GetStations().length > 0) {
-      clearStationsTable();
-      createStationsTable();
-    }
-
     if (index == "event") {
       await appSettings.set("event.name", stationData.event.name);
       await appSettings.set("event.starttime", stationData.event.starttime);
