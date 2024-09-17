@@ -128,7 +128,15 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
 }
 
 function getDNSRunnersInStation(): DatabaseResponse<number> {
-  const stationId = appSettings.getSync("station.id") as number;
+  let stationId = -1;
+  try {
+    stationId = appSettings.getSync("station.id") as number;
+  } catch (e) {
+    if (e instanceof Error) {
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
   const db = getDatabaseConnection();
   let message: string = "";
   let queryResult;
