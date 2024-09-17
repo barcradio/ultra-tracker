@@ -38,6 +38,11 @@ export function GetRunnersWithDuplicateStatus(): number {
   return count[0] == null ? invalidResult : count[0];
 }
 
+export function GetDNSRunnersInStation(): number {
+  const count = getDNSRunnersInStation();
+  return count[0] == null ? invalidResult : count[0];
+}
+
 function getTotalRunners(): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
@@ -120,6 +125,32 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
   message = `GetRunnersInStation From StationEvents Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+}
+
+function getDNSRunnersInStation(): DatabaseResponse<number> {
+  const stationId = appSettings.getSync("station.id") as number;
+  const db = getDatabaseConnection();
+  let message: string = "";
+  let queryResult;
+
+  const stmt = `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dns
+       FROM "StationEvents" LEFT JOIN "Athletes"
+       ON StationEvents.bibId = Athletes.bibId
+       WHERE Athletes.dns == 1 and StationEvents.stationId == ?`;
+  try {
+    queryResult = db.prepare(stmt).all(stationId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `GetRunnersInStation From StationEvents Where 'Athletes.dns == 1 and StationEvents.stationId == ${stationId}':${queryResult.length}`;
+
+  return [queryResult.length as number, DatabaseStatus.Success, message];
 }
 
 function getRunnersWithDNFNotSent(): DatabaseResponse<DNFRunnerDB> {

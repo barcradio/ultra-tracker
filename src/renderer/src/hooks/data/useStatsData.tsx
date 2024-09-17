@@ -8,10 +8,12 @@ export interface Stats {
   inStation: number;
   throughStation: number;
   finishedRace: number;
+  inStationDNS: number;
   totalDNS: number;
   previousDNF: number;
   stationDNF: number;
   totalDNF: number;
+  duplicates: number;
   warnings: number;
   errors: number;
 }
