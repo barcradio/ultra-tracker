@@ -101,7 +101,7 @@ export function SettingsHub() {
         <Stack direction="col">
           <b>Developer Tools</b>
           <Button color="danger" variant="outlined" onClick={initializeDatabase}>
-            Recreate Database
+            Destroy & Reinitialize Database
           </Button>
           <Button color="danger" variant="outlined" onClick={importRunnerCSVFile}>
             Recover Data from CSV File
