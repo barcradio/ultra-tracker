@@ -28,12 +28,12 @@ export const initializeDefaultAppSettings = () => {
       entrymode: 0,
       operators: {
         primary: {
-          name: "Percy L. Spencer",
+          fullname: "Percy L. Spencer",
           callsign: "W1GBE-SK",
           phone: ""
         },
         secondary: {
-          name: "Nolan Bushnell",
+          fullname: "Nolan Bushnell",
           callsign: "W7DUK-SK",
           phone: ""
         }

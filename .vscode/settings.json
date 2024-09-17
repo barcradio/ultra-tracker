@@ -3,7 +3,6 @@
     "classed(?:\\.\\w*)?\\(([^)]*)\\)",
     "[\"'`]([a-zA-Z\\s\\-]*)[\"'`]"
   ],
-
   "files.eol": "\n",
   "[typescript]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
@@ -11,5 +10,11 @@
   "[markdown]": {
     "editor.tabSize": 2
   },
-  "cSpell.words": ["callsigns"]
+  "cSpell.words": [
+    "callsigns",
+    "crewaccess",
+    "cutofftime",
+    "dropbags",
+    "paceraccess"
+  ]
 }
