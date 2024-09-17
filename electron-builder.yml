@@ -34,12 +34,12 @@ linux:
     - target: appimage
       arch:
         - x64
-        - armv71
+        - armv7l
         - arm64
     - target: deb
       arch:
         - x64
-        - armv71
+        - armv7l
         - arm64
   maintainer: electronjs.org
   category: Utility
