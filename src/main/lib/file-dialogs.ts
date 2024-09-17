@@ -16,8 +16,7 @@ export const selectStationsFile = async (): Promise<string[]> => {
 
   const result = await openFileDialog("showOpenDialog", dialogConfig)
     .then((result) => {
-      console.log(result.canceled);
-      console.log(result.filePaths);
+      result.canceled ? console.log(result.canceled) : console.log(result.filePaths);
       return result;
     })
     .catch((err) => {
@@ -39,8 +38,7 @@ export const loadAthleteFile = async (): Promise<string[]> => {
   };
   const result = await openFileDialog("showOpenDialog", dialogConfig)
     .then((result) => {
-      console.log(result.canceled);
-      console.log(result.filePaths);
+      result.canceled ? console.log(result.canceled) : console.log(result.filePaths);
       return result;
     })
     .catch((err) => {
@@ -73,8 +71,7 @@ export const loadFromCSV = async (title: string): Promise<string[]> => {
   };
   const result = await openFileDialog("showOpenDialog", dialogConfig)
     .then((result) => {
-      console.log(result.canceled);
-      console.log(result.filePaths);
+      result.canceled ? console.log(result.canceled) : console.log(result.filePaths);
       return result;
     })
     .catch((err) => {
@@ -130,8 +127,7 @@ export const saveDNSRunnersToCSV = async (): Promise<string> => {
 
   const result = await openFileDialog("showSaveDialog", dialogConfig)
     .then((result) => {
-      console.log(result.canceled);
-      console.log(result.filePath);
+      result.canceled ? console.log(result.canceled) : console.log(result.filePaths);
       return result;
     })
     .catch((err) => {
@@ -159,8 +155,7 @@ export const saveDNFRunnersToCSV = async (): Promise<string> => {
 
   const result = await openFileDialog("showSaveDialog", dialogConfig)
     .then((result) => {
-      console.log(result.canceled);
-      console.log(result.filePath);
+      result.canceled ? console.log(result.canceled) : console.log(result.filePaths);
       return result;
     })
     .catch((err) => {
