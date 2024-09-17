@@ -24,19 +24,19 @@ function useStats() {
       value: formatStat(statsData?.throughStation)
     },
     {
-      id: "DNS:Total",
+      id: "Total DNS",
       value: formatStat(statsData?.totalDNS)
     },
     {
-      id: "DNF:Previous",
+      id: "Prior DNF",
       value: formatStat(statsData?.previousDNF)
     },
     {
-      id: "DNF:Station",
+      id: "Station DNF",
       value: formatStat(statsData?.stationDNF)
     },
     {
-      id: "DNF:Total",
+      id: "Total DNF",
       value: formatStat(statsData?.totalDNF)
     },
     {
@@ -48,7 +48,7 @@ function useStats() {
       value: ""
     },
     {
-      id: "- DNS:In Station",
+      id: "- In Station DNS",
       value: formatStat(statsData?.inStationDNS)
     },
     {

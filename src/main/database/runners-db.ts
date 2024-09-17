@@ -148,33 +148,7 @@ function getDNSRunnersInStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StationEvents Where 'timeOut IS NULL':${queryResult.length}`;
-
-  return [queryResult.length as number, DatabaseStatus.Success, message];
-}
-
-function getDNSRunnersInStation(): DatabaseResponse<number> {
-  const stationId = appSettings.getSync("station.id") as number;
-  const db = getDatabaseConnection();
-  let message: string = "";
-  let queryResult;
-
-  const stmt = `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dns
-       FROM "StationEvents" LEFT JOIN "Athletes"
-       ON StationEvents.bibId = Athletes.bibId
-       WHERE Athletes.dns == 1 and StationEvents.stationId == ?`;
-  try {
-    queryResult = db.prepare(stmt).all(stationId);
-  } catch (e) {
-    if (e instanceof Error) {
-      console.error(e.message);
-      return [null, DatabaseStatus.Error, e.message];
-    }
-  }
-
-  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
-
-  message = `GetRunnersInStation From StationEvents Where 'timeOut IS NULL':${queryResult.length}`;
+  message = `GetRunnersInStation From StationEvents Where 'Athletes.dns == 1 and StationEvents.stationId == ${stationId}':${queryResult.length}`;
 
   return [queryResult.length as number, DatabaseStatus.Success, message];
 }
