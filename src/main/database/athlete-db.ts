@@ -137,7 +137,7 @@ export function GetStationDNF(): number {
 export function GetPreviousDNF(): number {
   const db = getDatabaseConnection();
   const stationId: number | null = appSettings.getSync("station.id") as number;
-  if (!stationId) return invalidResult;
+  if (stationId == null) return invalidResult;
 
   let queryResult;
 
