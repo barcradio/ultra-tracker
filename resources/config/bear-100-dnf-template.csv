@@ -1,0 +1,18 @@
+stationId,bibId,dnfType,dnfDateTime,note
+2-leatham-hollow,8,withdrew,09:27:00 23 Aug,DNF Manual override Seq:8 -m
+2-leatham-hollow,351,withdrew,12:03:00 23 Aug,DNF DNF Manual override Seq:315 -m
+2-leatham-hollow,214,withdrew,12:27:00 23 Aug,DNF Missing? Seq:289 Manual Override -m
+2-leatham-hollow,347,withdrew,12:50:00 23 Aug,DNF Seq:296
+4-righthand-fork,93,medical,13:33:00 23 Aug,DNF Seq:37 Manual Override -m
+3-richards-hollow,190,withdrew,13:42:00 23 Aug,DNF Seq:233 Manual Override -m
+3-richards-hollow,172,withdrew,14:24:00 23 Aug,DNF Seq:285 Manual Override -m
+5-temple-fork,41,withdrew,14:26:00 23 Aug,DNF Seq:17
+3-richards-hollow,306,withdrew,15:13:00 23 Aug,DNF Seq:304 Manual Override -m
+3-richards-hollow,198,withdrew,15:38:00 23 Aug,DNF Seq:310
+6-tony-grove,6,medical,17:19:00 23 Aug,DNF Seq:34
+5-temple-fork,322,medical,18:26:00 23 Aug,DNF Seq:233
+4-righthand-fork,343,timeout,19:15:00 23 Aug,DNF Seq:268
+5-temple-fork,233,withdrew,20:21:00 23 Aug,DNF Seq:290
+5-temple-fork,152,withdrew,20:30:00 23 Aug,DNF Seq:292
+5-temple-fork,314,withdrew,20:30:00 23 Aug,DNF Seq:293
+5-temple-fork,88,withdrew,20:30:00 23 Aug,DNF Lost:SAR Active

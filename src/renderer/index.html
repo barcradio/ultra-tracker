@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Electron</title>
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data:"
+    />
+    <link rel="stylesheet" type="text/css" href="/style.css" />
+  </head>
+
+  <body class="nodrag">
+    <div
+      id="root"
+      class="flex h-screen flex-row bg-surface-tertiary text-on-surface transition-colors duration-200"
+    ></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

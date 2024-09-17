@@ -1,0 +1,429 @@
+{
+    "event": {
+        "name": "bear-100-2024",
+        "starttime": "06:00:00 Sept 27 2024",
+        "endtime": "18:00:00 Sept 28 2024"
+    },
+    "stations": [
+        {
+            "name": "Start Line",
+            "identifier": "0-start-line",
+            "description": "Hyrum Gibbons/Mount Logan Park",
+            "location": {
+                "latitude": 41.72825,
+                "longitude": -111.79954,
+                "elevation": 4852
+            },
+            "distance": 0.0,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": false,
+            "shiftBegin": "05:00:00 Sept 27 2024",
+            "cutofftime": "06:00:00 Sept 27 2024",
+            "shiftEnd": "07:00:00 Sept 27 2024",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Logan Peak",
+            "identifier": "1-logan-peak",
+            "description": "[No Crew]",
+            "location": {
+                "latitude": 41.69347,
+                "longitude": -111.70273,
+                "elevation": 8538
+            },
+            "distance": 10.5,
+            "dropbags": false,
+            "crewaccess": false,
+            "paceraccess": false,
+            "shiftBegin": "07:00:00 Sept 27 2024",
+            "cutofftime": "09:30:00 Sept 27 2024",
+            "shiftEnd": "09:30:00 Sept 27 2024",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Leatham Hollow",
+            "identifier": "2-leatham-hollow",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.64313,
+                "longitude": -111.70663,
+                "elevation": 5140
+            },
+            "distance": 19.5,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": false,
+            "shiftBegin": "08:30:00 Sept 27 2024",
+            "cutofftime": "13:00:00 Sept 27 2024",
+            "shiftEnd": "14:00:00 Sept 27 2024",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Upper Richards Hollow",
+            "identifier": "3-richards-hollow",
+            "description": "[No Crew]",
+            "location": {
+                "latitude": 41.72597,
+                "longitude": -111.63783,
+                "elevation": 7490
+            },
+            "distance": 28.0,
+            "dropbags": true,
+            "crewaccess": false,
+            "paceraccess": false,
+            "shiftBegin": "09:30:00 Sept 27 2024",
+            "cutofftime": "16:00:00 Sept 27 2024",
+            "shiftEnd": "16:30:00 Sept 27 2024",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Right Hand Fork",
+            "identifier": "4-righthand-fork",
+            "description": "[Limited Crew]",
+            "location": {
+                "latitude": 41.77485,
+                "longitude": -111.61013,
+                "elevation": 5551
+            },
+            "distance": 37.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "11:00:00 Sept 27 2024",
+            "cutofftime": "19:00:00 Sept 27 2024",
+            "shiftEnd": "19:30:00 Sept 27 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Temple Fork",
+            "identifier": "5-temple-fork",
+            "description": "[Limited Crew]",
+            "location": {
+                "latitude": 41.83491,
+                "longitude": -111.59243,
+                "elevation": 5837
+            },
+            "distance": 44.8,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "12:00:00 Sept 27 2024",
+            "cutofftime": "22:30:00 Sept 27 2024",
+            "shiftEnd": "23:00:00 Sept 27 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Tony Grove",
+            "identifier": "6-tony-grove",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.89003,
+                "longitude": -111.63351,
+                "elevation": 7980
+            },
+            "distance": 51.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "13:30:00 Sept 27 2024",
+            "cutofftime": "01:00:00 Sept 28 2024",
+            "shiftEnd": "01:30:00 Sept 28 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Franklin Trailhead",
+            "identifier": "7-franklin-trailhead",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.93275,
+                "longitude": -111.56818,
+                "elevation": 6717
+            },
+            "distance": 61.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "15:15:00 Sept 27 2024",
+            "cutofftime": "05:00:00 Sept 28 2024",
+            "shiftEnd": "05:30:00 Sept 28 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Logan River",
+            "identifier": "8-logan-river",
+            "description": "[No Crew][No Pacer]",
+            "location": {
+                "latitude": 41.96022,
+                "longitude": -111.59105,
+                "elevation": 7280
+            },
+            "distance": 69.0,
+            "dropbags": true,
+            "crewaccess": false,
+            "paceraccess": false,
+            "shiftBegin": "16:45:00 Sept 27 2024",
+            "cutofftime": "08:30:00 Sept 28 2024",
+            "shiftEnd": "09:00:00 Sept 28 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Beaver Mt. Lodge",
+            "identifier": "9-beaver-mtn",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.96857,
+                "longitude": -111.54152,
+                "elevation": 7269
+            },
+            "distance": 75.1,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "18:00:00 Sept 27 2024",
+            "cutofftime": "11:00:00 Sept 28 2024",
+            "shiftEnd": "11:30:00 Sept 28 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Gibson Basin",
+            "identifier": "10-gibson-basin",
+            "description": "[No Crew][No Pacer]",
+            "location": {
+                "latitude": 42.02714,
+                "longitude": -111.55552,
+                "elevation": 8287
+            },
+            "distance": 80.5,
+            "dropbags": false,
+            "crewaccess": false,
+            "paceraccess": false,
+            "shiftBegin": "19:15:00 Sept 27 2024",
+            "cutofftime": "12:45:00 Sept 28 2024",
+            "shiftEnd": "13:15:00 Sept 28 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Beaver Creek Campground",
+            "identifier": "11-beaver-creek",
+            "description": "[Crew][Pacer Exchange]Rough Road",
+            "location": {
+                "latitude": 42.02187,
+                "longitude": -111.52917,
+                "elevation": 7792
+            },
+            "distance": 84.7,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "20:00:00 Sept 27 2024",
+            "cutofftime": "14:15:00 Sept 28 2024",
+            "shiftEnd": "14:45:00 Sept 28 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Ranger Dip",
+            "identifier": "12-ranger-dip",
+            "description": "[Crew][Pacer Exchange]Bumpy road",
+            "location": {
+                "latitude": 42.00723,
+                "longitude": -111.48866,
+                "elevation": 8431
+            },
+            "distance": 91.8,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "21:30:00 Sept 27 2024",
+            "cutofftime": "16:15:00 Sept 28 2024",
+            "shiftEnd": "16:45:00 Sept 28 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Finish Line",
+            "identifier": "13-finish-line",
+            "description": "Fish Haven ID (@ The Reserve)",
+            "location": {
+                "latitude": 42.04378,
+                "longitude": -111.39160,
+                "elevation": 6079
+            },
+            "distance": 100.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "23:00:00 Sept 27 2024",
+            "cutofftime": "18:00:00 Sept 28 2024",
+            "shiftEnd": "18:30:00 Sept 28 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        }
+    ]
+}

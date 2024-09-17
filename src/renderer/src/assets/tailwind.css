@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.markdown > * {
+  all: revert;
+}
+
+.h-inherit {
+  height: inherit;
+}
+
+.max-h-inherit {
+  max-height: inherit;
+}
+
+.min-h-inherit {
+  min-height: inherit;
+}
+
+.nodrag {
+  -webkit-user-drag: none;
+}
+
+.fill-forward {
+  animation-fill-mode: forwards;
+}
+
+.fill-backward {
+  animation-fill-mode: backwards;
+}
+
+.fill-both {
+  animation-fill-mode: both;
+}
+
+.fill-none {
+  animation-fill-mode: none;
+}
+

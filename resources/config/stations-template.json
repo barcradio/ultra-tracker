@@ -1,0 +1,46 @@
+{
+    "event": {
+        "name": "ultra-marathon-2024",
+        "starttime": "00:00:00 Jan 01 2024",
+        "endtime": "00:00:00 Jan 01 2024",
+        "startline": "0-start-line",
+        "finishline": "99-finish-line"
+    },
+    "stations": [
+        {
+            "name": "",
+            "identifier": "0-first-station",
+            "description": "",
+            "location": {
+                "latitude": 41.71466394367188,
+                "longitude": -111.71753403361448,
+                "elevation": 9705
+            },
+            "distance": 0.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "00:00:00 Jan 01 2024",
+            "cutofftime": "00:00:00 Jan 01 2024",
+            "shiftEnd": "00:00:00 Jan 01 2024",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        }
+    ]
+}
