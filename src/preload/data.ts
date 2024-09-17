@@ -54,11 +54,6 @@ export const configureAppSettings = () => {
 
 export const resetAppSettings = () => {
   appSettings.reset();
-  initializeDefaultAppSettings();
-};
-
-export const getAppSettings = () => {
-  appSettings.reset();
   configureAppSettings();
   initializeDefaultAppSettings();
 };

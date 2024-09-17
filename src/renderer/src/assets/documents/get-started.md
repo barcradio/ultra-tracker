@@ -6,23 +6,26 @@
 3. [Stats Page](#stats-page)
    1. [Keyboard shortcuts](#keyboard-shortcuts)
 4. [Roster Page](#roster-page)
-5. [Logs Page](#logs-page)
-6. [Export Page](#export-page)
-7. [Theme Page](#theme-page)   
-8. [Settings Page](#settings-page)
+5. [Stations Page](#stations-page)
+6. [Logs Page](#logs-page)
+7. [Export Page](#export-page)
+8. [Theme Page](#theme-page)   
+9. [Settings Page](#settings-page)
 	1. [Recovery Procedure](#recovery-procedure)
-9. [About Ultra-tracker](#about-ultra-tracker)
-10. [Contributors](#contributors)
-11. [License](#license)
+10. [About Ultra-tracker](#about-ultra-tracker)
+11. [Contributors](#contributors)
+12. [License](#license)
 
 ---
 
 ## Initial Setup
+1. Copy the event files into the default folder location (see settings section below for path)
 1. Load the Stations File
-1. Select Station location and set operator callsign
+   1. Select Station location and set operator callsign
 1. Load the Athletes File
 1. Load the DNS File
 1. Load the DNF File
+1. Go to stats screen and begin logging athletes
 
 ## Sidebar
 The left side bar is used to select different pages.  Select from Stats, Roster, Logs, Export, Theme, Database, Settings and Help.
@@ -53,6 +56,8 @@ Entry of numbers and times is assisted by using some specific keys on both an 88
 ## Roster Page
 The purpose of this page is to provide the full list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and note entries.
 
+## Stations Page
+This page shows the details about the aid stations throughout the race, location, mileage, cutoff times
 
 ## Logs Page
 The purpose of this page is to display and export the station log file that is auto-generated during operation. There are two versions of the log that can be viewed and/or exported for the use of operators or developers to aid in fixing errors that may occur due to programming mistakes or unforeseen situations.
@@ -77,9 +82,9 @@ This function exports a full .csv file of all entries containing each athlete an
 This is a global selection that allows two different color/shading options for use during daylight or nighttime operation.
 
 ## Settings Page
-This page has selections for entering the Station name, number, location in lat/long coordinates and operators names and callsigns.
+This page is used to select the Station name, and operators names and callsigns.
 
-It also allows the operator to import the various input files and manage the database needed for proper program operation. By default, system initialization files will be located in user documents directory and file reading/writing selection dialogs will open to this directory.
+It also allows the operator to import the various input files and manage the database needed for proper program operation. By default, system initialization files should be copied into user documents directory and file reading/writing selection dialogs will open here.
 * Windows: `%userprofile%\Documents\ultra-tracker\`
 * Linux: `$HOME/Documents/ultra-tracker`
 * MacOS:  `/Users/username/Documents/ultra-tracker`

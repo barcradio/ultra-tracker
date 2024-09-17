@@ -4,7 +4,7 @@ import { classNames } from "primereact/utils";
 export const DropdownPT: DropdownPassThroughOptions = {
   root: (params) => ({
     className: classNames(
-      "inline-flex relative my-0.5 cursor-pointer select-none group/dropdown",
+      "inline-flex relative border-2 cursor-pointer select-none group/dropdown border-component",
       "rounded-md transition-colors duration-200 ease-in-out bg-surface-secondary",
       "w-full focus:outline-none grow",
       { "opacity-60 cursor-default pointer-events-none select-none": params?.props.disabled }

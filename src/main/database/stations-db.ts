@@ -1,9 +1,9 @@
 import appSettings from "electron-settings";
-import { DatabaseStatus, EntryMode } from "$shared/enums";
-import { DatabaseResponse } from "$shared/types";
+import { DatabaseStatus } from "$shared/enums";
+import { DatabaseResponse, SetStationIdentityParams } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { clearStationsTable, createStationsTable } from "./tables-db";
-import { Operator, Station, StationDB, StationIdentity } from "../../shared/models";
+import { Station, StationDB } from "../../shared/models";
 import * as dialogs from "../lib/file-dialogs";
 
 export async function LoadStations() {
@@ -18,6 +18,7 @@ export async function LoadStations() {
       clearStationsTable();
       createStationsTable();
     }
+
     if (index == "event") {
       await appSettings.set("event.name", stationData.event.name);
       await appSettings.set("event.starttime", stationData.event.starttime);
@@ -25,7 +26,7 @@ export async function LoadStations() {
     }
 
     if (index == "stations") {
-      const stations: Station[] = GetStations();
+      const [stations] = GetStations();
       if (stations == null) createStationsTable();
 
       if (GetStations().length > 0) {
@@ -54,46 +55,67 @@ export async function setStation(stationIdentifier: string) {
   if (!selectedStation) return;
 
   await appSettings.set("station.name", selectedStation.name);
-  await appSettings.set("station.id", Number(selectedStation.identifier.split("-", 1)));
+  await appSettings.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
   await appSettings.set("station.identifier", selectedStation.identifier);
   await appSettings.set("station.entrymode", selectedStation.entrymode);
   await appSettings.set(`station.shiftBegin`, selectedStation.shiftBegin as unknown as string);
   await appSettings.set(`station.cutofftime`, selectedStation.cutofftime as unknown as string);
   await appSettings.set(`station.shiftEnd`, selectedStation.shiftEnd as unknown as string);
 
-  for (const key in selectedStation.operators as Operator[]) {
-    await appSettings.set(`station.operators.${key}.name`, selectedStation.operators[key].fullname);
+  for (const key in selectedStation.operators) {
+    await appSettings.set(
+      `station.operators.${key}.fullname`,
+      selectedStation.operators[key].fullname
+    );
     await appSettings.set(
       `station.operators.${key}.callsign`,
       selectedStation.operators[key].callsign
     );
     await appSettings.set(`station.operators.${key}.phone`, selectedStation.operators[key].phone);
+    await appSettings.set(`station.operators.${key}.active`, false);
   }
+
+  await appSettings.set("station.operators.primary.active", true);
 }
 
-export function GetStationIdentity(): StationIdentity {
-  const stationName = appSettings.getSync("station.name") as string;
-  const stationId = appSettings.getSync("station.id") as number;
-  const stationCallsign = appSettings.getSync("station.operators.primary.callsign") as string;
+export async function SetStationIdentity(params: SetStationIdentityParams) {
+  await setStation(params.identifier);
+  const settings = appSettings.getSync("station") as unknown as Station;
 
-  return {
-    aidStation: `${stationId} ${stationName}`,
-    callsign: stationCallsign
-  };
+  const key = Object.keys(settings.operators).find(
+    (operator) => settings.operators[operator].callsign == params.callsign
+  );
+
+  for (const operator in settings.operators) {
+    await appSettings.set(`station.operators.${operator}.active`, false);
+  }
+
+  appSettings.setSync(`station.operators.${key}.active`, true);
+
+  return settings;
 }
 
-export function GetStations(): Station[] {
+export function GetStations(): DatabaseResponse<StationDB[]> {
   const db = getDatabaseConnection();
+  let message: string = "";
+  let queryResult: StationDB[] | null = null;
 
   try {
     const query = db.prepare(`SELECT * FROM Stations`);
-    const dataset = query.all();
-    console.log(`table Read Stations - records:${dataset.length}`);
-    return dataset as Station[];
+    queryResult = query.all() as StationDB[] | null;
   } catch (e) {
-    if (e instanceof Error) console.error(e.message);
-    return [];
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
   }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `table Read Stations - records:${queryResult?.length}`;
+
+  console.log(message);
+  return [queryResult, DatabaseStatus.Success, message];
 }
 
 export function GetStationByIdentifier(identifier: string): DatabaseResponse<Station> {
@@ -130,8 +152,8 @@ export function GetStationByIdentifier(identifier: string): DatabaseResponse<Sta
     shiftBegin: new Date(queryResult.shiftBegin),
     cutofftime: new Date(queryResult.cutofftime),
     shiftEnd: new Date(queryResult.shiftEnd),
-    entrymode: queryResult.entrymode as EntryMode,
-    operators: ops as Operator[]
+    entrymode: queryResult.entrymode,
+    operators: ops
   };
 
   message = `stations:Found station with identifier: ${station.identifier}`;

@@ -29,7 +29,7 @@ interface Props {
 }
 
 export function Select(props: Props) {
-  const isGrouped = Boolean(props.options[0]["items"]);
+  const isGrouped = Boolean(props.options[0] ? props.options[0]["items"] : null);
 
   const isSimple = props.options[0] && typeof props.options[0] === "string";
   const options = isSimple
