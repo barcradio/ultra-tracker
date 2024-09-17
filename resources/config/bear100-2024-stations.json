@@ -18,9 +18,9 @@
             "dropbags": false,
             "crewaccess": true,
             "paceraccess": false,
-            "shiftBegin": "05:00:00 Aug 27 2024",
+            "shiftBegin": "05:00:00 Sept 27 2024",
             "cutofftime": "06:00:00 Sept 27 2024",
-            "shiftEnd": "07:00:00 Aug 27 2024",
+            "shiftEnd": "07:00:00 Sept 27 2024",
             "entrymode": 1,
             "operators": {
                 "primary": {
@@ -48,9 +48,9 @@
             "dropbags": false,
             "crewaccess": false,
             "paceraccess": false,
-            "shiftBegin": "07:00:00 Aug 27 2024",
-            "cutofftime": "09:30:00 Aug 27 2024",
-            "shiftEnd": "09:30:00 Aug 27 2024",
+            "shiftBegin": "07:00:00 Sept 27 2024",
+            "cutofftime": "09:30:00 Sept 27 2024",
+            "shiftEnd": "09:30:00 Sept 27 2024",
             "entrymode": 1,
             "operators": {
                 "primary": {
@@ -78,9 +78,9 @@
             "dropbags": true,
             "crewaccess": true,
             "paceraccess": false,
-            "shiftBegin": "08:30:00 Aug 27 2024",
+            "shiftBegin": "08:30:00 Sept 27 2024",
             "cutofftime": "13:00:00 Sept 27 2024",
-            "shiftEnd": "14:00:00 Aug 27 2024",
+            "shiftEnd": "14:00:00 Sept 27 2024",
             "entrymode": 1,
             "operators": {
                 "primary": {
@@ -108,9 +108,9 @@
             "dropbags": true,
             "crewaccess": false,
             "paceraccess": false,
-            "shiftBegin": "09:30:00 Aug 27 2024",
+            "shiftBegin": "09:30:00 Sept 27 2024",
             "cutofftime": "16:00:00 Sept 27 2024",
-            "shiftEnd": "16:30:00 Aug 27 2024",
+            "shiftEnd": "16:30:00 Sept 27 2024",
             "entrymode": 1,
             "operators": {
                 "primary": {
