@@ -1,24 +1,27 @@
 # Ultra-tracker Help <!-- omit in toc -->
 ---
 ## Table of Contents <!-- omit in toc -->
-1. [Initial Setup](#initial-setup)
-2. [Sidebar](#sidebar)
-3. [Stats Page](#stats-page)
-   1. [Keyboard shortcuts](#keyboard-shortcuts)
-4. [Roster Page](#roster-page)
-5. [Stations Page](#stations-page)
-6. [Logs Page](#logs-page)
-7. [Export Page](#export-page)
-8. [Theme Page](#theme-page)   
-9. [Settings Page](#settings-page)
-	1. [Recovery Procedure](#recovery-procedure)
-10. [About Ultra-tracker](#about-ultra-tracker)
-11. [Contributors](#contributors)
-12. [License](#license)
+- [Initial Setup](#initial-setup)
+- [Sidebar](#sidebar)
+- [Stats Page](#stats-page)
+  - [Athlete edit function](#athlete-edit-function)
+  - [Stats SubSection](#stats-subsection)
+  - [Keyboard shortcuts](#keyboard-shortcuts)
+- [Roster Page](#roster-page)
+- [Stations Page](#stations-page)
+- [Logs Page](#logs-page)
+- [Export Page](#export-page)
+- [Theme Page](#theme-page)
+- [Settings Page](#settings-page)
+  - [Recovery Procedure](#recovery-procedure)
+- [About Ultra-tracker](#about-ultra-tracker)
+- [Contributors](#contributors)
+- [License](#license)
 
 ---
 
 ## Initial Setup
+![keyboard-layout.png](./img/settings-page.png)
 1. Copy the event files into the default folder location (see settings section below for path)
 1. Load the Stations File
    1. Select Station location and set operator callsign
@@ -28,16 +31,24 @@
 1. Go to stats screen and begin logging athletes
 
 ## Sidebar
-The left side bar is used to select different pages.  Select from Stats, Roster, Logs, Export, Theme, Database, Settings and Help.
+The left side bar is used to select different pages.  Select from Stats, Roster, Logs, Export, Theme, Database, Settings and Help. (Hovering over the sidebar area will expand it to show the names.)
 
 ## Stats Page
+![keyboard-layout.png](./img/Bib.png)
 The **BIB#** box should be the main starting point for using this page. This input control will accept numerical input, either from the 10-key pad or top-row keys of all standard keyboards.
 
 Clicking the In button and Out button will record the corresponding time entry.
 
-The app performs a search of the bib number input by the operator to verify whether that person is listed as an athlete that did or did not start the race. If they did not start, an error is displayed allowing the operator to correct the bib number before proceeding.
+The datagrid columns can be sorted by clicking on the column header.  Click again to toggle ascending or descending sort. To edit an athlete, click on the "edit icon" at the far-right side of the row for each athlete.
 
-The datagrid columns can be sorted by clicking on the column header.  Click again to toggle ascending or descending sort.
+### Athlete edit function
+![keyboard-layout.png](./img/Athlete-edit.png)
+This edit page is able to show the details of the athlete and whether that person is listed in the Start list.  If the bib# is valid, that athlete's name will show in the box and the times for In and Out will display along with DNF, DNS status and any notes that have been entered.  Any of these fields can be modified and applied to be made permanent.
+
+
+### Stats SubSection
+![keyboard-layout.png](./img/Stats.png)
+Each of the different statistics available in real-time updates are shown above.
 
 ### Keyboard shortcuts
 Entry of numbers and times is assisted by using some specific keys on both an 88 key (or more) keyboard or a 10-key Numpad. When the curor is focused in the **Bib#** box, entering a bib number and pressing one of these keys will automatically enter the record and populate the corresponding time.
@@ -54,18 +65,24 @@ Entry of numbers and times is assisted by using some specific keys on both an 88
 ![keyboard-layout.png](./img/keyboard-layout.png)
 
 ## Roster Page
+![keyboard-layout.png](./img/roster-page.png)
 The purpose of this page is to provide the full list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and note entries.
 
 ## Stations Page
-This page shows the details about the aid stations throughout the race, location, mileage, cutoff times
+![keyboard-layout.png](./img/Stations.png)
+This page is used to select the Station name, and operators names and callsigns.
+
+This page shows the details about the aid stations throughout the race, location, mileage, cutoff times. (Future)
 
 ## Logs Page
+![keyboard-layout.png](./img/Logs-page.png)
 The purpose of this page is to display and export the station log file that is auto-generated during operation. There are two versions of the log that can be viewed and/or exported for the use of operators or developers to aid in fixing errors that may occur due to programming mistakes or unforeseen situations.
 - The normal station log will contain entrees that happened during regular operation that indicates typical data gathering operations. This view may be used by all operators to allow a detailed look at the order and purpose of all standard events that have occurred during operation.
 - The verbose station log contains all events that occurred as well as debug messages designed to assist the developers to locate problems that might occur. This file can be large and should be sent to the developers only upon request.
 
 
 ## Export Page
+![keyboard-layout.png](./img/export-page.png)
 - **Export Incremental CSV File**
 This function exports a .csv file of the station entries containing unsent or edited records, contains BibID,TimeIn, TimeOut, DNF/DNS status and any notes made by the operator
 (Sending only the recent results allows for much shorter files being routinely sent to the network database via radio.) It will also autmatically name itself and increment the filename for you
@@ -79,11 +96,11 @@ This function exports a full .csv file of all entries containing each athlete an
 
 
 ## Theme Page
+![keyboard-layout.png](./img/theme-page.png)
 This is a global selection that allows two different color/shading options for use during daylight or nighttime operation.
 
 ## Settings Page
-This page is used to select the Station name, and operators names and callsigns.
-
+![keyboard-layout.png](./img/settings-page.png)
 It also allows the operator to import the various input files and manage the database needed for proper program operation. By default, system initialization files should be copied into user documents directory and file reading/writing selection dialogs will open here.
 * Windows: `%userprofile%\Documents\ultra-tracker\`
 * Linux: `$HOME/Documents/ultra-tracker`
@@ -119,8 +136,8 @@ This function is the means where *ALL* **database entries and tables are removed
 This function imports **ALL of the entries** that have previously been made by the operator since the start of this race event!  The Ultra-tracker application has been automatically producing a file containing EVERY entry made by the operator continuously during normal operation! This function will restore all of this data to restore the program to the previous state automatically.
 
 ### Recovery Procedure
-If instructed to do so
-<span style="color:orange">After the "Recreate Database" has been performed, perform the following steps:</span>
+If instructed to do so,
+<span style="color:orange">after the "Recreate Database" has been performed, perform the following steps:</span>
 
 1. Load the Stations File.
 1. Load the Athletes File.
