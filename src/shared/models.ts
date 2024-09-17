@@ -22,6 +22,9 @@ export interface RunnerCSV {
   timeOut: string;
   note: string;
   sent: number;
+  dnfType: string;
+  dnfStation: string;
+  dnfDateTime: string;
 }
 
 export interface Runner {
