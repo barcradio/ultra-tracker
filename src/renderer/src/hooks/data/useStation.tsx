@@ -10,7 +10,7 @@ export function useStation() {
   return useQuery({
     queryKey: ["station"],
     queryFn: async (): Promise<Station> => {
-      const station: Station = await ipcRenderer.invoke("app-settings", "station");
+      const station: Station = await ipcRenderer.invoke("app-store", "station");
       return station;
     }
   });

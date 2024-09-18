@@ -1,7 +1,6 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import { format } from "date-fns";
-import appSettings from "electron-settings";
 import { DNFType, DatabaseStatus, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB, RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
@@ -9,6 +8,7 @@ import { SetDNFOnAthlete } from "./athlete-db";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
 import * as dialogs from "../lib/file-dialogs";
+import { appStore } from "../lib/store";
 
 export function formatDate(date: Date | null): string {
   if (date == null) return "";
@@ -130,7 +130,7 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
 function getDNSRunnersInStation(): DatabaseResponse<number> {
   let stationId = -1;
   try {
-    stationId = appSettings.getSync("station.id") as number;
+    stationId = appStore.get("station.id") as number;
   } catch (e) {
     if (e instanceof Error) {
       return [null, DatabaseStatus.Error, e.message];
@@ -225,7 +225,7 @@ export async function importRunnersFromCSV() {
   const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "dnfType", "dnfStation", "note"];
   const runnerCSVFilePath = await dialogs.loadRunnersFromCSV();
   const fileContent = fs.readFileSync(runnerCSVFilePath[0], { encoding: "utf-8" });
-  const stationId = (await appSettings.get("station.id")) as number;
+  const stationId = (await appStore.get("station.id")) as number;
 
   parse(
     fileContent,
@@ -286,8 +286,8 @@ function parseCSVDate(timingDate: string): Date {
 export function exportUnsentRunnersAsCSV() {
   let queryResult;
   const path = require("path");
-  const stationId = appSettings.getSync("station.id") as number;
-  let fileIndex = appSettings.getSync("incrementalFileIndex") as number;
+  const stationId = appStore.get("station.id") as number;
+  let fileIndex = appStore.get("incrementalFileIndex") as number;
 
   const formattedStationId = stationId.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
@@ -331,7 +331,7 @@ export function exportUnsentRunnersAsCSV() {
 
     writeToCSV(filePath, queryResult, true);
     fileIndex++;
-    appSettings.setSync("incrementalFileIndex", fileIndex);
+    appStore.set("incrementalFileIndex", fileIndex);
   } catch (e) {
     if (e instanceof Error) {
       for (const key in queryResult) {
@@ -399,7 +399,7 @@ export async function exportDNFAsCSV() {
   const db = getDatabaseConnection();
   let queryResult;
   let filename: string = "";
-  const stationIdentifier = appSettings.getSync("station.identifier") as number;
+  const stationIdentifier = appStore.get("station.identifier") as number;
 
   const stmt = `
     SELECT t1.dnf, t1.dnfType, t1.dnfStation, t1.dnfDateTime, t2.*
@@ -428,8 +428,8 @@ export async function exportDNFAsCSV() {
 
 function writeToCSV(filename: string, queryResult, incremental: boolean) {
   const fs = require("fs");
-  const eventName = appSettings.getSync("event.name") as string;
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const eventName = appStore.get("event.name") as string;
+  const stationIdentifier = appStore.get("station.identifier") as string;
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);
@@ -473,10 +473,10 @@ interface DNFRunnerDB extends RunnerDB {
 
 function writeDNSToCSV(filename: string, queryResult) {
   const fs = require("fs");
-  const eventName = appSettings.getSync("event.name") as string;
-  const eventStartTime = appSettings.getSync("event.starttime") as string;
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
-  const startLineIdentifier = appSettings.getSync("event.startline") as string;
+  const eventName = appStore.get("event.name") as string;
+  const eventStartTime = appStore.get("event.starttime") as string;
+  const stationIdentifier = appStore.get("station.identifier") as string;
+  const startLineIdentifier = appStore.get("event.startline") as string;
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);
@@ -507,8 +507,8 @@ function writeDNSToCSV(filename: string, queryResult) {
 
 function writeDNFToCSV(filename: string, queryResult) {
   const fs = require("fs");
-  const eventName = appSettings.getSync("event.name") as string;
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const eventName = appStore.get("event.name") as string;
+  const stationIdentifier = appStore.get("station.identifier") as string;
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);

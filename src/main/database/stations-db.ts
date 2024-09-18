@@ -1,10 +1,17 @@
-import appSettings from "electron-settings";
+import { format } from "date-fns";
 import { DatabaseStatus } from "$shared/enums";
 import { DatabaseResponse, SetStationIdentityParams } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { clearStationsTable, createStationsTable } from "./tables-db";
 import { Station, StationDB } from "../../shared/models";
 import * as dialogs from "../lib/file-dialogs";
+import { appStore } from "../lib/store";
+
+export function formatDate(date: Date | null): string {
+  if (date == null) return "";
+
+  return format(date, "HH:mm:ss dd LLL yyyy");
+}
 
 export async function LoadStations() {
   //const devStationData = require("$resources/config/stations.json");
@@ -15,9 +22,9 @@ export async function LoadStations() {
 
   for (const index in stationData) {
     if (index == "event") {
-      await appSettings.set("event.name", stationData.event.name);
-      await appSettings.set("event.starttime", stationData.event.starttime);
-      await appSettings.set("event.endtime", stationData.event.endtime);
+      await appStore.set("event.name", stationData.event.name);
+      await appStore.set("event.starttime", formatDate(stationData.event.starttime));
+      await appStore.set("event.endtime", formatDate(stationData.event.endtime));
     }
 
     if (index == "stations") {
@@ -30,16 +37,15 @@ export async function LoadStations() {
       }
 
       for (const key in stationData.stations) {
-        if (key == "0")
-          await appSettings.set("event.startline", stationData[index][key].identifier);
+        if (key == "0") await appStore.set("event.startline", stationData[index][key].identifier);
         if (key == (stationData.stations.length - 1).toString())
-          await appSettings.set("event.finishline", stationData[index][key].identifier);
+          await appStore.set("event.finishline", stationData[index][key].identifier);
 
         insertStation(stationData[index][key]);
       }
     }
   }
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const stationIdentifier = appStore.get("station.identifier") as string;
   setStation(stationIdentifier);
 
   return `${stationFilePath}\r\n${stationData.stations.length} stations imported`;
@@ -49,43 +55,43 @@ export async function setStation(stationIdentifier: string) {
   const selectedStation: Station | null = GetStationByIdentifier(stationIdentifier)?.[0];
   if (!selectedStation) return;
 
-  await appSettings.set("station.name", selectedStation.name);
-  await appSettings.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
-  await appSettings.set("station.identifier", selectedStation.identifier);
-  await appSettings.set("station.entrymode", selectedStation.entrymode);
-  await appSettings.set(`station.shiftBegin`, selectedStation.shiftBegin as unknown as string);
-  await appSettings.set(`station.cutofftime`, selectedStation.cutofftime as unknown as string);
-  await appSettings.set(`station.shiftEnd`, selectedStation.shiftEnd as unknown as string);
+  await appStore.set("station.name", selectedStation.name);
+  await appStore.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
+  await appStore.set("station.identifier", selectedStation.identifier);
+  await appStore.set("station.entrymode", selectedStation.entrymode);
+  await appStore.set(`station.shiftBegin`, formatDate(selectedStation.shiftBegin));
+  await appStore.set(`station.cutofftime`, formatDate(selectedStation.cutofftime));
+  await appStore.set(`station.shiftEnd`, formatDate(selectedStation.shiftEnd));
 
   for (const key in selectedStation.operators) {
-    await appSettings.set(
+    await appStore.set(
       `station.operators.${key}.fullname`,
       selectedStation.operators[key].fullname
     );
-    await appSettings.set(
+    await appStore.set(
       `station.operators.${key}.callsign`,
       selectedStation.operators[key].callsign
     );
-    await appSettings.set(`station.operators.${key}.phone`, selectedStation.operators[key].phone);
-    await appSettings.set(`station.operators.${key}.active`, false);
+    await appStore.set(`station.operators.${key}.phone`, selectedStation.operators[key].phone);
+    await appStore.set(`station.operators.${key}.active`, false);
   }
 
-  await appSettings.set("station.operators.primary.active", true);
+  await appStore.set("station.operators.primary.active", true);
 }
 
 export async function SetStationIdentity(params: SetStationIdentityParams) {
   await setStation(params.identifier);
-  const settings = appSettings.getSync("station") as unknown as Station;
+  const settings = appStore.get("station") as unknown as Station;
 
   const key = Object.keys(settings.operators).find(
     (operator) => settings.operators[operator].callsign == params.callsign
   );
 
   for (const operator in settings.operators) {
-    await appSettings.set(`station.operators.${operator}.active`, false);
+    await appStore.set(`station.operators.${operator}.active`, false);
   }
 
-  appSettings.setSync(`station.operators.${key}.active`, true);
+  appStore.set(`station.operators.${key}.active`, true);
 
   return settings;
 }
