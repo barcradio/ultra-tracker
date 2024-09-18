@@ -51,7 +51,6 @@ app.on("ready", async () => {
   await installDevTools();
 
   initialize();
-  appSettings.firstRun();
   initUserDirectories();
   createDatabaseConnection();
   validateDatabaseTables();

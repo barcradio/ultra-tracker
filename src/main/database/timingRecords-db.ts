@@ -1,10 +1,10 @@
-import appSettings from "electron-settings";
 import { DatabaseResponse } from "$shared/types";
 import * as dbAthletes from "./athlete-db";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { DatabaseStatus, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
+import { appStore } from "../lib/store";
 
 interface TypedRunnerDB extends RunnerDB {
   recordType: RecordType;
@@ -155,8 +155,8 @@ function updateTimeRecord(
   merge: boolean
 ): DatabaseResponse {
   const db = getDatabaseConnection();
-  const stationId = appSettings.getSync("station.id") as number;
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const stationId = appStore.get("station.id") as number;
+  const stationIdentifier = appStore.get("station.identifier") as string;
   let queryString = "";
 
   // scrub any string values coming from the UI
@@ -229,8 +229,8 @@ function updateTimeRecord(
 
 function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
-  const stationId = appSettings.getSync("station.id") as number;
-  const stationIdentifier = appSettings.getSync("station.identifier") as string;
+  const stationId = appStore.get("station.id") as number;
+  const stationIdentifier = appStore.get("station.identifier") as string;
 
   //build the time record
   processDuplicate(record);

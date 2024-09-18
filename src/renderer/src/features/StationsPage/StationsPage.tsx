@@ -49,26 +49,31 @@ export function StationsPage() {
       valueFn: (station) => {
         const loc = JSON.parse(station.location);
         return loc.elevation;
-      }
+      },
+      width: "80px"
     },
     {
       field: "distance",
-      name: "Dist"
+      name: "Dist",
+      width: "80px"
     },
     {
       field: "dropbags",
       name: "Bags",
-      valueFn: (station) => (station.dropbags ? "Yes" : "No")
+      valueFn: (station) => (station.dropbags ? "Yes" : "No"),
+      width: "100px"
     },
     {
       field: "crewaccess",
       name: "Crew",
-      valueFn: (station) => (station.crewaccess ? "Yes" : "No")
+      valueFn: (station) => (station.crewaccess ? "Yes" : "No"),
+      width: "80px"
     },
     {
       field: "paceraccess",
       name: "Pacer",
-      valueFn: (station) => (station.paceraccess ? "Yes" : "No")
+      valueFn: (station) => (station.paceraccess ? "Yes" : "No"),
+      width: "80px"
     },
     {
       field: "shiftBegin",
@@ -88,7 +93,8 @@ export function StationsPage() {
     {
       field: "entrymode",
       name: "Mode",
-      valueFn: (station) => EntryMode[station.entrymode].toString()
+      valueFn: (station) => EntryMode[station.entrymode].toString(),
+      width: "90px"
     }
   ];
 
