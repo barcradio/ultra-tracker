@@ -9,7 +9,6 @@ import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
 import { initStatEngine } from "./lib/stat-engine";
-import * as appSettings from "../preload/data";
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -51,7 +50,6 @@ app.on("ready", async () => {
   await installDevTools();
 
   initialize();
-  appSettings.firstRun();
   initUserDirectories();
   createDatabaseConnection();
   validateDatabaseTables();
