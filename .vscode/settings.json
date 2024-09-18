@@ -1,9 +1,7 @@
 {
   "tailwindCSS.experimental.classRegex": [
-    [
-      "classed(?:\\.\\w*)?\\(([^)]*)\\)",
-      "[\"'`]([^\"'`]*).*?[\"'`]"
-    ]
+    "classed(?:\\.\\w*)?\\(([^)]*)\\)",
+    "[\"'`]([a-zA-Z\\s\\-]*)[\"'`]"
   ],
   "files.eol": "\n",
   "[typescript]": {
@@ -13,6 +11,10 @@
     "editor.tabSize": 2
   },
   "cSpell.words": [
-    "RFID"
+    "callsigns",
+    "crewaccess",
+    "cutofftime",
+    "dropbags",
+    "paceraccess"
   ]
 }

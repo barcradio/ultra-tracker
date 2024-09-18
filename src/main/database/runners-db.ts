@@ -1,14 +1,20 @@
 import fs from "fs";
 import { parse } from "csv-parse";
+import { format } from "date-fns";
 import appSettings from "electron-settings";
-import { formatDate } from "$renderer/lib/datetimes";
-import { DatabaseStatus, RecordStatus } from "$shared/enums";
+import { DNFType, DatabaseStatus, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB, RunnerCSV, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
+import { SetDNFOnAthlete } from "./athlete-db";
 import { getDatabaseConnection } from "./connect-db";
-import { getColumnNamesFromTable } from "./tables-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
 import * as dialogs from "../lib/file-dialogs";
+
+export function formatDate(date: Date | null): string {
+  if (date == null) return "";
+
+  return format(date, "HH:mm:ss dd LLL yyyy");
+}
 
 const invalidResult = -999;
 
@@ -29,6 +35,11 @@ export function GetRunnersOutStation(): number {
 
 export function GetRunnersWithDuplicateStatus(): number {
   const count = getRunnersWithDuplicateStatus();
+  return count[0] == null ? invalidResult : count[0];
+}
+
+export function GetDNSRunnersInStation(): number {
+  const count = getDNSRunnersInStation();
   return count[0] == null ? invalidResult : count[0];
 }
 
@@ -116,13 +127,53 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
 
-function getRunnersNotSent(): DatabaseResponse<RunnerDB> {
+function getDNSRunnersInStation(): DatabaseResponse<number> {
+  let stationId = -1;
+  try {
+    stationId = appSettings.getSync("station.id") as number;
+  } catch (e) {
+    if (e instanceof Error) {
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  const db = getDatabaseConnection();
+  let message: string = "";
+  let queryResult;
+
+  const stmt = `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dns
+       FROM "StationEvents" LEFT JOIN "Athletes"
+       ON StationEvents.bibId = Athletes.bibId
+       WHERE Athletes.dns == 1 and StationEvents.stationId == ?`;
+  try {
+    queryResult = db.prepare(stmt).all(stationId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `GetRunnersInStation From StationEvents Where 'Athletes.dns == 1 and StationEvents.stationId == ${stationId}':${queryResult.length}`;
+
+  return [queryResult.length as number, DatabaseStatus.Success, message];
+}
+
+function getRunnersWithDNFNotSent(): DatabaseResponse<DNFRunnerDB> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT * FROM StationEvents WHERE sent == 0`).all();
+    queryResult = db
+      .prepare(
+        `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dnfStation, Athletes.dnfDateTime, Athletes.dns
+        FROM "StationEvents" LEFT JOIN "Athletes"
+        ON StationEvents.bibId = Athletes.bibId WHERE sent == 0`
+      )
+      .all();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -171,7 +222,7 @@ export function readRunnersTable<T>(
 }
 
 export async function importRunnersFromCSV() {
-  const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "note"];
+  const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "dnfType", "dnfStation", "note"];
   const runnerCSVFilePath = await dialogs.loadRunnersFromCSV();
   const fileContent = fs.readFileSync(runnerCSVFilePath[0], { encoding: "utf-8" });
   const stationId = (await appSettings.get("station.id")) as number;
@@ -193,7 +244,7 @@ export async function importRunnersFromCSV() {
       console.log("Result", result);
 
       result.slice(1).forEach((timing) => {
-        const record: RunnerDB = {
+        const record: DNFRunnerDB = {
           index: timing.bibId,
           bibId: timing.bibId,
           stationId: stationId,
@@ -202,27 +253,41 @@ export async function importRunnersFromCSV() {
           timeModified: new Date(),
           note: !timing.note ? "" : timing.note.replaceAll(",", ""),
           sent: false,
-          status: RecordStatus.OK
+          status: RecordStatus.OK,
+          dnf: Number(timing.dnfType != ""),
+          dnfType: timing.dnfType,
+          dnfStation: timing.dnfStation,
+          dnfDateTime: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut)
         };
 
-        function parseCSVDate(timingDate: string): Date {
-          const event = new Date(Date.parse(timingDate));
-          event.setFullYear(new Date().getFullYear());
-          return event;
+        function enumFromStringValue<T>(enm: { [s: string]: T }, value: string): T | undefined {
+          return (Object.values(enm) as unknown as string[]).includes(value)
+            ? (value as unknown as T)
+            : undefined;
         }
 
         insertOrUpdateTimeRecord(record);
+        if (record.dnf) {
+          const dnfType = enumFromStringValue(DNFType, record.dnfType);
+          SetDNFOnAthlete(record.bibId, record.timeOut, Boolean(record.dnf), dnfType!);
+        }
       });
       return `${runnerCSVFilePath}\r\n${result.length} timings imported`;
     }
   );
 }
 
+function parseCSVDate(timingDate: string): Date {
+  const event = new Date(Date.parse(timingDate));
+  //event.setFullYear(new Date().getFullYear());  //only if an incoming year doesn't make sense
+  return event;
+}
+
 export function exportUnsentRunnersAsCSV() {
+  let queryResult;
   const path = require("path");
   const stationId = appSettings.getSync("station.id") as number;
   let fileIndex = appSettings.getSync("incrementalFileIndex") as number;
-  let queryResult;
 
   const formattedStationId = stationId.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
@@ -239,7 +304,7 @@ export function exportUnsentRunnersAsCSV() {
   if (filePath == undefined) return "Invalid file name";
 
   try {
-    queryResult = getRunnersNotSent()[0];
+    queryResult = getRunnersWithDNFNotSent()[0];
     if (queryResult == null) return `Failed to get unsent runners`;
 
     if (queryResult.length == 0) {
@@ -286,7 +351,13 @@ export async function exportRunnersAsCSV() {
   let filename: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT * FROM StationEvents`).all();
+    queryResult = db
+      .prepare(
+        `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dnfStation, Athletes.dnfDateTime, Athletes.dns
+        FROM "StationEvents" LEFT JOIN "Athletes"
+        ON StationEvents.bibId = Athletes.bibId`
+      )
+      .all();
     filename = await dialogs.saveRunnersToCSV();
 
     if (filename == undefined) return "Invalid file name";
@@ -362,28 +433,28 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(filename);
-
+    const exportType = incremental ? "incremental-export" : "full-export";
     // title row
-    //const disclaimer = "All times are based off of the system they were recorded on.";
-    const headerText = `${eventName},${stationIdentifier}`;
-    stream.write(headerText + "\n");
+    const titleText = `${eventName},${stationIdentifier},${exportType}`;
+    stream.write(titleText + "\n");
 
     // header row
-    // index,sent,bibId,timeIn,timeOut,note
-    const columnNames = getColumnNamesFromTable("StationEvents");
-    const rowText = `${columnNames[0]},${columnNames[7]},${columnNames[1]},${columnNames[3]},${columnNames[4]},${columnNames[6]}`;
-    stream.write(rowText + "\n");
+    const headerText = `index,sent,bibId,timeIn,timeOut,dnfType,dnfStation,note`;
+    stream.write(headerText + "\n");
 
-    for (const row of queryResult as RunnerDB[]) {
+    for (const row of queryResult as DNFRunnerDB[]) {
       let rowText = "";
       const bSent = Boolean(row.sent);
       if (!incremental || (incremental && !bSent)) {
+        row.sent = true;
         rowText =
           `${row.index},` +
-          `${row.sent},` +
+          `${Number(row.sent)},` +
           `${row.bibId},` +
           `${row.timeIn == null ? "" : formatDate(new Date(row.timeIn))},` +
           `${row.timeOut == null ? "" : formatDate(new Date(row.timeOut))},` +
+          `${row.dnfType == null ? "" : row.dnfType},` +
+          `${row.dnfStation == null ? "" : row.dnfStation},` +
           `${row.note}`;
         stream.write(rowText + "\n");
       }
@@ -397,7 +468,7 @@ interface DNFRunnerDB extends RunnerDB {
   dnf: number;
   dnfType: string;
   dnfStation: string;
-  dnfDateTime: string;
+  dnfDateTime: Date | null;
 }
 
 function writeDNSToCSV(filename: string, queryResult) {
@@ -411,7 +482,7 @@ function writeDNSToCSV(filename: string, queryResult) {
     const stream = fs.createWriteStream(filename);
 
     // title row
-    const headerText = `${eventName},${stationIdentifier}`;
+    const headerText = `${eventName},${stationIdentifier},dns-export`;
     stream.write(headerText + "\n");
 
     // header row
@@ -425,7 +496,7 @@ function writeDNSToCSV(filename: string, queryResult) {
       rowText =
         `${startLineIdentifier},` +
         `${row.bibId},` +
-        `${eventStartTime == null ? "" : formatDate(new Date(eventStartTime))},` +
+        `${eventStartTime == null ? "" : eventStartTime},` +
         `${row.note}`;
       stream.write(rowText + "\n");
     }
@@ -443,7 +514,7 @@ function writeDNFToCSV(filename: string, queryResult) {
     const stream = fs.createWriteStream(filename);
 
     // title row
-    const headerText = `${eventName},${stationIdentifier}`;
+    const headerText = `${eventName},${stationIdentifier},dnf-export`;
     stream.write(headerText + "\n");
 
     // header row
@@ -458,7 +529,7 @@ function writeDNFToCSV(filename: string, queryResult) {
         `${row.dnfStation},` +
         `${row.bibId},` +
         `${row.dnfType},` +
-        `${row.dnfDateTime == null ? "" : formatDate(new Date(row.dnfDateTime))},` +
+        `${row.dnfDateTime == null ? "" : formatDate(row.dnfDateTime)},` +
         `${row.note}`;
       stream.write(rowText + "\n");
     }

@@ -26,15 +26,11 @@ function useStats() {
       value: formatStat(statsData?.throughStation)
     },
     {
-      id: "Finished Race",
-      value: formatStat(statsData?.finishedRace)
-    },
-    {
       id: "Total DNS",
       value: formatStat(statsData?.totalDNS)
     },
     {
-      id: "Previous DNF",
+      id: "Prior DNF",
       value: formatStat(statsData?.previousDNF)
     },
     {
@@ -46,12 +42,24 @@ function useStats() {
       value: formatStat(statsData?.totalDNF)
     },
     {
+      id: " ",
+      value: ""
+    },
+    {
       id: "Warnings",
-      value: formatStat(statsData?.warnings)
+      value: ""
+    },
+    {
+      id: "- In Station DNS",
+      value: formatStat(statsData?.inStationDNS)
     },
     {
       id: "Errors",
-      value: formatStat(statsData?.errors)
+      value: ""
+    },
+    {
+      id: "- Duplicates",
+      value: formatStat(statsData?.duplicates)
     }
   ];
 }

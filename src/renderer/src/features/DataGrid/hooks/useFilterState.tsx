@@ -21,7 +21,7 @@ export function useFilterState<T extends object>({ columns }: { columns: Column<
     (field?: keyof T) => {
       if (!field) return setFilters({});
       setFilters((prev) => {
-        delete prev[field];
+        if (prev && field in prev) delete prev[field];
         return { ...prev };
       });
     },

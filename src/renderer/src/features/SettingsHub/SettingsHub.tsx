@@ -1,6 +1,8 @@
+import log from "electron-log/renderer";
 import { Button, Stack } from "~/components";
 import * as dbUtilHooks from "~/hooks/ipc/useDatabaseUtilities";
 import * as dialogHooks from "~/hooks/ipc/useFileDialogs";
+import * as loggerHooks from "~/hooks/ipc/useLogger";
 import * as settingsHooks from "~/hooks/ipc/useSettingsUtilities";
 import { useToasts } from "../Toasts/useToasts";
 
@@ -17,6 +19,8 @@ export function SettingsHub() {
   const { createToast } = useToasts();
 
   const resetAppSettings = () => {
+    log.info("testing renderer to main log");
+    loggerHooks.useMainLogger("warning", "User click: Reset App Settings");
     createToast({ message: "App Settings: Resetting", type: "info" });
     resetAppSettingsMutation.mutate("resetAppSettings");
   };
@@ -101,7 +105,7 @@ export function SettingsHub() {
         <Stack direction="col">
           <b>Developer Tools</b>
           <Button color="danger" variant="outlined" onClick={initializeDatabase}>
-            Recreate Database
+            Destroy & Reinitialize Database
           </Button>
           <Button color="danger" variant="outlined" onClick={importRunnerCSVFile}>
             Recover Data from CSV File

@@ -28,12 +28,12 @@ export const initializeDefaultAppSettings = () => {
       entrymode: 0,
       operators: {
         primary: {
-          name: "Percy L. Spencer",
+          fullname: "Percy L. Spencer",
           callsign: "W1GBE-SK",
           phone: ""
         },
         secondary: {
-          name: "Nolan Bushnell",
+          fullname: "Nolan Bushnell",
           callsign: "W7DUK-SK",
           phone: ""
         }
@@ -53,11 +53,6 @@ export const configureAppSettings = () => {
 };
 
 export const resetAppSettings = () => {
-  appSettings.reset();
-  initializeDefaultAppSettings();
-};
-
-export const getAppSettings = () => {
   appSettings.reset();
   configureAppSettings();
   initializeDefaultAppSettings();

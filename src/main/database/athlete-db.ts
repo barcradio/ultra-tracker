@@ -43,7 +43,8 @@ export async function LoadAthletes() {
         return `${result.length} athletes: ${error}`;
       }
 
-      console.log("Result", result);
+      //no need to log every athlete to the log
+      //console.log("Result", result);
 
       result.slice(1).forEach((athlete) => {
         insertAthlete(athlete);
@@ -62,7 +63,9 @@ export async function LoadDNS() {
     fileContent,
     {
       delimiter: ",",
-      columns: headers
+      columns: headers,
+      // eslint-disable-next-line camelcase
+      from_line: 2
     },
     (error, result: DNSRecord[]) => {
       if (error) {
@@ -89,7 +92,9 @@ export async function LoadDNF() {
     fileContent,
     {
       delimiter: ",",
-      columns: headers
+      columns: headers,
+      // eslint-disable-next-line camelcase
+      from_line: 2
     },
     (error, result: DNFRecord[]) => {
       if (error) {
@@ -133,7 +138,7 @@ export function GetStationDNF(): number {
 export function GetPreviousDNF(): number {
   const db = getDatabaseConnection();
   const stationId: number | null = appSettings.getSync("station.id") as number;
-  if (!stationId) return invalidResult;
+  if (stationId == null) return invalidResult;
 
   let queryResult;
 
@@ -308,6 +313,7 @@ export function SetDNSOnAthlete(bibId: number, dnsValue: boolean): DatabaseRespo
 
 export function SetDNFOnAthlete(
   bibId: number,
+  timeOut: Date | null,
   dnfValue: boolean,
   dnfType: DNFType
 ): DatabaseResponse {
@@ -315,6 +321,7 @@ export function SetDNFOnAthlete(
   let message: string = "";
   let stationIdentifier: string | null = appSettings.getSync("station.identifier") as string;
   let dnf: DNFType | null = dnfType;
+  const dnfDateTime = !timeOut ? new Date().toISOString() : timeOut.toISOString();
 
   if (!dnfValue) {
     stationIdentifier = null;
@@ -323,9 +330,9 @@ export function SetDNFOnAthlete(
 
   try {
     const query = db.prepare(
-      `UPDATE Athletes SET dnf = ?, dnfType = ?, dnfStation = ? WHERE bibId = ?`
+      `UPDATE Athletes SET dnf = ?, dnfType = ?, dnfStation = ?, dnfDateTime = ? WHERE bibId = ?`
     );
-    query.run(Number(dnfValue), dnf, stationIdentifier, bibId);
+    query.run(Number(dnfValue), dnf, stationIdentifier, dnfDateTime, bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -338,7 +345,7 @@ export function SetDNFOnAthlete(
     null,
     null,
     null,
-    new Date().toISOString(),
+    dnfDateTime,
     `[Set](DNF): bib:${bibId}, value:${dnfValue}`,
     false,
     false
@@ -468,7 +475,7 @@ export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
 
 function parseCSVDate(timingDate: string): Date {
   const event = new Date(Date.parse(timingDate));
-  event.setFullYear(new Date().getFullYear());
+  //event.setFullYear(new Date().getFullYear());  //only if an incoming year doesn't make sense
   return event;
 }
 

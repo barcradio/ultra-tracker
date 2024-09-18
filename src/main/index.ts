@@ -8,6 +8,7 @@ import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
+import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
 import { initStatEngine } from "./lib/stat-engine";
 import * as appSettings from "../preload/data";
 
@@ -42,7 +43,7 @@ function createWindow(): BrowserWindow {
 }
 
 app.on("ready", async () => {
-  console.log("Application execution path:" + app.getAppPath());
+  uberLog(LogLevel.info, "startup", "Application execution path:" + app.getAppPath(), false);
 
   electronApp.setAppUserModelId("com.electron");
 
@@ -50,6 +51,7 @@ app.on("ready", async () => {
 
   await installDevTools();
 
+  initialize();
   appSettings.firstRun();
   initUserDirectories();
   createDatabaseConnection();
@@ -69,6 +71,7 @@ app.on("ready", async () => {
         DisconnectRFIDReader();
         app.quit();
       }
+      shutdown();
     });
   });
 
