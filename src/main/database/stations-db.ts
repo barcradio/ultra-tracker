@@ -1,3 +1,4 @@
+import fs from "fs";
 import { format } from "date-fns";
 import { DatabaseStatus } from "$shared/enums";
 import { DatabaseResponse, SetStationIdentityParams } from "$shared/types";
@@ -13,10 +14,34 @@ export function formatDate(date: Date | null): string {
   return format(date, "HH:mm:ss dd LLL yyyy");
 }
 
+interface stationsJSON {
+  event: EventJSON;
+  stations: Array<Station>;
+}
+
+interface EventJSON {
+  name: string;
+  starttime: Date;
+  endtime: Date;
+}
+
+function importJsonFile(filePath: string): stationsJSON {
+  const fileContent = fs.readFileSync(filePath, "utf-8");
+  let jsonData;
+  try {
+    jsonData = JSON.parse(fileContent);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error parsing JSON file: ${error.message}`);
+    }
+  }
+  return jsonData;
+}
+
 export async function LoadStations() {
   //const devStationData = require("$resources/config/stations.json");
   const stationFilePath = await dialogs.selectStationsFile();
-  const stationData = require(stationFilePath[0]); // natively imports JSON data to object
+  const stationData = importJsonFile(stationFilePath[0]);
 
   if (!stationData) return "Invalid JSON file.";
 
