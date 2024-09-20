@@ -8,6 +8,8 @@ interface Props extends Omit<ModalAffirmProps, "affirmativeText"> {
   affirmativeText?: string;
   dangerous?: boolean;
   superDangerous?: boolean;
+  countdown?: number;
+  skipCountdown?: boolean;
 }
 
 export function ConfirmationModal(props: Props) {
@@ -16,8 +18,10 @@ export function ConfirmationModal(props: Props) {
 
   const confirmed = confirmation === String(props.title).toLowerCase();
 
-  const enableCounter = props.open && props.superDangerous && !isConfirming && !confirmed;
-  const { countdown, resetCountdown } = useCountdown(5, { enable: enableCounter });
+  const count = props.skipCountdown ? 0 : (props.countdown ?? 3);
+  const { countdown, resetCountdown } = useCountdown(count, {
+    enable: props.open && props.superDangerous && !isConfirming && !confirmed
+  });
 
   const handleAffirmClick = () => {
     if (!props.superDangerous || confirmed) {
