@@ -63,55 +63,55 @@ export function StationsPage() {
       name: "Dist",
       width: "80px",
       align: "right",
-      valueFn: (station) => station.distance.toFixed(1),
+      render: (value) => value.toFixed(1),
       sortable: false
     },
     {
       field: "dropbags",
       name: "Bags",
-      valueFn: (station) => (station.dropbags ? "Yes" : "No"),
+      render: (value) => (value ? "Yes" : "No"),
       width: "80px",
       sortable: false
     },
     {
       field: "crewaccess",
       name: "Crew",
-      valueFn: (station) => (station.crewaccess ? "Yes" : "No"),
+      render: (value) => (value ? "Yes" : "No"),
       width: "80px",
       sortable: false
     },
     {
       field: "paceraccess",
       name: "Pacer",
-      valueFn: (station) => (station.paceraccess ? "Yes" : "No"),
+      render: (value) => (value ? "Yes" : "No"),
       width: "80px",
       sortable: false
     },
     {
       field: "shiftBegin",
       name: "Open",
-      valueFn: (station) => formatShortDate(new Date(station.shiftBegin)),
+      render: (value) => formatShortDate(new Date(value)),
       width: "135px",
       sortable: false
     },
     {
       field: "cutofftime",
       name: "Cutoff",
-      valueFn: (station) => formatShortDate(new Date(station.cutofftime)),
+      render: (value) => formatShortDate(new Date(value)),
       width: "135px",
       sortable: false
     },
     {
       field: "shiftEnd",
       name: "Close",
-      valueFn: (station) => formatShortDate(new Date(station.shiftEnd)),
+      render: (value) => formatShortDate(new Date(value)),
       width: "135px",
       sortable: false
     },
     {
       field: "entrymode",
       name: "Mode",
-      valueFn: (station) => EntryMode[station.entrymode].toString(),
+      render: (value) => EntryMode[value].toString(),
       width: "90px",
       sortable: false
     }
