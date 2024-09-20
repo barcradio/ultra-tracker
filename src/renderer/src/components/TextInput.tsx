@@ -34,13 +34,14 @@ type LabelProps = Omit<ComponentProps<typeof Label>, "for">;
 export interface TextInputProps extends InputProps {
   label?: string;
   labelProps?: LabelProps;
+  wrapperClassName?: string;
   error?: FieldError;
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>((props, ref) => {
   const { label, error, labelProps, ...rest } = props;
   return (
-    <Stack direction="col" className={`gap-1 ${props.className}`}>
+    <Stack direction="col" className={`gap-1 ${props.wrapperClassName}`}>
       <Stack direction="row" align="center" className="gap-2.5">
         {label && <Label {...labelProps}>{label}</Label>}
         {error && <WarningIcon width={20} className="fill-warning animate-in slide-in-from-left" />}

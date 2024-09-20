@@ -1,5 +1,4 @@
-import { Stack } from "~/components";
-import { Tag } from "~/components/Tag";
+import { Stack, Tag } from "~/components";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 import { DNFType } from "$shared/enums";
