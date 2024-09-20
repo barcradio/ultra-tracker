@@ -7,8 +7,6 @@ import { useStation } from "../../hooks/data/useStation";
 function useFooterInfo() {
   const { data: station } = useStation();
 
-  console.log(station?.operators);
-
   const title = `${station?.identifier.split("-", 1)[0]} ${station?.name}`;
   const operator = Object.values(station?.operators ?? {}).find((operator) => operator.active);
   const callsign = operator ? operator.callsign : "No Active Operator";

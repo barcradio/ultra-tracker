@@ -7,13 +7,13 @@
 / USER APPS repo for Zebra https://github.com/ZebraDevs/RFID_ZIOTC_Examples
 // Documentation: https://zebradevs.github.io/rfid-ziotc-docs/setupziotc/index.html#start-reads
 */
+
 import { EventEmitter } from "events";
 import WebSocket from "ws";
 import { DeviceStatus } from "../../shared/enums";
 import * as dbTimings from "../database/timingRecords-db";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
 const rfidReaderUrl = "wss://169.254.78.28/ws:80"; //trying to connect via host name.
 
