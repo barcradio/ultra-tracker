@@ -1,7 +1,7 @@
 import { Button, Stack } from "~/components";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 
-export function SettingsHub() {
+export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
 
   return (
