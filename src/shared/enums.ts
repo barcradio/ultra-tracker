@@ -34,7 +34,7 @@ export enum RecordStatus {
   Duplicate
 }
 
-export enum RFIDReaderStatus {
+export enum DeviceStatus {
   Connected,
   Connecting,
   NoDevice,

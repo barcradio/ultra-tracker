@@ -1,15 +1,15 @@
 /*
-/ RFID Web Sockets 
+/ RFID Web Sockets
 // This is to interface with the ZEBRA FXR90 RFID scanner.  Currently Expects to receive Similar looking form the scanner"
  {"data":{"eventNum":5938,"format":"epc","idHex":"000000000000000000000343"},"timestamp":"2024-09-05T01:07:01.785-0600","type":"CUSTOM"}
-/ where idhex is the the Bib number and the time stamp is the time when the bib was reed 
+/ where idhex is the the Bib number and the time stamp is the time when the bib was reed
 /
 / USER APPS repo for Zebra https://github.com/ZebraDevs/RFID_ZIOTC_Examples
 // Documentation: https://zebradevs.github.io/rfid-ziotc-docs/setupziotc/index.html#start-reads
 */
 import { EventEmitter } from "events";
 import WebSocket from "ws";
-import { RFIDReaderStatus } from "../../shared/enums";
+import { DeviceStatus } from "../../shared/enums";
 import * as dbTimings from "../database/timingRecords-db";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
@@ -43,7 +43,7 @@ export function InitializeRFIDReader() {
   } catch (e) {
     if (e instanceof Error) {
       console.error(`This RFID is broke: ${e.message}`);
-      rfidStatus(RFIDReaderStatus.Error, e.message);
+      rfidStatus(DeviceStatus.Error, e.message);
     }
     return "RFID: Not Connected"; //static string
   }
@@ -52,12 +52,12 @@ export function InitializeRFIDReader() {
 
   rfidWebSocketProcessor.on("connected", () => {
     console.log("RFID WebSocket connected");
-    rfidStatus(RFIDReaderStatus.Connected, "RFID Connected"); //Static string
+    rfidStatus(DeviceStatus.Connected, "RFID Connected"); //Static string
   });
 
   rfidWebSocketProcessor.on("disconnected", () => {
     console.log("RFID WebSocket disconnected");
-    rfidStatus(RFIDReaderStatus.Disconnected, "RFID Disconnected"); //static string
+    rfidStatus(DeviceStatus.Disconnected, "RFID Disconnected"); //static string
   });
 
   rfidWebSocketProcessor.on("error", (error) => {
@@ -85,14 +85,14 @@ export class RFIDWebSocketProcessor {
   private buffer: string = "";
   private RFIRegex = /0{20}/;
   private url: string = "";
-  private status: RFIDReaderStatus = RFIDReaderStatus.NoDevice; // or no device?
+  private status: DeviceStatus = DeviceStatus.NoDevice; // or no device?
   // runner info queue
 
   constructor(
     url: string,
     private dataBaseUpdated?: () => void
   ) {
-    this.status = RFIDReaderStatus.NoDevice; // or no device?
+    this.status = DeviceStatus.NoDevice; // or no device?
     this.url = url;
     this.setupWebSocket();
   }
@@ -103,7 +103,7 @@ export class RFIDWebSocketProcessor {
     });
 
     this.ws.on("open", () => {
-      this.status = RFIDReaderStatus.Connected;
+      this.status = DeviceStatus.Connected;
       this.reconnectAttempts = 0;
       this.eventEmitter.emit("connected");
     });
@@ -137,10 +137,10 @@ export class RFIDWebSocketProcessor {
       console.error("Max reconnection attempts reached.");
 
       //called only if it was once connected and connection was never able to reconnect
-      if (this.status == RFIDReaderStatus.Connected) {
+      if (this.status == DeviceStatus.Connected) {
         this.eventEmitter.emit("error", "Lost Connection With RFID"); //static string
       }
-      this.status = RFIDReaderStatus.NoDevice;
+      this.status = DeviceStatus.NoDevice;
       this.eventEmitter.emit("error", "Max reconnection attempts reached"); //static string
     }
   }
@@ -207,12 +207,12 @@ export class RFIDWebSocketProcessor {
   }
 
   public disconnect(): void {
-    this.ws.close(1000, "CLient Closing Connection");
+    this.ws?.close(1000, "Client Closing Connection");
   }
 
   public sendMessage(message: string): void {
-    if (this.status == RFIDReaderStatus.Connected) {
-      this.ws.send(message);
+    if (this.status == DeviceStatus.Connected) {
+      this.ws?.send(message);
     }
     this.eventEmitter.emit("error", "RFID not Connected"); //static message
   }
