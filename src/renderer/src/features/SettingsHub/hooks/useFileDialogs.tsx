@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useToasts } from "~/features/Toasts/useToasts";
-import { useIpcRenderer } from "../useIpcRenderer";
+import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 
 export function useLoadStationsFile() {
   const ipcRenderer = useIpcRenderer();
