@@ -45,7 +45,7 @@ export function useSettingsMutations() {
     resetAppSettingsMutation.mutate();
   };
 
-  const initializeDatabase = () => {
+  const reinitializeDatabase = () => {
     createToast({ message: "Reinitializing database!", type: "danger" });
     clearDatabaseMutation.mutate();
     initializeDatabaseMutation.mutate();
@@ -59,6 +59,6 @@ export function useSettingsMutations() {
     importDNSFile,
     importDNFFile,
     importRunnerCSVFile,
-    initializeDatabase
+    reinitializeDatabase
   };
 }

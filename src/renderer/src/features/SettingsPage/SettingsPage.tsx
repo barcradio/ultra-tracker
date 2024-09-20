@@ -1,9 +1,13 @@
-import { Button, Stack } from "~/components";
+import { useState } from "react";
+import { Button, Modal, Stack } from "~/components";
 import { VerticalButtonGroup } from "~/components/VerticalButtonGroup";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
+  const [resetOpen, setResetOpen] = useState(false);
+  const [recreateOpen, setRecreateOpen] = useState(false);
+  const [recoverOpen, setRecoverOpen] = useState(false);
 
   return (
     <Stack className="w-full h-full bg-component" justify="center" align="center">
@@ -22,6 +26,7 @@ export function SettingsPage() {
             Load DNF File
           </Button>
         </VerticalButtonGroup>
+
         <Stack direction="col" className="gap-4" justify="stretch">
           <VerticalButtonGroup
             className="grow"
@@ -37,30 +42,69 @@ export function SettingsPage() {
             </Button>
           </VerticalButtonGroup>
           <VerticalButtonGroup label="App Settings" className="grow">
-            <Button color="danger" onClick={settingsMutations.resetAppSettings} size="wide">
+            <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
               Reset App Settings
             </Button>
           </VerticalButtonGroup>
         </Stack>
+
         <VerticalButtonGroup label="Developer Tools" className="border-2 grow border-danger/30">
           <Stack direction="col" className="gap-2">
             <p className="w-80 text-on-surface-strong italic font-display text-sm font-bold mt-2 mb-4">
               This is a destructive operation! Under most circumstances you should not do this
               unless instructed do.
             </p>
-            <Button color="danger" size="wide" onClick={settingsMutations.initializeDatabase}>
+            <Button color="danger" size="wide" onClick={() => setRecreateOpen(true)}>
               Recreate Database
             </Button>
-            <Button
-              color="danger"
-              size="wide"
-              onClick={() => settingsMutations.importRunnerCSVFile.mutate()}
-            >
+            <Button color="danger" size="wide" onClick={() => setRecoverOpen(true)}>
               Recover Data from CSV File
             </Button>
           </Stack>
         </VerticalButtonGroup>
       </Stack>
+
+      <Modal
+        open={resetOpen}
+        setOpen={setResetOpen}
+        title="Reset App Settings"
+        showCloseButton
+        affirmativeText="Reset"
+        onAffirmative={settingsMutations.resetAppSettings}
+      >
+        <div className="text-center">
+          Are you sure you want to reset all app settings?
+          <span className="font-medium text-danger"> This action cannot be undone.</span>
+        </div>
+      </Modal>
+
+      <Modal
+        open={recreateOpen}
+        setOpen={setRecreateOpen}
+        title="Recreate Database"
+        showCloseButton
+        affirmativeText="Reset"
+        onAffirmative={settingsMutations.reinitializeDatabase}
+      >
+        <div className="text-center">
+          Are you sure you want to recreate the database?
+          <span className="font-medium text-danger"> This action cannot be undone.</span>
+        </div>
+      </Modal>
+
+      <Modal
+        open={recoverOpen}
+        setOpen={setRecoverOpen}
+        title="Recover Data from CSV File"
+        showCloseButton
+        affirmativeText="Recover"
+        onAffirmative={() => settingsMutations.importRunnerCSVFile.mutate()}
+      >
+        <div className="text-center">
+          Are you sure you want to recover data from a preexisting Runners file?
+          <span className="font-medium text-danger"> This action cannot be undone.</span>
+        </div>
+      </Modal>
     </Stack>
   );
 }
