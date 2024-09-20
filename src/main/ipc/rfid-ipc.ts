@@ -13,6 +13,6 @@ const disconnectRFID: Handler<string> = () => {
 };
 
 export const initRFIDHandlers = () => {
-  ipcMain.handle("initialize-rfid", startRFID);
-  ipcMain.handle("disconnect-RFID", disconnectRFID);
+  ipcMain.handle("rfid-initialize", startRFID);
+  ipcMain.handle("rfid-disconnect", disconnectRFID);
 };
