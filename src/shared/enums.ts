@@ -33,3 +33,11 @@ export enum RecordStatus {
   OK,
   Duplicate
 }
+
+export enum RFIDReaderStatus {
+  Connected,
+  Connecting,
+  NoDevice,
+  Disconnected,
+  Error
+}

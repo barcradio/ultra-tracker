@@ -58,7 +58,8 @@
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.3.0",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.4.0",
