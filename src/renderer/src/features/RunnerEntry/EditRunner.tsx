@@ -142,7 +142,8 @@ export function EditRunner(props: Props) {
                 />
                 <TextInput
                   width="w-full"
-                  className="grow"
+                  wrapperClassName="grow"
+                  className="w-full"
                   label="Name"
                   value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
                   disabled
@@ -197,7 +198,7 @@ export function EditRunner(props: Props) {
                 />
               </Stack>
               <TextInput
-                className="w-full"
+                wrapperClassName="w-full"
                 label="Note"
                 placeholder="Note"
                 error={form.formState.errors.note}
@@ -238,19 +239,16 @@ export function EditRunner(props: Props) {
           </Button>
         </Stack>
       </Drawer>
-      <Modal
+      <ConfirmationModal
         open={isConfirmOpen}
         setOpen={setIsConfirmOpen}
-        title="Confirmation"
-        showCloseButton
+        title="Delete Timing Record"
+        showNegativeButton
         affirmativeText="Confirm"
         onAffirmative={handleDeleteRunner}
       >
-        <div className="text-center">
-          Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}
-          ?<span className="font-medium text-danger"> This action cannot be undone.</span>
-        </div>
-      </Modal>
+        Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}?
+      </ConfirmationModal>
     </>
   );
 }

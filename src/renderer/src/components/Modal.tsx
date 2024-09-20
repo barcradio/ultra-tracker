@@ -11,13 +11,16 @@ export interface ModalProps {
   setOpen: (open: boolean) => void;
   children: ReactNode;
   title: ReactNode;
-  showCloseButton?: boolean;
+  showNegativeButton?: boolean;
+  negativeText?: ReactNode;
   size?: "sm" | "md" | "lg" | "auto";
+  affirmativeDisabled?: boolean;
 }
 
 export interface ModalAffirmProps extends ModalProps {
-  affirmativeText: string;
+  affirmativeText: ReactNode;
   onAffirmative: () => void;
+  dangerous?: boolean;
 }
 
 const ModalElement = classed.div(
@@ -57,13 +60,18 @@ export function Modal(props: ModalProps | ModalAffirmProps) {
             {props.title}
           </div>
           <div className="py-4 px-4 bg-component">{props.children}</div>
-          {(affirmativeButton || props.showCloseButton) && (
+          {(affirmativeButton || props.showNegativeButton) && (
             <Stack justify="end" className="gap-2 p-3 rounded-b-lg bg-component">
               <Button variant="ghost" color="neutral" onClick={handleClose}>
-                Close
+                {props.negativeText ?? "Close"}
               </Button>
               {affirmativeButton && (
-                <Button variant="solid" color="primary" onClick={props["onAffirmative"]}>
+                <Button
+                  variant="solid"
+                  color={props["dangerous"] ? "danger" : "primary"}
+                  onClick={props["onAffirmative"]}
+                  disabled={props["affirmativeDisabled"]}
+                >
                   {props["affirmativeText"]}
                 </Button>
               )}

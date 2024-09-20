@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Modal, Stack, VerticalButtonGroup } from "~/components";
+import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 
 export function SettingsPage() {
@@ -63,47 +63,43 @@ export function SettingsPage() {
         </VerticalButtonGroup>
       </Stack>
 
-      <Modal
+      <ConfirmationModal
+        superDangerous
         open={resetOpen}
         setOpen={setResetOpen}
         title="Reset App Settings"
-        showCloseButton
-        affirmativeText="Reset"
+        negativeText="Cancel"
+        affirmativeText="Reset App Settings"
         onAffirmative={settingsMutations.resetAppSettings}
       >
-        <div className="text-center">
-          Are you sure you want to reset all app settings?
-          <span className="font-medium text-danger"> This action cannot be undone.</span>
-        </div>
-      </Modal>
+        Are you sure you want to reset all app settings?
+      </ConfirmationModal>
 
-      <Modal
+      <ConfirmationModal
+        superDangerous
         open={recreateOpen}
         setOpen={setRecreateOpen}
         title="Recreate Database"
-        showCloseButton
+        negativeText="Cancel"
         affirmativeText="Reset"
         onAffirmative={settingsMutations.reinitializeDatabase}
       >
-        <div className="text-center">
-          Are you sure you want to recreate the database?
-          <span className="font-medium text-danger"> This action cannot be undone.</span>
-        </div>
-      </Modal>
+        Are you sure you want to recreate the database? Note that this process will destroy all
+        existing data.
+      </ConfirmationModal>
 
-      <Modal
+      <ConfirmationModal
+        superDangerous
         open={recoverOpen}
         setOpen={setRecoverOpen}
         title="Recover Data from CSV File"
-        showCloseButton
+        negativeText="Cancel"
         affirmativeText="Recover"
         onAffirmative={() => settingsMutations.importRunnerCSVFile.mutate()}
       >
-        <div className="text-center">
-          Are you sure you want to recover data from a preexisting Runners file?
-          <span className="font-medium text-danger"> This action cannot be undone.</span>
-        </div>
-      </Modal>
+        Are you sure you want to recover data from a preexisting Runners file? Note that this will
+        overwrite any existing data.
+      </ConfirmationModal>
     </Stack>
   );
 }

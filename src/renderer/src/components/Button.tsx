@@ -10,6 +10,10 @@ export const Button = classed.button({
       success: "",
       neutral: ""
     },
+    disabled: {
+      true: "opacity-50 pointer-events-none",
+      false: ""
+    },
     variant: {
       ghost: "border-transparent",
       outlined: "border-solid",
