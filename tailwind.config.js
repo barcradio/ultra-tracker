@@ -116,11 +116,13 @@ module.exports = {
         on: {
           surface: {
             DEFAULT: "#7E8A8F",
-            hover: "#CFDEE5"
+            hover: "#CFDEE5",
+            strong: "#CFDEE5",
           },
           component: {
             DEFAULT:"#CDD0D1",
-            hover: "#AAB0B3"
+            hover: "#AAB0B3",
+            strong: "#AAB0B3",
           },
           primary: "#1D2529",
           success: "#1D2529",

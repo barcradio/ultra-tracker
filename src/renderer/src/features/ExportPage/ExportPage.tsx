@@ -1,4 +1,5 @@
 import { Button, Stack } from "~/components";
+import { VerticalButtonGroup } from "~/components/VerticalButtonGroup";
 import { useBasicIpcCall } from "~/hooks/ipc/useBasicIpcCall";
 
 export function ExportPage() {
@@ -19,27 +20,21 @@ export function ExportPage() {
   });
 
   return (
-    <div>
-      <h1>
-        <b>Settings Hub</b>
-      </h1>
-      <Stack direction="row" align="stretch">
-        <Stack direction="col">
-          <b>Data Tools</b>
-          <Button color="primary" size="md" onClick={() => createIncrementalCSVFile.mutate()}>
-            Export Incremental CSV File
-          </Button>
-          <Button color="primary" size="md" onClick={() => createRunnerCSVFile.mutate()}>
-            Export Full CSV File
-          </Button>
-          <Button color="primary" size="md" onClick={() => createDNSCSVFile.mutate()}>
-            Export DNS CSV File
-          </Button>
-          <Button color="primary" size="md" onClick={() => createDNFCSVFile.mutate()}>
-            Export DNF CSV File
-          </Button>
-        </Stack>
-      </Stack>
-    </div>
+    <Stack className="w-full h-full bg-component" align="center" justify="center">
+      <VerticalButtonGroup label="Export Tools">
+        <Button color="primary" size="wide" onClick={() => createIncrementalCSVFile.mutate()}>
+          Export Incremental CSV File
+        </Button>
+        <Button color="primary" size="wide" onClick={() => createRunnerCSVFile.mutate()}>
+          Export Full CSV File
+        </Button>
+        <Button color="primary" size="wide" onClick={() => createDNSCSVFile.mutate()}>
+          Export DNS CSV File
+        </Button>
+        <Button color="primary" size="wide" onClick={() => createDNFCSVFile.mutate()}>
+          Export DNF CSV File
+        </Button>
+      </VerticalButtonGroup>
+    </Stack>
   );
 }
