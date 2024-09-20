@@ -1,5 +1,4 @@
-import { Button, Stack } from "~/components";
-import { VerticalButtonGroup } from "~/components/VerticalButtonGroup";
+import { Button, Stack, VerticalButtonGroup } from "~/components";
 import { useBasicIpcCall } from "~/hooks/ipc/useBasicIpcCall";
 
 export function ExportPage() {

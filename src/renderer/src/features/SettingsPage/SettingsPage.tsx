@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Button, Modal, Stack } from "~/components";
-import { VerticalButtonGroup } from "~/components/VerticalButtonGroup";
+import { Button, Modal, Stack, VerticalButtonGroup } from "~/components";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 
 export function SettingsPage() {

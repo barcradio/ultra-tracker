@@ -6,7 +6,7 @@ import { classed } from "~/lib/classed";
 import { Button } from "./Button";
 import { Stack } from "./Stack";
 
-interface Props {
+export interface ModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   children: ReactNode;
@@ -15,7 +15,7 @@ interface Props {
   size?: "sm" | "md" | "lg" | "auto";
 }
 
-interface PropsWithAffirm extends Props {
+export interface ModalAffirmProps extends ModalProps {
   affirmativeText: string;
   onAffirmative: () => void;
 }
@@ -34,7 +34,7 @@ const ModalElement = classed.div(
   }
 );
 
-export function Modal(props: Props | PropsWithAffirm) {
+export function Modal(props: ModalProps | ModalAffirmProps) {
   const { setOpen, open } = props;
   const portalRoot = usePortalRoot();
   const affirmativeButton: boolean = props["affirmativeText"] && props["onAffirmative"];

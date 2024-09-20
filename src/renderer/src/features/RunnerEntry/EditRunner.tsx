@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
-import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
-import { DatePicker } from "~/components/DatePicker";
+import {
+  Button,
+  ConfirmationModal,
+  DatePicker,
+  Drawer,
+  Select,
+  Stack,
+  TextInput
+} from "~/components";
 import { useAthlete, useSetAthleteStatus } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
