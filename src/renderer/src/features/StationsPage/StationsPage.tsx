@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { Button, Select, Stack } from "~/components";
 import { useStation } from "~/hooks/data/useStation";
 import { useStations } from "~/hooks/data/useStations";
-import { formatDate } from "~/lib/datetimes";
+import { formatShortDate } from "~/lib/datetimes";
 import { EntryMode } from "$shared/enums";
 import { StationDB } from "$shared/models";
 import { useIdentityForm } from "./hooks/useIdentityForm";
@@ -33,15 +33,20 @@ export function StationsPage() {
   const columns: ColumnDef<StationDB> = [
     {
       field: "name",
-      name: "Station"
+      name: "Station",
+      valueFn: (station) => `${station.identifier.split("-")[0]} ${station.name}`,
+      width: "20%",
+      sortable: false
     },
     {
       field: "location",
       name: "Lat/Long",
       valueFn: (station) => {
         const loc = JSON.parse(station.location);
-        return loc.latitude + ", " + loc.longitude;
-      }
+        return `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`;
+      },
+      width: "190px",
+      sortable: false
     },
     {
       field: "location",
@@ -50,51 +55,65 @@ export function StationsPage() {
         const loc = JSON.parse(station.location);
         return loc.elevation;
       },
-      width: "80px"
+      width: "80px",
+      sortable: false
     },
     {
       field: "distance",
       name: "Dist",
-      width: "80px"
+      width: "80px",
+      align: "right",
+      valueFn: (station) => station.distance.toFixed(1),
+      sortable: false
     },
     {
       field: "dropbags",
       name: "Bags",
       valueFn: (station) => (station.dropbags ? "Yes" : "No"),
-      width: "100px"
+      width: "80px",
+      sortable: false
     },
     {
       field: "crewaccess",
       name: "Crew",
       valueFn: (station) => (station.crewaccess ? "Yes" : "No"),
-      width: "80px"
+      width: "80px",
+      sortable: false
     },
     {
       field: "paceraccess",
       name: "Pacer",
       valueFn: (station) => (station.paceraccess ? "Yes" : "No"),
-      width: "80px"
+      width: "80px",
+      sortable: false
     },
     {
       field: "shiftBegin",
       name: "Open",
-      valueFn: (station) => formatDate(new Date(station.shiftBegin))
+      valueFn: (station) => formatShortDate(new Date(station.shiftBegin)),
+      width: "135px",
+      sortable: false
     },
     {
       field: "cutofftime",
       name: "Cutoff",
-      valueFn: (station) => formatDate(new Date(station.cutofftime))
+      valueFn: (station) => formatShortDate(new Date(station.cutofftime)),
+      width: "135px",
+      sortable: false
     },
     {
       field: "shiftEnd",
       name: "Close",
-      valueFn: (station) => formatDate(new Date(station.shiftEnd))
+      valueFn: (station) => formatShortDate(new Date(station.shiftEnd)),
+      width: "135px",
+      sortable: false
     },
     {
       field: "entrymode",
       name: "Mode",
       valueFn: (station) => EntryMode[station.entrymode].toString(),
-      width: "90px"
+      width: "90px",
+      sortable: false
     }
   ];
 
