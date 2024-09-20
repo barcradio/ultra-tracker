@@ -10,7 +10,7 @@ export function SettingsPage() {
 
   return (
     <Stack className="w-full h-full bg-component" justify="center" align="center">
-      <Stack justify="center" align="stretch" className="gap-4">
+      <Stack justify="center" align="stretch" className="gap-4 mb-32">
         <VerticalButtonGroup label="Station Setup">
           <Button size="wide" onClick={() => settingsMutations.importStationsFile.mutate()}>
             Load Stations File

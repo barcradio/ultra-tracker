@@ -20,7 +20,7 @@ export function ExportPage() {
 
   return (
     <Stack className="w-full h-full bg-component" align="center" justify="center">
-      <VerticalButtonGroup label="Export Tools">
+      <VerticalButtonGroup label="Export Tools" className="mb-32">
         <Button color="primary" size="wide" onClick={() => createIncrementalCSVFile.mutate()}>
           Export Incremental CSV File
         </Button>
