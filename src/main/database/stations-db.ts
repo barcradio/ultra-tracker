@@ -47,9 +47,9 @@ export async function LoadStations() {
 
   for (const index in stationData) {
     if (index == "event") {
-      await appStore.set("event.name", stationData.event.name);
-      await appStore.set("event.starttime", formatDate(stationData.event.starttime));
-      await appStore.set("event.endtime", formatDate(stationData.event.endtime));
+      appStore.set("event.name", stationData.event.name);
+      appStore.set("event.starttime", formatDate(stationData.event.starttime));
+      appStore.set("event.endtime", formatDate(stationData.event.endtime));
     }
 
     if (index == "stations") {
@@ -62,9 +62,9 @@ export async function LoadStations() {
       }
 
       for (const key in stationData.stations) {
-        if (key == "0") await appStore.set("event.startline", stationData[index][key].identifier);
+        if (key == "0") appStore.set("event.startline", stationData[index][key].identifier);
         if (key == (stationData.stations.length - 1).toString())
-          await appStore.set("event.finishline", stationData[index][key].identifier);
+          appStore.set("event.finishline", stationData[index][key].identifier);
 
         insertStation(stationData[index][key]);
       }
@@ -80,28 +80,22 @@ export async function setStation(stationIdentifier: string) {
   const selectedStation: Station | null = GetStationByIdentifier(stationIdentifier)?.[0];
   if (!selectedStation) return;
 
-  await appStore.set("station.name", selectedStation.name);
-  await appStore.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
-  await appStore.set("station.identifier", selectedStation.identifier);
-  await appStore.set("station.entrymode", selectedStation.entrymode);
-  await appStore.set(`station.shiftBegin`, formatDate(selectedStation.shiftBegin));
-  await appStore.set(`station.cutofftime`, formatDate(selectedStation.cutofftime));
-  await appStore.set(`station.shiftEnd`, formatDate(selectedStation.shiftEnd));
+  appStore.set("station.name", selectedStation.name);
+  appStore.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
+  appStore.set("station.identifier", selectedStation.identifier);
+  appStore.set("station.entrymode", selectedStation.entrymode);
+  appStore.set(`station.shiftBegin`, formatDate(selectedStation.shiftBegin));
+  appStore.set(`station.cutofftime`, formatDate(selectedStation.cutofftime));
+  appStore.set(`station.shiftEnd`, formatDate(selectedStation.shiftEnd));
 
   for (const key in selectedStation.operators) {
-    await appStore.set(
-      `station.operators.${key}.fullname`,
-      selectedStation.operators[key].fullname
-    );
-    await appStore.set(
-      `station.operators.${key}.callsign`,
-      selectedStation.operators[key].callsign
-    );
-    await appStore.set(`station.operators.${key}.phone`, selectedStation.operators[key].phone);
-    await appStore.set(`station.operators.${key}.active`, false);
+    appStore.set(`station.operators.${key}.fullname`, selectedStation.operators[key].fullname);
+    appStore.set(`station.operators.${key}.callsign`, selectedStation.operators[key].callsign);
+    appStore.set(`station.operators.${key}.phone`, selectedStation.operators[key].phone);
+    appStore.set(`station.operators.${key}.active`, false);
   }
 
-  await appStore.set("station.operators.primary.active", true);
+  appStore.set("station.operators.primary.active", true);
 }
 
 export async function SetStationIdentity(params: SetStationIdentityParams) {
@@ -113,7 +107,7 @@ export async function SetStationIdentity(params: SetStationIdentityParams) {
   );
 
   for (const operator in settings.operators) {
-    await appStore.set(`station.operators.${operator}.active`, false);
+    appStore.set(`station.operators.${operator}.active`, false);
   }
 
   appStore.set(`station.operators.${key}.active`, true);

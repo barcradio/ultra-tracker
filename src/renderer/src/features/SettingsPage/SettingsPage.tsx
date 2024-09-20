@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
+import { useStoreValue } from "~/hooks/ipc/useStoreValue";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
+
+function useIsStartLine() {
+  const { data: startline } = useStoreValue("event.startline");
+  const { data: stationIdentifier } = useStoreValue("station.identifier");
+
+  if (!startline || !stationIdentifier) return false;
+  return startline === stationIdentifier;
+}
 
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
   const [resetOpen, setResetOpen] = useState(false);
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
+
+  const isStartLine = useIsStartLine();
 
   return (
     <Stack className="w-full h-full bg-component" justify="center" align="center">
@@ -36,7 +47,11 @@ export function SettingsPage() {
               </Stack>
             }
           >
-            <Button size="wide" onClick={() => settingsMutations.initializeRfid.mutate()}>
+            <Button
+              size="wide"
+              onClick={() => settingsMutations.initializeRfid.mutate()}
+              disabled={!isStartLine}
+            >
               Initialize RFID
             </Button>
           </VerticalButtonGroup>

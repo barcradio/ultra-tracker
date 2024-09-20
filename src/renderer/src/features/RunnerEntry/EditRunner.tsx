@@ -205,6 +205,7 @@ export function EditRunner(props: Props) {
                 />
               </Stack>
               <TextInput
+                rows={2}
                 wrapperClassName="w-full"
                 label="Note"
                 placeholder="Note"
