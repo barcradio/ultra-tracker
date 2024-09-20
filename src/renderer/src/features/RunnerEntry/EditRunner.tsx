@@ -32,6 +32,7 @@ const getErrorMessage = (error: FieldError): string => {
 export function EditRunner(props: Props) {
   const { createToast } = useToasts();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [didReplaceComma, setDidReplaceComma] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const editTiming = useEditTiming();
@@ -47,9 +48,15 @@ export function EditRunner(props: Props) {
       // In which case defaultValues would be the same as values, and resetting would do nothing.
       form.reset({ ...data });
       setIsOpen(false);
+      setDidReplaceComma(false);
       editTiming.mutate(data);
       data.dnf = (data.dnfType as DNFType) != DNFType.None;
       setAthlete.mutate(data);
+      if (didReplaceComma)
+        createToast({
+          message: "Commas in note have been replaced with semicolons",
+          type: "warning"
+        });
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -203,10 +210,10 @@ export function EditRunner(props: Props) {
                 placeholder="Note"
                 error={form.formState.errors.note}
                 {...form.register("note", {
-                  validate: (value) => {
-                    if (value)
-                      if (value.includes(",")) return "Commas are not allowed in the notes field";
-                    return true;
+                  setValueAs: (value: string) => {
+                    const replaced = value.replace(/,/g, ";");
+                    if (replaced !== value) setDidReplaceComma(true);
+                    return replaced;
                   }
                 })}
               />
