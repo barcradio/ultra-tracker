@@ -1,6 +1,5 @@
 import fs from "fs";
 import { parse } from "csv-parse";
-import appSettings from "electron-settings";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearAthletesTable, createAthletesTable } from "./tables-db";
@@ -8,6 +7,7 @@ import { DNFType, DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNFRecord, DNSRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
 import * as dialogs from "../lib/file-dialogs";
+import { appStore } from "../lib/store";
 
 const invalidResult = -999;
 
@@ -128,7 +128,13 @@ export function GetTotalDNF(): number {
 }
 
 export function GetStationDNF(): number {
-  const stationIdentifier: string | null = appSettings.getSync("station.identifier") as string;
+  let stationIdentifier: string | null = null;
+  try {
+    stationIdentifier = appStore.get("station.identifier") as string;
+  } catch (e) {
+    if (e instanceof Error) return invalidResult;
+  }
+
   if (!stationIdentifier) return invalidResult;
 
   const count = GetCountFromAthletesWithWhere("dnf", `dnfStation == '${stationIdentifier}'`);
@@ -137,7 +143,14 @@ export function GetStationDNF(): number {
 
 export function GetPreviousDNF(): number {
   const db = getDatabaseConnection();
-  const stationId: number | null = appSettings.getSync("station.id") as number;
+  let stationId: number | null = null;
+
+  try {
+    stationId = appStore.get("station.id") as number;
+  } catch (e) {
+    if (e instanceof Error) return invalidResult;
+  }
+
   if (stationId == null) return invalidResult;
 
   let queryResult;
@@ -319,7 +332,7 @@ export function SetDNFOnAthlete(
 ): DatabaseResponse {
   const db = getDatabaseConnection();
   let message: string = "";
-  let stationIdentifier: string | null = appSettings.getSync("station.identifier") as string;
+  let stationIdentifier: string | null = appStore.get("station.identifier") as string;
   let dnf: DNFType | null = dnfType;
   const dnfDateTime = !timeOut ? new Date().toISOString() : timeOut.toISOString();
 

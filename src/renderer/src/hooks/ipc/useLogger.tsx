@@ -1,4 +1,4 @@
-import { useIpcRenderer } from "../useIpcRenderer";
+import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 
 export function useMainLogger(level: string, message: string) {
   const ipcRenderer = useIpcRenderer();

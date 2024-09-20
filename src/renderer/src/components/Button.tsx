@@ -10,6 +10,10 @@ export const Button = classed.button({
       success: "",
       neutral: ""
     },
+    disabled: {
+      true: "opacity-50 pointer-events-none",
+      false: ""
+    },
     variant: {
       ghost: "border-transparent",
       outlined: "border-solid",
@@ -19,7 +23,8 @@ export const Button = classed.button({
       xs: "p-0 m-0 text-sm border-0",
       sm: "py-0.5 px-1 text-base",
       md: "py-1 px-2 text-lg",
-      lg: "py-2 px-3 text-xl"
+      lg: "py-2 px-3 text-xl",
+      wide: "py-1  text-lg w-80"
     }
   },
   compoundVariants: [

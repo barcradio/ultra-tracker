@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { app, dialog } from "electron";
-import appSettings from "electron-settings";
+import { appStore } from "./store";
 
 export const selectStationsFile = async (): Promise<string[]> => {
   const dialogConfig = {
@@ -81,7 +81,7 @@ export const loadFromCSV = async (title: string): Promise<string[]> => {
 };
 
 export const saveRunnersToCSV = async (): Promise<string> => {
-  const stationId = appSettings.getSync("station.id") as number;
+  const stationId = appStore.get("station.id") as number;
   const formattedStationId = stationId.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false
@@ -110,7 +110,7 @@ export const saveRunnersToCSV = async (): Promise<string> => {
 };
 
 export const saveDNSRunnersToCSV = async (): Promise<string> => {
-  const stationId = appSettings.getSync("station.id") as number;
+  const stationId = appStore.get("station.id") as number;
   const formattedStationId = stationId.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false
@@ -138,7 +138,7 @@ export const saveDNSRunnersToCSV = async (): Promise<string> => {
 };
 
 export const saveDNFRunnersToCSV = async (): Promise<string> => {
-  const stationId = appSettings.getSync("station.id") as number;
+  const stationId = appStore.get("station.id") as number;
   const formattedStationId = stationId.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false
@@ -178,5 +178,5 @@ export function initUserDirectories() {
 export const AppPaths = {
   userRoot: path.join(app.getPath("documents"), app.name),
   eventConfig: path.join(app.getPath("documents"), app.name, ".event-config"),
-  appSettings: path.join(app.getPath("appData"), app.name)
+  appStore: path.join(app.getPath("userData"), app.name)
 };

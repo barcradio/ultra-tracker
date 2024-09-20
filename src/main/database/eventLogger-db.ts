@@ -1,8 +1,8 @@
-import appSettings from "electron-settings";
 import { DatabaseStatus } from "$shared/enums";
 import { EventLogRec } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
+import { appStore } from "../lib/store";
 
 export function logEvent(
   bibId: number,
@@ -15,7 +15,7 @@ export function logEvent(
   verbose: boolean
 ): [DatabaseStatus, string] {
   const db = getDatabaseConnection();
-  const stationIdentifier: string | null = appSettings.getSync("station.identifier") as string;
+  const stationIdentifier: string | null = appStore.get("station.identifier") as string;
 
   try {
     const queryResult = db.prepare(

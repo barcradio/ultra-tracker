@@ -51,6 +51,13 @@ export function initialize() {
     originalDebug(...args); // Log to console
   };
 
+  const preamble = `-------------------------------------
+                                            |                                   |
+                                            |           Ultra-tracker           |
+                                            |                                   |
+                                            -------------------------------------`;
+
+  uberLog(LogLevel.info, "startup", preamble, false);
   uberLog(LogLevel.info, "startup", "Initializing application: Log from the main process", false);
 }
 

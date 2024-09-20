@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { FieldError } from "react-hook-form";
 import EditIcon from "~/assets/icons/edit.svg?react";
-import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
-import { DatePicker } from "~/components/DatePicker";
+import {
+  Button,
+  ConfirmationModal,
+  DatePicker,
+  Drawer,
+  Select,
+  Stack,
+  TextInput
+} from "~/components";
 import { useAthlete, useSetAthleteStatus } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
@@ -25,6 +32,7 @@ const getErrorMessage = (error: FieldError): string => {
 export function EditRunner(props: Props) {
   const { createToast } = useToasts();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [didReplaceComma, setDidReplaceComma] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const editTiming = useEditTiming();
@@ -40,9 +48,15 @@ export function EditRunner(props: Props) {
       // In which case defaultValues would be the same as values, and resetting would do nothing.
       form.reset({ ...data });
       setIsOpen(false);
+      setDidReplaceComma(false);
       editTiming.mutate(data);
       data.dnf = (data.dnfType as DNFType) != DNFType.None;
       setAthlete.mutate(data);
+      if (didReplaceComma)
+        createToast({
+          message: "Commas in note have been replaced with semicolons",
+          type: "warning"
+        });
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -135,7 +149,8 @@ export function EditRunner(props: Props) {
                 />
                 <TextInput
                   width="w-full"
-                  className="grow"
+                  wrapperClassName="grow"
+                  className="w-full"
                   label="Name"
                   value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
                   disabled
@@ -190,15 +205,15 @@ export function EditRunner(props: Props) {
                 />
               </Stack>
               <TextInput
-                className="w-full"
+                wrapperClassName="w-full"
                 label="Note"
                 placeholder="Note"
                 error={form.formState.errors.note}
                 {...form.register("note", {
-                  validate: (value) => {
-                    if (value)
-                      if (value.includes(",")) return "Commas are not allowed in the notes field";
-                    return true;
+                  setValueAs: (value: string) => {
+                    const replaced = value.replace(/,/g, ";");
+                    if (replaced !== value) setDidReplaceComma(true);
+                    return replaced;
                   }
                 })}
               />
@@ -231,19 +246,16 @@ export function EditRunner(props: Props) {
           </Button>
         </Stack>
       </Drawer>
-      <Modal
+      <ConfirmationModal
         open={isConfirmOpen}
         setOpen={setIsConfirmOpen}
-        title="Confirmation"
-        showCloseButton
+        title="Delete Timing Record"
+        showNegativeButton
         affirmativeText="Confirm"
         onAffirmative={handleDeleteRunner}
       >
-        <div className="text-center">
-          Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}
-          ?<span className="font-medium text-danger"> This action cannot be undone.</span>
-        </div>
-      </Modal>
+        Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}?
+      </ConfirmationModal>
     </>
   );
 }
