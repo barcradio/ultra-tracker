@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import { useCountdown } from "~/hooks/useCountdown";
 import { Modal, ModalAffirmProps } from "./Modal";
 import { TextInput } from "./TextInput";
 
@@ -15,6 +16,9 @@ export function ConfirmationModal(props: Props) {
 
   const confirmed = confirmation === String(props.title).toLowerCase();
 
+  const enableCounter = props.open && props.superDangerous && !isConfirming && !confirmed;
+  const { countdown, resetCountdown } = useCountdown(5, { enable: enableCounter });
+
   const handleAffirmClick = () => {
     if (!props.superDangerous || confirmed) {
       props.onAffirmative();
@@ -28,13 +32,18 @@ export function ConfirmationModal(props: Props) {
     props.setOpen(false);
     setIsConfirming(false);
     setConfirmation("");
+    resetCountdown();
   };
 
-  const getAffirmativeText = () => {
-    if (!props.superDangerous) return props.affirmativeText;
-    if (!isConfirming) return "I understand";
-    return props.title;
+  const getAffirmativeProps = (): [ReactNode, boolean] => {
+    if (!props.superDangerous) return [props.affirmativeText, false];
+    if (!isConfirming && countdown > 0) return [`I understand (${countdown})`, true];
+    if (!isConfirming) return ["I understand", false];
+    if (isConfirming && !confirmed) return [props.title, true];
+    return [props.title, false];
   };
+
+  const [affirmativeText, affirmativeDisabled] = getAffirmativeProps();
 
   return (
     <Modal
@@ -44,9 +53,9 @@ export function ConfirmationModal(props: Props) {
       setOpen={handleClose}
       showNegativeButton
       onAffirmative={handleAffirmClick}
-      affirmativeText={getAffirmativeText()}
+      affirmativeText={affirmativeText}
+      affirmativeDisabled={affirmativeDisabled}
       dangerous={props.dangerous || isConfirming}
-      affirmativeDisabled={props.superDangerous && isConfirming && !confirmed}
     >
       {!isConfirming && (
         <div className="text-center">
