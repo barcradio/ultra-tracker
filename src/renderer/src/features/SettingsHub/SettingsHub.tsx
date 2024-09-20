@@ -1,8 +1,8 @@
 import { Button, Stack } from "~/components";
-import { useSettingsFns } from "./hooks/useSettingsFns";
+import { useSettingsMutations } from "./hooks/useSettingsMutations";
 
 export function SettingsHub() {
-  const settingsFns = useSettingsFns();
+  const settingsMutations = useSettingsMutations();
 
   return (
     <div>
@@ -13,16 +13,32 @@ export function SettingsHub() {
         <Stack direction="row" align="stretch">
           <Stack direction="col">
             <b>Station Setup</b>
-            <Button color="primary" size="md" onClick={settingsFns.importStationsFile}>
+            <Button
+              color="primary"
+              size="md"
+              onClick={() => settingsMutations.importStationsFile.mutate()}
+            >
               Load Stations File
             </Button>
-            <Button color="primary" size="md" onClick={settingsFns.importAthletesFile}>
+            <Button
+              color="primary"
+              size="md"
+              onClick={() => settingsMutations.importAthletesFile.mutate()}
+            >
               Load Athletes File
             </Button>
-            <Button color="primary" size="md" onClick={settingsFns.importDNSFile}>
+            <Button
+              color="primary"
+              size="md"
+              onClick={() => settingsMutations.importDNSFile.mutate()}
+            >
               Load DNS File
             </Button>
-            <Button color="primary" size="md" onClick={settingsFns.importDNFFile}>
+            <Button
+              color="primary"
+              size="md"
+              onClick={() => settingsMutations.importDNFFile.mutate()}
+            >
               Load DNF File
             </Button>
           </Stack>
@@ -32,13 +48,17 @@ export function SettingsHub() {
         <Stack direction="row" align="stretch">
           <Stack direction="col">
             <b>RFID Configuration [Start Line only]</b>
-            <Button color="neutral" variant="outlined" onClick={settingsFns.rfidInitialize}>
+            <Button
+              color="neutral"
+              variant="outlined"
+              onClick={() => settingsMutations.initializeRfid.mutate()}
+            >
               Initialize RFID
             </Button>
           </Stack>
           <Stack direction="col">
             <b>App Settings</b>
-            <Button color="warning" variant="outlined" onClick={settingsFns.resetAppSettings}>
+            <Button color="warning" variant="outlined" onClick={settingsMutations.resetAppSettings}>
               Reset App Settings
             </Button>
           </Stack>
@@ -47,10 +67,14 @@ export function SettingsHub() {
       <div>
         <Stack direction="col">
           <b>Developer Tools</b>
-          <Button color="danger" variant="outlined" onClick={settingsFns.initializeDatabase}>
+          <Button color="danger" variant="outlined" onClick={settingsMutations.initializeDatabase}>
             Destroy & Reinitialize Database
           </Button>
-          <Button color="danger" variant="outlined" onClick={settingsFns.importRunnerCSVFile}>
+          <Button
+            color="danger"
+            variant="outlined"
+            onClick={() => settingsMutations.importRunnerCSVFile.mutate()}
+          >
             Recover Data from CSV File
           </Button>
         </Stack>
