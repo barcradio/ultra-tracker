@@ -1,22 +1,8 @@
 # Ultra-tracker Help <!-- omit in toc -->
 ---
 ## Table of Contents <!-- omit in toc -->
-1. Initial Setup
-2. Sidebar
-3. Stats Page
-   1. Athlete edit function
-   2. Stats SubSection
-   3. Keyboard shortcuts
-4. Roster Page
-5. Stations Page
-6. Logs Page
-7. Export Page
-8. Theme Page
-9. Settings Page
-   1. Recovery Procedure
-10. About Ultra-tracker
-11. Contributors
-12. License
+
+
 
 ---
 
@@ -72,7 +58,7 @@ The purpose of this page is to provide the full list of all athletes and enable 
 ![stations.png](./img/stations.png)
 This page is used to select the Station name, and operators names and callsigns.
 
-This page shows the details about the aid stations throughout the race, location, mileage, cutoff times. (Future)
+This page also shows the details about the aid stations throughout the race, location, mileage, cutoff times. (Future)
 
 ## Logs Page
 ![logs-page.png](./img/logs-page.png)
@@ -156,7 +142,7 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 **Releases**: [https://github.com/barcradio/ultra-tracker/releases](https://github.com/barcradio/ultra-tracker/releases)
 
 ## Contributors
-> | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Callsign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
+> | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Call Sign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
 > | :------------------- | :----------- | :----------------------------------------------------- |
 > | **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)           |
 > | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)             |
