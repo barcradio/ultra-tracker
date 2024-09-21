@@ -102,7 +102,7 @@ The purpose of this page is to provide the full list of all athletes and enable 
 
 ![stations.png](./img/stations.png)
 </div>
-This page is used to select the Station name, and operators names and callsigns.
+This page is used to select the Station name, and operators names and call signs.
 
 This page shows the details about the aid stations throughout the race, location, mileage, cutoff times. (Future)
 
@@ -242,7 +242,7 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 <a id="markdown-contributors" name="contributors"></a>
 
 ## Contributors
-> | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Callsign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
+> | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Call sign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
 > | :------------------- | :----------- | :----------------------------------------------------- |
 > | **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)           |
 > | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)             |
