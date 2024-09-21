@@ -43,6 +43,11 @@ export function GetDNSRunnersInStation(): number {
   return count[0] == null ? invalidResult : count[0];
 }
 
+export function GetUnknownRunners(): number {
+  const count = getUnknownRunners();
+  return count[0] == null ? invalidResult : count[0];
+}
+
 function getTotalRunners(): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
@@ -125,6 +130,31 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
   message = `GetRunnersInStation From StationEvents Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+}
+
+function getUnknownRunners(): DatabaseResponse<number> {
+  const db = getDatabaseConnection();
+  let message: string = "";
+  let queryResult;
+
+  const stmt = `SELECT *
+                FROM StationEvents 
+                WHERE bibId NOT IN (SELECT bibId FROM Athletes)`;
+
+  try {
+    queryResult = db.prepare(stmt).all();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `GetUnknownRunners in Athletes':${queryResult.length}`;
+
+  return [queryResult.length as number, DatabaseStatus.Success, message];
 }
 
 function getDNSRunnersInStation(): DatabaseResponse<number> {
