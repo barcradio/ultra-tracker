@@ -52,10 +52,10 @@ export function initialize() {
   };
 
   const preamble = `-------------------------------------
-                                            |                                   |
-                                            |           Ultra-tracker           |
-                                            |                                   |
-                                            -------------------------------------`;
+                                          |                                   |
+                                          |           Ultra-tracker           |
+                                          |                                   |
+                                          -------------------------------------`;
 
   uberLog(LogLevel.info, "startup", preamble, false);
   uberLog(LogLevel.info, "startup", "Initializing application: Log from the main process", false);
