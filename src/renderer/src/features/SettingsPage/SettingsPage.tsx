@@ -43,7 +43,7 @@ export function SettingsPage() {
             label={
               <Stack direction="col">
                 <span className="font-medium">RFID Configuration</span>
-                <span className="text-xs font-medium">(Start Line Only)</span>
+                <span className="text-xs font-medium">(Start and Finish Line Only)</span>
               </Stack>
             }
           >
@@ -66,7 +66,7 @@ export function SettingsPage() {
           <Stack direction="col" className="gap-2">
             <p className="w-80 text-on-surface-strong italic font-display text-sm font-bold mt-2 mb-4">
               This is a destructive operation! Under most circumstances you should not do this
-              unless instructed do.
+              unless instructed to.
             </p>
             <Button color="danger" size="wide" onClick={() => setRecreateOpen(true)}>
               Recreate Database

@@ -29,7 +29,7 @@ export function Footer() {
           <span className="font-bold">Aid Station</span> - {title}
         </p>
         <p className="text-on-component">
-          <span className="font-bold">Operator Callsign</span> - {callsign}
+          <span className="font-bold">Operator Call Sign</span> - {callsign}
         </p>
       </Stack>
 
