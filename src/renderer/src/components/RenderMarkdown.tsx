@@ -13,7 +13,7 @@ export function RenderMarkdown(props: Props) {
   const markdownPlugins = props.trusted
     ? [
         remarkGfm,
-        [remarkToc, { heading: "Table of Contents", maxDepth: 5, tight: true, ordered: true }]
+        [remarkToc, { heading: "Table of Contents", maxDepth: 3, tight: true, ordered: true }]
       ]
     : [];
 
