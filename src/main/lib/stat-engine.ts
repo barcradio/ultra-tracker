@@ -36,7 +36,6 @@ export function initStatEngine() {
 
   stats.addStat("registeredAthletes", () => dbAthlete.GetTotalAthletes());
   stats.addStat("totalRunners", () => dbRunners.GetTotalRunners());
-  stats.addStat("inStationDNS", () => dbRunners.GetDNSRunnersInStation());
   stats.addStat("totalDNS", () => dbAthlete.GetTotalDNS());
   stats.addStat("previousDNF", () => dbAthlete.GetPreviousDNF());
   stats.addStat("pendingArrivals", (input) => {
@@ -55,9 +54,13 @@ export function initStatEngine() {
   stats.addStat("finishedRace", (input) => input.defaultValue);
   stats.addStat("stationDNF", () => dbAthlete.GetStationDNF());
   stats.addStat("totalDNF", () => dbAthlete.GetTotalDNF());
+
+  stats.addStat("warnings", () => invalidResult);
+  stats.addStat("inStationDNS", () => dbRunners.GetDNSRunnersInStation());
+  stats.addStat("unknownAthletes", () => dbRunners.GetUnknownRunners());
+
+  stats.addStat("errors", () => invalidResult);
   stats.addStat("duplicates", () => dbRunners.GetRunnersWithDuplicateStatus());
-  stats.addStat("warnings", () => dbRunners.GetDNSRunnersInStation());
-  stats.addStat("errors", () => dbRunners.GetRunnersWithDuplicateStatus());
 
   stats; // const engine: StatEngine<"defaultValue" | "inStation" | "throughStation">
 
