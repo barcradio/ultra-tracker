@@ -50,7 +50,6 @@ Validation Rules:
 * An In time must occur before the Out time.
 * Commas are not allowed in the Note field, and will be replaced with semi-colons.
 
-
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 </div>
 
@@ -102,9 +101,9 @@ The purpose of this page is to provide the full list of all athletes and enable 
 
 ![stations.png](./img/stations.png)
 </div>
-This page is used to select the Station name, and operators names and call signs.
+This page is used to select the Station name and operator call sign.  Currently the call sign selection is superficial, and is populated only via the metadata in the stations file.
 
-This page shows the details about the aid stations throughout the race, location, mileage, cutoff times. (Future)
+This page also shows the details about the aid stations throughout the race, location, mileage, cutoff times.
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
@@ -121,7 +120,6 @@ The purpose of this page is to display the station log file that is auto-generat
 - The normal station log will contain entrees that happened during regular operation that indicates typical data gathering operations. This view may be used by all operators to allow a detailed look at the order and purpose of all standard events that have occurred during operation.
 - The verbose station log contains all events that occurred as well as debug messages designed to assist the developers to locate problems that might occur. This file can be large and should be sent to the developers only upon request.
 
-
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
@@ -136,7 +134,7 @@ The purpose of this page is to provide Export utilities for sending station data
 <br/><br/>
 
 - **Export Incremental CSV File**
-This function exports a .csv file of the station entries containing unsent or edited records, contains BibID,TimeIn, TimeOut, DNF/DNS status and any notes made by the operator
+This function exports a .csv file of the station entries containing unsent or edited records, contains BibID, TimeIn, TimeOut, DNF/DNS status and any notes made by the operator
 (Sending only the recent results allows for much shorter files being routinely sent to the network database via radio.) It will also automatically name itself and increment the filename for you
 
 - **Export Full CSV File**
@@ -147,7 +145,6 @@ This function exports a .csv file with all DNS entries that have occurred at the
 
 - **Export DNF File**
 This function exports a .csv file with all DNF entries that have occurred at the current station.  This file is not normally needed to be sent but could be an efficient way of sending the current station's DNF list to another station.
-
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
@@ -177,7 +174,7 @@ The purpose of this page is to allow the operator to import the various input fi
   * Linux: `$HOME/Documents/ultra-tracker`
   * MacOS:  `/Users/username/Documents/ultra-tracker`
 
-<span style="color:red">**Warning:**</span> Some of the functions on the Settings page <span style="color:red">(marked in RED)</span> are completely destructive to the local database and **MUST NOT be performed during normal operation!**  These are provided only for recovery of the database or data and should only be used at the direction of the the software team.
+<span style="color:red">**Warning:**</span> Some of the functions on the Settings page <span style="color:red">(marked in RED)</span> are completely destructive to the local database and **MUST NOT be performed during normal operation!**  These are provided only for recovery of the database or data and should only be used at the direction of the software team.
 
 <span style="color:orange">The orange functions are provided as a means to completely recover after a major database error and other methods have not corrected the issue.</span>
 
@@ -185,7 +182,7 @@ The following is a description of each button and its' function.
 
 #### Station Setup
 * **Load Stations File**
-This loads a json file containing each of the stations and their detailed information to allow ease of selection while setting up this application. As stated above, a file dialog will allow selection of this file that is typically placed in the default folder location mentioned above. A typical filename will be bear100-YYYY-stations.json.
+This loads a JSON file containing each of the stations and their detailed information to allow ease of selection while setting up this application. As stated above, a file dialog will allow selection of this file that is typically placed in the default folder location mentioned above. A typical filename will be bear100-YYYY-stations.json.
 * **Load Athletes File**  
 This function loads a .csv file, supplied by race organizers, containing all of the athletes registered for the event whether they are known to have started or not.
 * **Load DNS File**
@@ -242,7 +239,7 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 <a id="markdown-contributors" name="contributors"></a>
 
 ## Contributors
-> | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Call sign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
+> | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Call Sign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
 > | :------------------- | :----------- | :----------------------------------------------------- |
 > | **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)           |
 > | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)             |
