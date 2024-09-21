@@ -170,7 +170,7 @@ export function GetPreviousDNF(): number {
   const previousDNF: AthleteDB[] = [];
 
   for (const athlete of dnfList) {
-    const id = Number(Array.from(athlete.dnfStation as string)[0]);
+    const id = Number(athlete.dnfStation?.split("-", 1)[0]);
     if (id < stationId) previousDNF.push(athlete);
   }
 
