@@ -212,6 +212,7 @@ export function EditRunner(props: Props) {
                 error={form.formState.errors.note}
                 {...form.register("note", {
                   setValueAs: (value: string) => {
+                    if (value == null) return value;
                     const replaced = value.replace(/,/g, ";");
                     if (replaced !== value) setDidReplaceComma(true);
                     return replaced;
