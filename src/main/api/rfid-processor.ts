@@ -34,10 +34,11 @@ export function InitializeRFIDReader() {
   const rfidRead = rfidEmitter.hasReadRFID;
   const rfidStatus = rfidEmitter.statusRFID;
 
-  if (rfidWebSocketProcessor != null){
+  if (rfidWebSocketProcessor != null) {
     if (rfidWebSocketProcessor.getStatus() == DeviceStatus.Connected) {
       return "RFID Connected"; // static string
-  }}
+    }
+  }
 
   try {
     rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, rfidRead);
@@ -63,7 +64,7 @@ export function InitializeRFIDReader() {
     console.error("RFID WebSocket error:", error);
   });
 
-  rfidWebSocketProcessor.on("status",  (...args: unknown[]) => {
+  rfidWebSocketProcessor.on("status", (...args: unknown[]) => {
     const [status, mess] = args as [DeviceStatus, string];
 
     rfidStatus(<DeviceStatus>status, mess);

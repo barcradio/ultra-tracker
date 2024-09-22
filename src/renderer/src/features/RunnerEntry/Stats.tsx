@@ -54,6 +54,10 @@ function useStats() {
       value: formatStat(statsData?.inStationDNS)
     },
     {
+      id: "- Unknown Bibs",
+      value: formatStat(statsData?.unknownAthletes)
+    },
+    {
       id: "Errors",
       value: ""
     },
