@@ -19,6 +19,7 @@ export function createDatabaseConnection() {
       return;
     }
   }
+  console.log(`pragma user_version: ${db.pragma("user_version", { simple: true })}`);
 }
 
 export function getDatabaseConnection(): Database.Database {
