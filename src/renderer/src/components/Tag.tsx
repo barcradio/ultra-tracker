@@ -20,7 +20,10 @@ const TagWrapper = classed.button(
         purple: "bg-[#572C7B] text-[#B8B8FF] border-[#B8B8FF]",
         red: "bg-[#672023] text-[#FFA8A8] border-[#FFA8A8]",
         gray: "bg-[#555555] text[#CFDEE5] border[#CFDEE5]",
-        blue: "bg-[#3386FF] text[#68A3FA] border[#68A3FA]"
+        blue: "bg-[#3386CC] text[#68A3FA] border[#68A3FA]",
+        lightgray: "bg-[#555555] text[#CCCCCC] border[#CCCCCC]",
+        lightgreen: "bg-[#175151] text[#CCCCCC] border[#CCCCCC]",
+        lightorange: "bg-[#996600] text[#CCCCCC] border[#CCCCCC]"
       }
     },
     defaultVariants: {

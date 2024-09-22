@@ -1,4 +1,4 @@
-import { DNFType, EntryMode, RecordType } from "./enums";
+import { AthleteStatus, DNFType, EntryMode, RecordType } from "./enums";
 
 /**
  * Custom models (types) for ultra-tracker
@@ -53,6 +53,7 @@ export type AthleteDB = {
   dnfStation: string | undefined;
   dnfDateTime: Date | null;
   note: string | undefined;
+  status: AthleteStatus | undefined;
 };
 
 export type TimingRecord = {
