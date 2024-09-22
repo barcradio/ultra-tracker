@@ -91,6 +91,9 @@ Entry of numbers and times is assisted by using some specific keys on both an 88
 </div>
 The purpose of this page is to provide the full list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and note entries.
 
+The Status column helps station operators determine which athletes are pertinent to the station.
+Valid filter options for the Status column are: `Incoming, DNS, In, Out, Medical, Timeout, Withdrew`
+
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---

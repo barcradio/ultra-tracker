@@ -65,9 +65,9 @@ export function RosterPage() {
       name: "Status",
       render: (dnfType, { dns, status }) => renderStatusTag(dnfType!, dns!, status!),
       valueFn: (athlete) =>
-        `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType}
-         ${athlete.status! === AthleteStatus.Incoming ? "Inbound" : ""}
-         ${athlete.status! === AthleteStatus.Present ? "Onsite" : ""}
+        `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType + " dnf"}
+         ${athlete.status! === AthleteStatus.Incoming ? "Incoming" : ""}
+         ${athlete.status! === AthleteStatus.Present ? "In" : ""}
          ${athlete.status! === AthleteStatus.Outgoing && !athlete.dns! ? "Out" : ""}
          ${athlete.dns! ? "DNS" : ""}`,
       width: "9%"
