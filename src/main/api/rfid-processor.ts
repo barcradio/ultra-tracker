@@ -69,12 +69,20 @@ export function InitializeRFIDReader() {
 }
 
 export function DisconnectRFIDReader() {
-  if (rfidWebSocketProcessor) {
+  if (rfidWebSocketProcessor != null) {
     rfidWebSocketProcessor.disconnect();
     rfidWebSocketProcessor = null;
   }
 }
 
+export function GetRFIDStatus(): RFIDReaderStatus
+{
+  if (rfidWebSocketProcessor != null) {
+    return rfidWebSocketProcessor.getStatus();
+  }
+  rfidEmitter.statusRFID(RFIDReaderStatus.NoDevice, "");
+  return RFIDReaderStatus.NoDevice;
+}
 export class RFIDWebSocketProcessor {
   private ws: WebSocket | null = null;
   private reconnectInterval: number = 5000; // milliseconds
@@ -216,7 +224,9 @@ export class RFIDWebSocketProcessor {
     }
     this.eventEmitter.emit("error", "RFID not Connected"); //static message
   }
-
+  public getStatus(): RFIDReaderStatus {
+    return this.status;
+  } 
   public on(
     event: "connected" | "disconnected" | "error" | "messageReceived",
     listener: (...args: unknown[]) => void

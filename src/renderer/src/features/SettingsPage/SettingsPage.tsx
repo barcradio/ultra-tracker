@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
 import { useStoreValue } from "~/hooks/ipc/useStoreValue";
+import { useRFIDStatus } from "./hooks/useRFIDStatus";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 
 function useIsStartLine() {
@@ -10,6 +11,7 @@ function useIsStartLine() {
   if (!startline || !stationIdentifier) return false;
   return startline === stationIdentifier;
 }
+import { RFIDReaderStatus } from "../../../../shared/enums";
 
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
@@ -18,6 +20,21 @@ export function SettingsPage() {
   const [recoverOpen, setRecoverOpen] = useState(false);
 
   const isStartLine = useIsStartLine();
+  const [rfidStatus, setRfidStatus] = useRFIDStatus();
+
+  const handleRfidButtonClick = () => {
+    if (rfidStatus === RFIDReaderStatus.Connected || rfidStatus === RFIDReaderStatus.Connecting) {
+      settingsMutations.disconntRfid.mutate();
+      setRfidStatus(RFIDReaderStatus.Disconnected)
+    } else {
+      settingsMutations.initializeRfid.mutate();
+    }
+  };
+
+  const rfidButtonText =
+    rfidStatus === RFIDReaderStatus.Connected || rfidStatus === RFIDReaderStatus.Connecting
+      ? "Disconnect RFID"
+      : "Initialize RFID";
 
   return (
     <Stack className="w-full h-full bg-component" justify="center" align="center">
@@ -43,7 +60,7 @@ export function SettingsPage() {
             label={
               <Stack direction="col">
                 <span className="font-medium">RFID Configuration</span>
-                <span className="text-xs font-medium">(Start Line Only)</span>
+                <span className="text-xs font-medium">(Start and Finish Lines Only)</span>
               </Stack>
             }
           >
@@ -53,6 +70,8 @@ export function SettingsPage() {
               disabled={!isStartLine}
             >
               Initialize RFID
+            <Button size="wide" onClick={() => handleRfidButtonClick()}>
+              {rfidButtonText}
             </Button>
           </VerticalButtonGroup>
           <VerticalButtonGroup label="App Settings" className="grow">
