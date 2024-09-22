@@ -179,7 +179,7 @@ function updateTimeRecord(
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
   const sent = Number(record.sent);
-  const status = Number(record.status);
+  const status = record.status;
   const verbose = false;
 
   try {
@@ -223,6 +223,8 @@ function updateTimeRecord(
     }
   }
 
+  dbAthletes.SetStatusOnAthlete(record.bibId);
+
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
   return [DatabaseStatus.Updated, message];
 }
@@ -239,7 +241,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
   const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
   const sent = Number(record.sent);
-  const status = Number(record.status);
+  const status = record.status;
   const verbose = false;
 
   try {
@@ -270,6 +272,8 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
       return [DatabaseStatus.Error, e.message];
     }
   }
+
+  dbAthletes.SetStatusOnAthlete(record.bibId);
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
   return [DatabaseStatus.Created, message];
@@ -309,10 +313,15 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
 }
 
 function processDuplicate(record: TypedRunnerDB): TypedRunnerDB {
+  // check again if importing from file
+  record.status = record.bibId % 1 == 0 ? RecordStatus.OK : RecordStatus.Duplicate;
+
   if (record.status == RecordStatus.Duplicate) {
-    record.bibId = Number(record.bibId) + 0.2;
+    record.bibId = record.bibId % 1 != 0 ? record.bibId : record.bibId + 0.2;
     const typeStr = RecordType[record.recordType];
-    record.note = `[Duplicate:${typeStr}] ` + record.note;
+    record.note = record.note.includes(`[Duplicate:${typeStr}]`)
+      ? record.note
+      : `[Duplicate:${typeStr}] ` + record.note;
   }
   return record;
 }

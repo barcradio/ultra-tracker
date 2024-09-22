@@ -283,7 +283,7 @@ export async function importRunnersFromCSV() {
           timeModified: new Date(),
           note: !timing.note ? "" : timing.note.replaceAll(",", ""),
           sent: false,
-          status: RecordStatus.OK,
+          status: timing.bibId % 1 == 0 ? RecordStatus.OK : RecordStatus.Duplicate,
           dnf: Number(timing.dnfType != ""),
           dnfType: timing.dnfType,
           dnfStation: timing.dnfStation,

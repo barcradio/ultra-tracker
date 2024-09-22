@@ -1,7 +1,11 @@
+import { migrate } from "@blackglory/better-sqlite3-migrations";
 import { getDatabaseConnection } from "./connect-db";
+import { migrations } from "./migrations-db";
 import * as tableDefs from "./table-definitions";
 
-const expectedTableNames = {
+const userVersion = 1;
+
+export const expectedTableNames = {
   Athletes: "Athletes",
   EventLog: "EventLog",
   StationEvents: "StationEvents",
@@ -15,6 +19,12 @@ interface Table {
   tbl_name: string;
   rootpage: number;
   sql: string;
+}
+
+export function applyMigrations() {
+  const db = getDatabaseConnection();
+  migrate(db, migrations, userVersion);
+  db.pragma(`user_version = ${userVersion}`);
 }
 
 export function validateDatabaseTables() {
@@ -31,6 +41,7 @@ export function validateDatabaseTables() {
       createTable(expectedTableNames[key], tableDefs[name]); // eslint-disable-line import/namespace
     }
   }
+  applyMigrations();
 }
 
 export function getTableNames(): string[] {
@@ -93,6 +104,7 @@ function createTable(tableName: string, tabledefinition: string): boolean {
       )`
     ).run();
     console.log(`Created '${tableName}' table`);
+    applyMigrations();
     return true;
   } catch (e: unknown) {
     if (e instanceof Error) console.log(`Failed to create '${tableName}' table: ${e.message}`);
@@ -127,6 +139,9 @@ function clearTable(tableName: string): boolean {
     db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
 
     console.log(`Dropped '${tableName}' table`);
+
+    db.pragma(`user_version = 0`);
+
     return true;
   } catch (e: unknown) {
     if (e instanceof Error) console.log(`Failed to delete '${tableName}' table: ${e.message}`);

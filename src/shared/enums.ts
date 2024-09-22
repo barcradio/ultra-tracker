@@ -1,3 +1,9 @@
+export enum AthleteStatus {
+  Incoming,
+  Present,
+  Outgoing
+}
+
 export enum DatabaseStatus {
   Created,
   Updated,
