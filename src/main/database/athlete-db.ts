@@ -266,7 +266,12 @@ export function GetAthleteFromColumn(
     }
   }
 
-  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+  if (queryResult == null)
+    return [
+      null,
+      DatabaseStatus.NotFound,
+      `athletes: No athlete found with ${columnName}: ${value}`
+    ];
 
   queryResult = queryResult as AthleteDB;
 
