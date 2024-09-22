@@ -38,6 +38,10 @@ export function useSettingsMutations() {
     preToast: "Starting RFID Reader"
   });
 
+  const disconnectRfid = useBasicIpcCall("rfid-disconnect", {
+    preToast: "Disconnect RFID Reader"
+  });
+
   const resetAppSettings = () => {
     log.info("testing renderer to main log");
     loggerHooks.useMainLogger("warning", "User click: Reset App Settings");
@@ -54,6 +58,7 @@ export function useSettingsMutations() {
   return {
     resetAppSettings,
     initializeRfid,
+    disconnectRfid,
     importAthletesFile,
     importStationsFile,
     importDNSFile,

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
 import { useStoreValue } from "~/hooks/ipc/useStoreValue";
+import { useRFIDStatus } from "./hooks/useRFIDStatus";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
+import { DeviceStatus } from "../../../../shared/enums";
 
 function useIsStartLine() {
   const { data: startline } = useStoreValue("event.startline");
@@ -18,6 +20,20 @@ export function SettingsPage() {
   const [recoverOpen, setRecoverOpen] = useState(false);
 
   const isStartLine = useIsStartLine();
+  const [rfidStatus] = useRFIDStatus();
+
+  const handleRfidButtonClick = () => {
+    if (rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting) {
+      settingsMutations.disconnectRfid.mutate();
+    } else {
+      settingsMutations.initializeRfid.mutate();
+    }
+  };
+
+  const rfidButtonText =
+    rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting
+      ? "Disconnect RFID"
+      : "Initialize RFID";
 
   return (
     <Stack className="w-full h-full bg-component" justify="center" align="center">
@@ -43,16 +59,12 @@ export function SettingsPage() {
             label={
               <Stack direction="col">
                 <span className="font-medium">RFID Configuration</span>
-                <span className="text-xs font-medium">(Start and Finish Line Only)</span>
+                <span className="text-xs font-medium">(Start and Finish Lines Only)</span>
               </Stack>
             }
           >
-            <Button
-              size="wide"
-              onClick={() => settingsMutations.initializeRfid.mutate()}
-              disabled={!isStartLine}
-            >
-              Initialize RFID
+            <Button size="wide" onClick={() => handleRfidButtonClick()} disabled={!isStartLine}>
+              {rfidButtonText}
             </Button>
           </VerticalButtonGroup>
           <VerticalButtonGroup label="App Settings" className="grow">

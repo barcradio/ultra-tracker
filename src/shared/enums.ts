@@ -45,5 +45,6 @@ export enum DeviceStatus {
   Connecting,
   NoDevice,
   Disconnected,
+  Disconnecting,
   Error
 }
