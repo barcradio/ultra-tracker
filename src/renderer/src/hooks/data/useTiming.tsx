@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToasts } from "~/features/Toasts/useToasts";
 import { DatabaseStatus } from "$shared/enums";
-import { RunnerDB } from "$shared/models";
+import { AthleteDB, RunnerDB } from "$shared/models";
+import { DatabaseResponse } from "$shared/types";
 import { Runner } from "./useRunnerData";
 import { ToastOnStatus, useHandleStatusToasts } from "../useHandleStatusToasts";
 import { useIpcRenderer } from "../useIpcRenderer";
@@ -22,6 +24,7 @@ const runnerToRunnerDB = (runner: Runner): RunnerDB => ({
 
 interface TimingMutationOptions {
   toastsOnStatus?: ToastOnStatus<Runner>;
+  callback?: (timeRecord: Runner, status: DatabaseStatus) => void;
 }
 
 function useTimingMutation(channel: string, options: TimingMutationOptions = {}) {
@@ -34,6 +37,7 @@ function useTimingMutation(channel: string, options: TimingMutationOptions = {})
       const response = await ipcRenderer.invoke(channel, runnerToRunnerDB(timeRecord));
       const [status, message] = response;
       handleError(status, message, timeRecord);
+      options.callback?.(timeRecord, status);
     },
     onSuccess: () => {
       // Invalidate the queries to refetch the data,
@@ -44,7 +48,35 @@ function useTimingMutation(channel: string, options: TimingMutationOptions = {})
   });
 }
 
-export const useCreateTiming = () => useTimingMutation("add-timing-record");
+// export const useCreateTiming = () => useTimingMutation("add-timing-record");
+
+export const useCreateTiming = () => {
+  const ipcRenderer = useIpcRenderer();
+  const { createToast } = useToasts();
+
+  return useTimingMutation("add-timing-record", {
+    callback: async (timeRecord, status) => {
+      const athleteResponse = await ipcRenderer.invoke("get-athlete-by-bib", timeRecord.bibId);
+      const [athlete] = athleteResponse as DatabaseResponse<AthleteDB>;
+
+      console.log("athleteResponse", athleteResponse);
+
+      // If no athlete with the bib number exists, show a warning
+      if (athlete === null)
+        createToast({
+          message: `athletes: No athlete found with bibId: ${timeRecord.bibId}`,
+          type: "warning"
+        });
+
+      // If the timing record is a duplicate, show a warning
+      if (status == DatabaseStatus.Duplicate)
+        createToast({
+          message: `Runner #${timeRecord.bibId} already has a timing record!`,
+          type: "warning"
+        });
+    }
+  });
+};
 
 export const useEditTiming = () => {
   return useTimingMutation("edit-timing-record", {
