@@ -1,3 +1,4 @@
+import os from "os";
 import path from "path";
 import { app } from "electron";
 import log from "electron-log/main";
@@ -51,12 +52,26 @@ export function initialize() {
     originalDebug(...args); // Log to console
   };
 
-  const preamble = `-------------------------------------
-                                          |                                   |
-                                          |           Ultra-tracker           |
-                                          |                                   |
-                                          -------------------------------------`;
+  const freeMem = Number(os.freemem) / Math.pow(1024, 3);
+  const totalMem = Number(os.totalmem) / Math.pow(1024, 3);
+  const upTime = Number(os.uptime) / 60 / 60;
 
+  const preamble = `----- Application Startup -----
+  Name: ${app.getName()}
+  Version: ${app.getVersion()}
+  Locale: ${app.getLocale()}
+  System Locale: ${app.getSystemLocale()}
+  System Information:  
+    hostname: ${os.hostname}
+    type: ${os.type}
+    machineType: ${os.machine}
+    platform: ${os.platform}
+    cpu: ${os.cpus()[0].model}
+    ram: ${freeMem.toFixed(2)}/${totalMem.toFixed(2)} GB
+    uptime: ${upTime.toFixed(3)} hrs
+    version: ${os.version}
+    homeDir: ${os.homedir}
+  `;
   uberLog(LogLevel.info, "startup", preamble, false);
   uberLog(LogLevel.info, "startup", "Initializing application: Log from the main process", false);
 }

@@ -1,17 +1,17 @@
 import { Tag } from "~/components/Tag";
 import { useAthletes } from "~/hooks/data/useAthletes";
-import { DNFType } from "$shared/enums";
+import { AthleteStatus, DNFType } from "$shared/enums";
 import { AthleteDB } from "$shared/models";
 import { EmergencyContact } from "./EmergencyContact";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
-const renderStatusTag = (dnfType: DNFType, dns: boolean) => {
+const renderStatusTag = (dnfType: DNFType, dns: boolean, status: AthleteStatus) => {
   let tag;
 
   if (dns == (undefined || null) && dnfType == (undefined || null)) {
     return <> </>;
   } else if (dnfType) {
-    switch (dnfType) {
+    switch (dnfType as DNFType) {
       case DNFType.Withdrew:
         tag = <Tag color="turquoise">Withdrew</Tag>;
         break;
@@ -31,6 +31,20 @@ const renderStatusTag = (dnfType: DNFType, dns: boolean) => {
     }
   } else if (dns) {
     return <Tag color="blue">DNS</Tag>;
+  } else {
+    switch (status as AthleteStatus) {
+      case AthleteStatus.Incoming:
+        //tag = <Tag color="lightgreen"></Tag>;
+        tag = <> </>;
+        break;
+      case AthleteStatus.Present:
+        tag = <Tag color="lightorange">➠ In</Tag>;
+        break;
+      case AthleteStatus.Outgoing:
+        tag = <Tag color="lightgray">Out ➠</Tag>;
+        //tag = <>Out</>;
+        break;
+    }
   }
 
   return tag;
@@ -49,10 +63,14 @@ export function RosterPage() {
     {
       field: "dnfType",
       name: "Status",
-      render: (dnfType, { dns }) => renderStatusTag(dnfType!, dns!),
+      render: (dnfType, { dns, status }) => renderStatusTag(dnfType!, dns!, status!),
       valueFn: (athlete) =>
-        `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType}, ${athlete.dns! ? "DNS" : ""}`,
-      width: "8%"
+        `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType}
+         ${athlete.status! === AthleteStatus.Incoming ? "Inbound" : ""}
+         ${athlete.status! === AthleteStatus.Present ? "Onsite" : ""}
+         ${athlete.status! === AthleteStatus.Outgoing && !athlete.dns! ? "Out" : ""}
+         ${athlete.dns! ? "DNS" : ""}`,
+      width: "9%"
     },
     {
       field: "firstName",

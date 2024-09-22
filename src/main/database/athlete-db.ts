@@ -3,7 +3,7 @@ import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearAthletesTable, createAthletesTable } from "./tables-db";
-import { DNFType, DatabaseStatus } from "../../shared/enums";
+import { AthleteStatus, DNFType, DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNFRecord, DNSRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
 import * as dialogs from "../lib/file-dialogs";
@@ -287,7 +287,8 @@ export function GetAthleteFromColumn(
     dnfType: queryResult.dnfType,
     dnfStation: queryResult.dnfStation,
     dnfDateTime: queryResult.dnfDateTime,
-    note: queryResult.note
+    note: queryResult.note,
+    status: queryResult.status
   };
 
   message = `athletes:Found athlete with bibId: ${runner.bibId}`;
@@ -386,10 +387,11 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   const dnfStation = null;
   const dnfDateTime = null;
   const note = null;
+  const status = AthleteStatus.Incoming;
 
   try {
     const query = db.prepare(
-      `INSERT INTO Athletes (bibId, firstName, lastName, gender, age, city, state, emergencyPhone, emergencyName, dns, dnf, dnfType, dnfStation, dnfDateTime, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Athletes (bibId, firstName, lastName, gender, age, city, state, emergencyPhone, emergencyName, dns, dnf, dnfType, dnfStation, dnfDateTime, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     query.run(
       bibId,
@@ -406,7 +408,8 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
       dnfType,
       dnfStation,
       dnfDateTime,
-      note
+      note,
+      status
     );
   } catch (e) {
     if (e instanceof Error) {
@@ -495,7 +498,7 @@ function parseCSVDate(timingDate: string): Date {
 export function syncAthleteNote(bibId: number, note: string, direction: SyncDirection) {
   const db = getDatabaseConnection();
   const athleteResult = GetAthleteByBib(bibId);
-  let combinedNote = "";
+  let combinedNote: string | null = "";
 
   if (athleteResult[1] != DatabaseStatus.Success) return;
 
@@ -514,6 +517,9 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
       break;
   }
 
+  // don't set empty strings, set null
+  if (combinedNote == "") combinedNote = null;
+
   try {
     db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
     db.prepare(`UPDATE Athletes SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
@@ -531,4 +537,51 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
 export enum SyncDirection {
   Incoming,
   Outgoing
+}
+
+export function SetStatusOnAthlete(bibId: number): DatabaseResponse {
+  const db = getDatabaseConnection();
+  let message: string = "";
+  let queryResult;
+  let status;
+
+  const query = `SELECT Athletes.*, StationEvents.timeIn, StationEvents.timeOut
+       FROM "Athletes" LEFT JOIN "StationEvents"
+       ON Athletes.bibId = StationEvents.bibId
+       WHERE Athletes.bibId == ?`;
+
+  try {
+    queryResult = db.prepare(query).get(bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [DatabaseStatus.NotFound, message];
+
+  const timeIn = queryResult.timeIn! == undefined ? null : queryResult.timeIn;
+  const timeOut = queryResult.timeOut! == undefined ? null : queryResult.timeOut;
+
+  if (timeIn == null && timeOut == null) {
+    status = AthleteStatus.Incoming;
+  } else if (timeIn != null && timeOut == null) {
+    status = AthleteStatus.Present;
+  } else if (timeOut != null) {
+    status = AthleteStatus.Outgoing;
+  }
+
+  try {
+    const stmt = db.prepare(`UPDATE Athletes SET status = ? WHERE bibId = ?`);
+    stmt.run(status, bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  message = `athlete:set status bibId: ${bibId}, status: ${AthleteStatus[status].toString()}`;
+  return [DatabaseStatus.Updated, message];
 }

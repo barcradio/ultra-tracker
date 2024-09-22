@@ -45,7 +45,7 @@ export function StationsPage() {
         const loc = JSON.parse(station.location);
         return `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`;
       },
-      width: "190px",
+      width: "15%",
       sortable: false
     },
     {
