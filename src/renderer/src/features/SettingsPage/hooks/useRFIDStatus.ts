@@ -1,20 +1,30 @@
 import { useEffect, useState } from "react";
-import { ipcRenderer } from "electron";
-//import { useBasicIpcCall } from "~/hooks/ipc/useBasicIpcCall";
-import { RFIDReaderStatus } from "../../../../../shared/enums";
+import { DeviceStatus } from "../../../../../shared/enums";
+import { useIpcRenderer } from "../../../hooks/useIpcRenderer";
 
-export const useRFIDStatus = (): [RFIDReaderStatus, (status: RFIDReaderStatus) => void] => {
-  const [rfidStatus, setRfidStatus] = useState<RFIDReaderStatus>(RFIDReaderStatus.NoDevice);
+export const useRFIDStatus = (): [DeviceStatus, (status: DeviceStatus) => void] => {
+  const [rfidStatus, setRfidStatus] = useState<DeviceStatus>(DeviceStatus.NoDevice);
+  const ipcRenderer = useIpcRenderer();
 
-  // Fetch the RFID status when the hook is used
   useEffect(() => {
-    const getRfidStatus = async () => {
-      const status = await ipcRenderer.invoke("rfid-get-status");
-      setRfidStatus(status); // Update RFID status
+    const handleStatusUpdate = (_event, status: DeviceStatus) => {
+      setRfidStatus(status); // Update the state whenever a status update is received
     };
 
-    getRfidStatus();
-  }, []);
+    ipcRenderer.on("status-rfid", handleStatusUpdate);
+
+    // Fetch the initial RFID status on mount
+    const fetchRfidStatus = async () => {
+      const status = await ipcRenderer.invoke("rfid-get-status");
+      setRfidStatus(status);
+    };
+    fetchRfidStatus();
+
+    // Cleanup the listener when the component unmounts
+    return () => {
+      ipcRenderer.removeAllListeners("status-rfid");
+    };
+  }, [ipcRenderer]);
 
   return [rfidStatus, setRfidStatus];
 };

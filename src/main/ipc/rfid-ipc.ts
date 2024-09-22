@@ -1,6 +1,6 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
-import { RFIDReaderStatus } from "$shared/enums";
+import { DeviceStatus } from "$shared/enums";
 import * as rfid from "../api/rfid-processor";
 import { Handler } from "../types";
 
@@ -13,7 +13,7 @@ const disconnectRFID: Handler<string> = () => {
   return "RFID Disconnected";
 };
 
-const getStatusRFID: Handler<RFIDReaderStatus> = () =>{
+const getStatusRFID: Handler<DeviceStatus> = () => {
   return rfid.GetRFIDStatus();
 };
 

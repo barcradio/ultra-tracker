@@ -38,8 +38,8 @@ export function useSettingsMutations() {
     preToast: "Starting RFID Reader"
   });
 
-  const disconntRfid = useBasicIpcCall("rfid-disconnect", {
-    preToast: "Starting RFID Reader"
+  const disconnectRfid = useBasicIpcCall("rfid-disconnect", {
+    preToast: "Disconnect RFID Reader"
   });
 
   const resetAppSettings = () => {
@@ -58,7 +58,7 @@ export function useSettingsMutations() {
   return {
     resetAppSettings,
     initializeRfid,
-    disconntRfid,
+    disconnectRfid,
     importAthletesFile,
     importStationsFile,
     importDNSFile,

@@ -3,6 +3,7 @@ import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/compone
 import { useStoreValue } from "~/hooks/ipc/useStoreValue";
 import { useRFIDStatus } from "./hooks/useRFIDStatus";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
+import { DeviceStatus } from "../../../../shared/enums";
 
 function useIsStartLine() {
   const { data: startline } = useStoreValue("event.startline");
@@ -11,7 +12,6 @@ function useIsStartLine() {
   if (!startline || !stationIdentifier) return false;
   return startline === stationIdentifier;
 }
-import { RFIDReaderStatus } from "../../../../shared/enums";
 
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
@@ -20,19 +20,18 @@ export function SettingsPage() {
   const [recoverOpen, setRecoverOpen] = useState(false);
 
   const isStartLine = useIsStartLine();
-  const [rfidStatus, setRfidStatus] = useRFIDStatus();
+  const [rfidStatus] = useRFIDStatus();
 
   const handleRfidButtonClick = () => {
-    if (rfidStatus === RFIDReaderStatus.Connected || rfidStatus === RFIDReaderStatus.Connecting) {
-      settingsMutations.disconntRfid.mutate();
-      setRfidStatus(RFIDReaderStatus.Disconnected)
+    if (rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting) {
+      settingsMutations.disconnectRfid.mutate();
     } else {
       settingsMutations.initializeRfid.mutate();
     }
   };
 
   const rfidButtonText =
-    rfidStatus === RFIDReaderStatus.Connected || rfidStatus === RFIDReaderStatus.Connecting
+    rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting
       ? "Disconnect RFID"
       : "Initialize RFID";
 
@@ -64,13 +63,7 @@ export function SettingsPage() {
               </Stack>
             }
           >
-            <Button
-              size="wide"
-              onClick={() => settingsMutations.initializeRfid.mutate()}
-              disabled={!isStartLine}
-            >
-              Initialize RFID
-            <Button size="wide" onClick={() => handleRfidButtonClick()}>
+            <Button size="wide" onClick={() => handleRfidButtonClick()} disabled={!isStartLine}>
               {rfidButtonText}
             </Button>
           </VerticalButtonGroup>
