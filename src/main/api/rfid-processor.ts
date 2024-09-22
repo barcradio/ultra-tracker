@@ -15,7 +15,7 @@ import * as dbTimings from "../database/timingRecords-db";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
 let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
-const rfidReaderUrl = "wss://169.254.78.28/ws:80"; //trying to connect via host name.
+const rfidReaderUrl = "wss://169.254.78.28/ws:80"; //connecting directly to  ip
 
 // Define interfaces to type the expected JSON data structure
 interface RFIDData {
@@ -48,8 +48,6 @@ export function InitializeRFIDReader() {
     }
     return "RFID: Not Connected"; //static string
   }
-
-  if (!rfidWebSocketProcessor) return; //TODO: return state to client
 
   rfidWebSocketProcessor.on("connected", () => {
     console.log("RFID WebSocket connected");
@@ -127,12 +125,38 @@ export class RFIDWebSocketProcessor {
 
     this.ws.on("close", () => {
       console.log("Disconnected from RFID reader");
-      this.handleReconnection();
+      //make sure they don't want to disconnect RFID
+      if (this.status == DeviceStatus.Disconnecting) {
+        this.status = DeviceStatus.Disconnected;
+        this.eventEmitter.emit("disconnected");
+      }
+      if (this.status == DeviceStatus.Connected) {
+        this.handleReconnection();
+      }
     });
 
     this.ws.on("error", (error) => {
       this.errorCount++;
-      console.error("WebSocket error:", error);
+      console.error("WebSocket", error);
+
+      if (error.toString().includes("EHOSTUNREACH") || error.toString().includes("ETIMEDOUT")) {
+        //failed to find device
+        switch (this.status) {
+          case DeviceStatus.Connected:
+            console.error("RFID host unreachable attempting to reconnect.");
+            this.eventEmitter.emit("error", error);
+            break;
+          case DeviceStatus.Connecting:
+            this.status = DeviceStatus.NoDevice;
+            this.eventEmitter.emit("status", this.status, "No RFID Found");
+            break;
+          case DeviceStatus.NoDevice:
+          case DeviceStatus.Disconnected:
+          case DeviceStatus.Disconnecting:
+          case DeviceStatus.Error:
+            this.eventEmitter.emit("error", error);
+        }
+      }
       this.eventEmitter.emit("error", error);
     });
   }
@@ -219,6 +243,7 @@ export class RFIDWebSocketProcessor {
 
   public disconnect(): void {
     this.ws?.close(1000, "Client Closing Connection");
+    this.status = DeviceStatus.Disconnecting;
   }
 
   public sendMessage(message: string): void {
@@ -227,11 +252,13 @@ export class RFIDWebSocketProcessor {
     }
     this.eventEmitter.emit("error", "RFID not Connected"); //static message
   }
-  public getStatus(): RFIDReaderStatus {
+
+  public getStatus(): DeviceStatus {
     return this.status;
-  } 
+  }
+
   public on(
-    event: "connected" | "disconnected" | "error" | "messageReceived",
+    event: "connected" | "disconnected" | "error" | "status",
     listener: (...args: unknown[]) => void
   ): void {
     this.eventEmitter.on(event, listener);
