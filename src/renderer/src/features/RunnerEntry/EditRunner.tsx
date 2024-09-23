@@ -157,19 +157,23 @@ export function EditRunner(props: Props) {
                     value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
                     disabled
                   />
-                  <ButtonLink
-                    to="/roster"
-                    search={{ bibId: form.watch("bibId") }}
-                    variant="ghost"
-                    color="neutral"
-                    className="m-0 p-0 absolute right-2 top-1.5"
-                    id={tooltipid}
-                  >
-                    <ArrowRightBracketIcon className="h-5 w-5" />
-                  </ButtonLink>
-                  <Tooltip position="left" target={`#${tooltipid}`}>
-                    View Athlete
-                  </Tooltip>
+                  {athlete && (
+                    <>
+                      <ButtonLink
+                        to="/roster"
+                        search={{ firstName: athlete?.firstName, lastName: athlete?.lastName }}
+                        variant="ghost"
+                        color="neutral"
+                        className="m-0 p-0 absolute right-2 top-1.5"
+                        id={tooltipid}
+                      >
+                        <ArrowRightBracketIcon className="h-5 w-5" />
+                      </ButtonLink>
+                      <Tooltip position="left" target={`#${tooltipid}`}>
+                        View Athlete
+                      </Tooltip>
+                    </>
+                  )}
                 </div>
               </Stack>
               <DatePicker

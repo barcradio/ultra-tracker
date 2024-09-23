@@ -1,3 +1,4 @@
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { Tag } from "~/components/Tag";
 import { useAthletes } from "~/hooks/data/useAthletes";
 import { AthleteStatus, DNFType } from "$shared/enums";
@@ -6,7 +7,7 @@ import { EmergencyContact } from "./EmergencyContact";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 const renderStatusTag = (dnfType: DNFType, dns: boolean, status: AthleteStatus) => {
-  let tag;
+  let tag: JSX.Element;
 
   if (dns == (undefined || null) && dnfType == (undefined || null)) {
     return <> </>;
@@ -50,8 +51,13 @@ const renderStatusTag = (dnfType: DNFType, dns: boolean, status: AthleteStatus) 
   return tag;
 };
 
+const routeApi = getRouteApi(`/roster`);
+
 export function RosterPage() {
   const { data } = useAthletes();
+
+  const { firstName, lastName } = routeApi.useSearch();
+  const navigate = useNavigate();
 
   const columns: ColumnDef<AthleteDB> = [
     {
@@ -65,7 +71,7 @@ export function RosterPage() {
       name: "Status",
       render: (dnfType, { dns, status }) => renderStatusTag(dnfType!, dns!, status!),
       valueFn: (athlete) =>
-        `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType + " dnf"}
+        `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType + "dnf"}
          ${athlete.status! === AthleteStatus.Incoming ? "Incoming" : ""}
          ${athlete.status! === AthleteStatus.Present ? "In" : ""}
          ${athlete.status! === AthleteStatus.Outgoing && !athlete.dns! ? "Out" : ""}
@@ -108,7 +114,19 @@ export function RosterPage() {
 
   return (
     <div className="h-full bg-component">
-      <DataGrid data={data ?? []} columns={columns} getKey={({ bibId }) => bibId} showFooter />
+      <DataGrid
+        data={data ?? []}
+        columns={columns}
+        getKey={({ bibId }) => bibId}
+        showFooter
+        onClearFilters={() => {
+          // TODO: For some reason this requires two clicks to re-render
+          navigate({ search: {} });
+        }}
+        initialFilter={
+          firstName && lastName ? { firstName: `${firstName} ${lastName}` } : undefined
+        }
+      />
     </div>
   );
 }
