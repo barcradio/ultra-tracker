@@ -52,16 +52,17 @@ function getToastIcon(type: InternalToast["type"]) {
 }
 
 export function ToastComponent({ toast, removeToast }: Props) {
-  const [running, setRunning] = useState(true);
+  const [open, setOpen] = useState(true);
   const progress = useProgress(toast);
-  const animationEvent = progress === 1 ? () => removeToast(toast.id) : undefined;
+
+  const animationEvent = progress === 1 || !open ? () => removeToast(toast.id) : undefined;
 
   return (
     <ToastWrapper
       type={toast.type}
-      show={running && progress < 1}
+      show={open && progress < 1}
       onAnimationEnd={animationEvent}
-      onClick={() => setRunning(false)}
+      onClick={() => setOpen(false)}
     >
       <Stack direction="row" align="center" className="p-4 pr-10">
         {!toast.noIcon && <div className="mr-4">{getToastIcon(toast.type)}</div>}
