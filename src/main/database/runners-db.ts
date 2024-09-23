@@ -276,7 +276,7 @@ export async function importRunnersFromCSV() {
       result.slice(1).forEach((timing) => {
         const record: DNFRunnerDB = {
           index: timing.bibId,
-          bibId: timing.bibId,
+          bibId: Number(timing.bibId) - Number(timing.bibId % 1),
           stationId: stationId,
           timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
           timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
