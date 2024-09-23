@@ -313,11 +313,9 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
 }
 
 function processDuplicate(record: TypedRunnerDB): TypedRunnerDB {
-  // check again if importing from file
-  record.status = record.bibId % 1 == 0 ? RecordStatus.OK : RecordStatus.Duplicate;
-
   if (record.status == RecordStatus.Duplicate) {
-    record.bibId = record.bibId % 1 != 0 ? record.bibId : record.bibId + 0.2;
+    record.bibId = Number(record.bibId) + 0.2;
+
     const typeStr = RecordType[record.recordType];
     record.note = record.note.includes(`[Duplicate:${typeStr}]`)
       ? record.note
