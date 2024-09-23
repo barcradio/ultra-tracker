@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useId, useState } from "react";
+import { Tooltip } from "primereact/tooltip";
 import { FieldError } from "react-hook-form";
+import ArrowRightBracketIcon from "~/assets/icons/arrow-right-bracket.svg?react";
 import EditIcon from "~/assets/icons/edit.svg?react";
 import {
   Button,
+  ButtonLink,
   ConfirmationModal,
   DatePicker,
   Drawer,
@@ -81,6 +84,7 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
+  const tooltipid = `${useId().replace(/:/g, "")}-tooltip`;
   const { data: athlete } = useAthlete(form.watch("bibId"), isOpen);
 
   return (
@@ -147,14 +151,30 @@ export function EditRunner(props: Props) {
                     required: "Bib# is required"
                   })}
                 />
-                <TextInput
-                  width="w-full"
-                  wrapperClassName="grow"
-                  className="w-full"
-                  label="Name"
-                  value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
-                  disabled
-                />
+                <div className="relative grow">
+                  <TextInput
+                    label="Name"
+                    value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
+                    disabled
+                  />
+                  {athlete && (
+                    <>
+                      <ButtonLink
+                        to="/roster"
+                        search={{ firstName: athlete?.firstName, lastName: athlete?.lastName }}
+                        variant="ghost"
+                        color="neutral"
+                        className="m-0 p-0 absolute right-2 top-1.5"
+                        id={tooltipid}
+                      >
+                        <ArrowRightBracketIcon className="h-5 w-5" />
+                      </ButtonLink>
+                      <Tooltip position="left" target={`#${tooltipid}`}>
+                        View Athlete
+                      </Tooltip>
+                    </>
+                  )}
+                </div>
               </Stack>
               <DatePicker
                 name="in"

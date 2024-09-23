@@ -6,6 +6,7 @@ import { FilterState } from "../hooks/useFilterState";
 interface Props<T extends object> {
   removeFilter: (field?: keyof T) => void;
   filterState: FilterState<T>;
+  onClearFilters?: () => void;
 }
 
 const Button = classed.button({
@@ -28,8 +29,9 @@ const Button = classed.button({
 export function ResetButton<T extends object>(props: Props<T>) {
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const onAnimationEnd = () => {
-    setIsAnimating(false);
+  const onClick = () => {
+    setIsAnimating(true);
+    props.onClearFilters?.();
     props.removeFilter();
   };
 
@@ -37,8 +39,8 @@ export function ResetButton<T extends object>(props: Props<T>) {
     <Button
       show={Object.keys(props.filterState).length > 0}
       spinning={isAnimating}
-      onClick={() => setIsAnimating(true)}
-      onAnimationEnd={onAnimationEnd}
+      onClick={() => onClick()}
+      onAnimationEnd={() => setIsAnimating(false)}
     >
       <ResetIcon width={18} className="fill-current" height={18} />
     </Button>
