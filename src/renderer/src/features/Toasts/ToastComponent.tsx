@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { differenceInMilliseconds } from "date-fns";
 import CheckIcon from "~/assets/icons/check-circle.svg?react";
 import DangerIcon from "~/assets/icons/error-octagon.svg?react";
 import InfoIcon from "~/assets/icons/info-circle.svg?react";
 import WarningIcon from "~/assets/icons/warning-circle.svg?react";
+import CloseIcon from "~/assets/icons/xmark.svg?react";
 import { Stack } from "~/components";
 import { useCurrentTime } from "~/hooks/useCurrentTime";
 import { classed } from "~/lib/classed";
@@ -13,8 +15,8 @@ interface Props {
   removeToast: (id: string) => void;
 }
 
-const ToastWrapper = classed.div({
-  base: "m-2 font-medium rounded-md w-84 fill-forward bg-surface-secondary text-on-component",
+const ToastWrapper = classed.button({
+  base: "block font-medium rounded-md w-84 fill-forward bg-surface-secondary text-on-component hover:bg-surface-tertiary transition group",
   variants: {
     show: {
       true: "animate-bounce-right-in",
@@ -50,12 +52,18 @@ function getToastIcon(type: InternalToast["type"]) {
 }
 
 export function ToastComponent({ toast, removeToast }: Props) {
+  const [running, setRunning] = useState(true);
   const progress = useProgress(toast);
   const animationEvent = progress === 1 ? () => removeToast(toast.id) : undefined;
 
   return (
-    <ToastWrapper type={toast.type} show={progress < 1} onAnimationEnd={animationEvent}>
-      <Stack direction="row" align="center" className="p-4">
+    <ToastWrapper
+      type={toast.type}
+      show={running && progress < 1}
+      onAnimationEnd={animationEvent}
+      onClick={() => setRunning(false)}
+    >
+      <Stack direction="row" align="center" className="p-4 pr-10">
         {!toast.noIcon && <div className="mr-4">{getToastIcon(toast.type)}</div>}
         <div className="font-bold">{toast.message}</div>
       </Stack>
@@ -63,6 +71,7 @@ export function ToastComponent({ toast, removeToast }: Props) {
         className="block bottom-0 left-0 h-1.5 rounded-bl-md transition-all origin-left"
         style={{ transform: `scaleX(${1 - progress})` }}
       />
+      <CloseIcon className="absolute top-0 right-0 fill-on-surface h-4 w-4 mt-1 mr-2 group-hover:opacity-100 opacity-0" />
     </ToastWrapper>
   );
 }
