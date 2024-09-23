@@ -39,7 +39,7 @@ const renderStatusTag = (dnfType: DNFType, dns: boolean, status: AthleteStatus) 
         tag = <> </>;
         break;
       case AthleteStatus.Present:
-        tag = <Tag color="lightorange">➠ In</Tag>;
+        tag = <Tag color="orange">➠ In</Tag>;
         break;
       case AthleteStatus.Outgoing:
         tag = <Tag color="lightgray">Out ➠</Tag>;
