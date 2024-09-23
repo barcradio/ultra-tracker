@@ -503,7 +503,7 @@ function parseCSVDate(timingDate: string): Date {
 export function syncAthleteNote(bibId: number, note: string, direction: SyncDirection) {
   const db = getDatabaseConnection();
   const athleteResult = GetAthleteByBib(bibId);
-  let combinedNote: string | null = "";
+  let combinedNote: string = "";
 
   if (athleteResult[1] != DatabaseStatus.Success) return;
 
@@ -521,9 +521,6 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
       combinedNote = athleteNote.concat(" ", combinedNote).trimStart();
       break;
   }
-
-  // don't set empty strings, set null
-  if (combinedNote == "") combinedNote = null;
 
   try {
     db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
