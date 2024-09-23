@@ -59,8 +59,6 @@ export const useCreateTiming = () => {
       const athleteResponse = await ipcRenderer.invoke("get-athlete-by-bib", timeRecord.bibId);
       const [athlete] = athleteResponse as DatabaseResponse<AthleteDB>;
 
-      console.log("athleteResponse", athleteResponse);
-
       // If no athlete with the bib number exists, show a warning
       if (athlete === null)
         createToast({
