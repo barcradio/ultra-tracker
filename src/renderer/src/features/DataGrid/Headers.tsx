@@ -27,6 +27,7 @@ interface Props<T extends object> {
   columns: Column<T>[];
   filterState: FilterState<T>;
   setFilter: (field: keyof T, filter: string) => void;
+  onClearFilters?: () => void;
   removeFilter: (field?: keyof T) => void;
   sortState: SortState<T>;
   setSortField: (field: keyof T) => void;
@@ -74,7 +75,11 @@ export function Headers<T extends object>(props: Props<T>) {
         ))}
         <th className="relative text-right bg-component-strong" style={{ width: "3%" }}>
           {props.type === "header" && (
-            <ResetButton removeFilter={props.removeFilter} filterState={props.filterState} />
+            <ResetButton
+              removeFilter={props.removeFilter}
+              filterState={props.filterState}
+              onClearFilters={props.onClearFilters}
+            />
           )}
         </th>
       </Row>

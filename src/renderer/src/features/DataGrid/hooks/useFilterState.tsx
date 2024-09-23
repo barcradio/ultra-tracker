@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useSessionStorage } from "@uidotdev/usehooks";
 import objectHash from "object-hash";
 import { formatDate } from "~/lib/datetimes";
@@ -6,9 +6,20 @@ import { Column } from "../types";
 
 export type FilterState<T extends object> = Partial<Record<keyof T, string>>;
 
-export function useFilterState<T extends object>({ columns }: { columns: Column<T>[] }) {
+interface Params<T extends object> {
+  columns: Column<T>[];
+  initialFilter?: FilterState<T>;
+}
+
+export function useFilterState<T extends object>(params: Params<T>) {
+  const { columns, initialFilter } = params;
   const hash = objectHash(columns.map((column) => column.field));
   const [filters, setFilters] = useSessionStorage<FilterState<T>>(`filter-${hash}`, {});
+
+  useEffect(() => {
+    // If initial filter is provided, set it after session storage is loaded
+    if (initialFilter) setFilters(initialFilter);
+  }, [initialFilter, setFilters, hash]);
 
   const setFilter = useCallback(
     (field: keyof T, filter: string) => {
