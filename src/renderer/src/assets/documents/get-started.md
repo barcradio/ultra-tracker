@@ -224,6 +224,9 @@ If instructed to do so,
 1. Load the DNF File.
 1. Import History File to DB.
 
+### Local Database
+Ultra-tracker runs a modern database on the local machine.  All transactions are preserved immediately and the operator can close and re-open the app without loss of data.  A background task backs up the database to a secondary file, every 5 minutes.  This backup is used for emergency use only and may not restore all data in a data-loss event.  *Do not modify the local database files using external tools!*
+
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
