@@ -4,9 +4,12 @@ import { Footer } from "~/features/Footer/Footer";
 import { Header } from "~/features/Header/Header";
 import { Sidebar } from "~/features/Sidebar/Sidebar";
 import { ToastProvider } from "~/features/Toasts/ToastsProvider";
+import { useToastOnRFIDStatus } from "../hooks/ipc/useToastOnRFIDStatus";
 
-export const Route = createRootRoute({
-  component: () => (
+//turned into functional component to work correctly
+function RootComponent() {
+  useToastOnRFIDStatus();
+  return (
     <BackdropProvider>
       <ToastProvider>
         <Sidebar />
@@ -19,5 +22,9 @@ export const Route = createRootRoute({
         </div>
       </ToastProvider>
     </BackdropProvider>
-  )
+  );
+}
+
+export const Route = createRootRoute({
+  component: RootComponent
 });
