@@ -20,10 +20,13 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
   const recordWithBib = bibSearch ? checkRecordType(bibSearch) : bibSearch;
   const indexSearch = getTimeRecordbyIndex(record)[0];
   const recordWithIndex = indexSearch ? checkRecordType(indexSearch) : indexSearch;
+  const stationEntryMode = appStore.get("station.entrymode") as number;
 
   // new record
   if (!recordWithBib && !recordWithIndex) {
     incomingRecord.status = RecordStatus.OK;
+    if (stationEntryMode == EntryMode.Fast) forceFastMode(incomingRecord);
+
     [status, message] = insertTimeRecord(incomingRecord);
   }
 
@@ -39,6 +42,7 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
       [status, message] = updateTimeRecord(incomingRecord, recordWithBib, true);
     } else {
       incomingRecord.status = RecordStatus.Duplicate; // this is a true duplicate
+      if (stationEntryMode == EntryMode.Fast) forceFastMode(incomingRecord);
       [status, message] = insertTimeRecord(incomingRecord);
     }
   }
@@ -65,6 +69,15 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
 
   console.log(message);
   return [status, message];
+}
+
+function forceFastMode(record: RunnerDB): TypedRunnerDB {
+  const type: RecordType = RecordType.InOut;
+
+  if (record.timeIn && !record.timeOut) record.timeOut = record.timeIn;
+  if (!record.timeIn && record.timeOut) record.timeIn = record.timeOut;
+
+  return { ...record, recordType: type };
 }
 
 function checkRecordType(record: RunnerDB): TypedRunnerDB {
