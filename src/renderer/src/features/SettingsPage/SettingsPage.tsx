@@ -5,7 +5,7 @@ import { useRFIDStatus } from "./hooks/useRFIDStatus";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 import { DeviceStatus } from "../../../../shared/enums";
 
-function useIsStartLine() {
+function useShouldEnableRFID() {
   const { data: startline } = useStoreValue("event.startline");
   const { data: finishline } = useStoreValue("event.finishline");
   const { data: stationIdentifier } = useStoreValue("station.identifier");
@@ -20,7 +20,7 @@ export function SettingsPage() {
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
 
-  const isStartLine = useIsStartLine();
+  const shouldEnableRFID = useShouldEnableRFID();
   const [rfidStatus] = useRFIDStatus();
 
   const handleRfidButtonClick = () => {
@@ -64,7 +64,11 @@ export function SettingsPage() {
               </Stack>
             }
           >
-            <Button size="wide" onClick={() => handleRfidButtonClick()} disabled={!isStartLine}>
+            <Button
+              size="wide"
+              onClick={() => handleRfidButtonClick()}
+              disabled={!shouldEnableRFID}
+            >
               {rfidButtonText}
             </Button>
           </VerticalButtonGroup>

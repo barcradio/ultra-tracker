@@ -10,6 +10,7 @@ export type Column<T extends object> = {
     sortable?: boolean;
     render?: (value: T[K], row: T) => ReactNode;
     align?: "left" | "right";
+    truncate?: boolean;
   };
 }[keyof T];
 

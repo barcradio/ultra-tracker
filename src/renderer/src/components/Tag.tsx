@@ -3,6 +3,7 @@ import { VariantProps } from "class-variance-authority";
 import { classed } from "~/lib/classed";
 
 type TagVariants = VariantProps<typeof TagWrapper>;
+export type TagColor = TagVariants["color"];
 
 // TODO: Support icons in tag component
 interface TagProps {

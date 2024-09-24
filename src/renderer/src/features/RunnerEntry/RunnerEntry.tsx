@@ -1,26 +1,11 @@
-import { Stack, Tag } from "~/components";
+import { Stack } from "~/components";
+import { StatusTag } from "~/components/StatusTag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
-import { DNFType } from "$shared/enums";
+import { DNFType, RecordStatus } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
 import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
-
-const renderDNFTag = (dnfType?: DNFType) => {
-  switch (dnfType) {
-    case DNFType.Withdrew:
-      return <Tag color="turquoise">Withdrew</Tag>;
-    case DNFType.Timeout:
-      return <Tag color="purple">Timeout</Tag>;
-    case DNFType.Medical:
-      return <Tag color="red">Medical</Tag>;
-    case DNFType.Unknown:
-      return <Tag color="gray">Unknown</Tag>;
-    case DNFType.None:
-    default:
-      return <> </>;
-  }
-};
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
@@ -52,9 +37,14 @@ export function RunnerEntry() {
     },
     {
       field: "dnfType",
-      name: "DNF",
-      render: renderDNFTag,
-      valueFn: ({ dnfType }) => (dnfType === DNFType.None ? "" : dnfType), // Group DNFs together on sort
+      name: "Status",
+      truncate: false,
+      render: (dnfType, { dns, status }) => (
+        <StatusTag dnfType={dnfType} dns={dns} duplicate={status === RecordStatus.Duplicate} />
+      ),
+      valueFn: (data) =>
+        `${data.dnfType! === DNFType.None ? "" : data.dnfType + "dnf"},
+         ${data.dns! ? "DNS" : ""}`,
       width: "118px"
     },
     {
