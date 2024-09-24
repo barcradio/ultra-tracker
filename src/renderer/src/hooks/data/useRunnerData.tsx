@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { DNFType } from "$shared/enums";
+import { DNFType, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { useHandleStatusToasts } from "../useHandleStatusToasts";
@@ -18,6 +18,7 @@ export interface RunnerEx extends Runner {
   dns: boolean;
   dnf: boolean;
   dnfType: DNFType;
+  status: RecordStatus;
 }
 
 export function useRunnerData() {
@@ -43,7 +44,8 @@ export function useRunnerData() {
         note: runner.note,
         dns: runner.dns ?? false,
         dnf: runner.dnf ?? false,
-        dnfType: runner.dnfType ?? DNFType.None
+        dnfType: runner.dnfType ?? DNFType.None,
+        status: runner.status ?? RecordStatus.OK
       }));
     }
   });

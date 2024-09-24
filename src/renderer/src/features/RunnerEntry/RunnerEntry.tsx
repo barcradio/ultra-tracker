@@ -1,8 +1,8 @@
-import { Stack, Tag } from "~/components";
+import { Stack } from "~/components";
 import { StatusTag } from "~/components/StatusTag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
-import { DNFType } from "$shared/enums";
+import { DNFType, RecordStatus } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
 import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
@@ -38,7 +38,9 @@ export function RunnerEntry() {
     {
       field: "dnfType",
       name: "Status",
-      render: (dnfType, { dns }) => <StatusTag dnfType={dnfType} dns={dns} />,
+      render: (dnfType, { dns, status }) => (
+        <StatusTag dnfType={dnfType} dns={dns} duplicate={status === RecordStatus.Duplicate} />
+      ),
       valueFn: (data) =>
         `${data.dnfType! === DNFType.None ? "" : data.dnfType + "dnf"},
          ${data.dns! ? "DNS" : ""}`,

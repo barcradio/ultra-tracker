@@ -5,6 +5,7 @@ interface Props {
   dnfType?: DNFType;
   dns?: boolean;
   athleteStatus?: AthleteStatus;
+  duplicate?: boolean;
 }
 
 type TagInfo = { color: TagColor; text: string };
@@ -24,7 +25,9 @@ const athleteStatusMap: Record<AthleteStatus, TagInfo | null> = {
 };
 
 function getStatusColor(props: Props): TagInfo | null {
-  if (props.dnfType) {
+  if (props.duplicate) {
+    return { color: "red", text: "Duplicate" };
+  } else if (props.dnfType) {
     return dnfTypeMap[props.dnfType];
   } else if (props.dns) {
     return { color: "blue", text: "DNS" };
