@@ -43,7 +43,11 @@ export function TableContent<T extends object>(props: Props<T>) {
           ref={props.rowVirtualizer.measureElement}
         >
           {props.columns.map((column) => (
-            <Cell key={column.name ?? String(column.field)} align={column.align ?? "left"}>
+            <Cell
+              key={column.name ?? String(column.field)}
+              align={column.align ?? "left"}
+              truncate={column.truncate !== false}
+            >
               {renderCell(column, props.data[row.index])}
             </Cell>
           ))}

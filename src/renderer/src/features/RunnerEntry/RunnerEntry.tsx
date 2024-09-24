@@ -38,6 +38,7 @@ export function RunnerEntry() {
     {
       field: "dnfType",
       name: "Status",
+      truncate: false,
       render: (dnfType, { dns, status }) => (
         <StatusTag dnfType={dnfType} dns={dns} duplicate={status === RecordStatus.Duplicate} />
       ),
