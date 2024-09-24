@@ -4,12 +4,12 @@ import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { formatDate } from "~/lib/datetimes";
 import { DNFType, RecordStatus } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
+import { InTimeCell } from "./InTimeCell";
 import { RunnerFormStats } from "./RunnerFormStats";
 import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
-
   const columns: ColumnDef<RunnerEx> = [
     {
       field: "sequence",
@@ -26,7 +26,7 @@ export function RunnerEntry() {
     {
       field: "in",
       name: "In Time",
-      render: formatDate,
+      render: (value) => <InTimeCell value={value} />,
       width: "160px"
     },
     {

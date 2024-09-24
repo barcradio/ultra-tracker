@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { Tooltip } from "primereact/tooltip";
 import { FieldError } from "react-hook-form";
 import ArrowRightBracketIcon from "~/assets/icons/arrow-right-bracket.svg?react";
@@ -16,6 +16,7 @@ import {
 import { useAthlete, useSetAthleteStatus } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
+import { useId } from "~/hooks/useId";
 import { DNFType } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { useToasts } from "../Toasts/useToasts";
@@ -84,7 +85,7 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
-  const tooltipid = `${useId().replace(/:/g, "")}-tooltip`;
+  const tooltipId = useId("tooltip");
   const { data: athlete } = useAthlete(form.watch("bibId"), isOpen);
 
   return (
@@ -165,11 +166,11 @@ export function EditRunner(props: Props) {
                         variant="ghost"
                         color="neutral"
                         className="m-0 p-0 absolute right-2 top-1.5"
-                        id={tooltipid}
+                        id={tooltipId}
                       >
                         <ArrowRightBracketIcon className="h-5 w-5" />
                       </ButtonLink>
-                      <Tooltip position="left" target={`#${tooltipid}`}>
+                      <Tooltip position="left" target={`#${tooltipId}`}>
                         View Athlete
                       </Tooltip>
                     </>
