@@ -57,7 +57,9 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
   if (recordWithBib && recordWithIndex) {
     if (JSON.stringify(recordWithBib) === JSON.stringify(recordWithIndex)) {
       if (JSON.stringify(incomingRecord) !== JSON.stringify(recordWithIndex)) {
-        incomingRecord.status = RecordStatus.OK;
+        incomingRecord.bibId % 1 == 0
+          ? (incomingRecord.status = RecordStatus.OK)
+          : (incomingRecord.status = RecordStatus.Duplicate);
         [status, message] = updateTimeRecord(incomingRecord, recordWithIndex, false);
       }
     } else {
