@@ -6,20 +6,37 @@ import { EditRunner } from "./EditRunner";
 import { RunnerFormStats } from "./RunnerFormStats";
 import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
 
-const renderDNFTag = (dnfType?: DNFType) => {
-  switch (dnfType) {
-    case DNFType.Withdrew:
-      return <Tag color="turquoise">Withdrew</Tag>;
-    case DNFType.Timeout:
-      return <Tag color="purple">Timeout</Tag>;
-    case DNFType.Medical:
-      return <Tag color="red">Medical</Tag>;
-    case DNFType.Unknown:
-      return <Tag color="gray">Unknown</Tag>;
-    case DNFType.None:
-    default:
-      return <> </>;
+const renderStatusTag = (dnfType: DNFType, dns: boolean) => {
+  let tag: JSX.Element = <> </>;
+
+  if (dns == (undefined || null) && dnfType == (undefined || null)) {
+    return <> </>;
   }
+  if (dnfType) {
+    switch (dnfType as DNFType) {
+      case DNFType.Withdrew:
+        tag = <Tag color="turquoise">Withdrew</Tag>;
+        break;
+      case DNFType.Timeout:
+        tag = <Tag color="purple">Timeout</Tag>;
+        break;
+      case DNFType.Medical:
+        tag = <Tag color="red">Medical</Tag>;
+        break;
+      case DNFType.Unknown:
+        tag = <Tag color="gray">Unknown</Tag>;
+        break;
+      case DNFType.None:
+      default:
+        tag = <> </>;
+        break;
+    }
+  }
+  if (dns) {
+    tag = <Tag color="blue">DNS</Tag>;
+  }
+
+  return tag;
 };
 
 export function RunnerEntry() {
@@ -52,9 +69,11 @@ export function RunnerEntry() {
     },
     {
       field: "dnfType",
-      name: "DNF",
-      render: renderDNFTag,
-      valueFn: ({ dnfType }) => (dnfType === DNFType.None ? "" : dnfType), // Group DNFs together on sort
+      name: "Status",
+      render: (dnfType, { dns }) => renderStatusTag(dnfType!, dns!),
+      valueFn: (data) =>
+        `${data.dnfType! === DNFType.None ? "" : data.dnfType + "dnf"},
+         ${data.dns! ? "DNS" : ""}`,
       width: "118px"
     },
     {
