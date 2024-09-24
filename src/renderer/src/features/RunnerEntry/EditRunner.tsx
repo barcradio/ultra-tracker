@@ -17,7 +17,7 @@ import { useAthlete, useSetAthleteStatus } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
-import { DNFType } from "$shared/enums";
+import { DNFType, RecordStatus } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { useToasts } from "../Toasts/useToasts";
 
@@ -207,6 +207,7 @@ export function EditRunner(props: Props) {
               />
               <Stack direction="row" align="end" justify="stretch" className="gap-6 w-full">
                 <Select
+                  disabled={selectedRunner.state.status === RecordStatus.Duplicate}
                   onChange={(value) => {
                     form.setValue("dnfType", value ? (value as DNFType) : DNFType.None);
                   }}
@@ -217,6 +218,7 @@ export function EditRunner(props: Props) {
                   placeholder="DNF"
                 />
                 <Select
+                  disabled={selectedRunner.state.status === RecordStatus.Duplicate}
                   onChange={(value) => form.setValue("dns", value === "dns")}
                   className="w-1/2"
                   label="DNS"
