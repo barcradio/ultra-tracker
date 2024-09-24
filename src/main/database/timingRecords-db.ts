@@ -320,7 +320,7 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
 
 function processDuplicate(record: TypedRunnerDB): TypedRunnerDB {
   if (record.status == RecordStatus.Duplicate) {
-    record.bibId = record.bibId % 1 != 0 ? record.bibId : record.bibId + 0.2;
+    record.bibId = record.bibId % 1 != 0 ? record.bibId : Number(record.bibId) + 0.2;
   }
   return record;
 }
