@@ -2,7 +2,7 @@ import { DatabaseResponse } from "$shared/types";
 import * as dbAthletes from "./athlete-db";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
-import { DatabaseStatus, RecordStatus, RecordType } from "../../shared/enums";
+import { DatabaseStatus, EntryMode, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 import { appStore } from "../lib/store";
 
