@@ -36,7 +36,7 @@ export function InitializeRFIDReader() {
 
   if (rfidWebSocketProcessor != null) {
     if (rfidWebSocketProcessor.getStatus() == DeviceStatus.Connected) {
-      return "RFID Connected"; // static string
+      return "RFID already connected."; // static string
     }
   }
 
@@ -44,10 +44,10 @@ export function InitializeRFIDReader() {
     rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, rfidRead);
   } catch (e) {
     if (e instanceof Error) {
-      console.error(`This RFID is broke: ${e.message}`);
+      console.error(`RFID initialization error:: ${e.message}`);
       rfidStatus(DeviceStatus.Error, e.message);
     }
-    return "RFID: Not Connected"; //static string
+    return "Failed to connect to RFID."; //static string
   }
 
   rfidWebSocketProcessor.on("connected", () => {
@@ -65,9 +65,9 @@ export function InitializeRFIDReader() {
   });
 
   rfidWebSocketProcessor.on("status", (...args: unknown[]) => {
-    const [status, mess] = args as [DeviceStatus, string];
+    const [status, message] = args as [DeviceStatus, string];
 
-    rfidStatus(<DeviceStatus>status, mess);
+    rfidStatus(<DeviceStatus>status, message);
   });
 
   return "Connecting RFID"; //static string
@@ -145,16 +145,13 @@ export class RFIDWebSocketProcessor {
         switch (this.status) {
           case DeviceStatus.Connected:
             console.error("RFID host unreachable attempting to reconnect.");
-            this.eventEmitter.emit("error", error);
+            this.eventEmitter.emit("status", DeviceStatus.Error, "Lost connection to RFID device.");
             break;
           case DeviceStatus.Connecting:
             this.status = DeviceStatus.NoDevice;
             this.eventEmitter.emit("status", this.status, "No RFID Found");
             break;
-          case DeviceStatus.NoDevice:
-          case DeviceStatus.Disconnected:
-          case DeviceStatus.Disconnecting:
-          case DeviceStatus.Error:
+          default:
             this.eventEmitter.emit("error", error);
         }
       }
@@ -173,8 +170,6 @@ export class RFIDWebSocketProcessor {
       //called only if it was once connected and connection was never able to reconnect
       if (this.status == DeviceStatus.Connected) {
         this.eventEmitter.emit("error", "RFID Lost Connection max reconnection attempts reached"); //static string
-      } else if (this.status == DeviceStatus.Connecting) {
-        console.error("Max reconnection attempts reached. Unable connect to RFID");
       }
       this.status = DeviceStatus.NoDevice;
       this.eventEmitter.emit("status", this.status, "NO RFID Found");
@@ -237,21 +232,9 @@ export class RFIDWebSocketProcessor {
     }
   }
 
-  public connect(addr: string) {
-    this.url = "wss://" + addr + "/ws";
-    this.handleReconnection();
-  }
-
   public disconnect(): void {
     this.ws?.close(1000, "Client Closing Connection");
     this.status = DeviceStatus.Disconnecting;
-  }
-
-  public sendMessage(message: string): void {
-    if (this.status == DeviceStatus.Connected) {
-      this.ws?.send(message);
-    }
-    this.eventEmitter.emit("error", "RFID not Connected"); //static message
   }
 
   public getStatus(): DeviceStatus {
