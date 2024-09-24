@@ -27,7 +27,7 @@ const athleteStatusMap: Record<AthleteStatus, TagInfo | null> = {
 function getStatusColor(props: Props): TagInfo | null {
   if (props.duplicate) {
     return { color: "red", text: "Duplicate" };
-  } else if (props.dnfType) {
+  } else if (props.dnfType && props.dnfType != DNFType.None) {
     return dnfTypeMap[props.dnfType];
   } else if (props.dns) {
     return { color: "blue", text: "DNS" };
