@@ -17,6 +17,17 @@ function createStationOptions(stations?: StationDB[]) {
   });
 }
 
+function useEntryModeInfo() {
+  const { data: station } = useStation();
+  const entryModeLabel =
+    station?.entrymode == EntryMode.Fast ? (
+      <span className="font-bold">Fast Mode &#128007;</span>
+    ) : (
+      <span className="font-bold">Normal Mode &#127939;</span>
+    );
+  return { entryModeLabel };
+}
+
 export function StationsPage() {
   const { data: currentStation } = useStation();
   const { data: stations } = useStations();
@@ -25,6 +36,8 @@ export function StationsPage() {
 
   const stationOptions = useMemo(() => createStationOptions(stations), [stations]);
   const { data: currentOperators } = useStationOperators(identityForm.watch("identifier"));
+
+  const { entryModeLabel } = useEntryModeInfo();
 
   useEffect(() => {
     if (currentOperators) setValue("callsign", currentOperators["primary"]?.callsign);
@@ -136,6 +149,9 @@ export function StationsPage() {
           className="w-72"
         />
         <Button className="px-5 py-[6.8px]">Apply</Button>
+        <Stack justify="between" align="center" className="py-6 pl-4 m-4 text-2xl font-display">
+          <p className="text-on-component">{entryModeLabel}</p>
+        </Stack>
       </Stack>
       <div style={{ height: "100vh", paddingTop: "10px" }}>
         <DataGrid data={stations ?? []} columns={columns} getKey={({ identifier }) => identifier} />
