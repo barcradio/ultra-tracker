@@ -24,9 +24,9 @@ const athleteStatusMap: Record<AthleteStatus, TagInfo | null> = {
   [AthleteStatus.Incoming]: null
 };
 
-function getStatusColor(props: Props): TagInfo | null {
+function getTagInfo(props: Props): TagInfo | null {
   if (props.duplicate) {
-    return { color: "red", text: "Duplicate" };
+    return { color: "yellow", text: "Duplicate" };
   } else if (props.dnfType && props.dnfType != DNFType.None) {
     return dnfTypeMap[props.dnfType];
   } else if (props.dns) {
@@ -39,7 +39,7 @@ function getStatusColor(props: Props): TagInfo | null {
 }
 
 export function StatusTag(props: Props) {
-  const tagInfo = getStatusColor(props);
+  const tagInfo = getTagInfo(props);
   if (!tagInfo) return null;
   return <Tag color={tagInfo.color}>{tagInfo.text}</Tag>;
 }
