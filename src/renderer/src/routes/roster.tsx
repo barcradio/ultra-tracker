@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RosterPage } from "~/features/RosterPage/RosterPage";
 
-interface BibIdFilter {
+export interface BibIdFilter {
   firstName?: string;
   lastName?: string;
 }
