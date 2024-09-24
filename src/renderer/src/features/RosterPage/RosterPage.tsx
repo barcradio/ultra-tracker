@@ -1,55 +1,10 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
-import { Tag } from "~/components/Tag";
+import { StatusTag } from "~/components/StatusTag";
 import { useAthletes } from "~/hooks/data/useAthletes";
 import { AthleteStatus, DNFType } from "$shared/enums";
 import { AthleteDB } from "$shared/models";
 import { EmergencyContact } from "./EmergencyContact";
 import { ColumnDef, DataGrid } from "../DataGrid";
-
-const renderStatusTag = (dnfType: DNFType, dns: boolean, status: AthleteStatus) => {
-  let tag: JSX.Element;
-
-  if (dns == (undefined || null) && dnfType == (undefined || null)) {
-    return <> </>;
-  } else if (dnfType) {
-    switch (dnfType as DNFType) {
-      case DNFType.Withdrew:
-        tag = <Tag color="turquoise">Withdrew</Tag>;
-        break;
-      case DNFType.Timeout:
-        tag = <Tag color="purple">Timeout</Tag>;
-        break;
-      case DNFType.Medical:
-        tag = <Tag color="red">Medical</Tag>;
-        break;
-      case DNFType.Unknown:
-        tag = <Tag color="gray">Unknown</Tag>;
-        break;
-      case DNFType.None:
-      default:
-        tag = <> </>;
-        break;
-    }
-  } else if (dns) {
-    return <Tag color="blue">DNS</Tag>;
-  } else {
-    switch (status as AthleteStatus) {
-      case AthleteStatus.Incoming:
-        //tag = <Tag color="lightgreen"></Tag>;
-        tag = <> </>;
-        break;
-      case AthleteStatus.Present:
-        tag = <Tag color="orange">➠ In</Tag>;
-        break;
-      case AthleteStatus.Outgoing:
-        tag = <Tag color="lightgray">Out ➠</Tag>;
-        //tag = <>Out</>;
-        break;
-    }
-  }
-
-  return tag;
-};
 
 const routeApi = getRouteApi(`/roster`);
 
@@ -69,7 +24,9 @@ export function RosterPage() {
     {
       field: "dnfType",
       name: "Status",
-      render: (dnfType, { dns, status }) => renderStatusTag(dnfType!, dns!, status!),
+      render: (dnfType, { dns, status }) => (
+        <StatusTag dnfType={dnfType} dns={dns} athleteStatus={status} />
+      ),
       valueFn: (athlete) =>
         `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType + "dnf"}
          ${athlete.status! === AthleteStatus.Incoming ? "Incoming" : ""}
