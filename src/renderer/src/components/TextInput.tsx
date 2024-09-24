@@ -59,13 +59,18 @@ export const TextInput = forwardRef<HTMLInputElement, Props>((props, ref) => {
 
   return (
     <Stack direction="col" className={`gap-1 ${wrapperClassName}`}>
-      <Stack direction="row" align="center" className="gap-2.5">
-        {label && <Label {...labelProps}>{label}</Label>}
-        {error && <WarningIcon width={20} className="fill-warning animate-in slide-in-from-left" />}
-      </Stack>
+      {(label || error) && (
+        <Stack direction="row" align="center" className="gap-2.5">
+          {label && <Label {...labelProps}>{label}</Label>}
+          {error && (
+            <WarningIcon width={20} className="fill-warning animate-in slide-in-from-left" />
+          )}
+        </Stack>
+      )}
       <Input
         {...rest}
         as={(isTextArea ? "textarea" : "input") as "input"} // weird ts error
+        resize={isTextArea ? props.resize : undefined}
         ref={ref}
         hasError={Boolean(props.error)}
         isDisabled={Boolean(props.disabled)}
