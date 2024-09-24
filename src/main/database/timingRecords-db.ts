@@ -226,6 +226,9 @@ function updateTimeRecord(
   dbAthletes.SetStatusOnAthlete(record.bibId);
 
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+
+  if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
+
   return [DatabaseStatus.Updated, message];
 }
 
@@ -276,6 +279,9 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   dbAthletes.SetStatusOnAthlete(record.bibId);
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+
+  if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
+
   return [DatabaseStatus.Created, message];
 }
 
@@ -314,12 +320,7 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
 
 function processDuplicate(record: TypedRunnerDB): TypedRunnerDB {
   if (record.status == RecordStatus.Duplicate) {
-    record.bibId = Number(record.bibId) + 0.2;
-
-    const typeStr = RecordType[record.recordType];
-    record.note = record.note.includes(`[Duplicate:${typeStr}]`)
-      ? record.note
-      : `[Duplicate:${typeStr}] ` + record.note;
+    record.bibId = record.bibId % 1 != 0 ? record.bibId : record.bibId + 0.2;
   }
   return record;
 }
