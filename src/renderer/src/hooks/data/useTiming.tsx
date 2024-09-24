@@ -70,7 +70,8 @@ export const useCreateTiming = () => {
       if (status == DatabaseStatus.Duplicate)
         createToast({
           message: `Runner #${timeRecord.bibId} already has a timing record!`,
-          type: "warning"
+          type: "warning",
+          timeoutMs: -1
         });
     }
   });

@@ -226,6 +226,9 @@ function updateTimeRecord(
   dbAthletes.SetStatusOnAthlete(record.bibId);
 
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+
+  if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
+
   return [DatabaseStatus.Updated, message];
 }
 
@@ -276,6 +279,9 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   dbAthletes.SetStatusOnAthlete(record.bibId);
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+
+  if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
+
   return [DatabaseStatus.Created, message];
 }
 
