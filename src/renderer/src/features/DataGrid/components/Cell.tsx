@@ -1,7 +1,7 @@
-import { useId } from "react";
 import { Tooltip } from "primereact/tooltip";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { useTruncated } from "~/hooks/dom/useTruncated";
+import { useId } from "~/hooks/useId";
 import { classed } from "~/lib/classed";
 
 export const CellWrapper = classed.td(
@@ -27,9 +27,7 @@ interface CellProps {
 
 export function Cell(props: CellProps) {
   const portalRoot = usePortalRoot();
-
-  const rawId = useId();
-  const cellId = `cell-${rawId.replace(/:/g, "")}`;
+  const cellId = useId("cell");
 
   const [cellRef, truncated] = useTruncated<HTMLTableCellElement>(props.children);
 
