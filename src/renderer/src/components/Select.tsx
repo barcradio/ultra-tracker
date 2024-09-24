@@ -26,6 +26,7 @@ interface Props {
   placeholder?: string;
   showFilter?: boolean;
   showClear?: boolean;
+  disabled?: boolean;
 }
 
 export function Select(props: Props) {
@@ -51,12 +52,13 @@ export function Select(props: Props) {
         filter={props.showFilter}
         showClear={props.showClear}
         options={options}
+        disabled={props.disabled}
         placeholder={props.placeholder}
         {...(isGrouped && { optionGroupLabel: "label", optionGroupChildren: "items" })}
         {...(!isGrouped && { optionLabel: "name", optionValue: "value" })}
         pt={{
           input: {
-            className: props.value ? "text-on-component" : "text-on-surface"
+            className: !props.disabled ? "text-on-component" : "text-on-surface"
           }
         }}
       />
