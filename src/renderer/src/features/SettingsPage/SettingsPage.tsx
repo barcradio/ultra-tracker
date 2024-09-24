@@ -7,10 +7,11 @@ import { DeviceStatus } from "../../../../shared/enums";
 
 function useIsStartLine() {
   const { data: startline } = useStoreValue("event.startline");
+  const { data: finishline } = useStoreValue("event.finishline");
   const { data: stationIdentifier } = useStoreValue("station.identifier");
 
-  if (!startline || !stationIdentifier) return false;
-  return startline === stationIdentifier;
+  if (!startline || !stationIdentifier || !finishline) return false;
+  return startline === stationIdentifier || finishline === stationIdentifier;
 }
 
 export function SettingsPage() {
