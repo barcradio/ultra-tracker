@@ -1,13 +1,15 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
 import { Button, Stack, TextInput } from "~/components";
 import { useCreateTiming } from "~/hooks/data/useTiming";
-import { RecordType } from "$shared/enums";
+import { EntryMode, RecordType } from "$shared/enums";
+import { useEntryMode } from "./hooks/useEntryMode";
 import { Stats } from "./Stats";
 import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";
 
 export function RunnerFormStats() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [bibNumber, setBibNumber] = useState("");
+  const { data: entryMode } = useEntryMode();
   const createTiming = useCreateTiming();
   useInvalidateRunnersOnRFID();
 
@@ -83,6 +85,7 @@ export function RunnerFormStats() {
       />
       <Stack direction="row" align="stretch" className="mb-2 w-full h-12" justify="stretch">
         <Button
+          disabled={entryMode === EntryMode.Fast}
           name="button_In"
           variant="solid"
           color="success"
