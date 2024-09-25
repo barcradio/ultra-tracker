@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToasts } from "~/features/Toasts/useToasts";
+import { DatabaseStatus } from "$shared/enums";
 import { AthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { RunnerEx } from "./useRunnerData";
@@ -29,15 +30,27 @@ export function useSetAthleteStatus() {
   const { createToast } = useToasts();
 
   return useMutation({
-    mutationFn: (data: RunnerEx) => {
+    mutationFn: async (data: RunnerEx) => {
       queryClient.invalidateQueries({ queryKey: ["runner-table"] });
+      const response = await ipcRenderer.invoke("is-duplicate-bib", data.bibId);
+      const [isDuplicate, status, message] = response as DatabaseResponse<boolean>;
+
+      if (status !== DatabaseStatus.Success) {
+        createToast({ message, type: "danger" });
+        return;
+      }
+
+      if (isDuplicate) {
+        data.bibId = parseInt(`${data.bibId}.2`);
+      }
+
       return Promise.all([
         ipcRenderer.invoke("set-athlete-dnf", data),
         ipcRenderer.invoke("set-athlete-dns", data)
       ]);
     },
 
-    onSuccess: (data) => data.forEach((message) => createToast({ message, type: "success" })),
+    onSuccess: (data) => data?.forEach((message) => createToast({ message, type: "success" })),
     onError: (error) => console.error(error)
   });
 }
