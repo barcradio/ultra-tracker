@@ -34,7 +34,7 @@ export function ToastProvider(props: { children: ReactNode }) {
       {props.children}
       {toasts.length > 0 &&
         createPortal(
-          <div className="fixed right-0 bottom-0 z-50">
+          <div className="fixed right-0 bottom-0 z-50 pointer-events-none">
             {toasts
               .sort((a, b) => compareAsc(a.epoch, b.epoch))
               .map((toast) => (
