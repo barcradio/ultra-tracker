@@ -496,7 +496,6 @@ export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
 
 function parseCSVDate(timingDate: string): Date {
   const event = new Date(Date.parse(timingDate));
-  //event.setFullYear(new Date().getFullYear());  //only if an incoming year doesn't make sense
   return event;
 }
 
