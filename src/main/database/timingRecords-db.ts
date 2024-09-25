@@ -331,10 +331,14 @@ function processNote(record: TypedRunnerDB, sync: dbAthletes.SyncDirection) {
 
 export function setTimingRecordNote(record: TypedRunnerDB) {
   const db = getDatabaseConnection();
-  const incomingNote = !note ? "" : note.replaceAll(",", "").trimStart();
+  const incomingNote = !record.note ? "" : record.note.replaceAll(",", "").trimStart();
 
   try {
-    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(incomingNote, bibId);
+    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ? and "index" = ?`).run(
+      incomingNote,
+      record.bibId,
+      record.index
+    );
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -342,7 +346,7 @@ export function setTimingRecordNote(record: TypedRunnerDB) {
     }
   }
 
-  const message = `[set][note](timingRecord) bib:${bibId} note: ${incomingNote}`;
+  const message = `[set][note](timingRecord) bib:${record.bibId} note: ${incomingNote}`;
   return [DatabaseStatus.Updated, message];
 }
 

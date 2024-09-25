@@ -471,7 +471,7 @@ export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
     );
     query.run(dnfValue, record.dnfType, record.stationId, dnfDateTime, record.bibId);
 
-    syncNoteWithAthlete(record.bibId, record.note, SyncDirection.Outgoing);
+    syncNoteWithAthlete(record.bibId, record.note, -1, SyncDirection.Outgoing);
 
     logEvent(
       record.bibId,
@@ -499,7 +499,12 @@ function parseCSVDate(timingDate: string): Date {
   return event;
 }
 
-export function syncNoteWithAthlete(bibId: number, note: string, direction: SyncDirection) {
+export function syncNoteWithAthlete(
+  bibId: number,
+  note: string,
+  index: number,
+  direction: SyncDirection
+) {
   const db = getDatabaseConnection();
   const athleteResult = GetAthleteByBib(bibId);
   let combinedNote: string = "";
@@ -522,7 +527,14 @@ export function syncNoteWithAthlete(bibId: number, note: string, direction: Sync
   }
 
   try {
-    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
+    //trying to protect against settings notes across multiple records of the same bibId, e.g. many duplicates
+    if (index != -1) {
+      db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ? and "index" = ?`).run(
+        combinedNote,
+        bibId,
+        index
+      );
+    }
     db.prepare(`UPDATE Athletes SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
   } catch (e) {
     if (e instanceof Error) {
