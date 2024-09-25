@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { Toast } from "~/features/Toasts/ToastsContext";
 import { useToasts } from "~/features/Toasts/useToasts";
+import { Toast } from "$shared/types";
 import { useIpcRenderer } from "../useIpcRenderer";
 
 interface Options {
