@@ -365,3 +365,33 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
   const message = `timing-record:sent ${bibId}`;
   return [DatabaseStatus.Created, message];
 }
+
+export function isBibDuplicate(bibId: number, index: number): DatabaseResponse<boolean> {
+  const db = getDatabaseConnection();
+  let queryResult: unknown;
+  let message: string = "";
+
+  const queryString = `SELECT COUNT(*) FROM StationEvents WHERE bibId = ? AND "index" != ?`;
+
+  try {
+    const query = db.prepare(queryString);
+    queryResult = query.get(bibId, index);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.Error, message];
+
+  const bibCount = parseInt(Object.values(queryResult as object)[0]);
+
+  if (bibCount == 0) {
+    message = `timing-record:Found no other timeRecords with bib: ${bibId}`;
+    return [false, DatabaseStatus.Success, message];
+  } else {
+    message = `timing-record:Found other timeRecords with bib: ${bibId}`;
+    return [true, DatabaseStatus.Success, message];
+  }
+}

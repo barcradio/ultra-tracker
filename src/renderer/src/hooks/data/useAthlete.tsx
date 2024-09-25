@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToasts } from "~/features/Toasts/useToasts";
+import { DatabaseStatus } from "$shared/enums";
 import { AthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { RunnerEx } from "./useRunnerData";
@@ -28,16 +29,39 @@ export function useSetAthleteStatus() {
   const queryClient = useQueryClient();
   const { createToast } = useToasts();
 
+  const handleDuplicate = async (data: RunnerEx) => {
+    const send = { bibId: data.bibId, index: data.id };
+    const response = await ipcRenderer.invoke("is-duplicate-bib", send);
+    const [isDuplicate, status, message] = response as DatabaseResponse<boolean>;
+
+    if (status !== DatabaseStatus.Success) {
+      createToast({ message, type: "danger" });
+      return;
+    }
+
+    if (isDuplicate) {
+      return { ...data, bibId: parseFloat(`${data.bibId}.2`) };
+    }
+
+    return data;
+  };
+
   return useMutation({
-    mutationFn: (data: RunnerEx) => {
-      queryClient.invalidateQueries({ queryKey: ["runner-table"] });
+    mutationFn: async (data: RunnerEx) => {
+      const updatedData = await handleDuplicate(data);
+
+      console.log("updatedData", updatedData);
+
       return Promise.all([
-        ipcRenderer.invoke("set-athlete-dnf", data),
-        ipcRenderer.invoke("set-athlete-dns", data)
+        ipcRenderer.invoke("set-athlete-dnf", updatedData),
+        ipcRenderer.invoke("set-athlete-dns", updatedData)
       ]);
     },
 
-    onSuccess: (data) => data.forEach((message) => createToast({ message, type: "success" })),
+    onSuccess: (data) => {
+      data?.forEach((message) => createToast({ message, type: "success" }));
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+    },
     onError: (error) => console.error(error)
   });
 }
