@@ -1,4 +1,5 @@
 import fs from "fs";
+import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
@@ -6,6 +7,7 @@ import { clearAthletesTable, createAthletesTable } from "./tables-db";
 import { AthleteStatus, DNFType, DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNFRecord, DNSRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
+import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
 
@@ -29,87 +31,98 @@ export async function LoadAthletes() {
   createAthletesTable();
 
   const athleteFilePath = await dialogs.loadAthleteFile();
-  const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
+  const fileContent = fs.createReadStream(athleteFilePath[0], { encoding: "utf-8" });
+  const message: string[] = [];
 
-  parse(
-    fileContent,
-    {
-      delimiter: ",",
-      columns: headers
-    },
-    (error, result: AthleteDB[]) => {
-      if (error) {
-        console.error(error);
-        return `${result.length} athletes: ${error}`;
-      }
+  const parser = fileContent
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: headers,
+        fromLine: 2
+      })
+    )
+    .on("data", (row) => {
+      insertAthlete(row);
+    })
+    .on("error", (error) => {
+      console.error(error.message);
+      message.push(`Loading athletes: ${error.message}`);
+      sendToastToRenderer({ message: error.message, type: "danger" });
 
-      //no need to log every athlete to the log
-      //console.log("Result", result);
+      // This should be helpful according to https://nodejs.org/api/stream.html#streamfinishedstream-options
+      // except it doesn't seem to be working, on("end") gets called sometimes, and might get the message out
+      // return parser.end(message);
+    })
+    .on("end", () => {
+      const { records } = parser.info;
+      message.push(`${athleteFilePath}\r\n${records} athletes imported`);
+    });
+  await finished(parser, { error: false });
 
-      result.slice(1).forEach((athlete) => {
-        insertAthlete(athlete);
-      });
-      return `${athleteFilePath}\r\n${result.length} athletes imported`;
-    }
-  );
+  return message;
 }
 
 export async function LoadDNS() {
   const headers = ["stationId", "bibId", "dnsDateTime", "note"];
-  const athleteFilePath = await dialogs.loadDNSFromCSV();
-  const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
+  const dnsFilePath = await dialogs.loadDNSFromCSV();
+  const fileContent = fs.createReadStream(dnsFilePath[0], { encoding: "utf-8" });
+  let message: string = "";
 
-  parse(
-    fileContent,
-    {
-      delimiter: ",",
-      columns: headers,
-      // eslint-disable-next-line camelcase
-      from_line: 2
-    },
-    (error, result: DNSRecord[]) => {
-      if (error) {
-        console.error(error);
-        return `${result.length} dnsRecords: ${error}`;
-      }
+  const parser = fileContent
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: headers,
+        fromLine: 3
+      })
+    )
+    .on("data", (row) => {
+      updateAthleteDNSFromCSV(row);
+    })
+    .on("error", (error) => {
+      console.error(error);
+      message = `Loading dnsRecords: ${error.message}`;
+      sendToastToRenderer({ message: error.message, type: "danger" });
+    })
+    .on("end", () => {
+      const { records } = parser.info;
+      message = `${dnsFilePath}\r\n${records} dnsRecords imported`;
+    });
+  await finished(parser);
 
-      console.log("Result", result);
-
-      result.slice(1).forEach((dnsRecord) => {
-        updateAthleteDNSFromCSV(dnsRecord);
-      });
-      return `${athleteFilePath}\r\n${result.length} dnsRecords imported`;
-    }
-  );
+  return message;
 }
 
 export async function LoadDNF() {
   const headers = ["stationId", "bibId", "dnfType", "dnfDateTime", "note"];
-  const athleteFilePath = await dialogs.loadDNFFromCSV();
-  const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
+  const dnfFilePath = await dialogs.loadDNFFromCSV();
+  const fileContent = fs.createReadStream(dnfFilePath[0], { encoding: "utf-8" });
+  let message: string = "";
 
-  parse(
-    fileContent,
-    {
-      delimiter: ",",
-      columns: headers,
-      // eslint-disable-next-line camelcase
-      from_line: 2
-    },
-    (error, result: DNFRecord[]) => {
-      if (error) {
-        console.error(error);
-        return `${result.length} dnfRecords: ${error}`;
-      }
+  const parser = fileContent
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: headers,
+        fromLine: 3
+      })
+    )
+    .on("data", (row) => {
+      updateAthleteDNFFromCSV(row);
+    })
+    .on("error", (error) => {
+      console.error(error);
+      message = `Loading dnfRecords: ${error.message}`;
+      sendToastToRenderer({ message: error.message, type: "danger" });
+    })
+    .on("end", () => {
+      const { records } = parser.info;
+      message = `${dnfFilePath}\r\n${records} dnfRecords imported`;
+    });
+  await finished(parser);
 
-      console.log("Result", result);
-
-      result.slice(1).forEach((dnfRecord) => {
-        updateAthleteDNFFromCSV(dnfRecord);
-      });
-      return `${athleteFilePath}\r\n${result.length} dnfRecords imported`;
-    }
-  );
+  return message;
 }
 
 export function GetTotalAthletes(): number {
