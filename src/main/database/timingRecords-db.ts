@@ -57,11 +57,13 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
   if (recordWithBib && recordWithIndex) {
     if (JSON.stringify(recordWithBib) === JSON.stringify(recordWithIndex)) {
       if (JSON.stringify(incomingRecord) !== JSON.stringify(recordWithIndex)) {
-        incomingRecord.status = RecordStatus.OK;
+        incomingRecord.bibId % 1 == 0
+          ? (incomingRecord.status = RecordStatus.OK)
+          : (incomingRecord.status = RecordStatus.Duplicate);
         [status, message] = updateTimeRecord(incomingRecord, recordWithIndex, false);
       }
     } else {
-      //we are updating the current record, but it is still duplicating another record!
+      //we are updating the current record, but it is still duplicating another record, update the existing!
       incomingRecord.status = RecordStatus.Duplicate;
       [status, message] = updateTimeRecord(incomingRecord, recordWithIndex, false);
     }
@@ -172,21 +174,11 @@ function updateTimeRecord(
   const stationIdentifier = appStore.get("station.identifier") as string;
   let queryString = "";
 
-  // scrub any string values coming from the UI
-  if (record.timeIn instanceof String) record.timeIn = null;
-  if (record.timeOut instanceof String) record.timeOut = null;
-  if (record.timeModified instanceof String) record.timeModified = null;
-
-  // preserve the prior and opposite times when from input, don't merge when it is an edit
-  if (merge) {
-    if (existingRecord.timeIn != null && record.timeIn == null)
-      record.timeIn = new Date(existingRecord.timeIn);
-    if (existingRecord.timeOut != null && record.timeOut == null)
-      record.timeOut = new Date(existingRecord.timeOut);
-  }
+  scrubStringsFromRenderer(record);
+  preserveOrMergeTimes(merge, existingRecord, record);
+  processDuplicate(record);
 
   //build the time record
-  processDuplicate(record);
   const stationID = stationId;
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
   const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
@@ -208,26 +200,22 @@ function updateTimeRecord(
         modifiedISO,
         sent,
         status,
-        record.index
+        existingRecord.index
       );
-
-      dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Incoming);
-
-      logEvent(
-        record.bibId,
-        stationIdentifier,
+    } else {
+      // if bib is not changing, ensure we have correct record by index and bib
+      queryString = `UPDATE StationEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, sent = ?, status = ? WHERE bibId = ? and "index" = ?`;
+      const query = db.prepare(queryString);
+      query.run(
+        stationID,
         timeInISO,
         timeOutISO,
         modifiedISO,
-        `[Update](Time): bibId:(${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`,
-        record.sent,
-        verbose
+        sent,
+        status,
+        record.bibId,
+        existingRecord.index
       );
-    } else {
-      queryString = `UPDATE StationEvents SET stationId = ?, timeIn = ?, timeOut = ?, timeModified = ?, sent = ?, status = ? WHERE bibId = ?`;
-      const query = db.prepare(queryString);
-      query.run(stationID, timeInISO, timeOutISO, modifiedISO, sent, status, record.bibId);
-      dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Incoming);
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -236,7 +224,19 @@ function updateTimeRecord(
     }
   }
 
+  processNote(record, dbAthletes.SyncDirection.Incoming);
   dbAthletes.SetStatusOnAthlete(record.bibId);
+  const eventLogMessage = `[Update](Time): bibId:(${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`;
+  logEvent(
+    record.bibId,
+    stationIdentifier,
+    timeInISO,
+    timeOutISO,
+    modifiedISO,
+    eventLogMessage,
+    record.sent,
+    verbose
+  );
 
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
 
@@ -265,23 +265,6 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
       `INSERT INTO StationEvents (bibId, stationId, timeIn, timeOut, timeModified, sent, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
     stmt.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, sent, status);
-
-    if (record.status == RecordStatus.Duplicate) {
-      setTimingRecordNote(record.bibId, record.note);
-    } else {
-      dbAthletes.syncAthleteNote(record.bibId, record.note, dbAthletes.SyncDirection.Outgoing);
-    }
-
-    logEvent(
-      record.bibId,
-      stationIdentifier,
-      timeInISO,
-      timeOutISO,
-      modifiedISO,
-      `[Add](Time): bibId:(${record.bibId}), ${RecordStatus[record.status]}`,
-      record.sent,
-      verbose
-    );
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -289,7 +272,19 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
     }
   }
 
+  processNote(record, dbAthletes.SyncDirection.Outgoing);
   dbAthletes.SetStatusOnAthlete(record.bibId);
+  const eventLogMessage = `[Add](Time): bibId:(${record.bibId}), ${RecordStatus[record.status]}`;
+  logEvent(
+    record.bibId,
+    stationIdentifier,
+    timeInISO,
+    timeOutISO,
+    modifiedISO,
+    eventLogMessage,
+    record.sent,
+    verbose
+  );
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
 
@@ -298,12 +293,52 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   return [DatabaseStatus.Created, message];
 }
 
-export function setTimingRecordNote(bibId: number, note: string) {
+function processDuplicate(record: TypedRunnerDB): TypedRunnerDB {
+  if (record.status == RecordStatus.Duplicate) {
+    record.bibId = record.bibId % 1 != 0 ? record.bibId : Number(record.bibId) + 0.2;
+  }
+  return record;
+}
+
+function scrubStringsFromRenderer(record: TypedRunnerDB) {
+  // scrub any string values coming from the UI
+  if (record.timeIn instanceof String) record.timeIn = null;
+  if (record.timeOut instanceof String) record.timeOut = null;
+  if (record.timeModified instanceof String) record.timeModified = null;
+}
+
+function preserveOrMergeTimes(
+  merge: boolean,
+  existingRecord: TypedRunnerDB,
+  record: TypedRunnerDB
+) {
+  // preserve the prior and opposite times when from input, don't merge when it is an edit
+  if (merge) {
+    if (existingRecord.timeIn != null && record.timeIn == null)
+      record.timeIn = new Date(existingRecord.timeIn);
+    if (existingRecord.timeOut != null && record.timeOut == null)
+      record.timeOut = new Date(existingRecord.timeOut);
+  }
+}
+
+function processNote(record: TypedRunnerDB, sync: dbAthletes.SyncDirection) {
+  if (record.status == RecordStatus.Duplicate) {
+    setTimingRecordNote(record);
+  } else {
+    dbAthletes.syncNoteWithAthlete(record.bibId, record.note, record.index, sync);
+  }
+}
+
+export function setTimingRecordNote(record: TypedRunnerDB) {
   const db = getDatabaseConnection();
-  const incomingNote = !note ? "" : note.replaceAll(",", "").trimStart();
+  const incomingNote = !record.note ? "" : record.note.replaceAll(",", "").trimStart();
 
   try {
-    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(incomingNote, bibId);
+    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ? and "index" = ?`).run(
+      incomingNote,
+      record.bibId,
+      record.index
+    );
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -311,7 +346,7 @@ export function setTimingRecordNote(bibId: number, note: string) {
     }
   }
 
-  const message = `[set][note](timingRecord) bib:${bibId} note: ${incomingNote}`;
+  const message = `[set][note](timingRecord) bib:${record.bibId} note: ${incomingNote}`;
   return [DatabaseStatus.Updated, message];
 }
 
@@ -329,11 +364,4 @@ export function markTimeRecordAsSent(bibId: number, value: boolean) {
 
   const message = `timing-record:sent ${bibId}`;
   return [DatabaseStatus.Created, message];
-}
-
-function processDuplicate(record: TypedRunnerDB): TypedRunnerDB {
-  if (record.status == RecordStatus.Duplicate) {
-    record.bibId = record.bibId % 1 != 0 ? record.bibId : Number(record.bibId) + 0.2;
-  }
-  return record;
 }
