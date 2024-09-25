@@ -29,28 +29,39 @@ export function useSetAthleteStatus() {
   const queryClient = useQueryClient();
   const { createToast } = useToasts();
 
+  const handleDuplicate = async (data: RunnerEx) => {
+    const send = { bibId: data.bibId, index: data.id };
+    const response = await ipcRenderer.invoke("is-duplicate-bib", send);
+    const [isDuplicate, status, message] = response as DatabaseResponse<boolean>;
+
+    if (status !== DatabaseStatus.Success) {
+      createToast({ message, type: "danger" });
+      return;
+    }
+
+    if (isDuplicate) {
+      return { ...data, bibId: parseFloat(`${data.bibId}.2`) };
+    }
+
+    return data;
+  };
+
   return useMutation({
     mutationFn: async (data: RunnerEx) => {
-      queryClient.invalidateQueries({ queryKey: ["runner-table"] });
-      const response = await ipcRenderer.invoke("is-duplicate-bib", data.bibId);
-      const [isDuplicate, status, message] = response as DatabaseResponse<boolean>;
+      const updatedData = await handleDuplicate(data);
 
-      if (status !== DatabaseStatus.Success) {
-        createToast({ message, type: "danger" });
-        return;
-      }
-
-      if (isDuplicate) {
-        data.bibId = parseInt(`${data.bibId}.2`);
-      }
+      console.log("updatedData", updatedData);
 
       return Promise.all([
-        ipcRenderer.invoke("set-athlete-dnf", data),
-        ipcRenderer.invoke("set-athlete-dns", data)
+        ipcRenderer.invoke("set-athlete-dnf", updatedData),
+        ipcRenderer.invoke("set-athlete-dns", updatedData)
       ]);
     },
 
-    onSuccess: (data) => data?.forEach((message) => createToast({ message, type: "success" })),
+    onSuccess: (data) => {
+      data?.forEach((message) => createToast({ message, type: "success" }));
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+    },
     onError: (error) => console.error(error)
   });
 }
