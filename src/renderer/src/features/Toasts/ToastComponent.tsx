@@ -19,8 +19,8 @@ const ToastWrapper = classed.button({
   base: "block font-medium rounded-md w-84 fill-forward bg-surface-secondary text-on-component hover:bg-surface-tertiary transition group",
   variants: {
     show: {
-      true: "animate-bounce-right-in",
-      false: "animate-bounce-right-out"
+      true: "pointer-events-auto animate-bounce-right-in",
+      false: "pointer-events-none animate-bounce-right-out"
     },
     type: {
       info: "[&>span]:bg-primary",
