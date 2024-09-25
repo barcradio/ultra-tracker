@@ -13,12 +13,12 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as RosterImport } from './routes/roster'
 
 // Create Virtual Routes
 
 const StationsLazyImport = createFileRoute('/stations')()
 const SettingsLazyImport = createFileRoute('/settings')()
-const RosterLazyImport = createFileRoute('/roster')()
 const LogsLazyImport = createFileRoute('/logs')()
 const HelpLazyImport = createFileRoute('/help')()
 const ExportLazyImport = createFileRoute('/export')()
@@ -36,11 +36,6 @@ const SettingsLazyRoute = SettingsLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
 
-const RosterLazyRoute = RosterLazyImport.update({
-  path: '/roster',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/roster.lazy').then((d) => d.Route))
-
 const LogsLazyRoute = LogsLazyImport.update({
   path: '/logs',
   getParentRoute: () => rootRoute,
@@ -56,6 +51,11 @@ const ExportLazyRoute = ExportLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/export.lazy').then((d) => d.Route))
 
+const RosterRoute = RosterImport.update({
+  path: '/roster',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
@@ -70,6 +70,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/roster': {
+      id: '/roster'
+      path: '/roster'
+      fullPath: '/roster'
+      preLoaderRoute: typeof RosterImport
       parentRoute: typeof rootRoute
     }
     '/export': {
@@ -93,13 +100,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogsLazyImport
       parentRoute: typeof rootRoute
     }
-    '/roster': {
-      id: '/roster'
-      path: '/roster'
-      fullPath: '/roster'
-      preLoaderRoute: typeof RosterLazyImport
-      parentRoute: typeof rootRoute
-    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -121,10 +121,10 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
+  RosterRoute,
   ExportLazyRoute,
   HelpLazyRoute,
   LogsLazyRoute,
-  RosterLazyRoute,
   SettingsLazyRoute,
   StationsLazyRoute,
 })
@@ -138,16 +138,19 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/roster",
         "/export",
         "/help",
         "/logs",
-        "/roster",
         "/settings",
         "/stations"
       ]
     },
     "/": {
       "filePath": "index.lazy.tsx"
+    },
+    "/roster": {
+      "filePath": "roster.tsx"
     },
     "/export": {
       "filePath": "export.lazy.tsx"
@@ -157,9 +160,6 @@ export const routeTree = rootRoute.addChildren({
     },
     "/logs": {
       "filePath": "logs.lazy.tsx"
-    },
-    "/roster": {
-      "filePath": "roster.lazy.tsx"
     },
     "/settings": {
       "filePath": "settings.lazy.tsx"

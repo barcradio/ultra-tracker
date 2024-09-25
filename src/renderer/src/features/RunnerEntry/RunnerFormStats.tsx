@@ -1,13 +1,23 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
+import { Tooltip } from "primereact/tooltip";
 import { Button, Stack, TextInput } from "~/components";
 import { useCreateTiming } from "~/hooks/data/useTiming";
-import { RecordType } from "$shared/enums";
+import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
+import { useId } from "~/hooks/useId";
+import { EntryMode, RecordType } from "$shared/enums";
+import { useEntryMode } from "./hooks/useEntryMode";
 import { Stats } from "./Stats";
+import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";
 
 export function RunnerFormStats() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [bibNumber, setBibNumber] = useState("");
+  const { data: entryMode } = useEntryMode();
   const createTiming = useCreateTiming();
+  const portalRoot = usePortalRoot();
+  const buttonInId = useId();
+
+  useInvalidateRunnersOnRFID();
 
   const createRecord = (type: RecordType) => {
     if (bibNumber.length === 0) return;
@@ -79,21 +89,24 @@ export function RunnerFormStats() {
         placeholder="BIB#"
         type="number"
       />
-      <Stack direction="row" align="stretch" className="mb-2 w-full h-12" justify="stretch">
-        <Button
-          name="button_In"
-          variant="solid"
-          color="success"
-          className="mr-1 w-1/2"
-          onClick={() => createRecord(RecordType.In)}
-        >
-          In
-        </Button>
+      <Stack direction="row" align="stretch" className="mb-2 w-full h-12 gap-2" justify="stretch">
+        <div className="w-1/2" id={buttonInId}>
+          <Button
+            name="button_In"
+            variant="solid"
+            color="success"
+            className="w-full h-full"
+            onClick={() => createRecord(RecordType.In)}
+            disabled={entryMode === EntryMode.Fast}
+          >
+            In
+          </Button>
+        </div>
         <Button
           name="button_Out"
           variant="solid"
           color="danger"
-          className="ml-1 w-1/2"
+          className="w-1/2"
           onClick={() => createRecord(RecordType.Out)}
         >
           Out
@@ -102,6 +115,12 @@ export function RunnerFormStats() {
       <div className="w-full grow bg-component">
         <Stats />
       </div>
+
+      {entryMode === EntryMode.Fast && (
+        <Tooltip target={`#${buttonInId}`} appendTo={portalRoot?.current}>
+          Station is in fast mode
+        </Tooltip>
+      )}
     </Stack>
   );
 }

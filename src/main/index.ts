@@ -2,6 +2,7 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
+import { DisconnectRFIDReader } from "./api/rfid-processor";
 import { createDatabaseConnection } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
@@ -65,6 +66,7 @@ app.on("ready", async () => {
   app.on("activate", function () {
     app.on("window-all-closed", () => {
       if (process.platform !== "darwin") {
+        DisconnectRFIDReader();
         app.quit();
       }
       shutdown();

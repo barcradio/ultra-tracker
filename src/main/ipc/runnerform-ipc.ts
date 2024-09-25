@@ -38,9 +38,25 @@ const deleteTimeRecord: Handler<RunnerDB, DatabaseResponse> = (_, record) => {
   return retValue;
 };
 
+interface CheckDuplicateParams {
+  bibId: number;
+  index: number;
+}
+
+const checkIfBibIsDuplicate: Handler<CheckDuplicateParams, DatabaseResponse<boolean>> = (
+  _,
+  params
+) => {
+  const retValue = dbTimings.isBibDuplicate(params.bibId, params.index);
+
+  console.log(retValue[0]);
+  return retValue;
+};
+
 export const initRunnerFormHandlers = () => {
   ipcMain.handle("get-runners-table", getRunnersTable);
   ipcMain.handle("add-timing-record", addTimeRecord);
   ipcMain.handle("edit-timing-record", addTimeRecord);
   ipcMain.handle("delete-timing-record", deleteTimeRecord);
+  ipcMain.handle("is-duplicate-bib", checkIfBibIsDuplicate);
 };

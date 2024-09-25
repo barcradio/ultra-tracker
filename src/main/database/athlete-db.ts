@@ -1,11 +1,13 @@
 import fs from "fs";
+import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearAthletesTable, createAthletesTable } from "./tables-db";
-import { DNFType, DatabaseStatus } from "../../shared/enums";
+import { AthleteStatus, DNFType, DatabaseStatus } from "../../shared/enums";
 import { AthleteDB, DNFRecord, DNSRecord } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
+import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
 
@@ -29,87 +31,98 @@ export async function LoadAthletes() {
   createAthletesTable();
 
   const athleteFilePath = await dialogs.loadAthleteFile();
-  const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
+  const fileContent = fs.createReadStream(athleteFilePath[0], { encoding: "utf-8" });
+  const message: string[] = [];
 
-  parse(
-    fileContent,
-    {
-      delimiter: ",",
-      columns: headers
-    },
-    (error, result: AthleteDB[]) => {
-      if (error) {
-        console.error(error);
-        return `${result.length} athletes: ${error}`;
-      }
+  const parser = fileContent
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: headers,
+        fromLine: 2
+      })
+    )
+    .on("data", (row) => {
+      insertAthlete(row);
+    })
+    .on("error", (error) => {
+      console.error(error.message);
+      message.push(`Loading athletes: ${error.message}`);
+      sendToastToRenderer({ message: error.message, type: "danger" });
 
-      //no need to log every athlete to the log
-      //console.log("Result", result);
+      // This should be helpful according to https://nodejs.org/api/stream.html#streamfinishedstream-options
+      // except it doesn't seem to be working, on("end") gets called sometimes, and might get the message out
+      // return parser.end(message);
+    })
+    .on("end", () => {
+      const { records } = parser.info;
+      message.push(`${athleteFilePath}\r\n${records} athletes imported`);
+    });
+  await finished(parser, { error: false });
 
-      result.slice(1).forEach((athlete) => {
-        insertAthlete(athlete);
-      });
-      return `${athleteFilePath}\r\n${result.length} athletes imported`;
-    }
-  );
+  return message;
 }
 
 export async function LoadDNS() {
   const headers = ["stationId", "bibId", "dnsDateTime", "note"];
-  const athleteFilePath = await dialogs.loadDNSFromCSV();
-  const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
+  const dnsFilePath = await dialogs.loadDNSFromCSV();
+  const fileContent = fs.createReadStream(dnsFilePath[0], { encoding: "utf-8" });
+  let message: string = "";
 
-  parse(
-    fileContent,
-    {
-      delimiter: ",",
-      columns: headers,
-      // eslint-disable-next-line camelcase
-      from_line: 2
-    },
-    (error, result: DNSRecord[]) => {
-      if (error) {
-        console.error(error);
-        return `${result.length} dnsRecords: ${error}`;
-      }
+  const parser = fileContent
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: headers,
+        fromLine: 3
+      })
+    )
+    .on("data", (row) => {
+      updateAthleteDNSFromCSV(row);
+    })
+    .on("error", (error) => {
+      console.error(error);
+      message = `Loading dnsRecords: ${error.message}`;
+      sendToastToRenderer({ message: error.message, type: "danger" });
+    })
+    .on("end", () => {
+      const { records } = parser.info;
+      message = `${dnsFilePath}\r\n${records} dnsRecords imported`;
+    });
+  await finished(parser);
 
-      console.log("Result", result);
-
-      result.slice(1).forEach((dnsRecord) => {
-        updateAthleteDNSFromCSV(dnsRecord);
-      });
-      return `${athleteFilePath}\r\n${result.length} dnsRecords imported`;
-    }
-  );
+  return message;
 }
 
 export async function LoadDNF() {
   const headers = ["stationId", "bibId", "dnfType", "dnfDateTime", "note"];
-  const athleteFilePath = await dialogs.loadDNFFromCSV();
-  const fileContent = fs.readFileSync(athleteFilePath[0], { encoding: "utf-8" });
+  const dnfFilePath = await dialogs.loadDNFFromCSV();
+  const fileContent = fs.createReadStream(dnfFilePath[0], { encoding: "utf-8" });
+  let message: string = "";
 
-  parse(
-    fileContent,
-    {
-      delimiter: ",",
-      columns: headers,
-      // eslint-disable-next-line camelcase
-      from_line: 2
-    },
-    (error, result: DNFRecord[]) => {
-      if (error) {
-        console.error(error);
-        return `${result.length} dnfRecords: ${error}`;
-      }
+  const parser = fileContent
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: headers,
+        fromLine: 3
+      })
+    )
+    .on("data", (row) => {
+      updateAthleteDNFFromCSV(row);
+    })
+    .on("error", (error) => {
+      console.error(error);
+      message = `Loading dnfRecords: ${error.message}`;
+      sendToastToRenderer({ message: error.message, type: "danger" });
+    })
+    .on("end", () => {
+      const { records } = parser.info;
+      message = `${dnfFilePath}\r\n${records} dnfRecords imported`;
+    });
+  await finished(parser);
 
-      console.log("Result", result);
-
-      result.slice(1).forEach((dnfRecord) => {
-        updateAthleteDNFFromCSV(dnfRecord);
-      });
-      return `${athleteFilePath}\r\n${result.length} dnfRecords imported`;
-    }
-  );
+  return message;
 }
 
 export function GetTotalAthletes(): number {
@@ -170,7 +183,7 @@ export function GetPreviousDNF(): number {
   const previousDNF: AthleteDB[] = [];
 
   for (const athlete of dnfList) {
-    const id = Number(Array.from(athlete.dnfStation as string)[0]);
+    const id = Number(athlete.dnfStation?.split("-", 1)[0]);
     if (id < stationId) previousDNF.push(athlete);
   }
 
@@ -266,7 +279,12 @@ export function GetAthleteFromColumn(
     }
   }
 
-  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+  if (queryResult == null)
+    return [
+      null,
+      DatabaseStatus.NotFound,
+      `athletes: No athlete found with ${columnName}: ${value}`
+    ];
 
   queryResult = queryResult as AthleteDB;
 
@@ -287,7 +305,8 @@ export function GetAthleteFromColumn(
     dnfType: queryResult.dnfType,
     dnfStation: queryResult.dnfStation,
     dnfDateTime: queryResult.dnfDateTime,
-    note: queryResult.note
+    note: queryResult.note,
+    status: queryResult.status
   };
 
   message = `athletes:Found athlete with bibId: ${runner.bibId}`;
@@ -386,10 +405,11 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
   const dnfStation = null;
   const dnfDateTime = null;
   const note = null;
+  const status = AthleteStatus.Incoming;
 
   try {
     const query = db.prepare(
-      `INSERT INTO Athletes (bibId, firstName, lastName, gender, age, city, state, emergencyPhone, emergencyName, dns, dnf, dnfType, dnfStation, dnfDateTime, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Athletes (bibId, firstName, lastName, gender, age, city, state, emergencyPhone, emergencyName, dns, dnf, dnfType, dnfStation, dnfDateTime, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     query.run(
       bibId,
@@ -406,7 +426,8 @@ export function insertAthlete(athlete: AthleteDB): DatabaseResponse {
       dnfType,
       dnfStation,
       dnfDateTime,
-      note
+      note,
+      status
     );
   } catch (e) {
     if (e instanceof Error) {
@@ -463,7 +484,7 @@ export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
     );
     query.run(dnfValue, record.dnfType, record.stationId, dnfDateTime, record.bibId);
 
-    syncAthleteNote(record.bibId, record.note, SyncDirection.Outgoing);
+    syncNoteWithAthlete(record.bibId, record.note, -1, SyncDirection.Outgoing);
 
     logEvent(
       record.bibId,
@@ -488,14 +509,18 @@ export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
 
 function parseCSVDate(timingDate: string): Date {
   const event = new Date(Date.parse(timingDate));
-  //event.setFullYear(new Date().getFullYear());  //only if an incoming year doesn't make sense
   return event;
 }
 
-export function syncAthleteNote(bibId: number, note: string, direction: SyncDirection) {
+export function syncNoteWithAthlete(
+  bibId: number,
+  note: string,
+  index: number,
+  direction: SyncDirection
+) {
   const db = getDatabaseConnection();
   const athleteResult = GetAthleteByBib(bibId);
-  let combinedNote = "";
+  let combinedNote: string = "";
 
   if (athleteResult[1] != DatabaseStatus.Success) return;
 
@@ -515,7 +540,14 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
   }
 
   try {
-    db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
+    //trying to protect against settings notes across multiple records of the same bibId, e.g. many duplicates
+    if (index != -1) {
+      db.prepare(`UPDATE StationEvents SET note = ? WHERE "bibId" = ? and "index" = ?`).run(
+        combinedNote,
+        bibId,
+        index
+      );
+    }
     db.prepare(`UPDATE Athletes SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
   } catch (e) {
     if (e instanceof Error) {
@@ -531,4 +563,51 @@ export function syncAthleteNote(bibId: number, note: string, direction: SyncDire
 export enum SyncDirection {
   Incoming,
   Outgoing
+}
+
+export function SetStatusOnAthlete(bibId: number): DatabaseResponse {
+  const db = getDatabaseConnection();
+  let message: string = "";
+  let queryResult;
+  let status;
+
+  const query = `SELECT Athletes.*, StationEvents.timeIn, StationEvents.timeOut
+       FROM "Athletes" LEFT JOIN "StationEvents"
+       ON Athletes.bibId = StationEvents.bibId
+       WHERE Athletes.bibId == ?`;
+
+  try {
+    queryResult = db.prepare(query).get(bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [DatabaseStatus.NotFound, message];
+
+  const timeIn = queryResult.timeIn! == undefined ? null : queryResult.timeIn;
+  const timeOut = queryResult.timeOut! == undefined ? null : queryResult.timeOut;
+
+  if (timeIn == null && timeOut == null) {
+    status = AthleteStatus.Incoming;
+  } else if (timeIn != null && timeOut == null) {
+    status = AthleteStatus.Present;
+  } else if (timeOut != null) {
+    status = AthleteStatus.Outgoing;
+  }
+
+  try {
+    const stmt = db.prepare(`UPDATE Athletes SET status = ? WHERE bibId = ?`);
+    stmt.run(status, bibId);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+  }
+
+  message = `athlete:set status bibId: ${bibId}, status: ${AthleteStatus[status].toString()}`;
+  return [DatabaseStatus.Updated, message];
 }

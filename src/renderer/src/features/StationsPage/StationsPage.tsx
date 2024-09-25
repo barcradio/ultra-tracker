@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { Button, Select, Stack } from "~/components";
 import { useStation } from "~/hooks/data/useStation";
 import { useStations } from "~/hooks/data/useStations";
-import { formatDate } from "~/lib/datetimes";
+import { formatShortDate } from "~/lib/datetimes";
 import { EntryMode } from "$shared/enums";
 import { StationDB } from "$shared/models";
 import { useIdentityForm } from "./hooks/useIdentityForm";
@@ -17,6 +17,17 @@ function createStationOptions(stations?: StationDB[]) {
   });
 }
 
+function useEntryModeInfo() {
+  const { data: station } = useStation();
+  const entryModeLabel =
+    station?.entrymode == EntryMode.Fast ? (
+      <span className="font-bold">Fast Mode &#128007;</span>
+    ) : (
+      <span className="font-bold">Normal Mode &#127939;</span>
+    );
+  return { entryModeLabel };
+}
+
 export function StationsPage() {
   const { data: currentStation } = useStation();
   const { data: stations } = useStations();
@@ -26,6 +37,8 @@ export function StationsPage() {
   const stationOptions = useMemo(() => createStationOptions(stations), [stations]);
   const { data: currentOperators } = useStationOperators(identityForm.watch("identifier"));
 
+  const { entryModeLabel } = useEntryModeInfo();
+
   useEffect(() => {
     if (currentOperators) setValue("callsign", currentOperators["primary"]?.callsign);
   }, [currentOperators, setValue]);
@@ -33,15 +46,20 @@ export function StationsPage() {
   const columns: ColumnDef<StationDB> = [
     {
       field: "name",
-      name: "Station"
+      name: "Station",
+      valueFn: (station) => `${station.identifier.split("-")[0]} ${station.name}`,
+      width: "20%",
+      sortable: false
     },
     {
       field: "location",
       name: "Lat/Long",
       valueFn: (station) => {
         const loc = JSON.parse(station.location);
-        return loc.latitude + ", " + loc.longitude;
-      }
+        return `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`;
+      },
+      width: "15%",
+      sortable: false
     },
     {
       field: "location",
@@ -50,51 +68,65 @@ export function StationsPage() {
         const loc = JSON.parse(station.location);
         return loc.elevation;
       },
-      width: "80px"
+      width: "80px",
+      sortable: false
     },
     {
       field: "distance",
       name: "Dist",
-      width: "80px"
+      width: "80px",
+      align: "right",
+      render: (value) => value.toFixed(1),
+      sortable: false
     },
     {
       field: "dropbags",
       name: "Bags",
-      valueFn: (station) => (station.dropbags ? "Yes" : "No"),
-      width: "100px"
+      render: (value) => (value ? "Yes" : "No"),
+      width: "80px",
+      sortable: false
     },
     {
       field: "crewaccess",
       name: "Crew",
-      valueFn: (station) => (station.crewaccess ? "Yes" : "No"),
-      width: "80px"
+      render: (value) => (value ? "Yes" : "No"),
+      width: "80px",
+      sortable: false
     },
     {
       field: "paceraccess",
       name: "Pacer",
-      valueFn: (station) => (station.paceraccess ? "Yes" : "No"),
-      width: "80px"
+      render: (value) => (value ? "Yes" : "No"),
+      width: "80px",
+      sortable: false
     },
     {
       field: "shiftBegin",
       name: "Open",
-      valueFn: (station) => formatDate(new Date(station.shiftBegin))
+      render: (value) => formatShortDate(new Date(value)),
+      width: "135px",
+      sortable: false
     },
     {
       field: "cutofftime",
       name: "Cutoff",
-      valueFn: (station) => formatDate(new Date(station.cutofftime))
+      render: (value) => formatShortDate(new Date(value)),
+      width: "135px",
+      sortable: false
     },
     {
       field: "shiftEnd",
       name: "Close",
-      valueFn: (station) => formatDate(new Date(station.shiftEnd))
+      render: (value) => formatShortDate(new Date(value)),
+      width: "135px",
+      sortable: false
     },
     {
       field: "entrymode",
       name: "Mode",
-      valueFn: (station) => EntryMode[station.entrymode].toString(),
-      width: "90px"
+      render: (value) => EntryMode[value].toString(),
+      width: "90px",
+      sortable: false
     }
   ];
 
@@ -117,6 +149,9 @@ export function StationsPage() {
           className="w-72"
         />
         <Button className="px-5 py-[6.8px]">Apply</Button>
+        <Stack justify="between" align="center" className="py-6 pl-4 m-4 text-2xl font-display">
+          <p className="text-on-component">{entryModeLabel}</p>
+        </Stack>
       </Stack>
       <div style={{ height: "100vh", paddingTop: "10px" }}>
         <DataGrid data={stations ?? []} columns={columns} getKey={({ identifier }) => identifier} />

@@ -1,6 +1,6 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { SettingsHub } from "~/features/SettingsHub/SettingsHub";
+import { SettingsPage } from "~/features/SettingsPage/SettingsPage";
 
 export const Route = createLazyFileRoute("/settings")({
-  component: SettingsHub
+  component: SettingsPage
 });

@@ -1,56 +1,48 @@
-import { Button, Stack } from "~/components";
-import * as dialogHooks from "~/hooks/ipc/useFileDialogs";
-import { useToasts } from "../Toasts/useToasts";
+import { Button, Stack, VerticalButtonGroup } from "~/components";
+import { useBasicIpcCall } from "~/hooks/ipc/useBasicIpcCall";
 
 export function ExportPage() {
-  const exportRunnersFile = dialogHooks.useExportRunnersToCSV();
-  const exportIncrementalFile = dialogHooks.useExportRunnersToIncrementalCSV();
-  const exportDNSFile = dialogHooks.useExportDNSRunnersToCSV();
-  const exportDNFFile = dialogHooks.useExportDNFRunnersToCSV();
-  const { createToast } = useToasts();
+  const createRunnerCSVFile = useBasicIpcCall("export-runners-file", {
+    preToast: "Exporting to CSV file"
+  });
 
-  const createRunnerCSVFile = () => {
-    createToast({ message: "Exporting to CSV file", type: "info" });
-    exportRunnersFile.mutate("ping from the renderer!");
-  };
+  const createIncrementalCSVFile = useBasicIpcCall("export-incremental-file", {
+    preToast: "Exporting to CSV file"
+  });
 
-  const createIncrementalCSVFile = () => {
-    createToast({ message: "Exporting to CSV file", type: "info" });
-    exportIncrementalFile.mutate("ping from the renderer!");
-  };
+  const createDNSCSVFile = useBasicIpcCall("export-dns-file", {
+    preToast: "Exporting DNS to CSV file"
+  });
 
-  const createDNSCSVFile = () => {
-    createToast({ message: "Exporting DNS to CSV file", type: "info" });
-    exportDNSFile.mutate("ping from the renderer!");
-  };
+  const createDNFCSVFile = useBasicIpcCall("export-dnf-file", {
+    preToast: "Exporting DNF to CSV file"
+  });
 
-  const createDNFCSVFile = () => {
-    createToast({ message: "Exporting DNF to CSV file", type: "info" });
-    exportDNFFile.mutate("ping from the renderer!");
-  };
+  const openExportDirectory = useBasicIpcCall("open-export-dir", {
+    preToast: "Opening shell to export folder"
+  });
 
   return (
-    <div>
-      <h1>
-        <b>Settings Hub</b>
-      </h1>
-      <Stack direction="row" align="stretch">
-        <Stack direction="col">
-          <b>Data Tools</b>
-          <Button color="primary" size="md" onClick={createIncrementalCSVFile}>
-            Export Incremental CSV File
-          </Button>
-          <Button color="primary" size="md" onClick={createRunnerCSVFile}>
-            Export Full CSV File
-          </Button>
-          <Button color="primary" size="md" onClick={createDNSCSVFile}>
-            Export DNS CSV File
-          </Button>
-          <Button color="primary" size="md" onClick={createDNFCSVFile}>
-            Export DNF CSV File
-          </Button>
-        </Stack>
-      </Stack>
-    </div>
+    <Stack className="w-full h-full bg-component gap-4" align="center" justify="center">
+      <VerticalButtonGroup label="Export Tools" className="mb-32">
+        <Button color="primary" size="wide" onClick={() => createIncrementalCSVFile.mutate()}>
+          Export Incremental CSV File
+        </Button>
+        <Button color="primary" size="wide" onClick={() => createRunnerCSVFile.mutate()}>
+          Export Full CSV File
+        </Button>
+        <Button color="primary" size="wide" onClick={() => createDNSCSVFile.mutate()}>
+          Export DNS CSV File
+        </Button>
+        <Button color="primary" size="wide" onClick={() => createDNFCSVFile.mutate()}>
+          Export DNF CSV File
+        </Button>
+      </VerticalButtonGroup>
+      <VerticalButtonGroup label="Export Files" className="align-text-top mb-32">
+        <Button color="primary" size="wide" onClick={() => openExportDirectory.mutate()}>
+          Open Export Folder
+        </Button>
+      </VerticalButtonGroup>
+    </Stack>
   );
 }

@@ -1,12 +1,14 @@
 import fs from "fs";
+import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { format } from "date-fns";
 import { DNFType, DatabaseStatus, RecordStatus } from "$shared/enums";
-import { RunnerAthleteDB, RunnerCSV, RunnerDB } from "$shared/models";
+import { RunnerAthleteDB, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { SetDNFOnAthlete } from "./athlete-db";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
+import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
 
@@ -40,6 +42,11 @@ export function GetRunnersWithDuplicateStatus(): number {
 
 export function GetDNSRunnersInStation(): number {
   const count = getDNSRunnersInStation();
+  return count[0] == null ? invalidResult : count[0];
+}
+
+export function GetUnknownRunners(): number {
+  const count = getUnknownRunners();
   return count[0] == null ? invalidResult : count[0];
 }
 
@@ -125,6 +132,31 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
   message = `GetRunnersInStation From StationEvents Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+}
+
+function getUnknownRunners(): DatabaseResponse<number> {
+  const db = getDatabaseConnection();
+  let message: string = "";
+  let queryResult;
+
+  const stmt = `SELECT *
+                FROM StationEvents 
+                WHERE bibId NOT IN (SELECT bibId FROM Athletes)`;
+
+  try {
+    queryResult = db.prepare(stmt).all();
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+  }
+
+  if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
+
+  message = `GetUnknownRunners in Athletes':${queryResult.length}`;
+
+  return [queryResult.length as number, DatabaseStatus.Success, message];
 }
 
 function getDNSRunnersInStation(): DatabaseResponse<number> {
@@ -224,62 +256,59 @@ export function readRunnersTable<T>(
 export async function importRunnersFromCSV() {
   const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "dnfType", "dnfStation", "note"];
   const runnerCSVFilePath = await dialogs.loadRunnersFromCSV();
-  const fileContent = fs.readFileSync(runnerCSVFilePath[0], { encoding: "utf-8" });
+  const fileContent = fs.createReadStream(runnerCSVFilePath[0], { encoding: "utf-8" });
   const stationId = (await appStore.get("station.id")) as number;
+  let message: string = "";
 
-  parse(
-    fileContent,
-    {
-      delimiter: ",",
-      columns: headers,
-      // eslint-disable-next-line camelcase
-      from_line: 2
-    },
-    (error, result: RunnerCSV[]) => {
-      if (error) {
-        console.error(error);
-        return `${result.length} timings: ${error}`;
+  const parser = fileContent
+    .pipe(
+      parse({
+        delimiter: ",",
+        columns: headers,
+        fromLine: 2
+      })
+    )
+    .on("data", (timing) => {
+      const record: DNFRunnerDB = {
+        index: timing.bibId,
+        bibId: Number(timing.bibId) - Number(timing.bibId % 1),
+        stationId: stationId,
+        timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
+        timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
+        timeModified: new Date(),
+        note: !timing.note ? "" : timing.note.replaceAll(",", ""),
+        sent: false,
+        status: timing.bibId % 1 == 0 ? RecordStatus.OK : RecordStatus.Duplicate,
+        dnf: Number(timing.dnfType != ""),
+        dnfType: timing.dnfType,
+        dnfStation: timing.dnfStation,
+        dnfDateTime: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut)
+      };
+
+      function enumFromStringValue<T>(enm: { [s: string]: T }, value: string): T | undefined {
+        return (Object.values(enm) as unknown as string[]).includes(value)
+          ? (value as unknown as T)
+          : undefined;
       }
 
-      console.log("Result", result);
+      insertOrUpdateTimeRecord(record);
+      if (record.dnf) {
+        const dnfType = enumFromStringValue(DNFType, record.dnfType);
+        SetDNFOnAthlete(record.bibId, record.timeOut, Boolean(record.dnf), dnfType!);
+      }
+    })
+    .on("error", (error) => {
+      console.error(error);
+      message = `Loading dnfRecords: ${error.message}`;
+      sendToastToRenderer({ message: error.message, type: "danger" });
+    });
+  await finished(parser);
 
-      result.slice(1).forEach((timing) => {
-        const record: DNFRunnerDB = {
-          index: timing.bibId,
-          bibId: timing.bibId,
-          stationId: stationId,
-          timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
-          timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
-          timeModified: new Date(),
-          note: !timing.note ? "" : timing.note.replaceAll(",", ""),
-          sent: false,
-          status: RecordStatus.OK,
-          dnf: Number(timing.dnfType != ""),
-          dnfType: timing.dnfType,
-          dnfStation: timing.dnfStation,
-          dnfDateTime: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut)
-        };
-
-        function enumFromStringValue<T>(enm: { [s: string]: T }, value: string): T | undefined {
-          return (Object.values(enm) as unknown as string[]).includes(value)
-            ? (value as unknown as T)
-            : undefined;
-        }
-
-        insertOrUpdateTimeRecord(record);
-        if (record.dnf) {
-          const dnfType = enumFromStringValue(DNFType, record.dnfType);
-          SetDNFOnAthlete(record.bibId, record.timeOut, Boolean(record.dnf), dnfType!);
-        }
-      });
-      return `${runnerCSVFilePath}\r\n${result.length} timings imported`;
-    }
-  );
+  return message;
 }
 
 function parseCSVDate(timingDate: string): Date {
   const event = new Date(Date.parse(timingDate));
-  //event.setFullYear(new Date().getFullYear());  //only if an incoming year doesn't make sense
   return event;
 }
 

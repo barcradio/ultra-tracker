@@ -1,3 +1,9 @@
+export enum AthleteStatus {
+  Incoming,
+  Present,
+  Outgoing
+}
+
 export enum DatabaseStatus {
   Created,
   Updated,
@@ -32,4 +38,13 @@ export enum RecordType {
 export enum RecordStatus {
   OK,
   Duplicate
+}
+
+export enum DeviceStatus {
+  Connected,
+  Connecting,
+  NoDevice,
+  Disconnected,
+  Disconnecting,
+  Error
 }

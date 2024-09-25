@@ -1,12 +1,23 @@
 import { useState } from "react";
+import { Tooltip } from "primereact/tooltip";
 import { FieldError } from "react-hook-form";
+import ArrowRightBracketIcon from "~/assets/icons/arrow-right-bracket.svg?react";
 import EditIcon from "~/assets/icons/edit.svg?react";
-import { Button, Drawer, Modal, Select, Stack, TextInput } from "~/components";
-import { DatePicker } from "~/components/DatePicker";
+import {
+  Button,
+  ButtonLink,
+  ConfirmationModal,
+  DatePicker,
+  Drawer,
+  Select,
+  Stack,
+  TextInput
+} from "~/components";
 import { useAthlete, useSetAthleteStatus } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
-import { DNFType } from "$shared/enums";
+import { useId } from "~/hooks/useId";
+import { DNFType, RecordStatus } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { useToasts } from "../Toasts/useToasts";
 
@@ -25,6 +36,7 @@ const getErrorMessage = (error: FieldError): string => {
 export function EditRunner(props: Props) {
   const { createToast } = useToasts();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [didReplaceComma, setDidReplaceComma] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const editTiming = useEditTiming();
@@ -40,9 +52,15 @@ export function EditRunner(props: Props) {
       // In which case defaultValues would be the same as values, and resetting would do nothing.
       form.reset({ ...data });
       setIsOpen(false);
+      setDidReplaceComma(false);
       editTiming.mutate(data);
       data.dnf = (data.dnfType as DNFType) != DNFType.None;
       setAthlete.mutate(data);
+      if (didReplaceComma)
+        createToast({
+          message: "Commas in note have been replaced with semicolons",
+          type: "warning"
+        });
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -67,6 +85,7 @@ export function EditRunner(props: Props) {
     setIsConfirmOpen(true);
   };
 
+  const tooltipId = useId("tooltip");
   const { data: athlete } = useAthlete(form.watch("bibId"), isOpen);
 
   return (
@@ -133,13 +152,30 @@ export function EditRunner(props: Props) {
                     required: "Bib# is required"
                   })}
                 />
-                <TextInput
-                  width="w-full"
-                  className="grow"
-                  label="Name"
-                  value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
-                  disabled
-                />
+                <div className="relative grow">
+                  <TextInput
+                    label="Name"
+                    value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
+                    disabled
+                  />
+                  {athlete && (
+                    <>
+                      <ButtonLink
+                        to="/roster"
+                        search={{ firstName: athlete?.firstName, lastName: athlete?.lastName }}
+                        variant="ghost"
+                        color="neutral"
+                        className="m-0 p-0 absolute right-2 top-1.5"
+                        id={tooltipId}
+                      >
+                        <ArrowRightBracketIcon className="h-5 w-5" />
+                      </ButtonLink>
+                      <Tooltip position="left" target={`#${tooltipId}`}>
+                        View Athlete
+                      </Tooltip>
+                    </>
+                  )}
+                </div>
               </Stack>
               <DatePicker
                 name="in"
@@ -171,6 +207,7 @@ export function EditRunner(props: Props) {
               />
               <Stack direction="row" align="end" justify="stretch" className="gap-6 w-full">
                 <Select
+                  disabled={selectedRunner.state.status === RecordStatus.Duplicate}
                   onChange={(value) => {
                     form.setValue("dnfType", value ? (value as DNFType) : DNFType.None);
                   }}
@@ -181,6 +218,7 @@ export function EditRunner(props: Props) {
                   placeholder="DNF"
                 />
                 <Select
+                  disabled={selectedRunner.state.status === RecordStatus.Duplicate}
                   onChange={(value) => form.setValue("dns", value === "dns")}
                   className="w-1/2"
                   label="DNS"
@@ -190,15 +228,17 @@ export function EditRunner(props: Props) {
                 />
               </Stack>
               <TextInput
-                className="w-full"
+                rows={2}
+                wrapperClassName="w-full"
                 label="Note"
                 placeholder="Note"
                 error={form.formState.errors.note}
                 {...form.register("note", {
-                  validate: (value) => {
-                    if (value)
-                      if (value.includes(",")) return "Commas are not allowed in the notes field";
-                    return true;
+                  setValueAs: (value: string) => {
+                    if (value == null) return value;
+                    const replaced = value.replace(/,/g, ";");
+                    if (replaced !== value) setDidReplaceComma(true);
+                    return replaced;
                   }
                 })}
               />
@@ -231,19 +271,16 @@ export function EditRunner(props: Props) {
           </Button>
         </Stack>
       </Drawer>
-      <Modal
+      <ConfirmationModal
         open={isConfirmOpen}
         setOpen={setIsConfirmOpen}
-        title="Confirmation"
-        showCloseButton
+        title="Delete Timing Record"
+        showNegativeButton
         affirmativeText="Confirm"
         onAffirmative={handleDeleteRunner}
       >
-        <div className="text-center">
-          Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}
-          ?<span className="font-medium text-danger"> This action cannot be undone.</span>
-        </div>
-      </Modal>
+        Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}?
+      </ConfirmationModal>
     </>
   );
 }

@@ -1,8 +1,10 @@
 import { type Stats, useStatsData } from "../../hooks/data/useStatsData";
+import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 function useStats() {
   const { data: statsData } = useStatsData();
+  useInvalidateRunnersOnRFID();
 
   if (!statsData) return [];
 
@@ -50,6 +52,10 @@ function useStats() {
     {
       id: "- In Station DNS",
       value: formatStat(statsData?.inStationDNS)
+    },
+    {
+      id: "- Unknown Bibs",
+      value: formatStat(statsData?.unknownAthletes)
     },
     {
       id: "Errors",

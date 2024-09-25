@@ -7,7 +7,7 @@ import RosterIcon from "~/assets/icons/roster.svg?react";
 import RunnerIcon from "~/assets/icons/runner.svg?react";
 import SettingsIcon from "~/assets/icons/settings.svg?react";
 import StationIcon from "~/assets/icons/station.svg?react";
-import { Stack } from "~/components/Stack";
+import { Stack } from "~/components";
 import { useAttachBackdrop } from "~/features/Backdrop";
 import { classed } from "~/lib/classed";
 import { SidebarLink } from "./SidebarLink";

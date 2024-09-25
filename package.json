@@ -1,10 +1,10 @@
 {
   "name": "ultra-tracker",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.1",
   "description": "Track athlete times in ultra marathons.",
   "main": "./out/main/index.js",
   "author": {
-    "name": "Bridgerland Amatuer Radio Club",
+    "name": "Bridgerland Amateur Radio Club",
     "url": "https://barconline.org"
   },
   "homepage": "https://github.com/barcradio/ultra-tracker",
@@ -35,6 +35,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@blackglory/better-sqlite3-migrations": "^0.1.18",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
     "@tanstack/react-query": "^5.51.23",
@@ -57,8 +58,10 @@
     "react-markdown": "^9.0.1",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.0",
+    "remark-toc": "^9.0.0",
     "tailwind-merge": "^2.3.0",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.4.0",
@@ -75,6 +78,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.12",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
     "electron": "^28.3.3",

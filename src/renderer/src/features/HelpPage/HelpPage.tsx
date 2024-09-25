@@ -1,5 +1,5 @@
 import getStartedContents from "~/assets/documents/get-started.md?raw";
-import { RenderMarkdown } from "~/components/RenderMarkdown";
+import { RenderMarkdown } from "~/components";
 
 export function HelpPage() {
   return (
