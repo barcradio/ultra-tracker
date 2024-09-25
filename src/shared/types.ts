@@ -8,3 +8,10 @@ export interface SetStationIdentityParams {
   callsign: string;
   identifier: string;
 }
+
+export interface Toast {
+  message: string;
+  type: "info" | "success" | "danger" | "warning";
+  timeoutMs?: number;
+  noIcon?: boolean;
+}

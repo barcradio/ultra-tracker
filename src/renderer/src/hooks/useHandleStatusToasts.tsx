@@ -1,7 +1,7 @@
 import { useCallback } from "react";
-import { Toast } from "~/features/Toasts/ToastsContext";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { DatabaseStatus } from "$shared/enums";
+import { Toast } from "$shared/types";
 
 type StatusToast<T> = Toast | ((data?: T) => Toast);
 export type ToastOnStatus<T> = { [key in DatabaseStatus]?: StatusToast<T> };

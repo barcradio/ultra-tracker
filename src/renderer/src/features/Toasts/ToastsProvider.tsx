@@ -1,12 +1,24 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { compareAsc } from "date-fns";
 import { createPortal } from "react-dom";
 import { v4 as uuid } from "uuid";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
+import { useIpcRenderer } from "~/hooks/useIpcRenderer";
+import { Toast } from "$shared/types";
 import { ToastComponent } from "./ToastComponent";
-import { InternalToast, Toast, ToastsContext } from "./ToastsContext";
+import { InternalToast, ToastsContext } from "./ToastsContext";
 
 const DEFAULT_TIMEOUT = 5000;
+
+function useMainToastListener(createToast: (toast: Toast) => void) {
+  const ipcRenderer = useIpcRenderer();
+
+  useEffect(() => {
+    ipcRenderer.on("create-toast", (_event, toast: Toast) => {
+      createToast(toast);
+    });
+  }, [createToast, ipcRenderer]);
+}
 
 export function ToastProvider(props: { children: ReactNode }) {
   const rootRef = usePortalRoot();
@@ -24,6 +36,8 @@ export function ToastProvider(props: { children: ReactNode }) {
       }
     ]);
   };
+
+  useMainToastListener(createToast);
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
