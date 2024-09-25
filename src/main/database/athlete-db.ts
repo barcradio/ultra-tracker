@@ -471,7 +471,7 @@ export function updateAthleteDNFFromCSV(record: DNFRecord): DatabaseResponse {
     );
     query.run(dnfValue, record.dnfType, record.stationId, dnfDateTime, record.bibId);
 
-    syncAthleteNote(record.bibId, record.note, SyncDirection.Outgoing);
+    syncNoteWithAthlete(record.bibId, record.note, SyncDirection.Outgoing);
 
     logEvent(
       record.bibId,
@@ -499,7 +499,7 @@ function parseCSVDate(timingDate: string): Date {
   return event;
 }
 
-export function syncAthleteNote(bibId: number, note: string, direction: SyncDirection) {
+export function syncNoteWithAthlete(bibId: number, note: string, direction: SyncDirection) {
   const db = getDatabaseConnection();
   const athleteResult = GetAthleteByBib(bibId);
   let combinedNote: string = "";
