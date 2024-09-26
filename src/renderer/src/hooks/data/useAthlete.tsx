@@ -61,6 +61,7 @@ export function useSetAthleteStatus() {
     onSuccess: (data) => {
       data?.forEach((message) => createToast({ message, type: "success" }));
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     },
     onError: (error) => console.error(error)
   });
