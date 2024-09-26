@@ -23,8 +23,18 @@ interface Table {
 
 export function applyMigrations() {
   const db = getDatabaseConnection();
-  migrate(db, migrations, userVersion);
-  db.pragma(`user_version = ${userVersion}`);
+  const currentVersion = db.pragma("user_version", { simple: true });
+
+  try {
+    console.log(`[begin] pragma user_version: current: ${currentVersion} target: ${userVersion}`);
+    migrate(db, migrations, userVersion);
+  } catch (e) {
+    db.pragma(`user_version = ${Math.max(0, userVersion - 1)}`);
+    console.log(`[error] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
+  } finally {
+    db.pragma(`user_version = ${userVersion}`);
+    console.log(`[finally] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
+  }
 }
 
 export function validateDatabaseTables() {
@@ -104,7 +114,9 @@ function createTable(tableName: string, tabledefinition: string): boolean {
       )`
     ).run();
     console.log(`Created '${tableName}' table`);
-    applyMigrations();
+
+    if (tableName == expectedTableNames.Athletes) applyMigrations();
+
     return true;
   } catch (e: unknown) {
     if (e instanceof Error) console.log(`Failed to create '${tableName}' table: ${e.message}`);
@@ -140,7 +152,7 @@ function clearTable(tableName: string): boolean {
 
     console.log(`Dropped '${tableName}' table`);
 
-    db.pragma(`user_version = 0`);
+    if (tableName == expectedTableNames.Athletes) db.pragma(`user_version = 0`);
 
     return true;
   } catch (e: unknown) {
