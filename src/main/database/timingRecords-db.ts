@@ -38,7 +38,7 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
       recordWithBib.recordType != RecordType.InOut
     ) {
       incomingRecord.status = RecordStatus.OK; // adding opposite time, not a duplicate
-      incomingRecord.note = recordWithBib.note.concat(" ", incomingRecord.note); // preserve note
+      incomingRecord.note = recordWithBib.note?.concat(" ", incomingRecord.note); // preserve note
       [status, message] = updateTimeRecord(incomingRecord, recordWithBib, true);
     } else {
       incomingRecord.status = RecordStatus.Duplicate; // this is a true duplicate

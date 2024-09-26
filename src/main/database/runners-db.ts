@@ -484,7 +484,7 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
           `${row.timeOut == null ? "" : formatDate(new Date(row.timeOut))},` +
           `${row.dnfType == null ? "" : row.dnfType},` +
           `${row.dnfStation == null ? "" : row.dnfStation},` +
-          `${row.note}`;
+          `${row.note == null ? "" : row.note}`;
         stream.write(rowText + "\n");
       }
     }

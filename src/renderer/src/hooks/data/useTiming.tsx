@@ -63,7 +63,8 @@ export const useCreateTiming = () => {
       if (athlete === null)
         createToast({
           message: `athletes: No athlete found with bibId: ${timeRecord.bibId}`,
-          type: "warning"
+          type: "warning",
+          timeoutMs: -1
         });
 
       // If the timing record is a duplicate, show a warning
