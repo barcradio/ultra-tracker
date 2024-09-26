@@ -1,9 +1,11 @@
 import fs from "fs";
+import path from "path";
 import Database from "better-sqlite3";
+import { app } from "electron";
 
 let db: Database.Database;
 
-const dbFolder = "./Database";
+const dbFolder: string = path.join(app.getPath("userData"), `event-databases`);
 const dbPath = `${dbFolder}/Bear100Devdb.db`;
 const dbBackupPath = `${dbFolder}/Bear100db-backup.db`;
 
