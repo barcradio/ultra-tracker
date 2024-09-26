@@ -178,5 +178,5 @@ export function initUserDirectories() {
 export const AppPaths = {
   userRoot: path.join(app.getPath("documents"), app.name),
   eventConfig: path.join(app.getPath("documents"), app.name, ".event-config"),
-  appStore: path.join(app.getPath("userData"), app.name)
+  appStore: path.join(app.getPath("userData"))
 };

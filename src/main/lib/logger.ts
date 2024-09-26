@@ -1,5 +1,6 @@
 import os from "os";
 import path from "path";
+import { format } from "date-fns";
 import { app } from "electron";
 import log from "electron-log/main";
 import { logEvent } from "../database/eventLogger-db";
@@ -15,9 +16,10 @@ export enum LogLevel {
 
 // By default, two transports are active: console and file.
 export function initialize() {
+  const now = format(new Date(), "yyyy-MM-dd");
   log.initialize();
   log.transports.file.resolvePathFn = () =>
-    path.join(app.getPath("documents"), app.name, ".logs/main.log");
+    path.join(app.getPath("documents"), app.name, `.logs/${now}-main.log`);
   log.errorHandler.startCatching();
   log.transports.console.format = "[{iso}] [{level}] [{processType}] {text}";
   // Override console methods to log both to console and electron-log

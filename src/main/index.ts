@@ -29,7 +29,7 @@ function createWindow(): BrowserWindow {
 
   mainWindow.on("ready-to-show", () => {
     mainWindow.showInactive();
-    mainWindow.setTitle(app.name);
+    mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
     mainWindow.setIcon(iconLinux);
   });
 
