@@ -21,9 +21,9 @@ const TagWrapper = classed.button(
         purple: "bg-[#572C7B] text-[#B8B8FF] border-[#B8B8FF]",
         red: "bg-[#672023] text-[#FFA8A8] border-[#FFA8A8]",
         gray: "bg-[#555555] text-[#CFDEE5] border-[#CFDEE5]",
-        orange: "bg-[#FB780033] text-[#FFAA5C] border-[#FFAA5C]",
+        orange: "bg-[#7C3C00] text-[#FFAA5C] border-[#FFAA5C]",
         blue: "bg-[#152833] text-[#64C6FF] border-[#64C6FF]",
-        lightgray: "bg-[#55555566] text-[#CFDEE5CC] border-[#CFDEE5CC]",
+        lightgray: "bg-[#555555AA] text-[#CFDEE5CC] border-[#CFDEE5CC]",
         yellow: "bg-[#604B00] text-[#FBBE00] border-[#FBBE00]"
       }
     },
