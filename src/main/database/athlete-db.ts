@@ -34,6 +34,7 @@ export async function LoadAthletes() {
   const fileContent = fs.createReadStream(athleteFilePath[0], { encoding: "utf-8" });
   const message: string[] = [];
 
+  // TODO: Begin transaction
   const parser = fileContent
     .pipe(
       parse({
@@ -58,6 +59,7 @@ export async function LoadAthletes() {
       const { records } = parser.info;
       message.push(`${athleteFilePath}\r\n${records} athletes imported`);
     });
+  // TODO: Commit transaction
   await finished(parser, { error: false });
 
   return message;

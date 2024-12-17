@@ -60,7 +60,7 @@ export function getTableNames(): string[] {
 
   try {
     const stmt = db.prepare(
-      `SELECT * FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'`
+      `SELECT * FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`
     );
 
     for (const table of stmt.iterate()) {
