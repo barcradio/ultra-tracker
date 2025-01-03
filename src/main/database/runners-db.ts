@@ -433,9 +433,8 @@ export async function exportDNFAsCSV() {
   const stmt = `
     SELECT t1.dnf, t1.dnfType, t1.dnfStation, t1.dnfDateTime, t2.*
     FROM Athletes t1 INNER JOIN StationEvents t2
-    ON t2.bibId IN (t1.bibId, t1.dnf, t1.dnfStation)
-    WHERE t1.bibId = t2.bibId
-    AND t1.dnf == 1
+    ON t1.bibId = t2.bibId
+    WHERE t1.dnf == 1
     AND t1.dnfStation == ?
   `;
 

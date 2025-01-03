@@ -45,6 +45,7 @@ export async function LoadStations() {
 
   if (!stationData) return "Invalid JSON file.";
 
+  // TODO: Begin transaction
   for (const index in stationData) {
     if (index == "event") {
       appStore.set("event.name", stationData.event.name);
@@ -70,6 +71,7 @@ export async function LoadStations() {
       }
     }
   }
+  // TODO: Commit transaction
   const stationIdentifier = appStore.get("station.identifier") as string;
   setStation(stationIdentifier);
 
