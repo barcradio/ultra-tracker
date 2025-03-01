@@ -5,12 +5,23 @@ import { app } from "electron";
 
 let db: Database.Database;
 
-const dbFolder: string = path.join(app.getPath("userData"), `event-databases`);
-const dbPath = `${dbFolder}/Bear100Devdb.db`;
-const dbBackupPath = `${dbFolder}/Bear100db-backup.db`;
+function getDbFolder(): string {
+  return path.join(app.getPath("userData"), `event-databases`);
+}
+
+function getDbPaths() {
+  const dbFolder = getDbFolder();
+  return {
+    dbFolder,
+    dbPath: path.join(dbFolder, "Bear100Devdb.db"),
+    dbBackupPath: path.join(dbFolder, "Bear100db-backup.db")
+  };
+}
 
 export function createDatabaseConnection() {
-  if (!fs.existsSync(dbFolder)) fs.mkdirSync(dbFolder);
+  const { dbFolder, dbPath, dbBackupPath } = getDbPaths();
+
+  if (!fs.existsSync(dbFolder)) fs.mkdirSync(dbFolder, { recursive: true });
 
   try {
     db = new Database(dbPath);
@@ -25,7 +36,7 @@ export function createDatabaseConnection() {
 
   setInterval(() => {
     console.log("starting backup...");
-    console.log(`backup location: $${dbBackupPath}`);
+    console.log(`backup location: ${dbBackupPath}`);
     db.backup(dbBackupPath)
       .then(() => {
         console.log("backup complete");
