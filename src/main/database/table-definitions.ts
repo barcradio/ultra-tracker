@@ -1,11 +1,11 @@
 export const StationEvents: string = `
-      bibId INTEGER DEFAULT (0), // TODO: Index
-      stationId INTEGER, // TODO: Index
+      bibId INTEGER DEFAULT (0), -- TODO: Index
+      stationId INTEGER, -- TODO: Index
       timeIn DATETIME,
-      timeOut DATETIME, // TODO: Index
+      timeOut DATETIME, -- TODO: Index
       timeModified DATETIME,
       note TEXT,
-      sent BOOLEAN DEFAULT (FALSE), // TODO: Index
+      sent BOOLEAN DEFAULT (FALSE), -- TODO: Index
       status INTEGER`; // TODO: Index
 
 /* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
@@ -24,7 +24,7 @@ export const EventLog: string = `
     start of the race listing all persons and their emergency contact information.
     There is still the possibility that additional runners could be added after the start.*/
 export const Athletes: string = `
-      bibId INTEGER DEFAULT (0), // TODO: Index
+      bibId INTEGER DEFAULT (0), -- TODO: Index
       firstName TEXT,
       lastName TEXT,
       gender TEXT,
@@ -33,17 +33,17 @@ export const Athletes: string = `
       state TEXT,
       emergencyName TEXT,
       emergencyPhone INTEGER,
-      dns INTEGER, // TODO: Index
-      dnf INTEGER, // TODO: Index
+      dns INTEGER, -- TODO: Index
+      dnf INTEGER, -- TODO: Index
       dnfType TEXT,
-      dnfStation TEXT, // TODO: Index
+      dnfStation TEXT, -- TODO: Index
       dnfDateTime DATETIME,
       note TEXT`;
 
 /*  The Stations table is used to store the operators and the number of the runner station. */
 export const Stations = `
       name TEXT,
-      identifier TEXT, // TODO: Index
+      identifier TEXT, -- TODO: Index
       description TEXT,
       location BLOB,
       distance REAL,
