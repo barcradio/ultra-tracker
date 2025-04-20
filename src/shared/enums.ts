@@ -48,3 +48,8 @@ export enum DeviceStatus {
   Disconnecting,
   Error
 }
+
+export enum RfidMode {
+  idle,
+  Scanning
+}

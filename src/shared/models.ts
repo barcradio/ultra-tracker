@@ -1,4 +1,4 @@
-import { AthleteStatus, DNFType, EntryMode, RecordType } from "./enums";
+import { AthleteStatus, DNFType, DeviceStatus, EntryMode, RecordType, RfidMode } from "./enums";
 
 /**
  * Custom models (types) for ultra-tracker
@@ -133,6 +133,19 @@ export type EventLogRec = {
   comments: string;
   sent: boolean | undefined;
   verbose: boolean | undefined;
+};
+
+export type RfidSettings = {
+  restApiUrl: string;
+  webSocketUrl: string;
+  userName: string;
+  password: string;
+  websocketPort: string | number;
+  secureWebsocket: boolean;
+  sslCert: string;
+  rfidTagRegx: RegExp;
+  status: DeviceStatus;
+  mode: RfidMode;
 };
 
 export type RunnerAthleteDB = RunnerDB & Pick<AthleteDB, "dnf" | "dnfType" | "dns">;
