@@ -7,18 +7,19 @@
 / USER APPS repo for Zebra https://github.com/ZebraDevs/RFID_ZIOTC_Examples
 // Documentation: https://zebradevs.github.io/rfid-ziotc-docs/setupziotc/index.html#start-reads
 */
+import { RawData } from "ws";
+import { RfidSettings } from "$shared/models";
 import { WebSocketClient } from "./WebSocketClient";
-import { DeviceStatus } from "../../shared/enums";
 import * as dbTimings from "../database/timingRecords-db";
 
-interface RFIDData {
+interface RfidTag {
   eventNum: number;
   format: string;
   idHex: string;
 }
 
-interface RFIDMessage {
-  data: RFIDData;
+interface RfidData {
+  data: RfidTag;
   timestamp: string;
   type: string;
 }
@@ -26,10 +27,13 @@ interface RFIDMessage {
 export class RFIDProcessor {
   private wsClient: WebSocketClient;
   private buffer: string = "";
-  private RFIRegex = /0{20}/;
+  private rfidRegex = /0{20}/;
 
-  constructor(url: string) {
-    this.wsClient = new WebSocketClient(url);
+  constructor(client: WebSocketClient, rfidSettings: RfidSettings) {
+    this.wsClient = client;
+    if (rfidSettings != null) {
+      this.rfidRegex = rfidSettings.rfidTagRegx;
+    }
 
     this.wsClient.on("message", (data) => this.processIncomingMessages(data));
     this.wsClient.on("connected", () => console.log("RFID WebSocket connected"));
@@ -37,17 +41,17 @@ export class RFIDProcessor {
     this.wsClient.on("error", (error) => console.error("RFID WebSocket error:", error));
   }
 
-  private processIncomingMessages(data: string): void {
-    this.buffer += data;
+  private processIncomingMessages(data: RawData): void {
+    this.buffer += data.toString();
     const jsonObjects = this.buffer.match(/{.*?}(?=\{|\s*$)/g);
 
     if (!jsonObjects) return;
 
     jsonObjects.forEach((jsonStr) => {
       try {
-        const obj = JSON.parse(jsonStr) as RFIDMessage;
+        const obj = JSON.parse(jsonStr) as RfidData;
 
-        if (this.RFIRegex.test(obj.data.idHex)) {
+        if (this.rfidRegex.test(obj.data.idHex)) {
           this.handleDatabaseInsert(obj);
         }
       } catch (error) {
@@ -55,11 +59,13 @@ export class RFIDProcessor {
       }
 
       const lastProcessedObjectIndex = this.buffer.lastIndexOf(jsonObjects[jsonObjects.length - 1]);
-      this.buffer = this.buffer.slice(lastProcessedObjectIndex + jsonObjects[jsonObjects.length - 1].length);
+      this.buffer = this.buffer.slice(
+        lastProcessedObjectIndex + jsonObjects[jsonObjects.length - 1].length
+      );
     });
   }
 
-  private handleDatabaseInsert(obj: RFIDMessage): void {
+  private handleDatabaseInsert(obj: RfidData): void {
     const idhex = parseInt(obj.data.idHex);
     const timestamp = new Date(obj.timestamp);
 
@@ -78,17 +84,5 @@ export class RFIDProcessor {
     } catch (error) {
       console.error("Error updating database:", error);
     }
-  }
-
-  public connect(addr: string) {
-    this.wsClient.connect(addr);
-  }
-
-  public disconnect(): void {
-    this.wsClient.disconnect();
-  }
-
-  public getStatus(): DeviceStatus {
-    return this.wsClient.getStatus();
   }
 }

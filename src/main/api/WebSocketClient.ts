@@ -8,10 +8,10 @@ export class WebSocketClient {
 
   constructor(url: string) {
     this.url = url;
-    this.connect(this.url);
     this.ws = new WebSocket(this.url, {
       rejectUnauthorized: false,
     });
+    this.connect(this.url);
 
     this.ws.on("open", () => {
       this.eventEmitter.emit("connected");
