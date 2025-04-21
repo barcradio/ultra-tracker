@@ -9,7 +9,7 @@
 */
 import { RawData } from "ws";
 import { RfidSettings } from "$shared/models";
-import { WebSocketClient } from "./WebSocketClient";
+import { WebSocketClient } from "./websocket-clinet";
 import * as dbTimings from "../database/timingRecords-db";
 
 interface RfidTag {
