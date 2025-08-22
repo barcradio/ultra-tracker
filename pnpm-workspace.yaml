@@ -1,0 +1,7 @@
+onlyBuiltDependencies:
+  - better-sqlite3
+  - electron
+  - electron-winstaller
+  - esbuild
+  - sqlite3
+  - unrs-resolver
