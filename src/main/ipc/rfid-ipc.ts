@@ -1,24 +1,42 @@
 /* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
 import { DeviceStatus } from "$shared/enums";
-import * as rfid from "../api/rfid-processor";
-import { Handler } from "../types";
+import { RfidSettings } from "$shared/models";
+import * as runtime from "../runtime/rfid-runtime";
 
-const startRFID: Handler<string> = () => {
-  return rfid.InitializeRFIDReader();
-};
+export function initRFIDHandlers() {
+  // 1) Initialize (auth + connect), but DO NOT start scanning
+  ipcMain.handle("rfid:initialize", async (_e, settings: RfidSettings) => {
+    await runtime.initialize(settings);
+    return { ok: true };
+  });
 
-const disconnectRFID: Handler<string> = () => {
-  rfid.DisconnectRFIDReader();
-  return "RFID Disconnected";
-};
+  // 2) Start scanning
+  ipcMain.handle("rfid:start", async () => {
+    runtime.start();
+    return { ok: true };
+  });
 
-const getStatusRFID: Handler<DeviceStatus> = () => {
-  return rfid.GetRFIDStatus();
-};
+  // 3) Stop scanning (stay connected)
+  ipcMain.handle("rfid:stop", async () => {
+    runtime.stop();
+    return { ok: true };
+  });
 
-export const initRFIDHandlers = () => {
-  ipcMain.handle("rfid-initialize", startRFID);
-  ipcMain.handle("rfid-disconnect", disconnectRFID);
-  ipcMain.handle("rfid-get-status", getStatusRFID);
-};
+  // 4) Fully disconnect / teardown (used by UI or app shutdown)
+  ipcMain.handle("rfid:disconnect", async () => {
+    runtime.disconnect();
+    return { ok: true };
+  });
+
+  // 5) Status query
+  ipcMain.handle("rfid:getStatus", async (): Promise<DeviceStatus> => {
+    return runtime.getStatus();
+  });
+
+  // 6) Optional: set mode while connected
+  ipcMain.handle("rfid:setMode", async (_e, mode: string) => {
+    runtime.setMode(mode);
+    return { ok: true };
+  });
+}

@@ -42,14 +42,12 @@ export enum RecordStatus {
 
 export enum DeviceStatus {
   Connected,
-  Connecting,
   NoDevice,
   Disconnected,
-  Disconnecting,
   Error
 }
 
 export enum RfidMode {
   idle,
-  Scanning
+  active
 }

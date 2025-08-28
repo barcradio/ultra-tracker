@@ -1,27 +1,25 @@
 /*
     Rest Client for the RFID reader. Made to work with the Zebra FXR90
-    A raspberry Pi version is in the works 
-    
+    A raspberry Pi version is in the works.
 */
-class RestClient {
-  private baseUrl: string;
-  private username: string;
-  private password: string;
-  private token: string | null = null;
 
-  constructor(baseUrl: string, username: string, password: string) {
-    this.baseUrl = baseUrl;
-    this.username = username;
-    this.password = password;
+import { RfidSettings } from "$shared/models";
+
+export class RfidRestClient {
+  private settings: RfidSettings;
+  private token: string | undefined;
+
+  constructor(settings: RfidSettings) {
+    this.settings = settings;
   }
 
   // Login method to fetch the token
   async login(): Promise<boolean> {
-    const credentials = `${this.username}:${this.password}`;
+    const credentials = `${this.settings.userName}:${this.settings.password}`;
     const base64Credentials = Buffer.from(credentials).toString("base64");
 
     try {
-      const response = await fetch(`${this.baseUrl}/cloud/localRestLogin`, {
+      const response = await fetch(`${this.settings.restApiUrl}/cloud/localRestLogin`, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -64,7 +62,7 @@ class RestClient {
       options.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+    const response = await fetch(`${this.settings.restApiUrl}${endpoint}`, options);
 
     if (!response.ok) {
       throw new Error(`Request failed: ${response.status} ${response.statusText}`);
@@ -90,8 +88,12 @@ class RestClient {
     return data;
   }
 
-  async setMode(): Promise<void> {
-    await this.request("PUT", "/cloud/mode", {});
+  async setMode(mode: string): Promise<void> {
+    const parseData: unknown = JSON.parse(mode);
+
+    if (typeof parseData === "object" && parseData !== null) {
+      await this.request("PUT", "/cloud/mode", parseData);
+    }
     console.log("Mode updated.");
   }
 }

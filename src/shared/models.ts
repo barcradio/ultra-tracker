@@ -146,6 +146,7 @@ export type RfidSettings = {
   rfidTagRegx: RegExp;
   status: DeviceStatus;
   mode: RfidMode;
+  type: string;
 };
 
 export type RunnerAthleteDB = RunnerDB & Pick<AthleteDB, "dnf" | "dnfType" | "dns">;

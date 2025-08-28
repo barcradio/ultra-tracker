@@ -2,7 +2,6 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
-import { DisconnectRFIDReader } from "./api/rfid-processor";
 import { createDatabaseConnection } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
@@ -10,6 +9,7 @@ import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
 import { initStatEngine } from "./lib/stat-engine";
+import * as runtime from "./runtime/rfid-runtime";
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -75,7 +75,7 @@ app.on("ready", async () => {
   app.on("activate", function () {
     app.on("window-all-closed", () => {
       if (process.platform !== "darwin") {
-        DisconnectRFIDReader();
+        runtime.disconnect();
         app.quit();
       }
       shutdown();
@@ -103,7 +103,7 @@ app.on("activate", () => {
 //Window Close Handler 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    DisconnectRFIDReader();
+    runtime.disconnect();
     app.quit();
   }
   shutdown();
