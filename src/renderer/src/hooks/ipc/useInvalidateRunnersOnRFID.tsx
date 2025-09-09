@@ -9,6 +9,7 @@ export function useInvalidateRunnersOnRFID() {
   useEffect(() => {
     const handleRFIDRead = () => {
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     };
 
     ipcRenderer.on("read-rfid", handleRFIDRead);
