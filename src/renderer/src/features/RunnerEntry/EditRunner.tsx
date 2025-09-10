@@ -13,7 +13,8 @@ import {
   Stack,
   TextInput
 } from "~/components";
-import { useAthlete, useSetAthleteStatus } from "~/hooks/data/useAthlete";
+import { useAthlete } from "~/hooks/data/useAthlete";
+import { useSetAthleteProgress } from "~/hooks/data/useStatus";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
@@ -41,7 +42,7 @@ export function EditRunner(props: Props) {
 
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
-  const setAthlete = useSetAthleteStatus();
+  const setAthlete = useSetAthleteProgress();
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 

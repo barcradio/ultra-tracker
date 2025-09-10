@@ -1,8 +1,8 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { StatusTag } from "~/components/StatusTag";
 import { useAthletes } from "~/hooks/data/useAthletes";
-import { AthleteStatus, DNFType } from "$shared/enums";
-import { AthleteDB } from "$shared/models";
+import { AthleteProgress, DNFType } from "$shared/enums";
+import { AthleteStatusDB } from "$shared/models";
 import { EmergencyContact } from "./EmergencyContact";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
@@ -14,7 +14,7 @@ export function RosterPage() {
   const { firstName, lastName } = routeApi.useSearch();
   const navigate = useNavigate();
 
-  const columns: ColumnDef<AthleteDB> = [
+  const columns: ColumnDef<AthleteStatusDB> = [
     {
       field: "bibId",
       name: "Bib",
@@ -24,14 +24,14 @@ export function RosterPage() {
     {
       field: "dnfType",
       name: "Status",
-      render: (dnfType, { dns, status }) => (
-        <StatusTag dnfType={dnfType} dns={dns} athleteStatus={status} />
+      render: (dnfType, { dns, progress }) => (
+        <StatusTag dnfType={dnfType} dns={dns} AthleteProgress={progress} />
       ),
       valueFn: (athlete) =>
         `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType + "dnf"}
-         ${athlete.status! === AthleteStatus.Incoming ? "Incoming" : ""}
-         ${athlete.status! === AthleteStatus.Present ? "In" : ""}
-         ${athlete.status! === AthleteStatus.Outgoing && !athlete.dns! ? "Out" : ""}
+         ${athlete.progress! === AthleteProgress.Incoming ? "Incoming" : ""}
+         ${athlete.progress! === AthleteProgress.Present ? "In" : ""}
+         ${athlete.progress! === AthleteProgress.Outgoing && !athlete.dns! ? "Out" : ""}
          ${athlete.dns! ? "DNS" : ""}`,
       width: "9%"
     },

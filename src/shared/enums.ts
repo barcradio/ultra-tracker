@@ -1,4 +1,4 @@
-export enum AthleteStatus {
+export enum AthleteProgress {
   Incoming,
   Present,
   Outgoing

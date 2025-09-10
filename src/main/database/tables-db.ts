@@ -1,16 +1,17 @@
 import { migrate } from "@blackglory/better-sqlite3-migrations";
 import { getDatabaseConnection } from "./connect-db";
 import { migrations } from "./migrations-db";
-import * as tableDefs from "./table-definitions";
+import * as tableDefs from "./schema/table-definitions-v1";
 
-const userVersion = 1;
+const userVersion = 2;
 
 export const expectedTableNames = {
   Athletes: "Athletes",
   EventLog: "EventLog",
-  StationEvents: "StationEvents",
+  TimeRecords: "TimeRecords",
   Stations: "Stations",
-  EventGrid: "Output"
+  EventGrid: "Output",
+  Status: "Status"
 };
 
 interface Table {
@@ -28,12 +29,13 @@ export function applyMigrations() {
   try {
     console.log(`[begin] pragma user_version: current: ${currentVersion} target: ${userVersion}`);
     migrate(db, migrations, userVersion);
+    db.pragma(`user_version = ${userVersion}`);
+    console.log(`[success] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
   } catch (e) {
     db.pragma(`user_version = ${Math.max(0, userVersion - 1)}`);
-    console.log(`[error] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
-  } finally {
-    db.pragma(`user_version = ${userVersion}`);
-    console.log(`[finally] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
+    console.log(
+      `[error] pragma user_version: ${db.pragma("user_version", { simple: true })} reverted`
+    );
   }
 }
 
@@ -96,9 +98,10 @@ export function CreateTables() {
   const result =
     createAthletesTable() &&
     createEventLogTable() &&
-    createStationEventsTable() &&
+    createTimeRecordsTable() &&
     createStationsTable() &&
-    createOutputTable();
+    createOutputTable() &&
+    createStatusTable();
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
@@ -128,11 +131,12 @@ export const createAthletesTable = () =>
   createTable(expectedTableNames.Athletes, tableDefs.Athletes);
 export const createEventLogTable = () =>
   createTable(expectedTableNames.EventLog, tableDefs.EventLog);
-export const createStationEventsTable = () =>
-  createTable(expectedTableNames.StationEvents, tableDefs.StationEvents);
+export const createTimeRecordsTable = () =>
+  createTable(expectedTableNames.TimeRecords, tableDefs.TimeRecords);
 export const createStationsTable = () =>
   createTable(expectedTableNames.Stations, tableDefs.Stations);
 export const createOutputTable = () => createTable(expectedTableNames.EventGrid, tableDefs.Output);
+export const createStatusTable = () => createTable(expectedTableNames.Status, tableDefs.Status);
 
 export function ClearTables() {
   const result =
@@ -140,7 +144,8 @@ export function ClearTables() {
     clearEventsTable() &&
     clearRunnersTable() &&
     clearStationsTable() &&
-    clearOutputTable();
+    clearOutputTable() &&
+    clearStatusTable();
 
   return result ? `Database tables cleared; Reinitialize or Restart!` : `Database Clear Failed`;
 }
@@ -163,6 +168,7 @@ function clearTable(tableName: string): boolean {
 
 export const clearAthletesTable = () => clearTable(expectedTableNames.Athletes);
 export const clearEventsTable = () => clearTable(expectedTableNames.EventLog);
-export const clearRunnersTable = () => clearTable(expectedTableNames.StationEvents);
+export const clearRunnersTable = () => clearTable(expectedTableNames.TimeRecords);
 export const clearStationsTable = () => clearTable(expectedTableNames.Stations);
 export const clearOutputTable = () => clearTable(expectedTableNames.EventGrid);
+export const clearStatusTable = () => clearTable(expectedTableNames.Status);

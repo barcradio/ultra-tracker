@@ -2,6 +2,7 @@ import { ipcMain } from "electron";
 import * as dbAthlete from "../database/athlete-db";
 import * as dbRunners from "../database/runners-db";
 import * as dbStations from "../database/stations-db";
+import * as dbStatus from "../database/status-db";
 import * as dbTables from "../database/tables-db";
 import { Handler } from "../types";
 
@@ -16,11 +17,11 @@ const loadAthletesFile: Handler<string> = (event, args) => {
 };
 
 const loadDNSFile: Handler<string> = () => {
-  return dbAthlete.LoadDNS();
+  return dbStatus.LoadDNS();
 };
 
 const loadDNFFile: Handler<string> = () => {
-  return dbAthlete.LoadDNF();
+  return dbStatus.LoadDNF();
 };
 
 const importRunnersFile: Handler<string> = () => {
