@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { DatabaseStatus } from "$shared/enums";
-import { AthleteDB } from "$shared/models";
+import { AthleteStatusDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { useIpcRenderer } from "../useIpcRenderer";
 
@@ -11,8 +11,8 @@ export function useAthletes() {
 
   return useQuery({
     queryKey: ["athletes-table"],
-    queryFn: async (): Promise<AthleteDB[]> => {
-      const [data, status, message]: DatabaseResponse<AthleteDB[]> =
+    queryFn: async (): Promise<AthleteStatusDB[]> => {
+      const [data, status, message]: DatabaseResponse<AthleteStatusDB[]> =
         await ipcRenderer.invoke("get-athletes-table");
 
       if (status === DatabaseStatus.Error) {

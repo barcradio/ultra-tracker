@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { DNFType, DatabaseStatus, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
-import { SetDNFOnAthlete } from "./athlete-db";
+import { SetDNF } from "./status-db";
 import { getDatabaseConnection } from "./connect-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
@@ -56,7 +56,7 @@ function getTotalRunners(): DatabaseResponse<number> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT COUNT(bibId) FROM StationEvents`).get();
+    queryResult = db.prepare(`SELECT COUNT(bibId) FROM TimeRecords`).get();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -77,7 +77,7 @@ function getRunnersInStation(): DatabaseResponse<number> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM StationEvents WHERE timeOut IS NULL`).get();
+    queryResult = db.prepare(`SELECT COUNT(*) FROM TimeRecords WHERE timeOut IS NULL`).get();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -87,7 +87,7 @@ function getRunnersInStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StationEvents Where 'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From TimeRecords Where 'timeOut IS NULL':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -98,7 +98,7 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM StationEvents WHERE timeOut IS NOT NULL`).get();
+    queryResult = db.prepare(`SELECT COUNT(*) FROM TimeRecords WHERE timeOut IS NOT NULL`).get();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -108,7 +108,7 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StationEvents Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From TimeRecords Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -119,7 +119,7 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
   let message: string = "";
 
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM StationEvents WHERE status == 1`).get();
+    queryResult = db.prepare(`SELECT COUNT(*) FROM TimeRecords WHERE status == 1`).get();
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -129,7 +129,7 @@ function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StationEvents Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From TimeRecords Where 'status == 1 (Duplicate)':${queryResult["COUNT(*)"]}`;
 
   return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
 }
@@ -140,7 +140,7 @@ function getUnknownRunners(): DatabaseResponse<number> {
   let queryResult;
 
   const stmt = `SELECT *
-                FROM StationEvents 
+                FROM TimeRecords 
                 WHERE bibId NOT IN (SELECT bibId FROM Athletes)`;
 
   try {
@@ -173,10 +173,10 @@ function getDNSRunnersInStation(): DatabaseResponse<number> {
   let message: string = "";
   let queryResult;
 
-  const stmt = `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dns
-       FROM "StationEvents" LEFT JOIN "Athletes"
-       ON StationEvents.bibId = Athletes.bibId
-       WHERE Athletes.dns == 1 and StationEvents.stationId == ?`;
+  const stmt = `SELECT TimeRecords.*, Status.dnf, Status.dnfType, Status.dns
+       FROM "TimeRecords" LEFT JOIN "Status"
+       ON TimeRecords.bibId = Status.bibId
+       WHERE Status.dns == 1 and TimeRecords.stationId == ?`;
   try {
     queryResult = db.prepare(stmt).all(stationId);
   } catch (e) {
@@ -188,7 +188,7 @@ function getDNSRunnersInStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From StationEvents Where 'Athletes.dns == 1 and StationEvents.stationId == ${stationId}':${queryResult.length}`;
+  message = `GetRunnersInStation From TimeRecords Where 'Status.dns == 1 and TimeRecords.stationId == ${stationId}':${queryResult.length}`;
 
   return [queryResult.length as number, DatabaseStatus.Success, message];
 }
@@ -201,9 +201,9 @@ function getRunnersWithDNFNotSent(): DatabaseResponse<DNFRunnerDB> {
   try {
     queryResult = db
       .prepare(
-        `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dnfStation, Athletes.dnfDateTime, Athletes.dns
-        FROM "StationEvents" LEFT JOIN "Athletes"
-        ON StationEvents.bibId = Athletes.bibId WHERE sent == 0`
+        `SELECT TimeRecords.*, Status.dnf, Status.dnfType, Status.dnfStation, Status.dnfDateTime, Status.dns
+        FROM "TimeRecords" LEFT JOIN "Status"
+        ON TimeRecords.bibId = Status.bibId WHERE sent == 0`
       )
       .all();
   } catch (e) {
@@ -227,10 +227,10 @@ export function readRunnersTable<T>(
   let message: string = "";
 
   const statement = includeDNF
-    ? `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dns
-       FROM "StationEvents" LEFT JOIN "Athletes"
-       ON StationEvents.bibId = Athletes.bibId`
-    : `SELECT * FROM StationEvents`;
+    ? `SELECT TimeRecords.*, Status.dnf, Status.dnfType, Status.dns
+       FROM "TimeRecords" LEFT JOIN "Status"
+       ON TimeRecords.bibId = Status.bibId`
+    : `SELECT * FROM TimeRecords`;
 
   try {
     queryResult = db.prepare(statement).all();
@@ -243,7 +243,7 @@ export function readRunnersTable<T>(
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersTable from StationEvents: ${queryResult.length}`;
+  message = `GetRunnersTable from TimeRecords: ${queryResult.length}`;
 
   queryResult.forEach((row: RunnerDB) => {
     row.timeIn = row.timeIn == null ? null : new Date(row.timeIn);
@@ -294,7 +294,7 @@ export async function importRunnersFromCSV() {
       insertOrUpdateTimeRecord(record);
       if (record.dnf) {
         const dnfType = enumFromStringValue(DNFType, record.dnfType);
-        SetDNFOnAthlete(record.bibId, record.timeOut, Boolean(record.dnf), dnfType!);
+        SetDNF(record.bibId, record.timeOut, Boolean(record.dnf), dnfType!);
       }
     })
     .on("error", (error) => {
@@ -382,9 +382,9 @@ export async function exportRunnersAsCSV() {
   try {
     queryResult = db
       .prepare(
-        `SELECT StationEvents.*, Athletes.dnf, Athletes.dnfType, Athletes.dnfStation, Athletes.dnfDateTime, Athletes.dns
-        FROM "StationEvents" LEFT JOIN "Athletes"
-        ON StationEvents.bibId = Athletes.bibId`
+        `SELECT TimeRecords.*, Status.dnf, Status.dnfType, Status.dnfStation, Status.dnfDateTime, Status.dns
+        FROM "TimeRecords" LEFT JOIN "Status"
+        ON TimeRecords.bibId = Status.bibId`
       )
       .all();
     filename = await dialogs.saveRunnersToCSV();
@@ -406,7 +406,7 @@ export async function exportDNSAsCSV() {
   let queryResult;
   let filename: string = "";
 
-  const stmt = `SELECT * FROM Athletes WHERE dns == 1`;
+  const stmt = `SELECT * FROM Status WHERE dns == 1`;
 
   try {
     queryResult = db.prepare(stmt).all();
@@ -432,7 +432,7 @@ export async function exportDNFAsCSV() {
 
   const stmt = `
     SELECT t1.dnf, t1.dnfType, t1.dnfStation, t1.dnfDateTime, t2.*
-    FROM Athletes t1 INNER JOIN StationEvents t2
+    FROM Status t1 INNER JOIN TimeRecords t2
     ON t1.bibId = t2.bibId
     WHERE t1.dnf == 1
     AND t1.dnfStation == ?

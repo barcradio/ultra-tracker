@@ -1,5 +1,6 @@
 import * as dbAthlete from "../database/athlete-db";
 import * as dbRunners from "../database/runners-db";
+import * as dbStatus from "../database/status-db";
 
 type StatFn = (value: Record<string, number>) => number;
 
@@ -36,8 +37,8 @@ export function initStatEngine() {
 
   stats.addStat("registeredAthletes", () => dbAthlete.GetTotalAthletes());
   stats.addStat("totalRunners", () => dbRunners.GetTotalRunners());
-  stats.addStat("totalDNS", () => dbAthlete.GetTotalDNS());
-  stats.addStat("previousDNF", () => dbAthlete.GetPreviousDNF());
+  stats.addStat("totalDNS", () => dbStatus.GetTotalDNS());
+  stats.addStat("previousDNF", () => dbStatus.GetPreviousDNF());
   stats.addStat("pendingArrivals", (input) => {
     if (
       input.registeredAthletes != invalidResult ||
@@ -52,8 +53,8 @@ export function initStatEngine() {
   stats.addStat("inStation", () => dbRunners.GetRunnersInStation());
   stats.addStat("throughStation", () => dbRunners.GetRunnersOutStation());
   stats.addStat("finishedRace", (input) => input.defaultValue);
-  stats.addStat("stationDNF", () => dbAthlete.GetStationDNF());
-  stats.addStat("totalDNF", () => dbAthlete.GetTotalDNF());
+  stats.addStat("stationDNF", () => dbStatus.GetStationDNF());
+  stats.addStat("totalDNF", () => dbStatus.GetTotalDNF());
 
   stats.addStat("warnings", () => invalidResult);
   stats.addStat("inStationDNS", () => dbRunners.GetDNSRunnersInStation());
