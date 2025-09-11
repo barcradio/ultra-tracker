@@ -8,6 +8,7 @@ import { RfidSettings } from "$shared/models";
 export class RfidRestClient {
   private settings: RfidSettings;
   private token: string | undefined;
+  private lastError: string | undefined;
 
   constructor(settings: RfidSettings) {
     this.settings = settings;
@@ -17,26 +18,31 @@ export class RfidRestClient {
   async login(): Promise<boolean> {
     const credentials = `${this.settings.userName}:${this.settings.password}`;
     const base64Credentials = Buffer.from(credentials).toString("base64");
-
+    const url = `https://${this.settings.restApiUrl}/cloud/localRestLogin`;
     try {
-      const response = await fetch(`${this.settings.restApiUrl}/cloud/localRestLogin`, {
+      const response = await fetch(url, {
         method: "GET",
         headers: {
-          Accept: "application/json",
+          accept: "application/json",
           Authorization: `Basic ${base64Credentials}`
         }
       });
 
       if (!response.ok) {
-        throw new Error(`Login failed: ${response.status} ${response.statusText}`);
+        this.lastError = `Login failed: ${response.status} ${response.statusText}`;
+        console.log("do I hit this");
+        console.warn(this.lastError);
+        return false;
       }
 
       const data = await response.json();
       this.token = data.message; // Save the token
       console.log("Login successful! Token stored.");
+      this.lastError = undefined;
       return true;
     } catch (error) {
-      console.error("Error during login:", error);
+      this.lastError = error instanceof Error ? error.message + " " + error.cause : String(error);
+      console.warn("Error during login:", this.lastError);
       return false;
     }
   }

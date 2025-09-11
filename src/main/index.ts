@@ -2,6 +2,7 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, app, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
+import { RfidController } from "./api/rfid/rfid-controller";
 import { createDatabaseConnection } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
@@ -9,7 +10,8 @@ import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
 import { initStatEngine } from "./lib/stat-engine";
-import * as runtime from "./runtime/rfid-runtime";
+import { allowHost, installCertGate } from "./api/cert-guard";
+app.commandLine.appendSwitch("ignore-certificate-errors");
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -23,7 +25,12 @@ function createWindow(): BrowserWindow {
     //...(process.platform === "win32" ? { iconWin } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
-      sandbox: false
+      sandbox: false,
+    //bad not good shod do something else the last ditch effort of a desprate man
+   // Allows content from insecure sources
+    nodeIntegration: false,
+     webSecurity: false,
+    allowRunningInsecureContent: true
     }
   });
 
@@ -58,7 +65,7 @@ app.on("ready", async () => {
   const mainWindow = createWindow();
 
   await installDevTools();
-
+  allowHost("fxr90c94e1c");
   initialize();
   initUserDirectories();
   createDatabaseConnection();
@@ -66,16 +73,17 @@ app.on("ready", async () => {
   initializeIpcHandlers();
   initStatEngine();
 
+
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     await mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
     await mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
-
+  installCertGate();
   app.on("activate", function () {
     app.on("window-all-closed", () => {
       if (process.platform !== "darwin") {
-        runtime.disconnect();
+        RfidController.getInstance().disconnect();
         app.quit();
       }
       shutdown();
@@ -100,10 +108,10 @@ app.on("activate", () => {
     createWindow();
   }
 });
-//Window Close Handler 
+//Window Close Handler
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    runtime.disconnect();
+    RfidController.getInstance().disconnect();
     app.quit();
   }
   shutdown();
@@ -112,4 +120,17 @@ app.on("window-all-closed", () => {
 // Shortcuts Watcher
 app.on("browser-window-created", (_, window) => {
   optimizer.watchWindowShortcuts(window);
+});
+
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+  
+    // Prevent having error
+    event.preventDefault()
+    // and continue
+    callback(true)
+
+})
+
+app.whenReady().then(() => {
+  installCertGate();
 });

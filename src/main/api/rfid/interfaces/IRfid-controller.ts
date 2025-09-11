@@ -12,6 +12,7 @@ export interface IRfidController {
   stopRFID(): void;
   setMode(mode: string): void;
   getStatus(): DeviceStatus;
+  getSettings(): RfidSettings;
 
   // NEW: let consumers subscribe to controller events
   on(event: RfidEvent, listener: (...args: unknown[]) => void): void;

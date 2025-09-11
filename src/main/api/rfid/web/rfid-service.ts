@@ -1,4 +1,3 @@
-
 import EventEmitter from "events";
 import { DeviceStatus, RfidMode } from "$shared/enums";
 import { RfidSettings } from "$shared/models";
@@ -7,6 +6,7 @@ import { RfidDataProcessor } from "./rfid-processor";
 import { RfidRestClient } from "./rfid-rest-client";
 import * as dbTimings from "../../../database/timingRecords-db";
 import * as rfidEmitter from "../../../ipc/rfid-emitter";
+
 import { IRfidController, RfidEvent } from "../interfaces/IRfid-controller";
 
 export class RfidService implements IRfidController {
@@ -24,7 +24,6 @@ export class RfidService implements IRfidController {
   }
 
   public connect(): void {
-    // Optional: alias to startRFID, or keep as no-op if your flow starts via startRFID
     if (this.rfidSettings?.status === DeviceStatus.Connected) {
       this.rfidProcessor?.connect();
     } else {
@@ -36,7 +35,6 @@ export class RfidService implements IRfidController {
     this.rfidSettings = settings;
     this.restClient = new RfidRestClient(settings);
     this.rfidProcessor = new RfidDataProcessor(settings);
-
     this.rfidProcessor.on("tag-read", this.handleTagRead.bind(this));
     this.rfidProcessor.on("error", this.handleError.bind(this));
     this.rfidProcessor.on("connected", this.onWebSocketConnected.bind(this));
@@ -44,6 +42,7 @@ export class RfidService implements IRfidController {
 
     const loginSuccess = await this.restClient.login();
     if (!loginSuccess) {
+      this.eventEmitter.removeAllListeners();
       this.eventEmitter.emit("error", new Error("Login failed"));
       return;
     }
@@ -55,6 +54,7 @@ export class RfidService implements IRfidController {
   public startRFID(): void {
     if (this.rfidSettings.status === DeviceStatus.Connected) {
       this.rfidProcessor?.connect();
+      this.restClient?.start();
     } else {
       console.error("Not connected to RFID");
     }
@@ -80,6 +80,10 @@ export class RfidService implements IRfidController {
 
   public getStatus(): DeviceStatus {
     return this.rfidSettings?.status || DeviceStatus.NoDevice;
+  }
+
+  public getSettings(): RfidSettings {
+    return this.rfidSettings;
   }
 
   private onWebSocketConnected(): void {

@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
-import { useStoreValue } from "~/hooks/ipc/useStoreValue";
-import { useRFIDStatus } from "./hooks/useRFIDStatus";
+//import { useStoreValue } from "~/hooks/ipc/useStoreValue";
+import { RfidSettings } from "$shared/models";
+import { useRfidMutations } from "./hooks/useRFIDMutations";
+import { useRFIDSettings, useRFIDStatus } from "./hooks/useRFIDStatus";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
-import { DeviceStatus } from "../../../../shared/enums";
+import { DeviceStatus, RfidMode } from "../../../../shared/enums";
 
 function useShouldEnableRFID() {
-  const { data: startline } = useStoreValue("event.startline");
-  const { data: finishline } = useStoreValue("event.finishline");
-  const { data: stationIdentifier } = useStoreValue("station.identifier");
+  //const { data: startline } = useStoreValue("event.startline");
+  //const { data: finishline } = useStoreValue("event.finishline");
+  //const { data: stationIdentifier } = useStoreValue("station.identifier");
 
-  if (!startline || !stationIdentifier || !finishline) return false;
-  return startline === stationIdentifier || finishline === stationIdentifier;
+  //if (!startline || !stationIdentifier || !finishline) return true;
+  //return startline === stationIdentifier || finishline === stationIdentifier;
+  return true;
 }
 
 export function SettingsPage() {
@@ -20,21 +23,46 @@ export function SettingsPage() {
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
 
+  //used to test RFID
+  const testWebRfidSettings: RfidSettings = {
+    type: "web",
+    restApiUrl: "fxr90c94e1c",
+    webSocketUrl: "169.254.78.28",
+    websocketPort: 443,
+    secureWebsocket: false,
+    userName: "admin",
+    password: "Bear1002024!",
+    sslCert: "fakeCert",
+    rfidTagRegx: /0{20}/,
+    status: DeviceStatus.Disconnected,
+    mode: RfidMode.idle
+  };
+
+  const rfidMutations = useRfidMutations();
+
   const shouldEnableRFID = useShouldEnableRFID();
   const [rfidStatus] = useRFIDStatus();
+  const [rfidSettings] = useRFIDSettings();
 
   const handleRfidButtonClick = () => {
-    if (rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting) {
-      settingsMutations.disconnectRfid.mutate();
+    if (rfidStatus === DeviceStatus.Connected) {
+      rfidMutations.disconnectRfid.mutate(undefined);
     } else {
-      settingsMutations.initializeRfid.mutate();
+      rfidMutations.initRfid.mutate(testWebRfidSettings);
     }
   };
 
+  const handleRfidStartButtonClick = () => {
+    const rfidMode = rfidSettings?.mode;
+    if (rfidMode === RfidMode.active) {
+      rfidMutations.stopRfid.mutate(undefined);
+    } else {
+      rfidMutations.startRfid.mutate(undefined);
+    }
+  };
   const rfidButtonText =
-    rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting
-      ? "Disconnect RFID"
-      : "Initialize RFID";
+    rfidStatus === DeviceStatus.Connected ? "Disconnect RFID" : "Initialize RFID";
+  const rfidStartButtonText = rfidSettings?.mode === RfidMode.active ? "Stop RFID" : "Start RFID";
 
   return (
     <Stack className="w-full h-full bg-component" justify="center" align="center">
@@ -70,6 +98,9 @@ export function SettingsPage() {
               disabled={!shouldEnableRFID}
             >
               {rfidButtonText}
+            </Button>
+            <Button size="wide" onClick={() => handleRfidStartButtonClick()}>
+              {rfidStartButtonText}
             </Button>
           </VerticalButtonGroup>
           <VerticalButtonGroup label="App Settings" className="grow">

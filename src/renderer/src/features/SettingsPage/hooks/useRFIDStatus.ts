@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DeviceStatus } from "../../../../../shared/enums";
+import { RfidSettings } from "../../../../../shared/models";
 import { useIpcRenderer } from "../../../hooks/useIpcRenderer";
 
 export const useRFIDStatus = (): [DeviceStatus, (status: DeviceStatus) => void] => {
@@ -15,7 +16,7 @@ export const useRFIDStatus = (): [DeviceStatus, (status: DeviceStatus) => void] 
 
     // Fetch the initial RFID status on mount
     const fetchRfidStatus = async () => {
-      const status = await ipcRenderer.invoke("rfid-get-status");
+      const status = await ipcRenderer.invoke("rfid:getStatus");
       setRfidStatus(status);
     };
     fetchRfidStatus();
@@ -27,4 +28,32 @@ export const useRFIDStatus = (): [DeviceStatus, (status: DeviceStatus) => void] 
   }, [ipcRenderer]);
 
   return [rfidStatus, setRfidStatus];
+};
+
+export const useRFIDSettings = (): [RfidSettings | null, (s: RfidSettings) => void] => {
+  const [rfidSettings, setRfidSettings] = useState<RfidSettings | null>(null);
+  const ipcRenderer = useIpcRenderer();
+
+  useEffect(() => {
+    const handleSettingsUpdate = (_event: unknown, settings: RfidSettings) => {
+      setRfidSettings(settings);
+    };
+
+    // Listen for async settings updates from main
+    ipcRenderer.on("settings-rfid", handleSettingsUpdate);
+
+    // Fetch initial settings on mount
+    const fetchSettings = async () => {
+      const settings = await ipcRenderer.invoke("rfid:getSettings");
+      setRfidSettings(settings);
+    };
+    fetchSettings();
+
+    // Cleanup listener
+    return () => {
+      ipcRenderer.removeAllListeners("settings-rfid");
+    };
+  }, [ipcRenderer]);
+
+  return [rfidSettings, setRfidSettings];
 };
