@@ -5,6 +5,7 @@
 ---
 ### Table of Contents
 
+
 ---
 ## Initial Setup
 <a id="markdown-initial-setup" name="initial-setup"></a>
@@ -32,7 +33,9 @@ The left side bar is used to select different pages.  Select from Stats, Roster,
 <a id="markdown-stats-page" name="stats-page"></a>
 
 ## Stats Page
-![bib.png](./img/bib.png)
+<div style="float: left">
+   <img src="./img/bib.png">
+</div>
 The **BIB#** box should be the main starting point for using this page. This input control will accept numerical input, either from the 10-key pad or top-row keys of all standard keyboards.
 
 Clicking the In button and Out button will record the corresponding time entry.
@@ -40,9 +43,13 @@ Clicking the In button and Out button will record the corresponding time entry.
 The datagrid columns can be sorted by clicking on the column header.  Click again to toggle ascending or descending sort. To edit an athlete, click on the "edit icon" at the far-right side of the row for each athlete.
 
 <a id="markdown-athlete-edit-function" name="editing-a-record"></a>
+<br clear="right"/>
+
+<div style="float: right">
+   <img src="./img/athlete-edit.png" width=350>
+</div>
 
 ### Editing a record
-![athlete-edit.png](./img/athlete-edit.png)
 This edit page is able to show the details of the athlete and whether that person is listed in the Start list.  If the bib# is valid, that athlete's name will show in the box and the times for In and Out will display along with DNF, DNS status and any notes that have been entered.  Any of these fields can be modified and applied to be made permanent.
 
 Validation Rules: 
@@ -50,15 +57,20 @@ Validation Rules:
 * An In time must occur before the Out time.
 * Commas are not allowed in the Note field, and will be replaced with semi-colons.
 
-<a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
+<br clear="right"/>
+
+<div style="float: left">
+   <img src="./img/stats.png">
 </div>
 
----
-<a id="markdown-stats-subsection" name="athlete-and-station-stats"></a>
-
 ### Athlete and Station stats
-![stats.png](./img/stats.png)
-Each of the different statistics available in real-time updates are shown above.  Warnings should be of interest to the station.  Errors should try to be resolved before sending data.
+
+Each of the different statistics available in real-time updates are shown.
+
+Warnings should be of interest to the station.
+
+Errors should be resolved before sending data.
+<br clear="left"/>
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
