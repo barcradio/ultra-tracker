@@ -71,6 +71,10 @@ export function SettingsPage() {
             >
               {rfidButtonText}
             </Button>
+            <a href="https://fxr90c94e1c/" >
+              <span className="font-semibold underline">
+                RFID Reader Control Page</span>
+            </a> 
           </VerticalButtonGroup>
           <VerticalButtonGroup label="App Settings" className="grow">
             <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
