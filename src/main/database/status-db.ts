@@ -48,6 +48,7 @@ export async function LoadDNF() {
   const dnfFilePath = await dialogs.loadDNFFromCSV();
   const fileContent = fs.createReadStream(dnfFilePath[0], { encoding: "utf-8" });
   let message: string = "";
+  let dnfCount: number = 0;
 
   const parser = fileContent
     .pipe(
@@ -58,7 +59,14 @@ export async function LoadDNF() {
       })
     )
     .on("data", (row) => {
-      updateDNFFromCSV(row);
+      // load dnf into current station only if from earlier or current
+      var dnfStationId = Number(row.stationId.split("-", 1)[0]);
+      const stationId = appStore.get("station.id") as number;
+
+      if (dnfStationId <= stationId) {
+        updateDNFFromCSV(row);
+        dnfCount++;
+      }
     })
     .on("error", (error) => {
       console.error(error);
@@ -67,7 +75,7 @@ export async function LoadDNF() {
     })
     .on("end", () => {
       const { records } = parser.info;
-      message = `${dnfFilePath}\r\n${records} dnfRecords imported`;
+      message = `${dnfFilePath}\r\n${records} dnfRecords processed, ${dnfCount} imported`;
     });
   await finished(parser);
 
@@ -319,17 +327,17 @@ export function updateDNFFromCSV(record: DNFRecord): DatabaseResponse {
     const query = db.prepare(
       `UPDATE Status SET dnf = ?, dnfType = ?, dnfStation = ?, dnfDateTime = ? WHERE bibId = ?`
     );
-    query.run(dnfValue, record.dnfType, record.stationId, dnfDateTime, record.bibId);
+    query.run(dnfValue, record.dnfType, record.stationIdentifier, dnfDateTime, record.bibId);
 
     syncNoteWithStatus(record.bibId, record.note, -1, SyncDirection.Outgoing);
 
     logEvent(
       record.bibId,
-      record.stationId,
+      record.stationIdentifier,
       null,
       dnfDateTime,
       dnfDateTime,
-      `[Set](DNF): bibId: ${record.bibId} type: '${record.dnfType}' station: '${record.stationId}' note: '${record.note}'`,
+      `[Set](DNF): bibId: ${record.bibId} type: '${record.dnfType}' station: '${record.stationIdentifier}' note: '${record.note}'`,
       false,
       verbose
     );
@@ -340,7 +348,7 @@ export function updateDNFFromCSV(record: DNFRecord): DatabaseResponse {
     }
   }
 
-  const message = `athlete:update bibId: ${record.bibId}, dnf: ${dnfValue}, dnfStation: ${record.stationId}, dnfDateTime: ${dnfDateTime}, note: ${record.note}`;
+  const message = `athlete:update bibId: ${record.bibId}, dnf: ${dnfValue}, dnfStation: ${record.stationIdentifier}, dnfDateTime: ${dnfDateTime}, note: ${record.note}`;
   return [DatabaseStatus.Updated, message];
 }
 
