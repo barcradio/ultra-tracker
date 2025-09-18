@@ -1,24 +1,12 @@
-export const StationEvents: string = `
-      bibId INTEGER DEFAULT (0), -- TODO: Index
-      stationId INTEGER, -- TODO: Index
-      timeIn DATETIME,
-      timeOut DATETIME, -- TODO: Index
-      timeModified DATETIME,
-      note TEXT,
-      sent BOOLEAN DEFAULT (FALSE), -- TODO: Index
-      status INTEGER`; // TODO: Index
+export const expectedTableNames = {
+  Athletes: "Athletes",
+  EventLog: "EventLog",
+  StationEvents: "StationEvents",
+  Stations: "Stations",
+  Output: "Output"
+};
 
-/* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
-    of all events to provide a searchable log in a */
-export const EventLog: string = `
-      bibId INTEGER DEFAULT (0),
-      stationId TEXT,
-      timeIn DATETIME,
-      timeOut DATETIME,
-      timeModified DATETIME,
-      comments TEXT,
-      sent BOOLEAN DEFAULT (FALSE),
-      verbose BOOLEAN DEFAULT (FALSE)`; // TODO: Index
+export const Version = 1;
 
 /*  The Athletes table is used to store the data submitted before the
     start of the race listing all persons and their emergency contact information.
@@ -40,6 +28,29 @@ export const Athletes: string = `
       dnfDateTime DATETIME,
       note TEXT,
       status INTEGER`;
+
+/* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
+    of all events to provide a searchable log in a */
+export const EventLog: string = `
+      bibId INTEGER DEFAULT (0),
+      stationId TEXT,
+      timeIn DATETIME,
+      timeOut DATETIME,
+      timeModified DATETIME,
+      comments TEXT,
+      sent BOOLEAN DEFAULT (FALSE),
+      verbose BOOLEAN DEFAULT (FALSE)`; // TODO: Index
+
+/*  The StationEvents table is used to store time records. */
+export const StationEvents: string = `
+      bibId INTEGER DEFAULT (0), -- TODO: Index
+      stationId INTEGER, -- TODO: Index
+      timeIn DATETIME,
+      timeOut DATETIME, -- TODO: Index
+      timeModified DATETIME,
+      note TEXT,
+      sent BOOLEAN DEFAULT (FALSE), -- TODO: Index
+      status INTEGER`; // TODO: Index
 
 /*  The Stations table is used to store the operators and the number of the runner station. */
 export const Stations = `
