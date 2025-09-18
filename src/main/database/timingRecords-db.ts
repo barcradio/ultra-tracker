@@ -152,6 +152,25 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
     try {
       const query = db.prepare(queryString);
       query.run(record.index);
+
+      const stationIdentifier = appStore.get("station.identifier") as string;
+      const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
+      const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
+      const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
+      const eventLogMessage = `[Delete](Time): bibId: (${record.bibId}), In: ${formatTime(record.timeIn)}, Out: ${formatTime(record.timeOut)}`;
+      const verbose = false;
+
+      logEvent(
+        record.bibId,
+        stationIdentifier,
+        timeInISO,
+        timeOutISO,
+        modifiedISO,
+        eventLogMessage,
+        record.sent,
+        verbose
+      );
+
       return [DatabaseStatus.Deleted, `timing-record:delete ${record.index}`];
     } catch (e) {
       if (e instanceof Error) {
@@ -162,6 +181,16 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
   }
 
   return [DatabaseStatus.NotFound, `timing-record:delete Bib ${record.bibId} not found`];
+}
+
+function formatTime(date) {
+  if (date == null) return "";
+
+  let hours = date.getHours().toString().padStart(2, "0");
+  let minutes = date.getMinutes().toString().padStart(2, "0");
+  let seconds = date.getSeconds().toString().padStart(2, "0");
+
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 function updateTimeRecord(
@@ -226,7 +255,7 @@ function updateTimeRecord(
 
   processNote(record, dbStatus.SyncDirection.Incoming);
   dbStatus.SetProgress(record.bibId);
-  const eventLogMessage = `[Update](Time): bibId:(${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`;
+  const eventLogMessage = `[Update](Time): bibId: (${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`;
   logEvent(
     record.bibId,
     stationIdentifier,
@@ -274,7 +303,7 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
 
   processNote(record, dbStatus.SyncDirection.Outgoing);
   dbStatus.SetProgress(record.bibId);
-  const eventLogMessage = `[Add](Time): bibId:(${record.bibId}), ${RecordStatus[record.status]}`;
+  const eventLogMessage = `[Add](Time): bibId: (${record.bibId}), ${RecordStatus[record.status]}`;
   logEvent(
     record.bibId,
     stationIdentifier,
