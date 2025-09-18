@@ -1,24 +1,13 @@
-export const TimeRecords: string = `
-      bibId INTEGER DEFAULT (0), -- TODO: Index
-      stationId INTEGER, -- TODO: Index
-      timeIn DATETIME,
-      timeOut DATETIME, -- TODO: Index
-      timeModified DATETIME,
-      note TEXT,
-      sent BOOLEAN DEFAULT (FALSE), -- TODO: Index
-      status INTEGER`; // TODO: Index
+export const expectedTableNames = {
+  Athletes: "Athletes",
+  EventLog: "EventLog",
+  Output: "Output",
+  Stations: "Stations",
+  Status: "Status",
+  TimeRecords: "TimeRecords"
+};
 
-/* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
-    of all events to provide a searchable log in a */
-export const EventLog: string = `
-      bibId INTEGER DEFAULT (0),
-      stationId TEXT,
-      timeIn DATETIME,
-      timeOut DATETIME,
-      timeModified DATETIME,
-      comments TEXT,
-      sent BOOLEAN DEFAULT (FALSE),
-      verbose BOOLEAN DEFAULT (FALSE)`; // TODO: Index
+export const Version = 2;
 
 /*  The Athletes table is used to store the data submitted before the
     start of the race listing all persons and their emergency contact information.
@@ -33,6 +22,29 @@ export const Athletes: string = `
       state TEXT,
       emergencyName TEXT,
       emergencyPhone INTEGER`;
+
+/* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
+    of all events to provide a searchable log in a */
+export const EventLog: string = `
+      bibId INTEGER DEFAULT (0),
+      stationId TEXT,
+      timeIn DATETIME,
+      timeOut DATETIME,
+      timeModified DATETIME,
+      comments TEXT,
+      sent BOOLEAN DEFAULT (FALSE),
+      verbose BOOLEAN DEFAULT (FALSE)`; // TODO: Index
+
+/*  The Output table is used to store the final data that is displayed in the Adilas database and is
+    the combination of all stations data.  If another station sends a csv file of their report, that data
+    will be loaded into the table to indicate the overall progress of a given runner for display.*/
+export const Output = `
+      bibId INTEGER DEFAULT (0),
+      inJSON BLOB,
+      outJSON BLOB,
+      dnf BOOLEAN,
+      dns BOOLEAN,
+      Last_changed DATETIME`;
 
 /*  The Stations table is used to store the operators and the number of the runner station. */
 export const Stations = `
@@ -50,17 +62,6 @@ export const Stations = `
       entrymode INTEGER,
       operators BLOB`;
 
-/*  The Output table is used to store the final data that is displayed in the Adilas database and is
-    the combination of all stations data.  If another station sends a csv file of their report, that data
-    will be loaded into the table to indicate the overall progress of a given runner for display.*/
-export const Output = `
-      bibId INTEGER DEFAULT (0),
-      inJSON BLOB,
-      outJSON BLOB,
-      dnf BOOLEAN,
-      dns BOOLEAN,
-      Last_changed DATETIME`;
-
 /*  The Status table is used to store the status of an athlete independent of other table operations.*/
 export const Status: string = `
       bibId INTEGER DEFAULT (0), -- TODO: Index,
@@ -71,3 +72,14 @@ export const Status: string = `
       dnfDateTime DATETIME,
       note TEXT,
       progress INTEGER`;
+
+/*  The TimeRecords table is used to store time records at the current station. */
+export const TimeRecords: string = `
+      bibId INTEGER DEFAULT (0), -- TODO: Index
+      stationId INTEGER, -- TODO: Index
+      timeIn DATETIME,
+      timeOut DATETIME, -- TODO: Index
+      timeModified DATETIME,
+      note TEXT,
+      sent BOOLEAN DEFAULT (FALSE), -- TODO: Index
+      status INTEGER`; // TODO: Index

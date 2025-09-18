@@ -265,7 +265,7 @@ export async function importRunnersFromCSV() {
       parse({
         delimiter: ",",
         columns: headers,
-        fromLine: 2
+        fromLine: 3
       })
     )
     .on("data", (timing) => {
