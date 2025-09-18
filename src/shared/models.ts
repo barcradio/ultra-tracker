@@ -120,7 +120,7 @@ export type DNSRecord = {
 };
 
 export type DNFRecord = {
-  stationId: string;
+  stationIdentifier: string;
   bibId: number;
   dnfType: string;
   dnfDateTime: string;
