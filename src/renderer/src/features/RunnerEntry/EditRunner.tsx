@@ -208,7 +208,9 @@ export function EditRunner(props: Props) {
               />
               <Stack direction="row" align="end" justify="stretch" className="gap-6 w-full">
                 <Select
-                  disabled={selectedRunner.state.status === RecordStatus.Duplicate}
+                  disabled={
+                    selectedRunner.state.status === RecordStatus.Duplicate || athlete === null
+                  }
                   onChange={(value) => {
                     form.setValue("dnfType", value ? (value as DNFType) : DNFType.None);
                   }}
@@ -219,7 +221,9 @@ export function EditRunner(props: Props) {
                   placeholder="DNF"
                 />
                 <Select
-                  disabled={selectedRunner.state.status === RecordStatus.Duplicate}
+                  disabled={
+                    selectedRunner.state.status === RecordStatus.Duplicate || athlete === null
+                  }
                   onChange={(value) => form.setValue("dns", value === "dns")}
                   className="w-1/2"
                   label="DNS"
