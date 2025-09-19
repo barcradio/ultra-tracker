@@ -18,12 +18,13 @@ export function RenderMarkdown(props: Props) {
     : [];
 
   return (
-    <Markdown
-      {...props}
-      // @ts-expect-error some odd quirk with remark plugins and typescript and declaring their options objects
-      remarkPlugins={markdownPlugins}
-      rehypePlugins={htmlPlugins}
-      className={`markdown ${props.className}`}
-    />
+    <div className={`markdown ${props.className}`}>
+      <Markdown
+        {...props}
+        // @ts-expect-error some odd quirk with remark plugins and typescript and declaring their options objects
+        remarkPlugins={markdownPlugins}
+        rehypePlugins={htmlPlugins}
+      />
+    </div>
   );
 }
