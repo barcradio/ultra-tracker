@@ -156,7 +156,7 @@ export function EditRunner(props: Props) {
                 <div className="relative grow">
                   <TextInput
                     label="Name"
-                    value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Name"}
+                    value={athlete ? `${athlete.firstName} ${athlete.lastName}` : "Unknown"}
                     disabled
                   />
                   {athlete && (
