@@ -39,9 +39,7 @@ export function useSetAthleteProgress() {
       ]);
     },
 
-    onSuccess: (data) => {
-      //turn off the rebounding message form the database result, one is enough
-      //data?.forEach((message) => createToast({ message, type: "success" }));
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["runners-table"] });
       queryClient.invalidateQueries({ queryKey: ["stats-table"] });
     },

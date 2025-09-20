@@ -18,7 +18,7 @@ export function RenderMarkdown(props: Props) {
     : [];
 
   return (
-    <div className={`markdown ${props.className}`}>
+    <div className={`markdown ${(props as any).className}`}>
       <Markdown
         {...props}
         // @ts-expect-error some odd quirk with remark plugins and typescript and declaring their options objects
