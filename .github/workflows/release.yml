@@ -14,9 +14,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: [24]
         pnpm-version: [10]
+        os: [windows-latest]
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
