@@ -1,6 +1,6 @@
 import { IMigration } from "@blackglory/better-sqlite3-migrations";
 import * as tableDefs0 from "./schema/table-definitions-v0";
-import * as tableDefs1 from "./schema/table-definitions-v1";
+//import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 
 export const migrations: IMigration[] = [
