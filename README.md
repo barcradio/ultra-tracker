@@ -125,7 +125,7 @@ This file is useful as a final station report.
 This function exports a `.csv` file with all DNS entries that have occurred at the current station.  This is unlikely to be used at any station other than the Start Line.
 
 - **Export DNF File**
-This function exports a `.csv` file with all DNF entries that have occurred up the current station.  This file is not normally needed to be sent to race organizers but can be an efficient way of sending the current station's DNF list to another station.
+This function exports a `.csv` file with all DNF entries that have occurred up to the current station.  This file is not normally needed to be sent to race organizers but can be an efficient way of sending the current station's DNF list to another station.
 
 
 ## Theme Page
