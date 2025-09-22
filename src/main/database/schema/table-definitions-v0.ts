@@ -1,12 +1,32 @@
-export const StationEvents: string = `
-      bibId INTEGER DEFAULT (0),
-      stationId INTEGER,
-      timeIn DATETIME,
-      timeOut DATETIME,
-      timeModified DATETIME,
-      note TEXT,
-      sent BOOLEAN DEFAULT (FALSE),
-      status INTEGER`;
+export const expectedTableNames = {
+  Athletes: "Athletes",
+  EventLog: "EventLog",
+  StationEvents: "StationEvents",
+  Stations: "Stations",
+  Output: "Output"
+};
+
+export const Version = 0;
+
+/*  The Athletes table is used to store the data submitted before the
+    start of the race listing all persons and their emergency contact information.
+    There is still the possibility that additional runners could be added after the start.*/
+export const Athletes: string = `
+      bibId INTEGER DEFAULT (0), -- TODO: Index
+      firstName TEXT,
+      lastName TEXT,
+      gender TEXT,
+      age INTEGER DEFAULT (0),
+      city TEXT,
+      state TEXT,
+      emergencyName TEXT,
+      emergencyPhone INTEGER,
+      dns INTEGER, -- TODO: Index
+      dnf INTEGER, -- TODO: Index
+      dnfType TEXT,
+      dnfStation TEXT, -- TODO: Index
+      dnfDateTime DATETIME,
+      note TEXT`;
 
 /* The purpose of the Eventlog table is to be a somewhat redundant location to keep record
     of all events to provide a searchable log in a */
@@ -18,32 +38,23 @@ export const EventLog: string = `
       timeModified DATETIME,
       comments TEXT,
       sent BOOLEAN DEFAULT (FALSE),
-      verbose BOOLEAN DEFAULT (FALSE)`;
+      verbose BOOLEAN DEFAULT (FALSE)`; // TODO: Index
 
-/*  The Athletes table is used to store the data submitted before the
-    start of the race listing all persons and their emergency contact information.
-    There is still the possibility that additional runners could be added after the start.*/
-export const Athletes: string = `
-      bibId INTEGER DEFAULT (0),
-      firstName TEXT,
-      lastName TEXT,
-      gender TEXT,
-      age INTEGER DEFAULT (0),
-      city TEXT,
-      state TEXT,
-      emergencyName TEXT,
-      emergencyPhone INTEGER,
-      dns INTEGER,
-      dnf INTEGER,
-      dnfType TEXT,
-      dnfStation TEXT,
-      dnfDateTime DATETIME,
-      note TEXT`;
+/*  The StationEvents table is used to store time records. */
+export const StationEvents: string = `
+      bibId INTEGER DEFAULT (0), -- TODO: Index
+      stationId INTEGER, -- TODO: Index
+      timeIn DATETIME,
+      timeOut DATETIME, -- TODO: Index
+      timeModified DATETIME,
+      note TEXT,
+      sent BOOLEAN DEFAULT (FALSE), -- TODO: Index
+      status INTEGER`; // TODO: Index
 
 /*  The Stations table is used to store the operators and the number of the runner station. */
 export const Stations = `
       name TEXT,
-      identifier TEXT,
+      identifier TEXT, -- TODO: Index
       description TEXT,
       location BLOB,
       distance REAL,

@@ -85,6 +85,7 @@ export function RunnerFormStats() {
         ref={inputRef}
         onKeyDown={handleKeyboardShortcuts}
         onChange={handleChange}
+        onWheel={(event) => event.currentTarget.blur()}
         className="h-32 text-8xl text-center border-component"
         placeholder="BIB#"
         type="number"

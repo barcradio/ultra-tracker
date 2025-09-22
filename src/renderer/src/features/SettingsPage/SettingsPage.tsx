@@ -36,6 +36,8 @@ export function SettingsPage() {
       ? "Disconnect RFID"
       : "Initialize RFID";
 
+  const rfidLinkVisibility = shouldEnableRFID ? "visible" : "invisible";
+
   return (
     <Stack className="w-full h-full bg-component" justify="center" align="center">
       <Stack justify="center" align="stretch" className="gap-4 mb-32">
@@ -71,6 +73,9 @@ export function SettingsPage() {
             >
               {rfidButtonText}
             </Button>
+            <a href="https://fxr90c94e1c/" className={`${rfidLinkVisibility}`}>
+              <span className="font-semibold underline">RFID Reader Control Page</span>
+            </a>
           </VerticalButtonGroup>
           <VerticalButtonGroup label="App Settings" className="grow">
             <Button color="danger" onClick={() => setResetOpen(true)} size="wide">

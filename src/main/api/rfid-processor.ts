@@ -15,7 +15,7 @@ import * as dbTimings from "../database/timingRecords-db";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
 let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
-const rfidReaderUrl = "wss://169.254.78.28/ws:80"; //connecting directly to  ip
+const rfidReaderUrl = "wss://fxr90c94e1c/ws:80"; //connecting directly via hostname
 
 // Define interfaces to type the expected JSON data structure
 interface RFIDData {
@@ -119,8 +119,8 @@ export class RFIDWebSocketProcessor {
     });
 
     this.ws.on("message", (data) => {
-      this.buffer += data.toString();
-      //console.debug("Received data:", data.toString());
+      this.buffer = data.toString();
+      console.debug("Received data:", data.toString());
       this.processIncomingMessages();
     });
 
@@ -204,11 +204,6 @@ export class RFIDWebSocketProcessor {
       } catch (error) {
         console.error("Failed to parse JSON:", error, "Raw JSON:", jsonStr);
       }
-      // Clear processed part of the buffer and retain any partial data if any
-      const lastProcessedObjectIndex = this.buffer.lastIndexOf(jsonObjects[jsonObjects.length - 1]);
-      this.buffer = this.buffer.slice(
-        lastProcessedObjectIndex + jsonObjects[jsonObjects.length - 1].length
-      );
     });
   }
 

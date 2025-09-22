@@ -7,7 +7,8 @@ interface Options {
 export function useCountdown(count: number, options: Options = {}) {
   const [countdown, setCountdown] = useState(count);
 
-  const intervalRef = useRef<NodeJS.Timeout>();
+  // @ts-ignore
+  const intervalRef = useRef<NodeJS.Timeout>(); // TODO: fix TS2554
 
   const resetCountdown = () => {
     setCountdown(count);

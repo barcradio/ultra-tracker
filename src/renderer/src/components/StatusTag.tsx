@@ -1,10 +1,10 @@
-import { AthleteStatus, DNFType } from "$shared/enums";
+import { AthleteProgress, DNFType } from "$shared/enums";
 import { Tag, TagColor } from "./Tag";
 
 interface Props {
   dnfType?: DNFType;
   dns?: boolean;
-  athleteStatus?: AthleteStatus;
+  AthleteProgress?: AthleteProgress;
   duplicate?: boolean;
 }
 
@@ -18,10 +18,10 @@ const dnfTypeMap: Record<DNFType, TagInfo | null> = {
   [DNFType.None]: null
 };
 
-const athleteStatusMap: Record<AthleteStatus, TagInfo | null> = {
-  [AthleteStatus.Present]: { color: "orange", text: "➠ In" },
-  [AthleteStatus.Outgoing]: { color: "lightgray", text: "Out ➠" },
-  [AthleteStatus.Incoming]: null
+const AthleteProgressMap: Record<AthleteProgress, TagInfo | null> = {
+  [AthleteProgress.Present]: { color: "orange", text: "➠ In" },
+  [AthleteProgress.Outgoing]: { color: "lightgray", text: "Out ➠" },
+  [AthleteProgress.Incoming]: null
 };
 
 function getTagInfo(props: Props): TagInfo | null {
@@ -31,8 +31,8 @@ function getTagInfo(props: Props): TagInfo | null {
     return dnfTypeMap[props.dnfType];
   } else if (props.dns) {
     return { color: "blue", text: "DNS" };
-  } else if (props.athleteStatus) {
-    return athleteStatusMap[props.athleteStatus];
+  } else if (props.AthleteProgress) {
+    return AthleteProgressMap[props.AthleteProgress];
   } else {
     return null;
   }

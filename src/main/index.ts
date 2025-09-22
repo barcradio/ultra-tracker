@@ -27,8 +27,10 @@ function createWindow(): BrowserWindow {
     }
   });
 
-  mainWindow.on("ready-to-show", () => {
-    mainWindow.showInactive();
+  mainWindow.once("ready-to-show", () => {
+    uberLog(LogLevel.info, "ui", "Main window ready to show", true);
+    mainWindow.show();
+    mainWindow.focus();
     mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
     mainWindow.setIcon(iconLinux);
   });
@@ -36,6 +38,13 @@ function createWindow(): BrowserWindow {
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: "deny" };
+  });
+
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    if (url !== mainWindow.webContents.getURL()) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
   });
 
   return mainWindow;
@@ -58,9 +67,9 @@ app.on("ready", async () => {
   initStatEngine();
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+    await mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    await mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
 
   app.on("activate", function () {
@@ -85,7 +94,22 @@ app.on("ready", async () => {
 
   mainWindow.webContents.on("will-navigate", handleRedirect);
 });
+// Proper macOS Activate Handling
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+//Window Close Handler 
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    DisconnectRFIDReader();
+    app.quit();
+  }
+  shutdown();
+});
 
+// Shortcuts Watcher
 app.on("browser-window-created", (_, window) => {
   optimizer.watchWindowShortcuts(window);
 });

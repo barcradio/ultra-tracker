@@ -8,6 +8,7 @@ import { initRunnerFormHandlers } from "./runnerform-ipc";
 import { initSettingsHandlers } from "./settings-ipc";
 import { initStationHandlers } from "./stations-ipc";
 import { initStatsHandlers } from "./stats-ipc";
+import { initStatusHandlers } from "./status-ipc";
 import { initStoreHandlers } from "./store-ipc";
 
 export function initializeIpcHandlers() {
@@ -19,7 +20,8 @@ export function initializeIpcHandlers() {
   initRFIDHandlers();
   initRunnerFormHandlers();
   initSettingsHandlers();
-  initStatsHandlers();
   initStationHandlers();
+  initStatsHandlers();
+  initStatusHandlers();
   initStoreHandlers();
 }
