@@ -171,7 +171,7 @@ Starts and stops a RFID reader service for the Zebra FXR90 hardware.  These cont
 
 #### Application Settings
 * **Reset App Settings** 
-This function will reset the local application settings file to defaults.  This can be useful for recovering from an unexpected error.
+This will reset the local application settings file to defaults.  This can be useful for recovering from an unexpected error.
 The application settings file `config.json` is located at:
   * Windows: `%appdata%\ultra-tracker`
   * Linux: `~/.config/ultra-tracker`
@@ -219,4 +219,4 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 > | **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)           |
 
 ## License
-[MIT](https://opensource.org/license/mit) ©2024 [Bridgerland Amateur Radio Club](https://barconline.org/)
+[MIT](https://opensource.org/license/mit) ©2025 [Bridgerland Amateur Radio Club](https://barconline.org/)
