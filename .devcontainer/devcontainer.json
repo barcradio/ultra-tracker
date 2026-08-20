@@ -1,0 +1,35 @@
+{
+  "name": "Ultra Tracker Dev",
+
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "workspaceFolder": "/workspace",
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind",
+     "source=${localWorkspaceFolder}/resources/config,target=/workspace/resources/config,type=bind",
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind",
+    "source=/mnt/wslg,target=/mnt/wslg,type=bind"
+  ],
+
+  "containerEnv": {
+    "DISPLAY": ":0",
+    "WAYLAND_DISPLAY": "wayland-0",
+    "XDG_RUNTIME_DIR": "/mnt/wslg/runtime-dir"
+  },
+
+  "postCreateCommand": "corepack enable && pnpm install",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.js-debug",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+
+  "remoteUser": "node"
+}
