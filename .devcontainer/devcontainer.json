@@ -11,12 +11,6 @@
     "source=${localWorkspaceFolder}/resources/config,target=/workspace/resources/config,type=bind"
   ],
 
-  "containerEnv": {
-    "DISPLAY": ":0",
-    "WAYLAND_DISPLAY": "wayland-0",
-    "XDG_RUNTIME_DIR": "/mnt/wslg/runtime-dir"
-  },
-
   "postCreateCommand": "corepack enable && pnpm install",
 
   "customizations": {
