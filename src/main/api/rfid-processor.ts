@@ -10,8 +10,9 @@
 
 import { EventEmitter } from "events";
 import WebSocket from "ws";
-import { DeviceStatus } from "../../shared/enums";
+import { DatabaseStatus, DeviceStatus } from "../../shared/enums";
 import * as dbTimings from "../database/timingRecords-db";
+import * as dbRFIDInbox from "../database/rfidInbox-db";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
 let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
@@ -116,12 +117,19 @@ export class RFIDWebSocketProcessor {
       this.status = DeviceStatus.Connected;
       this.reconnectAttempts = 0;
       this.eventEmitter.emit("connected");
+      this.processPendingMessages();
     });
 
     this.ws.on("message", (data) => {
-      this.buffer = data.toString();
-      console.debug("Received data:", data.toString());
-      this.processIncomingMessages();
+      const payload = data.toString();
+      console.debug("Received data:", payload);
+
+      try {
+        dbRFIDInbox.enqueue(payload);
+        this.processPendingMessages();
+      } catch (error) {
+        console.error("Unable to persist RFID message:", error);
+      }
     });
 
     this.ws.on("close", () => {
@@ -181,15 +189,27 @@ export class RFIDWebSocketProcessor {
     }
   }
 
-  private processIncomingMessages(): void {
+  private processPendingMessages(): void {
+    for (const message of dbRFIDInbox.getPending()) {
+      if (this.processIncomingMessages(message.payload)) {
+        dbRFIDInbox.markProcessed(message.index);
+      } else {
+        break;
+      }
+    }
+  }
+
+  private processIncomingMessages(payload: string): boolean {
     // Extract JSON objects from buffer
+    this.buffer = payload;
     const jsonObjects = this.buffer.match(/{.*?}(?=\{|\s*$)/g);
 
     if (!jsonObjects) {
       console.log("No valid JSON objects found");
-      return;
+      return false;
     }
 
+    let processed = true;
     // Process each parsed JSON object
     jsonObjects.forEach((jsonStr) => {
       try {
@@ -197,22 +217,25 @@ export class RFIDWebSocketProcessor {
 
         // Check if the RFID matches Bear 100 regex
         if (this.RFIRegex.test(obj.data.idHex)) {
-          this.handleDatabaseInsert(obj);
+          processed = this.handleDatabaseInsert(obj) && processed;
         } else {
           console.log("Not Bear 100 regex");
         }
       } catch (error) {
         console.error("Failed to parse JSON:", error, "Raw JSON:", jsonStr);
+        processed = false;
       }
     });
+
+    return processed;
   }
 
-  private handleDatabaseInsert(obj: RFIDMessage): void {
+  private handleDatabaseInsert(obj: RFIDMessage): boolean {
     const idhex = parseInt(obj.data.idHex);
     const timestamp = new Date(obj.timestamp);
 
     try {
-      dbTimings.insertOrUpdateTimeRecord({
+      const [status] = dbTimings.insertOrUpdateTimeRecord({
         index: -1, // Set by backend
         bibId: idhex,
         stationId: -1, // Set by backend
@@ -227,8 +250,10 @@ export class RFIDWebSocketProcessor {
       if (this.dataBaseUpdated) {
         this.dataBaseUpdated();
       }
+      return status !== DatabaseStatus.Error;
     } catch (error) {
       console.error("Error updating database:", error);
+      return false;
     }
   }
 

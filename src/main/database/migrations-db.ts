@@ -2,6 +2,7 @@ import { IMigration } from "@blackglory/better-sqlite3-migrations";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 //import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
+import * as tableDefs3 from "./schema/table-definitions-v3";
 
 export const migrations: IMigration[] = [
   {
@@ -45,6 +46,18 @@ export const migrations: IMigration[] = [
           WHERE EXISTS (SELECT 1 FROM Athletes LIMIT 1);
         DROP TABLE Status;
         ALTER TABLE TimeRecords RENAME TO StationEvents;
+      `
+  },
+  {
+    version: 3,
+    up: `
+        CREATE TABLE IF NOT EXISTS RFIDInbox (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          ${tableDefs3.RFIDInbox}
+        );
+      `,
+    down: `
+        DROP TABLE IF EXISTS RFIDInbox;
       `
   }
 ];

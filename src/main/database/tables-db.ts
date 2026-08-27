@@ -4,8 +4,9 @@ import { migrations } from "./migrations-db";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
+import * as tableDefs3 from "./schema/table-definitions-v3";
 
-const userVersion: number = 2;
+const userVersion: number = 3;
 var tableDefs;
 
 interface Table {
@@ -60,6 +61,10 @@ export function validateDatabaseTables() {
 
     case 2:
       tableDefs = tableDefs2;
+      break;
+
+    case 3:
+      tableDefs = tableDefs3;
       break;
   }
 
@@ -122,7 +127,8 @@ export function CreateTables() {
     createTimeRecordsTable() &&
     createStationsTable() &&
     createOutputTable() &&
-    createStatusTable();
+    createStatusTable() &&
+    createRFIDInboxTable();
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
@@ -158,6 +164,8 @@ export const createOutputTable = () =>
   createTable(tableDefs.expectedTableNames.Output, tableDefs.Output);
 export const createStatusTable = () =>
   createTable(tableDefs.expectedTableNames.Status, tableDefs.Status);
+export const createRFIDInboxTable = () =>
+  createTable(tableDefs.expectedTableNames.RFIDInbox, tableDefs.RFIDInbox);
 
 export function ClearTables() {
   const result =
