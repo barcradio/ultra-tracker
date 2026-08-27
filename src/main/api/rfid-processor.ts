@@ -33,6 +33,27 @@ interface RFIDMessage {
 
 type RFIDEventListener = Parameters<EventEmitter["on"]>[1];
 
+function isRFIDMessage(value: unknown): value is RFIDMessage {
+  if (typeof value !== "object" || value === null) return false;
+
+  const message = value as Partial<RFIDMessage>;
+  const data = message.data as Partial<RFIDData> | undefined;
+
+  return (
+    data !== undefined &&
+    data !== null &&
+    typeof data === "object" &&
+    typeof data.eventNum === "number" &&
+    Number.isFinite(data.eventNum) &&
+    data.format === "epc" &&
+    typeof data.idHex === "string" &&
+    /^0{20}\d+$/.test(data.idHex) &&
+    typeof message.timestamp === "string" &&
+    !Number.isNaN(Date.parse(message.timestamp)) &&
+    message.type === "CUSTOM"
+  );
+}
+
 export function InitializeRFIDReader() {
   const rfidRead = rfidEmitter.hasReadRFID;
   const rfidStatus = rfidEmitter.statusRFID;
@@ -279,8 +300,15 @@ export class RFIDWebSocketProcessor {
     // Process each parsed JSON object
     for (const match of matches) {
       const jsonStr = match[0];
+      const matchEnd = (match.index ?? 0) + jsonStr.length;
       try {
-        const obj = JSON.parse(jsonStr) as RFIDMessage;
+        const parsed: unknown = JSON.parse(jsonStr);
+        if (!isRFIDMessage(parsed)) {
+          console.error("Invalid RFID message:", jsonStr);
+          processedLength = matchEnd;
+          continue;
+        }
+        const obj = parsed;
 
         // Check if the RFID matches Bear 100 regex
         if (this.RFIRegex.test(obj.data.idHex)) {
@@ -291,7 +319,7 @@ export class RFIDWebSocketProcessor {
         } else {
           console.log("Not Bear 100 regex");
         }
-        processedLength = (match.index ?? 0) + jsonStr.length;
+        processedLength = matchEnd;
       } catch (error) {
         console.error("Failed to parse JSON:", error, "Raw JSON:", jsonStr);
         break;
