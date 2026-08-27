@@ -5,13 +5,10 @@
     "dockerfile": "Dockerfile"
   },
 
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspaces/ultra-tracker",
 
   "mounts": [
-    "source=${localWorkspaceFolder},target=/workspace,type=bind",
-     "source=${localWorkspaceFolder}/resources/config,target=/workspace/resources/config,type=bind",
-    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind",
-    "source=/mnt/wslg,target=/mnt/wslg,type=bind"
+    "source=${localWorkspaceFolder}/resources/config,target=/workspace/resources/config,type=bind"
   ],
 
   "containerEnv": {
