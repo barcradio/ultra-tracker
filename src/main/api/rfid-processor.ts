@@ -31,6 +31,8 @@ interface RFIDMessage {
   type: string;
 }
 
+type RFIDEventListener = Parameters<EventEmitter["on"]>[1];
+
 export function InitializeRFIDReader() {
   const rfidRead = rfidEmitter.hasReadRFID;
   const rfidStatus = rfidEmitter.statusRFID;
@@ -103,12 +105,11 @@ export class RFIDWebSocketProcessor {
   private RFIRegex = /0{20}/;
   private url: string = "";
   private status: DeviceStatus = DeviceStatus.NoDevice;
+  private dataBaseUpdated?: () => void;
 
-  constructor(
-    url: string,
-    private dataBaseUpdated?: () => void
-  ) {
+  constructor(url: string, dataBaseUpdated?: () => void) {
     this.url = url;
+    this.dataBaseUpdated = dataBaseUpdated;
     this.status = DeviceStatus.Connecting;
     this.setupWebSocket();
   }
@@ -354,7 +355,7 @@ export class RFIDWebSocketProcessor {
 
   public on(
     event: "connected" | "disconnected" | "error" | "status",
-    listener: (...args: unknown[]) => void
+    listener: RFIDEventListener
   ): void {
     this.eventEmitter.on(event, listener);
   }
