@@ -34,6 +34,12 @@ interface RFIDMessage {
 
 type RFIDEventListener = Parameters<EventEmitter["on"]>[1];
 
+interface RFIDFrame {
+  start: number;
+  end: number;
+  payload: string;
+}
+
 function logRFID(level: LogLevel, ...values: unknown[]): void {
   const message = values
     .map((value) => (value instanceof Error ? (value.stack ?? value.message) : String(value)))
@@ -60,6 +66,58 @@ function isRFIDMessage(value: unknown): value is RFIDMessage {
     !Number.isNaN(Date.parse(message.timestamp)) &&
     message.type === "CUSTOM"
   );
+}
+
+function extractRFIDFrames(payload: string): { frames: RFIDFrame[]; incompleteStart?: number } {
+  const frames: RFIDFrame[] = [];
+  let searchStart = 0;
+
+  while (searchStart < payload.length) {
+    const start = payload.indexOf("{", searchStart);
+    if (start === -1) break;
+
+    let depth = 0;
+    let escaped = false;
+    let inString = false;
+
+    for (let index = start; index < payload.length; index++) {
+      const character = payload[index];
+
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+
+      if (inString && character === "\\") {
+        escaped = true;
+        continue;
+      }
+
+      if (character === '"') {
+        inString = !inString;
+        continue;
+      }
+
+      if (inString) continue;
+      if (character === "{") depth++;
+      if (character !== "}") continue;
+
+      depth--;
+      if (depth !== 0) continue;
+
+      frames.push({
+        start,
+        end: index + 1,
+        payload: payload.slice(start, index + 1)
+      });
+      searchStart = index + 1;
+      break;
+    }
+
+    if (searchStart <= start) return { frames, incompleteStart: start };
+  }
+
+  return { frames };
 }
 
 export function InitializeRFIDReader() {
@@ -236,9 +294,16 @@ export class RFIDWebSocketProcessor {
     let consumedLength = 0;
 
     for (const message of pendingMessages) {
+      const messageStart = consumedLength;
       consumedLength += message.payload.length;
       if (consumedLength <= result.consumedLength) {
         dbRFIDInbox.markProcessed(message.index);
+      } else if (messageStart < result.consumedLength) {
+        dbRFIDInbox.replacePayload(
+          message.index,
+          message.payload.slice(result.consumedLength - messageStart)
+        );
+        break;
       }
     }
 
@@ -295,25 +360,25 @@ export class RFIDWebSocketProcessor {
     consumedLength: number;
     retryable: boolean;
   } {
-    // Extract JSON objects from buffer
-    const matches = [...payload.matchAll(/{.*?}(?=\{|\s*$)/g)];
+    const { frames, incompleteStart } = extractRFIDFrames(payload);
 
-    if (matches.length === 0) {
-      console.log("No valid JSON objects found");
-      return { consumedLength: 0, retryable: false };
+    if (frames.length === 0) {
+      if (incompleteStart !== undefined) return { consumedLength: 0, retryable: false };
+
+      logRFID(LogLevel.error, "No valid JSON objects found", payload);
+      return { consumedLength: payload.length, retryable: false };
     }
 
     let processedLength = 0;
     let retryable = false;
     // Process each parsed JSON object
-    for (const match of matches) {
-      const jsonStr = match[0];
-      const matchEnd = (match.index ?? 0) + jsonStr.length;
+    for (const frame of frames) {
+      const jsonStr = frame.payload;
       try {
         const parsed: unknown = JSON.parse(jsonStr);
         if (!isRFIDMessage(parsed)) {
           logRFID(LogLevel.error, "Invalid RFID message:", jsonStr);
-          processedLength = matchEnd;
+          processedLength = frame.end;
           continue;
         }
         const obj = parsed;
@@ -327,18 +392,22 @@ export class RFIDWebSocketProcessor {
         } else {
           console.log("Not Bear 100 regex");
         }
-        processedLength = matchEnd;
+        processedLength = frame.end;
       } catch (error) {
         logRFID(LogLevel.error, "Failed to parse JSON:", error, "Raw JSON:", jsonStr);
-        break;
+        processedLength = frame.end;
       }
     }
 
-    if (processedLength === payload.length || payload.slice(processedLength).trim() === "") {
+    if (retryable) {
+      return { consumedLength: processedLength, retryable };
+    }
+
+    if (incompleteStart === undefined) {
       return { consumedLength: payload.length, retryable };
     }
 
-    return { consumedLength: processedLength, retryable };
+    return { consumedLength: incompleteStart, retryable };
   }
 
   private handleDatabaseInsert(obj: RFIDMessage): boolean {

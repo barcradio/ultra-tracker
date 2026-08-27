@@ -28,3 +28,8 @@ export function markProcessed(index: number): void {
   const db = getDatabaseConnection();
   db.prepare(`UPDATE RFIDInbox SET processed = TRUE WHERE "index" = ?`).run(index);
 }
+
+export function replacePayload(index: number, payload: string): void {
+  const db = getDatabaseConnection();
+  db.prepare(`UPDATE RFIDInbox SET payload = ? WHERE "index" = ?`).run(payload, index);
+}
