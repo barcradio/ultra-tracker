@@ -7,7 +7,7 @@ import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
 
 const userVersion: number = 3;
-var tableDefs;
+let tableDefs;
 
 interface Table {
   type: string;
@@ -28,7 +28,7 @@ export function applyMigrations() {
       const currentVersion = db.pragma("user_version", { simple: true }) as number;
       if (currentVersion == userVersion) return;
 
-      var migrationVersion = currentVersion + 1;
+      const migrationVersion = currentVersion + 1;
 
       console.log(
         `[begin] pragma user_version: current: ${currentVersion} target: ${migrationVersion}`
@@ -74,7 +74,7 @@ export function validateDatabaseTables() {
 
     if (!tableNames.find((element) => element == name)) {
       console.log(`Table not found: ${tableDefs.expectedTableNames[key]}`);
-      createTable(tableDefs.expectedTableNames[key], tableDefs[name]); // eslint-disable-line import/namespace
+      createTable(tableDefs.expectedTableNames[key], tableDefs[name]);
     }
   }
 

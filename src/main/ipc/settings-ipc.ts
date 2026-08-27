@@ -1,4 +1,3 @@
-/* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
 import { appStore, clearAppStore } from "../lib/store";
 import { Handler } from "../types";
