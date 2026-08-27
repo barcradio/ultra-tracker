@@ -11,8 +11,8 @@
 import { EventEmitter } from "events";
 import WebSocket from "ws";
 import { DatabaseStatus, DeviceStatus } from "../../shared/enums";
-import * as dbTimings from "../database/timingRecords-db";
 import * as dbRFIDInbox from "../database/rfidInbox-db";
+import * as dbTimings from "../database/timingRecords-db";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
 let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
@@ -94,7 +94,6 @@ export class RFIDWebSocketProcessor {
   private reconnectAttempts: number = 0;
   private eventEmitter: EventEmitter = new EventEmitter();
   private errorCount: number = 0;
-  private buffer: string = "";
   private RFIRegex = /0{20}/;
   private url: string = "";
   private status: DeviceStatus = DeviceStatus.NoDevice;
@@ -190,44 +189,55 @@ export class RFIDWebSocketProcessor {
   }
 
   private processPendingMessages(): void {
-    for (const message of dbRFIDInbox.getPending()) {
-      if (this.processIncomingMessages(message.payload)) {
+    const pendingMessages = dbRFIDInbox.getPending();
+    if (pendingMessages.length === 0) return;
+
+    const payload = pendingMessages.map((message) => message.payload).join("");
+    const result = this.processIncomingMessages(payload);
+    let consumedLength = 0;
+
+    for (const message of pendingMessages) {
+      consumedLength += message.payload.length;
+      if (consumedLength <= result.consumedLength) {
         dbRFIDInbox.markProcessed(message.index);
-      } else {
-        break;
       }
     }
   }
 
-  private processIncomingMessages(payload: string): boolean {
+  private processIncomingMessages(payload: string): { consumedLength: number } {
     // Extract JSON objects from buffer
-    this.buffer = payload;
-    const jsonObjects = this.buffer.match(/{.*?}(?=\{|\s*$)/g);
+    const matches = [...payload.matchAll(/{.*?}(?=\{|\s*$)/g)];
 
-    if (!jsonObjects) {
+    if (matches.length === 0) {
       console.log("No valid JSON objects found");
-      return false;
+      return { consumedLength: 0 };
     }
 
-    let processed = true;
+    let processedLength = 0;
     // Process each parsed JSON object
-    jsonObjects.forEach((jsonStr) => {
+    for (const match of matches) {
+      const jsonStr = match[0];
       try {
         const obj = JSON.parse(jsonStr) as RFIDMessage;
 
         // Check if the RFID matches Bear 100 regex
         if (this.RFIRegex.test(obj.data.idHex)) {
-          processed = this.handleDatabaseInsert(obj) && processed;
+          if (!this.handleDatabaseInsert(obj)) break;
         } else {
           console.log("Not Bear 100 regex");
         }
+        processedLength = (match.index ?? 0) + jsonStr.length;
       } catch (error) {
         console.error("Failed to parse JSON:", error, "Raw JSON:", jsonStr);
-        processed = false;
+        break;
       }
-    });
+    }
 
-    return processed;
+    if (processedLength === payload.length || payload.slice(processedLength).trim() === "") {
+      return { consumedLength: payload.length };
+    }
+
+    return { consumedLength: processedLength };
   }
 
   private handleDatabaseInsert(obj: RFIDMessage): boolean {
