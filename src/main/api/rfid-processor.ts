@@ -94,6 +94,8 @@ export class RFIDWebSocketProcessor {
   private reconnectAttempts: number = 0;
   private eventEmitter: EventEmitter = new EventEmitter();
   private errorCount: number = 0;
+  private processingPendingMessages: boolean = false;
+  private pendingProcessingRequested: boolean = false;
   private RFIRegex = /0{20}/;
   private url: string = "";
   private status: DeviceStatus = DeviceStatus.NoDevice;
@@ -116,7 +118,7 @@ export class RFIDWebSocketProcessor {
       this.status = DeviceStatus.Connected;
       this.reconnectAttempts = 0;
       this.eventEmitter.emit("connected");
-      this.processPendingMessages();
+      this.requestProcessPendingMessages();
     });
 
     this.ws.on("message", (data) => {
@@ -125,7 +127,7 @@ export class RFIDWebSocketProcessor {
 
       try {
         dbRFIDInbox.enqueue(payload);
-        this.processPendingMessages();
+        this.requestProcessPendingMessages();
       } catch (error) {
         console.error("Unable to persist RFID message:", error);
       }
@@ -201,6 +203,21 @@ export class RFIDWebSocketProcessor {
       if (consumedLength <= result.consumedLength) {
         dbRFIDInbox.markProcessed(message.index);
       }
+    }
+  }
+
+  private requestProcessPendingMessages(): void {
+    this.pendingProcessingRequested = true;
+    if (this.processingPendingMessages) return;
+
+    this.processingPendingMessages = true;
+    try {
+      while (this.pendingProcessingRequested) {
+        this.pendingProcessingRequested = false;
+        this.processPendingMessages();
+      }
+    } finally {
+      this.processingPendingMessages = false;
     }
   }
 
