@@ -96,6 +96,10 @@ export class RFIDWebSocketProcessor {
   private errorCount: number = 0;
   private processingPendingMessages: boolean = false;
   private pendingProcessingRequested: boolean = false;
+  private pendingRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingRetryAttempt: number = 0;
+  private readonly initialRetryDelay = 1000;
+  private readonly maxRetryDelay = 30000;
   private RFIRegex = /0{20}/;
   private url: string = "";
   private status: DeviceStatus = DeviceStatus.NoDevice;
@@ -190,9 +194,12 @@ export class RFIDWebSocketProcessor {
     }
   }
 
-  private processPendingMessages(): void {
+  private processPendingMessages(): boolean {
     const pendingMessages = dbRFIDInbox.getPending();
-    if (pendingMessages.length === 0) return;
+    if (pendingMessages.length === 0) {
+      this.resetPendingRetry();
+      return false;
+    }
 
     const payload = pendingMessages.map((message) => message.payload).join("");
     const result = this.processIncomingMessages(payload);
@@ -204,6 +211,14 @@ export class RFIDWebSocketProcessor {
         dbRFIDInbox.markProcessed(message.index);
       }
     }
+
+    if (result.retryable) {
+      this.schedulePendingRetry();
+    } else {
+      this.resetPendingRetry();
+    }
+
+    return result.retryable;
   }
 
   private requestProcessPendingMessages(): void {
@@ -214,23 +229,52 @@ export class RFIDWebSocketProcessor {
     try {
       while (this.pendingProcessingRequested) {
         this.pendingProcessingRequested = false;
-        this.processPendingMessages();
+        if (this.processPendingMessages()) {
+          this.pendingProcessingRequested = false;
+        }
       }
     } finally {
       this.processingPendingMessages = false;
     }
   }
 
-  private processIncomingMessages(payload: string): { consumedLength: number } {
+  private schedulePendingRetry(): void {
+    if (this.pendingRetryTimer) return;
+
+    const delay = Math.min(
+      this.initialRetryDelay * 2 ** this.pendingRetryAttempt,
+      this.maxRetryDelay
+    );
+    this.pendingRetryAttempt++;
+    console.warn(`Retrying pending RFID messages in ${delay}ms`);
+    this.pendingRetryTimer = setTimeout(() => {
+      this.pendingRetryTimer = null;
+      this.requestProcessPendingMessages();
+    }, delay);
+  }
+
+  private resetPendingRetry(): void {
+    if (this.pendingRetryTimer) {
+      clearTimeout(this.pendingRetryTimer);
+      this.pendingRetryTimer = null;
+    }
+    this.pendingRetryAttempt = 0;
+  }
+
+  private processIncomingMessages(payload: string): {
+    consumedLength: number;
+    retryable: boolean;
+  } {
     // Extract JSON objects from buffer
     const matches = [...payload.matchAll(/{.*?}(?=\{|\s*$)/g)];
 
     if (matches.length === 0) {
       console.log("No valid JSON objects found");
-      return { consumedLength: 0 };
+      return { consumedLength: 0, retryable: false };
     }
 
     let processedLength = 0;
+    let retryable = false;
     // Process each parsed JSON object
     for (const match of matches) {
       const jsonStr = match[0];
@@ -239,7 +283,10 @@ export class RFIDWebSocketProcessor {
 
         // Check if the RFID matches Bear 100 regex
         if (this.RFIRegex.test(obj.data.idHex)) {
-          if (!this.handleDatabaseInsert(obj)) break;
+          if (!this.handleDatabaseInsert(obj)) {
+            retryable = true;
+            break;
+          }
         } else {
           console.log("Not Bear 100 regex");
         }
@@ -251,10 +298,10 @@ export class RFIDWebSocketProcessor {
     }
 
     if (processedLength === payload.length || payload.slice(processedLength).trim() === "") {
-      return { consumedLength: payload.length };
+      return { consumedLength: payload.length, retryable };
     }
 
-    return { consumedLength: processedLength };
+    return { consumedLength: processedLength, retryable };
   }
 
   private handleDatabaseInsert(obj: RFIDMessage): boolean {
