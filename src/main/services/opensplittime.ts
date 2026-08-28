@@ -14,10 +14,7 @@ const organizationIds = {
   staging: "the-bear-100",
   production: ""
 } as const;
-const openSplitTimeEnvironment =
-  process.env.OPENSPLITTIME_ENV === "production" ? "production" : "staging";
-const apiBaseUrl = `${apiHosts[openSplitTimeEnvironment]}/api/v1`;
-export const openSplitTimeOrganizationId = organizationIds[openSplitTimeEnvironment];
+export type OpenSplitTimeEnvironment = "production" | "staging";
 const apiTokens = {
   staging: process.env.OPENSPLITTIME_STAGING_API_KEY,
   production: process.env.OPENSPLITTIME_API_KEY
@@ -64,7 +61,67 @@ interface OpenSplitTimeAuthResponse {
   expiration?: string;
 }
 
-let apiToken: string | null = apiTokens[openSplitTimeEnvironment]?.trim() || null;
+interface OpenSplitTimeEventMetadata {
+  name: string;
+  id: number;
+}
+
+interface OpenSplitTimeEventMetadataStore {
+  production?: OpenSplitTimeEventMetadata;
+  staging?: OpenSplitTimeEventMetadata;
+}
+
+interface OpenSplitTimeEventGroupResponse {
+  data?: { id?: string | number };
+}
+
+export interface OpenSplitTimeEnvironmentOption {
+  environment: OpenSplitTimeEnvironment;
+  name: string;
+}
+
+// The stations JSON file may only configure one of production/staging, so
+// prefer staging and fall back to whichever environment is actually configured.
+function computeDefaultEnvironment(): OpenSplitTimeEnvironment {
+  const eventMetadata = appStore.get("event.openSplitTime") as
+    | OpenSplitTimeEventMetadataStore
+    | undefined;
+
+  if (eventMetadata?.staging?.name) return "staging";
+  if (eventMetadata?.production?.name) return "production";
+
+  return process.env.OPENSPLITTIME_ENV === "production" ? "production" : "staging";
+}
+
+let currentEnvironment: OpenSplitTimeEnvironment = computeDefaultEnvironment();
+let apiToken: string | null = apiTokens[currentEnvironment]?.trim() || null;
+
+export function getOpenSplitTimeEnvironment(): OpenSplitTimeEnvironment {
+  return currentEnvironment;
+}
+
+export function listOpenSplitTimeEnvironments(): OpenSplitTimeEnvironmentOption[] {
+  const eventMetadata = appStore.get("event.openSplitTime") as
+    | OpenSplitTimeEventMetadataStore
+    | undefined;
+  const options: OpenSplitTimeEnvironmentOption[] = [];
+
+  if (eventMetadata?.staging?.name) {
+    options.push({ environment: "staging", name: eventMetadata.staging.name });
+  }
+  if (eventMetadata?.production?.name) {
+    options.push({ environment: "production", name: eventMetadata.production.name });
+  }
+
+  return options;
+}
+
+export function setOpenSplitTimeEnvironment(environment: OpenSplitTimeEnvironment): void {
+  if (environment === currentEnvironment) return;
+
+  currentEnvironment = environment;
+  apiToken = apiTokens[environment]?.trim() || null;
+}
 
 export class OpenSplitTimeApiError extends Error {
   public readonly status: number;
@@ -81,7 +138,7 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
   const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
 
   try {
-    const response = await fetch(`${apiBaseUrl}${path}`, {
+    const response = await fetch(`${apiHosts[currentEnvironment]}/api/v1${path}`, {
       ...init,
       headers: {
         Accept: "application/json",
@@ -129,7 +186,7 @@ async function probe(url: string): Promise<boolean> {
 export async function getConnectionStatus(): Promise<OpenSplitTimeConnectionResult> {
   const [internet, openSplitTime] = await Promise.all([
     probe("https://www.google.com/generate_204"),
-    probe(apiHosts[openSplitTimeEnvironment])
+    probe(apiHosts[currentEnvironment])
   ]);
 
   return {
@@ -182,10 +239,40 @@ export async function authenticate(
     clearSavedCredentials();
   }
 
+  await syncEventGroupId();
+
   return {
     expiration: response.expiration,
     credentialsSaved: saveCredentials && safeStorage.isEncryptionAvailable()
   };
+}
+
+// The stations JSON file records the OpenSplitTime event group id manually, so
+// verify it against the live event group and correct it if OpenSplitTime disagrees.
+export async function syncEventGroupId(): Promise<void> {
+  const eventMetadata = appStore.get("event.openSplitTime") as
+    | OpenSplitTimeEventMetadataStore
+    | undefined;
+  const configuredEvent =
+    currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
+  const eventGroupIdOrSlug = configuredEvent?.name || (appStore.get("event.name") as string);
+
+  if (!eventGroupIdOrSlug) return;
+
+  try {
+    const response = (await getEventGroup(eventGroupIdOrSlug)) as OpenSplitTimeEventGroupResponse;
+    const remoteId = Number(response?.data?.id);
+
+    if (!Number.isFinite(remoteId) || remoteId <= 0 || remoteId === configuredEvent?.id) return;
+
+    appStore.set("event.openSplitTime", {
+      ...eventMetadata,
+      [currentEnvironment]: { name: eventGroupIdOrSlug, id: remoteId }
+    });
+    console.info(`OpenSplitTime event group id for "${eventGroupIdOrSlug}" updated to ${remoteId}`);
+  } catch (error) {
+    console.warn("Unable to verify OpenSplitTime event group id", error);
+  }
 }
 
 export function getSavedCredentials(): OpenSplitTimeSavedCredentials {
@@ -226,7 +313,7 @@ export async function getEventGroup(eventGroupIdOrSlug: string): Promise<unknown
 }
 
 export async function getOrganization(
-  organizationIdOrSlug = openSplitTimeOrganizationId
+  organizationIdOrSlug = organizationIds[currentEnvironment]
 ): Promise<unknown> {
   if (organizationIdOrSlug === "") {
     throw new OpenSplitTimeApiError("No OpenSplitTime organization is configured", 500);
@@ -261,7 +348,12 @@ export async function pushTimeRecordUpdate(
   record: RunnerDB,
   stoppedHere?: boolean
 ): Promise<unknown> {
-  const eventGroupIdOrSlug = appStore.get("event.name") as string;
+  const eventMetadata = appStore.get("event.openSplitTime") as
+    | OpenSplitTimeEventMetadataStore
+    | undefined;
+  const configuredEvent =
+    currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
+  const eventGroupIdOrSlug = configuredEvent?.name || (appStore.get("event.name") as string);
   const stationIdentifier = appStore.get("station.identifier") as string;
   const stationName = appStore.get("station.name") as string;
 

@@ -2,7 +2,17 @@
     "event": {
         "name": "bear-100-2024",
         "starttime": "06:00:00 Sept 27 2024",
-        "endtime": "18:00:00 Sept 28 2024"
+        "endtime": "18:00:00 Sept 28 2024",
+        "openSplitTime": {
+            "production": {
+                "name": "the-bear-100-2026",
+                "id": 1344
+            },
+            "staging": {
+                "name": "bear-100-test",
+                "id": 167
+            }
+        }
     },
     "stations": [
         {

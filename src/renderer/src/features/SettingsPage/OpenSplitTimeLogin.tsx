@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Button, Stack, TextInput, VerticalButtonGroup } from "~/components";
+import { Button, Modal, Select, Stack, TextInput, VerticalButtonGroup } from "~/components";
 import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 
 interface OpenSplitTimeAuthResult {
@@ -12,6 +12,18 @@ interface OpenSplitTimeSavedCredentials {
   available: boolean;
 }
 
+type OpenSplitTimeEnvironment = "production" | "staging";
+
+interface OpenSplitTimeEnvironmentOption {
+  environment: OpenSplitTimeEnvironment;
+  name: string;
+}
+
+interface OpenSplitTimeEnvironmentsResult {
+  environments: OpenSplitTimeEnvironmentOption[];
+  current: OpenSplitTimeEnvironment;
+}
+
 export function OpenSplitTimeLogin() {
   const ipcRenderer = useIpcRenderer();
   const [email, setEmail] = useState("");
@@ -21,6 +33,13 @@ export function OpenSplitTimeLogin() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveCredentials, setSaveCredentials] = useState(false);
   const [hasSavedCredentials, setHasSavedCredentials] = useState(false);
+  const [environmentOptions, setEnvironmentOptions] = useState<OpenSplitTimeEnvironmentOption[]>(
+    []
+  );
+  const [environment, setEnvironment] = useState<OpenSplitTimeEnvironment | null>(null);
+  const [pendingEnvironment, setPendingEnvironment] = useState<OpenSplitTimeEnvironment | null>(
+    null
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -37,10 +56,45 @@ export function OpenSplitTimeLogin() {
       })
       .catch(() => undefined);
 
+    ipcRenderer
+      .invoke("opensplittime-get-environments")
+      .then((result) => {
+        if (!isMounted) return;
+
+        const environmentsResult = result as OpenSplitTimeEnvironmentsResult;
+        setEnvironmentOptions(environmentsResult.environments);
+        setEnvironment(environmentsResult.current);
+      })
+      .catch(() => undefined);
+
     return () => {
       isMounted = false;
     };
   }, [ipcRenderer]);
+
+  const applyEnvironment = async (nextEnvironment: OpenSplitTimeEnvironment) => {
+    await ipcRenderer.invoke("opensplittime-set-environment", { environment: nextEnvironment });
+    setEnvironment(nextEnvironment);
+  };
+
+  const handleEnvironmentChange = (value: string | null) => {
+    if (!value || value === environment) return;
+
+    const nextEnvironment = value as OpenSplitTimeEnvironment;
+    if (environment === "staging" && nextEnvironment === "production") {
+      setPendingEnvironment(nextEnvironment);
+      return;
+    }
+
+    void applyEnvironment(nextEnvironment);
+  };
+
+  const handleConfirmProduction = () => {
+    if (!pendingEnvironment) return;
+
+    void applyEnvironment(pendingEnvironment);
+    setPendingEnvironment(null);
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -101,6 +155,17 @@ export function OpenSplitTimeLogin() {
         </Stack>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          {environmentOptions.length > 0 && (
+            <Select
+              label="OST Environment"
+              value={environment}
+              onChange={handleEnvironmentChange}
+              options={environmentOptions.map((option) => ({
+                name: `${option.name} - ${option.environment}`,
+                value: option.environment
+              }))}
+            />
+          )}
           <TextInput
             label="Email"
             type="email"
@@ -124,7 +189,7 @@ export function OpenSplitTimeLogin() {
               checked={saveCredentials}
               onChange={(event) => setSaveCredentials(event.target.checked)}
             />
-            <span>Save credentials after successful sign-in</span>
+            <span>Save credentials</span>
           </div>
           {error && <span className="text-sm font-medium text-danger">Sign-in failed.</span>}
           <Button type="submit" size="wide" disabled={isSubmitting}>
@@ -137,6 +202,21 @@ export function OpenSplitTimeLogin() {
           )}
         </form>
       )}
+      <Modal
+        title="Live Event"
+        open={pendingEnvironment !== null}
+        setOpen={(open) => !open && setPendingEnvironment(null)}
+        showNegativeButton
+        negativeText="Cancel"
+        affirmativeText="Continue"
+        onAffirmative={handleConfirmProduction}
+        dangerous
+      >
+        <p className="text-center">
+          You are switching to the <strong>production</strong> OpenSplitTime environment. Any times
+          you submit will post to the live event.
+        </p>
+      </Modal>
     </VerticalButtonGroup>
   );
 }

@@ -1,13 +1,17 @@
 import { ipcMain } from "electron";
 import {
+  OpenSplitTimeEnvironment,
   OpenSplitTimeRawTime,
   authenticate,
   authenticateSaved,
   clearAuthentication,
   getConnectionStatus,
   getEventGroup,
+  getOpenSplitTimeEnvironment,
   getOrganization,
   getSavedCredentials,
+  listOpenSplitTimeEnvironments,
+  setOpenSplitTimeEnvironment,
   submitRawTimes
 } from "../services/opensplittime";
 import { Handler } from "../types";
@@ -20,6 +24,10 @@ interface AuthenticateParams {
 
 interface EventGroupParams {
   eventGroupIdOrSlug: string;
+}
+
+interface SetEnvironmentParams {
+  environment: string;
 }
 
 interface SubmitRawTimesParams extends EventGroupParams {
@@ -49,6 +57,21 @@ const getSavedOpenSplitTimeCredentials: Handler = () => getSavedCredentials();
 const getOpenSplitTimeConnectionStatus: Handler = () => getConnectionStatus();
 const getOpenSplitTimeOrganization: Handler = () => getOrganization();
 
+const getOpenSplitTimeEnvironments: Handler = () => ({
+  environments: listOpenSplitTimeEnvironments(),
+  current: getOpenSplitTimeEnvironment()
+});
+
+const setOpenSplitTimeEnvironmentHandler: Handler<SetEnvironmentParams> = (_, params) => {
+  const environment = requiredString(params?.environment, "environment");
+
+  if (environment !== "production" && environment !== "staging") {
+    throw new TypeError("environment must be 'production' or 'staging'");
+  }
+
+  setOpenSplitTimeEnvironment(environment as OpenSplitTimeEnvironment);
+};
+
 const getOpenSplitTimeEventGroup: Handler<EventGroupParams> = (_, params) => {
   return getEventGroup(requiredString(params?.eventGroupIdOrSlug, "eventGroupIdOrSlug"));
 };
@@ -74,6 +97,8 @@ export const initOpenSplitTimeHandlers = () => {
   ipcMain.handle("opensplittime-get-connection-status", getOpenSplitTimeConnectionStatus);
   ipcMain.handle("opensplittime-get-organization", getOpenSplitTimeOrganization);
   ipcMain.handle("opensplittime-get-event-group", getOpenSplitTimeEventGroup);
+  ipcMain.handle("opensplittime-get-environments", getOpenSplitTimeEnvironments);
+  ipcMain.handle("opensplittime-set-environment", setOpenSplitTimeEnvironmentHandler);
   ipcMain.handle("opensplittime-submit-raw-times", submitOpenSplitTimeRawTimes);
   ipcMain.handle("opensplittime-clear-authentication", clearAuthentication);
 };

@@ -23,6 +23,17 @@ interface EventJSON {
   name: string;
   starttime: Date;
   endtime: Date;
+  openSplitTime?: OpenSplitTimeEventJSON;
+}
+
+interface OpenSplitTimeEventJSON {
+  production?: OpenSplitTimeEventMetadata;
+  staging?: OpenSplitTimeEventMetadata;
+}
+
+interface OpenSplitTimeEventMetadata {
+  name: string;
+  id: number;
 }
 
 function importJsonFile(filePath: string): stationsJSON {
@@ -48,9 +59,17 @@ export async function LoadStations() {
   // TODO: Begin transaction
   for (const index in stationData) {
     if (index == "event") {
-      appStore.set("event.name", stationData.event.name);
+      const stagingEvent = stationData.event.openSplitTime?.staging;
+      appStore.set("event.name", stagingEvent?.name || stationData.event.name);
       appStore.set("event.starttime", formatDate(stationData.event.starttime));
       appStore.set("event.endtime", formatDate(stationData.event.endtime));
+      appStore.set(
+        "event.openSplitTime",
+        stationData.event.openSplitTime ?? {
+          production: { name: "", id: 0 },
+          staging: { name: "", id: 0 }
+        }
+      );
     }
 
     if (index == "stations") {

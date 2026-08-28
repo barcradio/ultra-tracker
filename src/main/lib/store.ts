@@ -9,7 +9,11 @@ const defaults = {
     startline: "0-start-line",
     starttime: "00:00:00 Jan 01 2024",
     finishline: "99-finish-line",
-    endtime: "00:00:00 Jan 01 2024"
+    endtime: "00:00:00 Jan 01 2024",
+    openSplitTime: {
+      production: { name: "", id: 0 },
+      staging: { name: "", id: 0 }
+    }
   },
   station: {
     id: 1,
@@ -52,7 +56,26 @@ export const appStore = new Store({
         startline: { type: "string", default: "" },
         starttime: { type: "string", default: "" },
         finishline: { type: "string", default: "" },
-        endtime: { type: "string", default: "" }
+        endtime: { type: "string", default: "" },
+        openSplitTime: {
+          type: "object",
+          properties: {
+            production: {
+              type: "object",
+              properties: {
+                name: { type: "string", default: "" },
+                id: { type: "number", default: 0 }
+              }
+            },
+            staging: {
+              type: "object",
+              properties: {
+                name: { type: "string", default: "" },
+                id: { type: "number", default: 0 }
+              }
+            }
+          }
+        }
       }
       //required: ["name", "startline, "finishline"]
     },
