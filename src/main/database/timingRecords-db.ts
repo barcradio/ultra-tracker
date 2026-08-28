@@ -1,7 +1,7 @@
 import { DatabaseResponse } from "$shared/types";
-import * as dbStatus from "./status-db";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
+import * as dbStatus from "./status-db";
 import { DatabaseStatus, EntryMode, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 import { appStore } from "../lib/store";
@@ -277,7 +277,7 @@ function updateTimeRecord(
     timeValue(existingRecord.timeIn) !== timeValue(record.timeIn) ||
     timeValue(existingRecord.timeOut) !== timeValue(record.timeOut)
   ) {
-    void pushTimeRecordUpdate(record)
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId))
       .then((outcome) => {
         if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
       })
@@ -333,6 +333,14 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   );
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+
+  void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId))
+    .then((outcome) => {
+      if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
+    })
+    .catch((error: unknown) => {
+      console.error("OpenSplitTime record update failed", error);
+    });
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
 
