@@ -291,9 +291,18 @@ export function SetDNF(
   message = `status:update bibId: ${bibId}, dnf: ${dnfValue}, dnfType: ${dnfType}`;
 
   if (timingRecord && previousDnf?.dnf !== Number(dnfValue)) {
-    void pushTimeRecordUpdate(timingRecord, dnfValue).catch((error: unknown) => {
-      console.error("OpenSplitTime DNF update failed", error);
-    });
+    void pushTimeRecordUpdate(timingRecord, dnfValue)
+      .then((outcome) => {
+        if (outcome.pushed) {
+          db.prepare(`UPDATE TimeRecords SET sent = ? WHERE "bibId" = ?`).run(
+            Number(true),
+            timingRecord.bibId
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("OpenSplitTime DNF update failed", error);
+      });
   }
 
   return [DatabaseStatus.Updated, message];

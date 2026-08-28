@@ -277,9 +277,13 @@ function updateTimeRecord(
     timeValue(existingRecord.timeIn) !== timeValue(record.timeIn) ||
     timeValue(existingRecord.timeOut) !== timeValue(record.timeOut)
   ) {
-    void pushTimeRecordUpdate(record).catch((error: unknown) => {
-      console.error("OpenSplitTime record update failed", error);
-    });
+    void pushTimeRecordUpdate(record)
+      .then((outcome) => {
+        if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
+      })
+      .catch((error: unknown) => {
+        console.error("OpenSplitTime record update failed", error);
+      });
   }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
