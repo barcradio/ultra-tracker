@@ -13,7 +13,6 @@ import {
   getConnectionStatus,
   getEventGroup,
   getOpenSplitTimeEnvironment,
-  getOrganization,
   getSavedCredentials,
   isOpenSplitTimePushPaused,
   listOpenSplitTimeEnvironments,
@@ -72,7 +71,6 @@ const authenticateWithSavedOpenSplitTime: Handler = () => authenticateSaved();
 const getSavedOpenSplitTimeCredentials: Handler = () => getSavedCredentials();
 const getOpenSplitTimeAuthStatus: Handler = () => getAuthStatus();
 const getOpenSplitTimeConnectionStatus: Handler = () => getConnectionStatus();
-const getOpenSplitTimeOrganization: Handler = () => getOrganization();
 
 const getOpenSplitTimeEnvironments: Handler = () => ({
   environments: listOpenSplitTimeEnvironments(),
@@ -141,7 +139,6 @@ export const initOpenSplitTimeHandlers = () => {
   ipcMain.handle("opensplittime-get-saved-credentials", getSavedOpenSplitTimeCredentials);
   ipcMain.handle("opensplittime-get-auth-status", getOpenSplitTimeAuthStatus);
   ipcMain.handle("opensplittime-get-connection-status", getOpenSplitTimeConnectionStatus);
-  ipcMain.handle("opensplittime-get-organization", getOpenSplitTimeOrganization);
   ipcMain.handle("opensplittime-get-event-group", getOpenSplitTimeEventGroup);
   ipcMain.handle("opensplittime-get-environments", getOpenSplitTimeEnvironments);
   ipcMain.handle("opensplittime-set-environment", setOpenSplitTimeEnvironmentHandler);

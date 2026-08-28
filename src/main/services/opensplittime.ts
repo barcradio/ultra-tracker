@@ -11,10 +11,6 @@ const apiHosts = {
   staging: "https://staging.opensplittime.org",
   production: "https://www.opensplittime.org"
 } as const;
-const organizationIds = {
-  staging: "the-bear-100",
-  production: ""
-} as const;
 export type OpenSplitTimeEnvironment = "production" | "staging";
 const apiTokens = {
   staging: process.env.OPENSPLITTIME_STAGING_API_KEY,
@@ -353,18 +349,6 @@ export function clearAuthentication(): void {
 
 export async function getEventGroup(eventGroupIdOrSlug: string): Promise<unknown> {
   return request(`/event_groups/${encodeURIComponent(eventGroupIdOrSlug)}`, {
-    headers: { Authorization: `Bearer ${requireToken()}` }
-  });
-}
-
-export async function getOrganization(
-  organizationIdOrSlug = organizationIds[currentEnvironment]
-): Promise<unknown> {
-  if (organizationIdOrSlug === "") {
-    throw new OpenSplitTimeApiError("No OpenSplitTime organization is configured", 500);
-  }
-
-  return request(`/organizations/${encodeURIComponent(organizationIdOrSlug)}`, {
     headers: { Authorization: `Bearer ${requireToken()}` }
   });
 }
