@@ -10,7 +10,22 @@
             },
             "staging": {
                 "name": "bear-100-test",
-                "id": 167
+                "id": 75
+            },
+            "splitNames": {
+                "0-start-line": "Start",
+                "1-logan-peak": "Logan Peak",
+                "2-leatham-hollow": "Leatham Hollow",
+                "3-richards-hollow": "Upper Richards",
+                "4-righthand-fork": "Right Hand Fork",
+                "5-temple-fork": "Temple Fork",
+                "6-tony-grove": "Tony Grove",
+                "7-franklin-trailhead": "Franklin Basin",
+                "8-logan-river": "Logan River",
+                "9-beaver-mtn": "Beaver Mountain",
+                "10-peter-sinks": "Peter Sinks",
+                "11-burnt-fork": "Burnt Fork",
+                "12-finish-line": "Finish"
             }
         }
     },
