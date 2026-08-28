@@ -1,13 +1,15 @@
 import { ipcMain } from "electron";
-import { getTimeRecordbyBib, markTimeRecordAsSent } from "../database/timingRecords-db";
 import { DatabaseStatus } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
+import { getStoppedHereForBib } from "../database/status-db";
+import { getTimeRecordbyBib, markTimeRecordAsSent } from "../database/timingRecords-db";
 import {
   OpenSplitTimeEnvironment,
   OpenSplitTimeRawTime,
   authenticate,
   authenticateSaved,
   clearAuthentication,
+  getAuthStatus,
   getConnectionStatus,
   getEventGroup,
   getOpenSplitTimeEnvironment,
@@ -68,6 +70,7 @@ const authenticateWithOpenSplitTime: Handler<AuthenticateParams> = async (_, par
 
 const authenticateWithSavedOpenSplitTime: Handler = () => authenticateSaved();
 const getSavedOpenSplitTimeCredentials: Handler = () => getSavedCredentials();
+const getOpenSplitTimeAuthStatus: Handler = () => getAuthStatus();
 const getOpenSplitTimeConnectionStatus: Handler = () => getConnectionStatus();
 const getOpenSplitTimeOrganization: Handler = () => getOrganization();
 
@@ -124,7 +127,9 @@ const pushOpenSplitTimeRecord: Handler<PushRecordParams> = async (_, params) => 
     throw new TypeError(`No timing record found for bib ${params.bibId}`);
   }
 
-  const outcome = await pushTimeRecordUpdate(record, undefined, { force: true });
+  const outcome = await pushTimeRecordUpdate(record, getStoppedHereForBib(record.bibId), {
+    force: true
+  });
   if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
 
   return outcome;
@@ -134,6 +139,7 @@ export const initOpenSplitTimeHandlers = () => {
   ipcMain.handle("opensplittime-authenticate", authenticateWithOpenSplitTime);
   ipcMain.handle("opensplittime-authenticate-saved", authenticateWithSavedOpenSplitTime);
   ipcMain.handle("opensplittime-get-saved-credentials", getSavedOpenSplitTimeCredentials);
+  ipcMain.handle("opensplittime-get-auth-status", getOpenSplitTimeAuthStatus);
   ipcMain.handle("opensplittime-get-connection-status", getOpenSplitTimeConnectionStatus);
   ipcMain.handle("opensplittime-get-organization", getOpenSplitTimeOrganization);
   ipcMain.handle("opensplittime-get-event-group", getOpenSplitTimeEventGroup);

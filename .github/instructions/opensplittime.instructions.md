@@ -26,4 +26,4 @@ applyTo: "src/main/services/opensplittime.ts, src/main/ipc/opensplittime-ipc.ts,
 ## API Conventions
 
 - All authenticated requests go through `request()` with `Authorization: Bearer <token>`; `requireToken()` throws `OpenSplitTimeApiError` (401) if not authenticated.
-- Raw time submissions use `source` = station identifier, `split_name` = station name, and the `rawTimeUniqueKey` (`source`, `split_name`, `sub_split_kind`, `bib_number`) for idempotent upserts via `submitRawTimes()`.
+- Raw time submissions use `source` = station identifier, `split_name` = station name, via `submitRawTimes()`. Do not send a `unique_key` field — OpenSplitTime's import endpoint returns a 500 internal server error when it's present (confirmed via Postman testing).

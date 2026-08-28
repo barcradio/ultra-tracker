@@ -87,6 +87,15 @@ export function GetStatusByBib(bibNumber: number): [StatusDB | null, DatabaseSta
   return GetStatusFromColumn("bibId", bibNumber);
 }
 
+// A runner is "stopped here" for OST purposes when they have an active DNF recorded at the current station.
+export function getStoppedHereForBib(bibId: number): boolean {
+  const [status] = GetStatusByBib(bibId);
+  if (!status?.dnf) return false;
+
+  const stationIdentifier = appStore.get("station.identifier") as string;
+  return status.dnfStation === stationIdentifier;
+}
+
 export function GetStatusFromColumn(
   columnName: string,
   value: unknown

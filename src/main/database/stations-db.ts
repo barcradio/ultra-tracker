@@ -29,6 +29,8 @@ interface EventJSON {
 interface OpenSplitTimeEventJSON {
   production?: OpenSplitTimeEventMetadata;
   staging?: OpenSplitTimeEventMetadata;
+  // Maps a station identifier to the split name already configured in OST, when it differs from the station name.
+  splitNames?: Record<string, string>;
 }
 
 interface OpenSplitTimeEventMetadata {
@@ -101,9 +103,16 @@ export async function setStation(stationIdentifier: string) {
   const selectedStation: Station | null = GetStationByIdentifier(stationIdentifier)?.[0];
   if (!selectedStation) return;
 
+  const splitNameOverrides =
+    (appStore.get("event.openSplitTime.splitNames") as Record<string, string>) ?? {};
+
   appStore.set("station.name", selectedStation.name);
   appStore.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
   appStore.set("station.identifier", selectedStation.identifier);
+  appStore.set(
+    "station.openSplitTimeSplitName",
+    splitNameOverrides[selectedStation.identifier] || selectedStation.name
+  );
   appStore.set("station.entrymode", selectedStation.entrymode);
   appStore.set(`station.shiftBegin`, formatDate(selectedStation.shiftBegin));
   appStore.set(`station.cutofftime`, formatDate(selectedStation.cutofftime));
