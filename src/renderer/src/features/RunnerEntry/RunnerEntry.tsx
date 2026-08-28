@@ -67,6 +67,7 @@ export function RunnerEntry() {
             field: "sequence",
             ascending: false
           }}
+          rowStatus={(row) => row.openSplitTimePushStatus ?? (row.sent ? "success" : "pending")}
         />
       </div>
     </Stack>

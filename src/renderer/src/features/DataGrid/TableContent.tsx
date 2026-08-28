@@ -3,7 +3,7 @@ import { Virtualizer } from "@tanstack/react-virtual";
 import { Cell, CellWrapper, Row } from "./components";
 import { useKeyFn } from "./hooks/useKeyFn";
 import { useVirtualPadding } from "./hooks/useVirtualPadding";
-import { Column } from "./types";
+import { Column, RowStatus } from "./types";
 
 interface Props<T extends object> {
   data: T[];
@@ -11,6 +11,7 @@ interface Props<T extends object> {
   columns: Column<T>[];
   actionButtons?: (row: T) => ReactNode;
   getKey?: (row: T) => string | number;
+  rowStatus?: (row: T) => RowStatus;
 }
 
 export function TableContent<T extends object>(props: Props<T>) {
@@ -19,6 +20,12 @@ export function TableContent<T extends object>(props: Props<T>) {
 
   const isEven = (index: number) => index % 2 === 0;
   const isLast = (index: number) => index === props.data.length - 1;
+
+  const statusClass = (status: RowStatus) => {
+    if (status === "success") return "bg-success";
+    if (status === "error") return "bg-danger";
+    return "bg-[#FBBE00]";
+  };
 
   const renderCell = (column: Column<T>, row: T) => {
     if (column.render) return column.render(row[column.field], row);
@@ -42,6 +49,17 @@ export function TableContent<T extends object>(props: Props<T>) {
           last={isLast(row.index)}
           ref={props.rowVirtualizer.measureElement}
         >
+          {props.rowStatus && (
+            <td
+              className="w-4 px-1"
+              aria-label={`OpenSplitTime upload status: ${props.rowStatus(props.data[row.index])}`}
+            >
+              <span
+                className={`block h-3 w-3 rounded-full ${statusClass(props.rowStatus(props.data[row.index]))}`}
+                aria-hidden="true"
+              />
+            </td>
+          )}
           {props.columns.map((column) => (
             <Cell
               key={column.name ?? String(column.field)}

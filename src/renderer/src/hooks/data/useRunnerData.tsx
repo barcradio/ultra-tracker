@@ -15,10 +15,13 @@ export interface Runner {
 
 export interface RunnerEx extends Runner {
   sequence: number;
+  sent: boolean;
   dns: boolean;
   dnf: boolean;
   dnfType: DNFType;
   status: RecordStatus;
+  openSplitTimePushStatus?: "success" | "pending" | "error";
+  openSplitTimePushError?: string;
 }
 
 export function useRunnerData() {
@@ -42,6 +45,7 @@ export function useRunnerData() {
         in: runner.timeIn,
         out: runner.timeOut,
         note: runner.note,
+        sent: runner.sent,
         dns: runner.dns ?? false,
         dnf: runner.dnf ?? false,
         dnfType: runner.dnfType ?? DNFType.None,

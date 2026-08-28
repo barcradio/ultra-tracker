@@ -35,6 +35,15 @@ const getErrorMessage = (error: FieldError): string => {
   return error.message ?? "Invalid input";
 };
 
+const getUploadStatusText = (runner: RunnerEx): string => {
+  const status = runner.openSplitTimePushStatus ?? (runner.sent ? "success" : "pending");
+  const statusText = status === "success" ? "Uploaded" : status === "error" ? "Error" : "Pending";
+
+  return runner.openSplitTimePushError
+    ? `${statusText} (${runner.openSplitTimePushError})`
+    : statusText;
+};
+
 export function EditRunner(props: Props) {
   const { createToast } = useToasts();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -248,6 +257,10 @@ export function EditRunner(props: Props) {
                   }
                 })}
               />
+              <Stack className="w-full gap-1" direction="col">
+                <span className="text-sm font-bold uppercase">Upload status</span>
+                <span>{getUploadStatusText(selectedRunner.state)}</span>
+              </Stack>
             </Stack>
 
             <Stack className="gap-8 mt-4 w-full" justify="center" align="center" direction="row">
