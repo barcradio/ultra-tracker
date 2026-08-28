@@ -5,6 +5,7 @@ import { logEvent } from "./eventLogger-db";
 import { DatabaseStatus, EntryMode, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 import { appStore } from "../lib/store";
+import { pushTimeRecordUpdate } from "../services/opensplittime";
 
 interface TypedRunnerDB extends RunnerDB {
   recordType: RecordType;
@@ -268,6 +269,18 @@ function updateTimeRecord(
   );
 
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+  const timeValue = (time: Date | null): number | null =>
+    time == null ? null : new Date(time).getTime();
+
+  if (
+    existingRecord.bibId !== record.bibId ||
+    timeValue(existingRecord.timeIn) !== timeValue(record.timeIn) ||
+    timeValue(existingRecord.timeOut) !== timeValue(record.timeOut)
+  ) {
+    void pushTimeRecordUpdate(record).catch((error: unknown) => {
+      console.error("OpenSplitTime record update failed", error);
+    });
+  }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
 

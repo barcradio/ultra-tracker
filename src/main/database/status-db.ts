@@ -3,12 +3,13 @@ import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { AthleteProgress, DNFType, DatabaseStatus } from "../../shared/enums";
-import { DNFRecord, DNSRecord, StatusDB } from "../../shared/models";
+import { DNFRecord, DNSRecord, RunnerDB, StatusDB } from "../../shared/models";
 import { logEvent } from "./eventLogger-db";
 import { DatabaseResponse } from "../../shared/types";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
+import { pushTimeRecordUpdate } from "../services/opensplittime";
 
 const invalidResult = -999;
 
@@ -252,6 +253,12 @@ export function SetDNF(
   let stationIdentifier: string | null = appStore.get("station.identifier") as string;
   let dnf: DNFType | null = dnfType;
   const dnfDateTime = !timeOut ? new Date().toISOString() : timeOut.toISOString();
+  const timingRecord = db.prepare(`SELECT * FROM TimeRecords WHERE bibId = ?`).get(bibId) as
+    | RunnerDB
+    | undefined;
+  const previousDnf = db.prepare(`SELECT dnf FROM Status WHERE bibId = ?`).get(bibId) as
+    | { dnf: number }
+    | undefined;
 
   if (!dnfValue) {
     stationIdentifier = null;
@@ -282,6 +289,13 @@ export function SetDNF(
   );
 
   message = `status:update bibId: ${bibId}, dnf: ${dnfValue}, dnfType: ${dnfType}`;
+
+  if (timingRecord && previousDnf?.dnf !== Number(dnfValue)) {
+    void pushTimeRecordUpdate(timingRecord, dnfValue).catch((error: unknown) => {
+      console.error("OpenSplitTime DNF update failed", error);
+    });
+  }
+
   return [DatabaseStatus.Updated, message];
 }
 

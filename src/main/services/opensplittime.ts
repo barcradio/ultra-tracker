@@ -1,5 +1,7 @@
+import { format } from "date-fns";
 import { config } from "dotenv";
 import { safeStorage } from "electron";
+import { RunnerDB } from "$shared/models";
 import { appStore } from "../lib/store";
 
 config({ path: "opensplittime.env" });
@@ -54,6 +56,8 @@ export interface OpenSplitTimeRawTime {
   bib_number: string;
   stopped_here?: "true" | "false";
 }
+
+const rawTimeUniqueKey = ["source", "split_name", "sub_split_kind", "bib_number"];
 
 interface OpenSplitTimeAuthResponse {
   token?: string;
@@ -235,7 +239,8 @@ export async function getOrganization(
 
 export async function submitRawTimes(
   eventGroupIdOrSlug: string,
-  records: OpenSplitTimeRawTime[]
+  records: OpenSplitTimeRawTime[],
+  uniqueKey?: string[]
 ): Promise<unknown> {
   return request(`/event_groups/${encodeURIComponent(eventGroupIdOrSlug)}/import`, {
     method: "POST",
@@ -246,7 +251,45 @@ export async function submitRawTimes(
     body: JSON.stringify({
       data: records.map((attributes) => ({ type: "raw_time", attributes })),
       data_format: "jsonapi_batch", // eslint-disable-line camelcase
-      limited_response: "true" // eslint-disable-line camelcase
+      limited_response: "true", // eslint-disable-line camelcase
+      ...(uniqueKey ? { unique_key: uniqueKey } : {}) // eslint-disable-line camelcase
     })
   });
+}
+
+export async function pushTimeRecordUpdate(
+  record: RunnerDB,
+  stoppedHere?: boolean
+): Promise<unknown> {
+  const eventGroupIdOrSlug = appStore.get("event.name") as string;
+  const stationIdentifier = appStore.get("station.identifier") as string;
+  const stationName = appStore.get("station.name") as string;
+
+  if (!eventGroupIdOrSlug || !stationIdentifier || !stationName) {
+    throw new OpenSplitTimeApiError("OpenSplitTime event or station is not configured", 500);
+  }
+
+  const records: OpenSplitTimeRawTime[] = [];
+  const stoppedHereValue =
+    stoppedHere == null ? undefined : (String(stoppedHere) as "true" | "false");
+  const addRecord = (time: Date | null, kind: "in" | "out") => {
+    if (!time) return;
+
+    records.push({
+      source: stationIdentifier,
+      ["sub_split_kind"]: kind,
+      ["with_pacer"]: "false",
+      ["entered_time"]: format(time, "yyyy-MM-dd HH:mm:ssxxx"),
+      ["split_name"]: stationName,
+      ["bib_number"]: String(record.bibId),
+      ["stopped_here"]: stoppedHereValue
+    });
+  };
+
+  addRecord(record.timeIn, "in");
+  addRecord(record.timeOut, "out");
+
+  if (records.length === 0) return;
+
+  return submitRawTimes(eventGroupIdOrSlug, records, rawTimeUniqueKey);
 }
