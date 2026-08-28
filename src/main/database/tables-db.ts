@@ -122,7 +122,8 @@ export function CreateTables() {
     createTimeRecordsTable() &&
     createStationsTable() &&
     createOutputTable() &&
-    createStatusTable();
+    createStatusTable() &&
+    createOpenSplitTimePushStatusTable();
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
@@ -158,6 +159,11 @@ export const createOutputTable = () =>
   createTable(tableDefs.expectedTableNames.Output, tableDefs.Output);
 export const createStatusTable = () =>
   createTable(tableDefs.expectedTableNames.Status, tableDefs.Status);
+export const createOpenSplitTimePushStatusTable = () =>
+  createTable(
+    tableDefs.expectedTableNames.OpenSplitTimePushStatus,
+    tableDefs.OpenSplitTimePushStatus
+  );
 
 export function ClearTables() {
   const result =
@@ -166,7 +172,8 @@ export function ClearTables() {
     clearRunnersTable() &&
     clearStationsTable() &&
     clearOutputTable() &&
-    clearStatusTable();
+    clearStatusTable() &&
+    clearOpenSplitTimePushStatusTable();
 
   return result ? `Database tables cleared; Reinitialize or Restart!` : `Database Clear Failed`;
 }
@@ -193,3 +200,5 @@ export const clearRunnersTable = () => clearTable(tableDefs.expectedTableNames.T
 export const clearStationsTable = () => clearTable(tableDefs.expectedTableNames.Stations);
 export const clearOutputTable = () => clearTable(tableDefs.expectedTableNames.Output);
 export const clearStatusTable = () => clearTable(tableDefs.expectedTableNames.Status);
+export const clearOpenSplitTimePushStatusTable = () =>
+  clearTable(tableDefs.expectedTableNames.OpenSplitTimePushStatus);
