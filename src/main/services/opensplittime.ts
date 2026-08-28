@@ -95,9 +95,34 @@ function computeDefaultEnvironment(): OpenSplitTimeEnvironment {
 
 let currentEnvironment: OpenSplitTimeEnvironment = computeDefaultEnvironment();
 let apiToken: string | null = apiTokens[currentEnvironment]?.trim() || null;
+// Pushes are paused by default so an operator must explicitly resume them after signing in.
+let pushPaused = true;
 
 export function getOpenSplitTimeEnvironment(): OpenSplitTimeEnvironment {
   return currentEnvironment;
+}
+
+export function isOpenSplitTimePushPaused(): boolean {
+  return pushPaused;
+}
+
+export function setOpenSplitTimePushPaused(paused: boolean): void {
+  requireToken();
+  pushPaused = paused;
+}
+
+export type OpenSplitTimePushStatus = "success" | "error";
+
+export interface OpenSplitTimePushState {
+  status: OpenSplitTimePushStatus;
+  error?: string;
+}
+
+// Tracks the outcome of the most recent push per bib so the UI can offer a retry after a failure.
+const pushStatusByBibId = new Map<number, OpenSplitTimePushState>();
+
+export function getOpenSplitTimePushStatus(bibId: number): OpenSplitTimePushState | undefined {
+  return pushStatusByBibId.get(bibId);
 }
 
 export function listOpenSplitTimeEnvironments(): OpenSplitTimeEnvironmentOption[] {
@@ -228,6 +253,7 @@ export async function authenticate(
   }
 
   apiToken = response.token;
+  pushPaused = true;
 
   if (saveCredentials && safeStorage.isEncryptionAvailable()) {
     appStore.set("openSplitTime.email", email);
@@ -304,6 +330,7 @@ export function clearSavedCredentials(): void {
 
 export function clearAuthentication(): void {
   apiToken = null;
+  pushPaused = true;
 }
 
 export async function getEventGroup(eventGroupIdOrSlug: string): Promise<unknown> {
@@ -344,10 +371,18 @@ export async function submitRawTimes(
   });
 }
 
+export interface OpenSplitTimePushOutcome {
+  pushed: boolean;
+  result?: unknown;
+}
+
 export async function pushTimeRecordUpdate(
   record: RunnerDB,
-  stoppedHere?: boolean
-): Promise<unknown> {
+  stoppedHere?: boolean,
+  options: { force?: boolean } = {}
+): Promise<OpenSplitTimePushOutcome> {
+  if (pushPaused && !options.force) return { pushed: false };
+
   const eventMetadata = appStore.get("event.openSplitTime") as
     | OpenSplitTimeEventMetadataStore
     | undefined;
@@ -381,7 +416,17 @@ export async function pushTimeRecordUpdate(
   addRecord(record.timeIn, "in");
   addRecord(record.timeOut, "out");
 
-  if (records.length === 0) return;
+  if (records.length === 0) return { pushed: false };
 
-  return submitRawTimes(eventGroupIdOrSlug, records, rawTimeUniqueKey);
+  try {
+    const result = await submitRawTimes(eventGroupIdOrSlug, records, rawTimeUniqueKey);
+    pushStatusByBibId.set(record.bibId, { status: "success" });
+    return { pushed: true, result };
+  } catch (error) {
+    pushStatusByBibId.set(record.bibId, {
+      status: "error",
+      error: error instanceof Error ? error.message : String(error)
+    });
+    throw error;
+  }
 }

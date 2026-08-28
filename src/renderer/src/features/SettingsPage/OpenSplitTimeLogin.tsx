@@ -40,6 +40,7 @@ export function OpenSplitTimeLogin() {
   const [pendingEnvironment, setPendingEnvironment] = useState<OpenSplitTimeEnvironment | null>(
     null
   );
+  const [pushPaused, setPushPaused] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -64,6 +65,15 @@ export function OpenSplitTimeLogin() {
         const environmentsResult = result as OpenSplitTimeEnvironmentsResult;
         setEnvironmentOptions(environmentsResult.environments);
         setEnvironment(environmentsResult.current);
+      })
+      .catch(() => undefined);
+
+    ipcRenderer
+      .invoke("opensplittime-get-push-paused")
+      .then((result) => {
+        if (!isMounted) return;
+
+        setPushPaused((result as { paused: boolean }).paused);
       })
       .catch(() => undefined);
 
@@ -109,6 +119,7 @@ export function OpenSplitTimeLogin() {
       })) as OpenSplitTimeAuthResult;
       setExpiration(result.expiration);
       setHasSavedCredentials(result.credentialsSaved);
+      setPushPaused(true);
       setPassword("");
     } catch {
       setExpiration(null);
@@ -128,6 +139,7 @@ export function OpenSplitTimeLogin() {
         "opensplittime-authenticate-saved"
       )) as OpenSplitTimeAuthResult;
       setExpiration(result.expiration);
+      setPushPaused(true);
     } catch {
       setExpiration(null);
       setError(true);
@@ -140,6 +152,15 @@ export function OpenSplitTimeLogin() {
     await ipcRenderer.invoke("opensplittime-clear-authentication");
     setExpiration(null);
     setPassword("");
+    setPushPaused(true);
+  };
+
+  const handleTogglePush = async () => {
+    if (!expiration) return;
+
+    const nextPaused = !pushPaused;
+    await ipcRenderer.invoke("opensplittime-set-push-paused", { paused: nextPaused });
+    setPushPaused(nextPaused);
   };
 
   return (
@@ -151,6 +172,12 @@ export function OpenSplitTimeLogin() {
           </span>
           <Button type="button" size="wide" onClick={handleLogout}>
             Sign Out
+          </Button>
+          <span className="text-sm font-medium text-on-component">
+            Pushes to OpenSplitTime are {pushPaused ? "paused" : "active"}.
+          </span>
+          <Button type="button" size="wide" onClick={handleTogglePush} disabled={!expiration}>
+            {pushPaused ? "Resume Pushes" : "Pause Pushes"}
           </Button>
         </Stack>
       ) : (

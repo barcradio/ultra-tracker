@@ -4,6 +4,7 @@ import { RunnerDB } from "../../shared/models";
 import * as dbRunners from "../database/runners-db";
 import * as dbTimings from "../database/timingRecords-db";
 import * as stats from "../lib/stat-engine";
+import { getOpenSplitTimePushStatus } from "../services/opensplittime";
 import { Handler } from "../types";
 
 interface GetRunnersTableOptions {
@@ -15,6 +16,14 @@ const getRunnersTable: Handler<GetRunnersTableOptions, DatabaseResponse<RunnerDB
   options
 ) => {
   const dataset = dbRunners.readRunnersTable(options);
+  const [runners] = dataset;
+
+  runners?.forEach((runner) => {
+    const pushState = getOpenSplitTimePushStatus(runner.bibId);
+    runner.openSplitTimePushStatus = pushState?.status;
+    runner.openSplitTimePushError = pushState?.error;
+  });
+
   return dataset;
 };
 
