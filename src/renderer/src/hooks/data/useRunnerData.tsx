@@ -49,7 +49,9 @@ export function useRunnerData() {
         dns: runner.dns ?? false,
         dnf: runner.dnf ?? false,
         dnfType: runner.dnfType ?? DNFType.None,
-        status: runner.status ?? RecordStatus.OK
+        status: runner.status ?? RecordStatus.OK,
+        openSplitTimePushStatus: runner.openSplitTimePushStatus,
+        openSplitTimePushError: runner.openSplitTimePushError
       }));
     }
   });

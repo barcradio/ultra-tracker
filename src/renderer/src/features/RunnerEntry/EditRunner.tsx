@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import { Tooltip } from "primereact/tooltip";
 import { FieldError } from "react-hook-form";
@@ -15,9 +14,9 @@ import {
   TextInput
 } from "~/components";
 import { useAthlete } from "~/hooks/data/useAthlete";
-import { useSetAthleteProgress } from "~/hooks/data/useStatus";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
-import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
+import { useSetAthleteProgress } from "~/hooks/data/useStatus";
+import { useDeleteTiming, useEditTiming, usePushOpenSplitTimeRecord } from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
 import { DNFType, RecordStatus } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
@@ -53,20 +52,33 @@ export function EditRunner(props: Props) {
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
   const setAthlete = useSetAthleteProgress();
+  const pushOpenSplitTimeRecord = usePushOpenSplitTimeRecord();
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
   const handleSaveRunner = form.handleSubmit(
-    (data) => {
-      // Pass in our new runner to the reset function to update the defaultValues.
-      // We create a new object to avoid setting the defaults to our dynamic editingRunner state.
-      // In which case defaultValues would be the same as values, and resetting would do nothing.
-      form.reset({ ...data });
+    async (data) => {
+      const updatedBibId = Number(data.bibId);
+      const isIntegerBib = Number.isInteger(updatedBibId);
+      const formattedData = {
+        ...data,
+        bibId: updatedBibId,
+        status:
+          isIntegerBib && data.status === RecordStatus.Duplicate ? RecordStatus.OK : data.status,
+        dnf: (data.dnfType as DNFType) !== DNFType.None
+      };
+
+      form.reset({ ...formattedData });
       setIsOpen(false);
       setDidReplaceComma(false);
-      editTiming.mutate(data);
-      data.dnf = (data.dnfType as DNFType) != DNFType.None;
-      setAthlete.mutate(data);
+
+      try {
+        await editTiming.mutateAsync(formattedData);
+        await setAthlete.mutateAsync(formattedData);
+      } catch (error) {
+        console.error("Failed to save runner record:", error);
+      }
+
       if (didReplaceComma)
         createToast({
           message: "Commas in note have been replaced with semicolons",
@@ -160,7 +172,8 @@ export function EditRunner(props: Props) {
                   placeholder="Runner"
                   error={form.formState.errors.bibId}
                   {...form.register("bibId", {
-                    required: "Bib# is required"
+                    required: "Bib# is required",
+                    valueAsNumber: true
                   })}
                 />
                 <div className="relative grow">
@@ -173,7 +186,12 @@ export function EditRunner(props: Props) {
                     <>
                       <ButtonLink
                         to="/roster"
-                        search={{ firstName: athlete?.firstName, lastName: athlete?.lastName }} // TODO: fix TS2769
+                        search={
+                          {
+                            firstName: athlete?.firstName,
+                            lastName: athlete?.lastName
+                          } as unknown as true
+                        }
                         variant="ghost"
                         color="neutral"
                         className="m-0 p-0 absolute right-2 top-1.5"
@@ -259,7 +277,25 @@ export function EditRunner(props: Props) {
               />
               <Stack className="w-full gap-1" direction="col">
                 <span className="text-sm font-bold uppercase">Upload status</span>
-                <span>{getUploadStatusText(selectedRunner.state)}</span>
+                <Stack align="center" justify="between" className="w-full gap-4">
+                  <span>{getUploadStatusText(selectedRunner.state)}</span>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    color="primary"
+                    size="sm"
+                    disabled={
+                      pushOpenSplitTimeRecord.isPending ||
+                      selectedRunner.state.openSplitTimePushStatus === "success"
+                    }
+                    onClick={() => {
+                      const bibToPush = Number(form.watch("bibId")) || selectedRunner.state.bibId;
+                      pushOpenSplitTimeRecord.mutate(bibToPush);
+                    }}
+                  >
+                    Push to OST
+                  </Button>
+                </Stack>
               </Stack>
             </Stack>
 

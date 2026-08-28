@@ -99,3 +99,35 @@ export const useDeleteTiming = () => {
     }
   });
 };
+
+export const usePushOpenSplitTimeRecord = () => {
+  const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
+  const { createToast } = useToasts();
+
+  return useMutation({
+    mutationFn: async (bibId: number) => {
+      const outcome = (await ipcRenderer.invoke("opensplittime-push-record", { bibId })) as {
+        pushed: boolean;
+      };
+      return outcome;
+    },
+    onSuccess: (outcome, bibId) => {
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      createToast({
+        message: outcome.pushed
+          ? `Runner #${bibId} pushed to OpenSplitTime`
+          : `Runner #${bibId} push to OpenSplitTime was skipped (paused)`,
+        type: outcome.pushed ? "success" : "warning"
+      });
+    },
+    onError: (error: Error, bibId) => {
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      createToast({
+        message: `Runner #${bibId} push to OpenSplitTime failed: ${error.message}`,
+        type: "warning",
+        timeoutMs: -1
+      });
+    }
+  });
+};

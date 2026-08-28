@@ -12,6 +12,11 @@ interface OpenSplitTimeSavedCredentials {
   available: boolean;
 }
 
+interface OpenSplitTimeAuthStatus {
+  authenticated: boolean;
+  expiration: string | null;
+}
+
 type OpenSplitTimeEnvironment = "production" | "staging";
 
 interface OpenSplitTimeEnvironmentOption {
@@ -54,6 +59,16 @@ export function OpenSplitTimeLogin() {
         setEmail(savedCredentials.email);
         setHasSavedCredentials(savedCredentials.available);
         setSaveCredentials(savedCredentials.available);
+      })
+      .catch(() => undefined);
+
+    ipcRenderer
+      .invoke("opensplittime-get-auth-status")
+      .then((result) => {
+        if (!isMounted) return;
+
+        const authStatus = result as OpenSplitTimeAuthStatus;
+        if (authStatus.authenticated) setExpiration(authStatus.expiration);
       })
       .catch(() => undefined);
 
@@ -167,6 +182,18 @@ export function OpenSplitTimeLogin() {
     <VerticalButtonGroup label="OpenSplitTime Steward Login">
       {expiration ? (
         <Stack direction="col" className="gap-2">
+          {environmentOptions.length > 0 && (
+            <Select
+              label="OST Environment"
+              value={environment}
+              onChange={() => undefined}
+              disabled
+              options={environmentOptions.map((option) => ({
+                name: `${option.name} - ${option.environment}`,
+                value: option.environment
+              }))}
+            />
+          )}
           <span className="text-sm font-medium text-on-component">
             Connected until {new Date(expiration).toLocaleString()}
           </span>

@@ -15,12 +15,7 @@ export function useSelectRunnerForm(runner: RunnerEx, runners: RunnerEx[]) {
   useEffect(() => {
     if (currentRunner.id !== runner.id) return;
 
-    setCurrentRunner((previousRunner) => ({
-      ...previousRunner,
-      sent: runner.sent,
-      openSplitTimePushStatus: runner.openSplitTimePushStatus,
-      openSplitTimePushError: runner.openSplitTimePushError
-    }));
+    setCurrentRunner(runner);
   }, [currentRunner.id, runner]);
 
   const handleChangeCurrent = (direction: "previous" | "next") => {
