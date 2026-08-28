@@ -2,9 +2,9 @@ import fs from "fs";
 import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
+import { logEvent } from "./eventLogger-db";
 import { AthleteProgress, DNFType, DatabaseStatus } from "../../shared/enums";
 import { DNFRecord, DNSRecord, RunnerDB, StatusDB } from "../../shared/models";
-import { logEvent } from "./eventLogger-db";
 import { DatabaseResponse } from "../../shared/types";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
@@ -61,7 +61,7 @@ export async function LoadDNF() {
     )
     .on("data", (row) => {
       // load dnf into current station only if from earlier or current
-      var dnfStationId = Number(row.stationId.split("-", 1)[0]);
+      const dnfStationId = Number(row.stationId.split("-", 1)[0]);
       const stationId = appStore.get("station.id") as number;
 
       if (dnfStationId <= stationId) {
@@ -227,7 +227,7 @@ function GetStatusCount(columnName: string, whereStatement: string): DatabaseRes
   try {
     queryResult = db
       .prepare(`SELECT COUNT(${columnName}) FROM Status WHERE ${whereStatement}`)
-      .get();
+      .get() as Record<string, number> | undefined;
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -237,9 +237,10 @@ function GetStatusCount(columnName: string, whereStatement: string): DatabaseRes
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetCountFromAthletes Where '${whereStatement}':${queryResult[`COUNT(${columnName})`]}`;
+  const count = queryResult[`COUNT(${columnName})`];
+  message = `GetCountFromAthletes Where '${whereStatement}':${count}`;
 
-  return [queryResult[`COUNT(${columnName})`] as number, DatabaseStatus.Success, message];
+  return [count, DatabaseStatus.Success, message];
 }
 
 export function SetDNF(
@@ -257,7 +258,9 @@ export function SetDNF(
     | RunnerDB
     | undefined;
   const previousDnf = db.prepare(`SELECT dnf FROM Status WHERE bibId = ?`).get(bibId) as
-    | { dnf: number }
+    | {
+        dnf: number;
+      }
     | undefined;
 
   if (!dnfValue) {
@@ -429,16 +432,20 @@ export function syncNoteWithStatus(
   return [DatabaseStatus.Updated, message];
 }
 
+// SyncDirection members are only referenced via property access (here and cross-file), which
+// this lint rule can't trace, so it misreports them as unused.
 export enum SyncDirection {
+  /* eslint-disable no-unused-vars */
   Incoming,
   Outgoing
+  /* eslint-enable no-unused-vars */
 }
 
 export function SetProgress(bibId: number): DatabaseResponse {
   const db = getDatabaseConnection();
   let message: string = "";
-  let queryResult;
-  let status;
+  let queryResult: { timeIn: string | null; timeOut: string | null } | undefined;
+  let status: AthleteProgress;
 
   const query = `SELECT Status.*, TimeRecords.timeIn, TimeRecords.timeOut
        FROM "Status" LEFT JOIN "TimeRecords"
@@ -446,7 +453,7 @@ export function SetProgress(bibId: number): DatabaseResponse {
        WHERE Status.bibId == ?`;
 
   try {
-    queryResult = db.prepare(query).get(bibId);
+    queryResult = db.prepare(query).get(bibId) as typeof queryResult;
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -456,14 +463,14 @@ export function SetProgress(bibId: number): DatabaseResponse {
 
   if (queryResult == null) return [DatabaseStatus.NotFound, message];
 
-  const timeIn = queryResult.timeIn! == undefined ? null : queryResult.timeIn;
-  const timeOut = queryResult.timeOut! == undefined ? null : queryResult.timeOut;
+  const timeIn = queryResult.timeIn == undefined ? null : queryResult.timeIn;
+  const timeOut = queryResult.timeOut == undefined ? null : queryResult.timeOut;
 
   if (timeIn == null && timeOut == null) {
     status = AthleteProgress.Incoming;
   } else if (timeIn != null && timeOut == null) {
     status = AthleteProgress.Present;
-  } else if (timeOut != null) {
+  } else {
     status = AthleteProgress.Outgoing;
   }
 
