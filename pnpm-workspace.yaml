@@ -1,10 +1,8 @@
-onlyBuiltDependencies:
-  - better-sqlite3
-  - electron
-  - electron-winstaller
-  - esbuild
-  - sqlite3
-  - unrs-resolver
+allowBuilds:
+  better-sqlite3: true
+  electron-winstaller: true
+  esbuild: true
+  unrs-resolver: true
 
 overrides:
   "@babel/core": "^7.26.2"

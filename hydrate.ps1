@@ -19,6 +19,20 @@ if (Test-Path .npmrc) {
     Write-Error ".npmrc file is missing from the project root directory."
 }
 
+$pythonCandidates = @(
+    $env:PYTHON,
+    "$env:LocalAppData\Programs\Python\Python313\python.exe",
+    "$env:LocalAppData\Programs\Python\Python312\python.exe",
+    "$env:ProgramFiles\Python313\python.exe",
+    "$env:ProgramFiles\Python312\python.exe"
+)
+$pythonPath = $pythonCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+if (-not $pythonPath) {
+    Write-Error "Python is required to rebuild better-sqlite3. Install Python 3.13 and rerun this script."
+}
+$env:PYTHON = $pythonPath
+Write-Host "Using Python: $env:PYTHON" -ForegroundColor DarkGray
+
 # Step 2: Clear outdated lockfile metrics and run clean installation
 Write-Host "`n[2/5] Purging old caches and running secure installation..." -ForegroundColor Yellow
 if (Test-Path .\node_modules) { 

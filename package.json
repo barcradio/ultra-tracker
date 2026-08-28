@@ -86,7 +86,7 @@
     "@vitejs/plugin-react": "^5.0.1",
     "autoprefixer": "^10.4.21",
     "electron": "^43.4.1",
-    "electron-builder": "^26.0.12",
+    "electron-builder": "^26.15.3",
     "electron-devtools-installer": "^4.0.0",
     "electron-vite": "^4.0.0",
     "eslint": "^9.33.0",
