@@ -5,6 +5,8 @@ An app for tracking athletes during ultra marathons.
 
 An Electron application with React and TypeScript for Windows, Linux, and MacOS.
 
+For a guide on how to set up an event using Ultra-Tracker, visit the project [Wiki](https://github.com/barcradio/ultra-tracker/wiki).
+
 ---
 ## Initial Setup
 <img width="224" height="48" alt="image" src="https://github.com/user-attachments/assets/edb8ef37-8053-40b0-abf4-f2e8859d86be" />
