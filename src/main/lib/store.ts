@@ -33,6 +33,10 @@ const defaults = {
         active: false
       }
     }
+  },
+  openSplitTime: {
+    email: "",
+    encryptedPassword: ""
   }
 };
 
@@ -79,6 +83,13 @@ export const appStore = new Store({
         }
       }
       //required: ["primary"]
+    },
+    openSplitTime: {
+      type: "object",
+      properties: {
+        email: { type: "string", default: "" },
+        encryptedPassword: { type: "string", default: "" }
+      }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]
   },
