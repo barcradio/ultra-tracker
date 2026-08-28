@@ -15,6 +15,9 @@
 - Treat `src/renderer/src/routeTree.gen.ts` and other generated files as generated; change their source/configuration instead of hand-editing them when possible.
 - Preserve ASCII in new files unless non-ASCII text is required by an existing user-facing convention.
 - Do not add license headers or copied third-party code. For new dependencies, check compatibility with the MIT project and record required attribution or license notices.
+- Use functional React components with strict TypeScript types.
+- Prefer Tailwind CSS utility classes over custom CSS or inline styles, while reusing existing shared styles and components.
+- Follow the repository's ESLint, Prettier, and Commitlint standards.
 
 ## Electron Architecture
 
@@ -23,6 +26,7 @@
 - Keep UI and presentation logic in `src/renderer/src/`. Use IPC handlers for main-process operations and follow existing IPC naming and error-handling patterns.
 - Validate and normalize all IPC input at the main-process boundary. Never trust renderer-provided paths, identifiers, file contents, or status values.
 - Preserve secure BrowserWindow behavior: do not enable unnecessary Node integration, weaken context isolation, or bypass external-navigation protections.
+- Keep REST API clients and other network or privileged integrations out of renderer components; expose them through the same typed preload and IPC boundary.
 
 ## Data Integrity And Domain Rules
 
@@ -32,6 +36,9 @@
 - Database schema changes require a migration and compatibility review. Do not modify local database files with ad hoc scripts or destructive shortcuts.
 - Treat destructive settings and recovery operations as high risk. Require the existing confirmation flow and update user-facing documentation when behavior changes.
 - Keep CSV, JSON, station, athlete, DNS, DNF, export, and recovery formats backward-compatible unless a deliberate format change is requested.
+- Use prepared statements and transactions for `better-sqlite3` operations.
+- Make persistence robust against unexpected local power loss and retain the automatic backup and CSV recovery paths.
+- Do not add destructive database operations without a fail-safe fallback.
 
 ## UI And Accessibility
 
@@ -39,6 +46,7 @@
 - Keep layouts usable at the supported desktop resolutions and with display scaling. Do not make keyboard shortcuts, focus management, or readable status/warning states regress.
 - Use semantic controls, labels, accessible names, and keyboard support. Preserve focus behavior in modals, drawers, forms, and data grids.
 - Keep operator-facing text concise and consistent with the terminology in the README and existing UI.
+- Preserve the 10-key and keyboard shortcuts used for high-speed race logging, including `Equal`, `Minus`, `Slash`, and `Numpad-Add`.
 
 ## Validation
 
