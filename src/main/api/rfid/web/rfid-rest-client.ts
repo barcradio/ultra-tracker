@@ -6,6 +6,7 @@
 import https from "node:https";
 import type { PeerCertificate, TLSSocket } from "node:tls";
 import { RfidSettings } from "$shared/models";
+import { LogLevel, logRFID } from "../rfid-log";
 
 type HttpMethod = "GET" | "PUT";
 
@@ -123,7 +124,6 @@ export class RfidRestClient {
   async login(): Promise<boolean> {
     if (!this.settings.userName || !this.settings.password) {
       this.lastError = "RFID username/password is not configured.";
-      console.warn(this.lastError);
       return false;
     }
 
@@ -147,24 +147,21 @@ export class RfidRestClient {
             ? "invalid username or password"
             : response.text || response.statusText;
         this.lastError = `Login failed: ${response.status} ${response.statusText} (${reason})`;
-        console.warn(this.lastError);
         return false;
       }
 
       const data = response.json() as { message?: string };
       if (!data?.message) {
         this.lastError = `Login response did not include a token: ${response.text}`;
-        console.warn(this.lastError);
         return false;
       }
 
       this.token = data.message; // Save the token
-      console.log("RFID REST login successful!");
+      logRFID(LogLevel.info, "RFID REST login successful!");
       this.lastError = undefined;
       return true;
     } catch (error) {
       this.lastError = error instanceof Error ? error.message : String(error);
-      console.warn("Error during RFID REST login:", this.lastError);
       return false;
     }
   }
@@ -202,28 +199,28 @@ export class RfidRestClient {
   async stop(): Promise<void> {
     try {
       await this.request("PUT", "/cloud/stop");
-      console.log("RFID stop command sent.");
+      logRFID(LogLevel.info, "RFID stop command sent.");
     } catch (error) {
-      console.error("Failed to stop RFID:", error);
+      logRFID(LogLevel.error, "Failed to stop RFID:", error);
     }
   }
 
   async start(): Promise<void> {
     try {
       await this.request("PUT", "/cloud/start");
-      console.log("RFID start command sent.");
+      logRFID(LogLevel.info, "RFID start command sent.");
     } catch (error) {
-      console.error("Failed to start RFID:", error);
+      logRFID(LogLevel.error, "Failed to start RFID:", error);
     }
   }
 
   async getMode(): Promise<unknown> {
     try {
       const data = await this.request("GET", "/cloud/mode");
-      console.log("Current RFID mode:", data);
+      logRFID(LogLevel.debug, "Current RFID mode:", data);
       return data;
     } catch (error) {
-      console.error("Failed to get RFID mode:", error);
+      logRFID(LogLevel.error, "Failed to get RFID mode:", error);
       return null;
     }
   }
@@ -235,9 +232,9 @@ export class RfidRestClient {
       if (typeof parseData === "object" && parseData !== null) {
         await this.request("PUT", "/cloud/mode", parseData);
       }
-      console.log("RFID mode updated.");
+      logRFID(LogLevel.info, "RFID mode updated.");
     } catch (error) {
-      console.error("Failed to set RFID mode:", error);
+      logRFID(LogLevel.error, "Failed to set RFID mode:", error);
     }
   }
 }

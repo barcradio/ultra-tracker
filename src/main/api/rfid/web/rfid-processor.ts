@@ -10,7 +10,7 @@ import { DeviceStatus } from "$shared/enums";
 import { RfidSettings } from "$shared/models";
 import { RfidData } from "$shared/types";
 import * as dbRFIDInbox from "../../../database/rfidInbox-db";
-import { LogLevel, uberLog } from "../../../lib/logger";
+import { LogLevel, logRFID } from "../rfid-log";
 
 type RfidProcessorEvents = {
   error: (error: Error) => void;
@@ -23,13 +23,6 @@ interface RFIDFrame {
   start: number;
   end: number;
   payload: string;
-}
-
-function logRFID(level: LogLevel, ...values: unknown[]): void {
-  const message = values
-    .map((value) => (value instanceof Error ? (value.stack ?? value.message) : String(value)))
-    .join(" ");
-  uberLog(level, "rfid", message, true);
 }
 
 function isRFIDMessage(value: unknown): value is RfidData {
@@ -161,7 +154,7 @@ export class RfidDataProcessor {
 
     this.ws.on("message", (data) => {
       const payload = data.toString();
-      console.debug("RFID message received:", payload.length, "bytes");
+      logRFID(LogLevel.debug, "RFID message received:", payload.length, "bytes");
 
       try {
         dbRFIDInbox.enqueue(payload);

@@ -7,6 +7,7 @@ import { config } from "dotenv";
 import { DeviceStatus } from "../../shared/enums";
 import { RfidSettings } from "../../shared/models";
 import { IRfidController } from "./rfid/interfaces/IRfid-controller";
+import { LogLevel, logRFID } from "./rfid/rfid-log";
 import { RfidFactory } from "./rfid/rfid-reader-factory";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
@@ -49,7 +50,7 @@ export async function InitializeRFIDReader(settings?: Partial<RfidSettings>): Pr
     });
 
     rfidController.on("error", (error) => {
-      console.error("RFID error:", error);
+      logRFID(LogLevel.error, "RFID error:", error);
       rfidEmitter.statusRFID(DeviceStatus.Error, error instanceof Error ? error.message : String(error));
     });
 
@@ -63,7 +64,7 @@ export async function InitializeRFIDReader(settings?: Partial<RfidSettings>): Pr
     return "RFID initializing";
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Failed to initialize RFID:", errorMessage);
+    logRFID(LogLevel.error, "Failed to initialize RFID:", errorMessage);
     rfidEmitter.statusRFID(DeviceStatus.Error, errorMessage);
     return `RFID initialization failed: ${errorMessage}`;
   }

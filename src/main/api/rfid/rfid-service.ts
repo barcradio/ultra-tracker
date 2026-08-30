@@ -6,6 +6,7 @@ import * as dbRFIDPendingWrites from "../../database/rfidPendingWrites-db";
 import * as dbTimings from "../../database/timingRecords-db";
 import * as rfidEmitter from "../../ipc/rfid-emitter";
 import { IRfidController, RfidEvent } from "./interfaces/IRfid-controller";
+import { LogLevel, logRFID } from "./rfid-log";
 import { RfidDataProcessor } from "./web/rfid-processor";
 import { RfidRestClient } from "./web/rfid-rest-client";
 
@@ -55,7 +56,7 @@ export class RfidService implements IRfidController {
       const loginSuccess = await this.restClient.login();
       if (!loginSuccess) {
         const detail = this.restClient.getLastError() ?? "unknown error";
-        this.eventEmitter.emit("error", new Error(`RFID REST login failed: ${detail}`));
+        // Don't also emit "error" here - the caller logs the thrown error already.
         throw new Error(`RFID REST login failed: ${detail}`);
       }
     }
@@ -78,7 +79,7 @@ export class RfidService implements IRfidController {
     if (this.rfidSettings?.status === DeviceStatus.Connected && this.rfidProcessor) {
       this.rfidProcessor.connect();
     } else {
-      console.warn("Cannot connect: RFID not initialized or already disconnected");
+      logRFID(LogLevel.warn, "Cannot connect: RFID not initialized or already disconnected");
     }
   }
 
@@ -95,7 +96,7 @@ export class RfidService implements IRfidController {
       this.rfidProcessor?.connect();
       this.restClient?.start();
     } else {
-      console.warn("Cannot start RFID: reader not connected");
+      logRFID(LogLevel.warn, "Cannot start RFID: reader not connected");
     }
   }
 
@@ -158,7 +159,7 @@ export class RfidService implements IRfidController {
     const timestamp = new Date(data.timestamp);
 
     if (!Number.isFinite(bibId) || Number.isNaN(timestamp.getTime())) {
-      console.error("Invalid RFID tag data:", data);
+      logRFID(LogLevel.error, "Invalid RFID tag data:", data);
       this.isWriting = false;
       this.processWriteQueue();
       return;
@@ -170,12 +171,16 @@ export class RfidService implements IRfidController {
       this.processWriteQueue();
     } catch (error) {
       if (attempt < this.maxWriteRetries) {
-        console.warn(`RFID database write failed, retrying (${attempt + 1}/${this.maxWriteRetries}):`, error);
+        logRFID(
+          LogLevel.warn,
+          `RFID database write failed, retrying (${attempt + 1}/${this.maxWriteRetries}):`,
+          error
+        );
         setTimeout(() => this.writeTagToDatabase(data, attempt + 1), 100);
       } else {
         // Quick in-memory retries exhausted; persist so it survives a crash/restart
         // and gets swept up by processPendingWrites().
-        console.error("RFID database write failed after retries, queuing durably:", error);
+        logRFID(LogLevel.error, "RFID database write failed after retries, queuing durably:", error);
         dbRFIDPendingWrites.enqueue(bibId, timestamp.toISOString());
         this.eventEmitter.emit("error", error as Error);
         this.isWriting = false;
@@ -220,7 +225,7 @@ export class RfidService implements IRfidController {
       this.maxPendingWriteRetryDelay
     );
     this.pendingWriteRetryAttempt++;
-    console.warn(`Retrying pending RFID database writes in ${delay}ms`);
+    logRFID(LogLevel.warn, `Retrying pending RFID database writes in ${delay}ms`);
     this.pendingWriteRetryTimer = setTimeout(() => {
       this.pendingWriteRetryTimer = null;
       this.processPendingWrites();
@@ -237,7 +242,7 @@ export class RfidService implements IRfidController {
 
 
   private handleError(error: Error): void {
-    console.error("RFID Service error:", error);
+    logRFID(LogLevel.error, "RFID Service error:", error);
     this.eventEmitter.emit("error", error);
   }
 }
