@@ -1,21 +1,46 @@
 import EventEmitter from "events";
-import { DeviceStatus } from "$shared/enums";
+import { DatabaseStatus, DeviceStatus } from "$shared/enums";
 import { RfidSettings } from "$shared/models";
 import { RfidData } from "$shared/types";
+import * as dbRFIDPendingWrites from "../../database/rfidPendingWrites-db";
 import * as dbTimings from "../../database/timingRecords-db";
 import * as rfidEmitter from "../../ipc/rfid-emitter";
 import { IRfidController, RfidEvent } from "./interfaces/IRfid-controller";
 import { RfidDataProcessor } from "./web/rfid-processor";
 import { RfidRestClient } from "./web/rfid-rest-client";
 
+// Shared by the immediate write path and the durable retry sweep; throws so both can reuse retry/catch logic.
+function writeTimeRecord(bibId: number, timestamp: Date): void {
+  const [status, message] = dbTimings.insertOrUpdateTimeRecord({
+    index: -1,
+    bibId,
+    stationId: -1,
+    timeIn: timestamp,
+    timeOut: timestamp,
+    timeModified: timestamp,
+    note: "RFID",
+    sent: false,
+    status: -1
+  });
+
+  if (status === DatabaseStatus.Error) {
+    throw new Error(message || "Unknown database error writing RFID timing record");
+  }
+}
+
 export class RfidService implements IRfidController {
   private restClient?: RfidRestClient;
   private rfidProcessor?: RfidDataProcessor;
   private eventEmitter: EventEmitter = new EventEmitter();
+
   private rfidSettings!: RfidSettings;
   private writeQueue: RfidData[] = [];
   private isWriting = false;
   private maxWriteRetries = 3;
+  private pendingWriteRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingWriteRetryAttempt = 0;
+  private readonly initialPendingWriteRetryDelay = 1000;
+  private readonly maxPendingWriteRetryDelay = 30000;
 
   public on(event: RfidEvent, listener: (...args: unknown[]) => void): void {
     this.eventEmitter.on(event, listener);
@@ -29,8 +54,9 @@ export class RfidService implements IRfidController {
       this.restClient = new RfidRestClient(settings);
       const loginSuccess = await this.restClient.login();
       if (!loginSuccess) {
-        this.eventEmitter.emit("error", new Error("RFID REST login failed"));
-        throw new Error("RFID REST login failed");
+        const detail = this.restClient.getLastError() ?? "unknown error";
+        this.eventEmitter.emit("error", new Error(`RFID REST login failed: ${detail}`));
+        throw new Error(`RFID REST login failed: ${detail}`);
       }
     }
 
@@ -43,6 +69,9 @@ export class RfidService implements IRfidController {
 
     this.rfidSettings.status = DeviceStatus.Connected;
     this.eventEmitter.emit("connected");
+
+    // Recover any writes that were still pending when the app last closed/crashed
+    this.processPendingWrites();
   }
 
   public connect(): void {
@@ -136,18 +165,7 @@ export class RfidService implements IRfidController {
     }
 
     try {
-      dbTimings.insertOrUpdateTimeRecord({
-        index: -1,
-        bibId,
-        stationId: -1,
-        timeIn: timestamp,
-        timeOut: timestamp,
-        timeModified: timestamp,
-        note: "RFID",
-        sent: false,
-        status: -1
-      });
-
+      writeTimeRecord(bibId, timestamp);
       this.isWriting = false;
       this.processWriteQueue();
     } catch (error) {
@@ -155,13 +173,68 @@ export class RfidService implements IRfidController {
         console.warn(`RFID database write failed, retrying (${attempt + 1}/${this.maxWriteRetries}):`, error);
         setTimeout(() => this.writeTagToDatabase(data, attempt + 1), 100);
       } else {
-        console.error("RFID database write failed after retries:", error);
+        // Quick in-memory retries exhausted; persist so it survives a crash/restart
+        // and gets swept up by processPendingWrites().
+        console.error("RFID database write failed after retries, queuing durably:", error);
+        dbRFIDPendingWrites.enqueue(bibId, timestamp.toISOString());
         this.eventEmitter.emit("error", error as Error);
         this.isWriting = false;
         this.processWriteQueue();
+        this.schedulePendingWriteRetry();
       }
     }
   }
+
+  // Sweeps durably-queued writes left over from write failures or a prior crash.
+  private processPendingWrites(): void {
+    const pending = dbRFIDPendingWrites.getPending();
+    if (pending.length === 0) {
+      this.resetPendingWriteRetry();
+      return;
+    }
+
+    let allSucceeded = true;
+    for (const record of pending) {
+      try {
+        writeTimeRecord(record.bibId, new Date(record.tagTimestamp));
+        dbRFIDPendingWrites.markProcessed(record.index);
+      } catch (error) {
+        allSucceeded = false;
+        const message = error instanceof Error ? error.message : String(error);
+        dbRFIDPendingWrites.recordAttemptFailure(record.index, message);
+      }
+    }
+
+    if (allSucceeded) {
+      this.resetPendingWriteRetry();
+    } else {
+      this.schedulePendingWriteRetry();
+    }
+  }
+
+  private schedulePendingWriteRetry(): void {
+    if (this.pendingWriteRetryTimer) return;
+
+    const delay = Math.min(
+      this.initialPendingWriteRetryDelay * 2 ** this.pendingWriteRetryAttempt,
+      this.maxPendingWriteRetryDelay
+    );
+    this.pendingWriteRetryAttempt++;
+    console.warn(`Retrying pending RFID database writes in ${delay}ms`);
+    this.pendingWriteRetryTimer = setTimeout(() => {
+      this.pendingWriteRetryTimer = null;
+      this.processPendingWrites();
+    }, delay);
+  }
+
+  private resetPendingWriteRetry(): void {
+    if (this.pendingWriteRetryTimer) {
+      clearTimeout(this.pendingWriteRetryTimer);
+      this.pendingWriteRetryTimer = null;
+    }
+    this.pendingWriteRetryAttempt = 0;
+  }
+
 
   private handleError(error: Error): void {
     console.error("RFID Service error:", error);

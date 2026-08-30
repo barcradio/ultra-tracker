@@ -5,8 +5,9 @@ import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
+import * as tableDefs4 from "./schema/table-definitions-v4";
 
-const userVersion: number = 3;
+const userVersion: number = 4;
 let tableDefs;
 
 interface Table {
@@ -65,6 +66,10 @@ export function validateDatabaseTables() {
 
     case 3:
       tableDefs = tableDefs3;
+      break;
+
+    case 4:
+      tableDefs = tableDefs4;
       break;
   }
 

@@ -144,7 +144,6 @@ export type RunnerAthleteDB = RunnerDB & Pick<StatusDB, "dnf" | "dnfType" | "dns
 export type AthleteStatusDB = AthleteDB &
   Pick<StatusDB, "dns" | "dnf" | "dnfType" | "note" | "progress">;
 
-
 export type RfidSettings = {
   type: string;
   restApiUrl: string;
@@ -153,6 +152,7 @@ export type RfidSettings = {
   password: string;
   websocketPort: string | number;
   secureWebsocket: boolean;
+  // Pinned cert serial number or CN for the reader's self-signed cert
   sslCert: string;
   rfidTagRegx: RegExp;
   status: DeviceStatus;

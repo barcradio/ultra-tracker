@@ -3,11 +3,14 @@
   Provides backward-compatible interface while using the extensible RfidService
 */
 
+import { config } from "dotenv";
 import { DeviceStatus } from "../../shared/enums";
 import { RfidSettings } from "../../shared/models";
 import { IRfidController } from "./rfid/interfaces/IRfid-controller";
 import { RfidFactory } from "./rfid/rfid-reader-factory";
 import * as rfidEmitter from "../ipc/rfid-emitter";
+
+config({ path: "rfid.env" });
 
 let rfidController: IRfidController | null = null;
 const defaultRfidSettings: RfidSettings = {
@@ -16,9 +19,9 @@ const defaultRfidSettings: RfidSettings = {
   webSocketUrl: "fxr90c94e1c",
   websocketPort: 80,
   secureWebsocket: true,
-  userName: "",
-  password: "",
-  sslCert: "",
+  userName: process.env.RFID_USERNAME ?? "",
+  password: process.env.RFID_PASSWORD ?? "",
+  sslCert: "5ecb6929",
   rfidTagRegx: /0{20}/,
   status: DeviceStatus.NoDevice,
   mode: 0 // RfidMode.idle

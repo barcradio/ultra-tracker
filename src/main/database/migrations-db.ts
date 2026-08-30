@@ -4,6 +4,7 @@ import * as tableDefs0 from "./schema/table-definitions-v0";
 //import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
+import * as tableDefs4 from "./schema/table-definitions-v4";
 
 export const migrations: IMigration[] = [
   {
@@ -59,6 +60,18 @@ export const migrations: IMigration[] = [
       `,
     down: `
         DROP TABLE IF EXISTS RFIDInbox;
+      `
+  },
+  {
+    version: 4,
+    up: `
+        CREATE TABLE IF NOT EXISTS RFIDPendingWrites (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          ${tableDefs4.RFIDPendingWrites}
+        );
+      `,
+    down: `
+        DROP TABLE IF EXISTS RFIDPendingWrites;
       `
   }
 ];
