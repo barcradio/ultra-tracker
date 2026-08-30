@@ -4,9 +4,10 @@ import { migrations } from "./migrations-db";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
+import * as tableDefs3 from "./schema/table-definitions-v3";
 
-const userVersion: number = 2;
-var tableDefs;
+const userVersion: number = 3;
+let tableDefs;
 
 interface Table {
   type: string;
@@ -27,7 +28,7 @@ export function applyMigrations() {
       const currentVersion = db.pragma("user_version", { simple: true }) as number;
       if (currentVersion == userVersion) return;
 
-      var migrationVersion = currentVersion + 1;
+      const migrationVersion = currentVersion + 1;
 
       console.log(
         `[begin] pragma user_version: current: ${currentVersion} target: ${migrationVersion}`
@@ -61,6 +62,10 @@ export function validateDatabaseTables() {
     case 2:
       tableDefs = tableDefs2;
       break;
+
+    case 3:
+      tableDefs = tableDefs3;
+      break;
   }
 
   for (const key in tableDefs.expectedTableNames) {
@@ -69,7 +74,7 @@ export function validateDatabaseTables() {
 
     if (!tableNames.find((element) => element == name)) {
       console.log(`Table not found: ${tableDefs.expectedTableNames[key]}`);
-      createTable(tableDefs.expectedTableNames[key], tableDefs[name]); // eslint-disable-line import/namespace
+      createTable(tableDefs.expectedTableNames[key], tableDefs[name]);
     }
   }
 
@@ -122,7 +127,8 @@ export function CreateTables() {
     createTimeRecordsTable() &&
     createStationsTable() &&
     createOutputTable() &&
-    createStatusTable();
+    createStatusTable() &&
+    createRFIDInboxTable();
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
@@ -158,6 +164,8 @@ export const createOutputTable = () =>
   createTable(tableDefs.expectedTableNames.Output, tableDefs.Output);
 export const createStatusTable = () =>
   createTable(tableDefs.expectedTableNames.Status, tableDefs.Status);
+export const createRFIDInboxTable = () =>
+  createTable(tableDefs.expectedTableNames.RFIDInbox, tableDefs.RFIDInbox);
 
 export function ClearTables() {
   const result =

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-default-export */
 import { ipcMain } from "electron";
 import { DeviceStatus } from "$shared/enums";
 import * as rfid from "../api/rfid-processor";

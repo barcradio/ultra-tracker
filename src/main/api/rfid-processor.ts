@@ -10,13 +10,29 @@
 
 import { EventEmitter } from "events";
 import WebSocket from "ws";
-import { DeviceStatus } from "../../shared/enums";
-import { RfidData } from "../../shared/types";
+import { DatabaseStatus, DeviceStatus } from "../../shared/enums";
+import * as dbRFIDInbox from "../database/rfidInbox-db";
 import * as dbTimings from "../database/timingRecords-db";
 import * as rfidEmitter from "../ipc/rfid-emitter";
+import { LogLevel, uberLog } from "../lib/logger";
 
 let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
 const rfidReaderUrl = "wss://fxr90c94e1c/ws:80"; //connecting directly via hostname
+
+// Define interfaces to type the expected JSON data structure
+interface RFIDData {
+  eventNum: number;
+  format: string;
+  idHex: string;
+}
+
+interface RFIDMessage {
+  data: RFIDData;
+  timestamp: string;
+  type: string;
+}
+
+type RFIDEventListener = Parameters<EventEmitter["on"]>[1];
 
 interface RFIDFrame {
   start: number;
@@ -24,13 +40,18 @@ interface RFIDFrame {
   payload: string;
 }
 
-function isRFIDMessage(value: unknown): value is RfidData {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
+function logRFID(level: LogLevel, ...values: unknown[]): void {
+  const message = values
+    .map((value) => (value instanceof Error ? (value.stack ?? value.message) : String(value)))
+    .join(" ");
+  uberLog(level, "rfid", message, true);
+}
 
-  const message = value as Partial<RfidData>;
-  const data = message.data as Record<string, unknown> | undefined;
+function isRFIDMessage(value: unknown): value is RFIDMessage {
+  if (typeof value !== "object" || value === null) return false;
+
+  const message = value as Partial<RFIDMessage>;
+  const data = message.data as Partial<RFIDData> | undefined;
 
   return (
     data !== undefined &&
@@ -77,27 +98,23 @@ function extractRFIDFrames(payload: string): { frames: RFIDFrame[]; incompleteSt
         continue;
       }
 
-      if (!inString) {
-        if (character === "{") {
-          depth++;
-        } else if (character === "}") {
-          depth--;
-          if (depth === 0) {
-            frames.push({
-              start,
-              end: index + 1,
-              payload: payload.substring(start, index + 1)
-            });
-            searchStart = index + 1;
-            break;
-          }
-        }
-      }
+      if (inString) continue;
+      if (character === "{") depth++;
+      if (character !== "}") continue;
+
+      depth--;
+      if (depth !== 0) continue;
+
+      frames.push({
+        start,
+        end: index + 1,
+        payload: payload.slice(start, index + 1)
+      });
+      searchStart = index + 1;
+      break;
     }
 
-    if (depth > 0) {
-      return { frames, incompleteStart: start };
-    }
+    if (searchStart <= start) return { frames, incompleteStart: start };
   }
 
   return { frames };
@@ -116,8 +133,8 @@ export function InitializeRFIDReader() {
   try {
     rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, rfidRead);
   } catch (e) {
+    logRFID(LogLevel.error, "This RFID is broke:", e);
     if (e instanceof Error) {
-      console.error(`This RFID is broke: ${e.message}`);
       rfidStatus(DeviceStatus.Error, e.message);
     }
     return "RFID: Not Connected"; //static string
@@ -134,7 +151,7 @@ export function InitializeRFIDReader() {
   });
 
   rfidWebSocketProcessor.on("error", (error) => {
-    console.error("RFID WebSocket error:", error);
+    logRFID(LogLevel.error, "RFID WebSocket error:", error);
   });
 
   rfidWebSocketProcessor.on("status", (...args: unknown[]) => {
@@ -166,16 +183,20 @@ export class RFIDWebSocketProcessor {
   private reconnectAttempts: number = 0;
   private eventEmitter: EventEmitter = new EventEmitter();
   private errorCount: number = 0;
-  private buffer: string = "";
-  private rfidTagPattern = /^0{20}\d+$/;
+  private processingPendingMessages: boolean = false;
+  private pendingProcessingRequested: boolean = false;
+  private pendingRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingRetryAttempt: number = 0;
+  private readonly initialRetryDelay = 1000;
+  private readonly maxRetryDelay = 30000;
+  private RFIRegex = /0{20}/;
   private url: string = "";
   private status: DeviceStatus = DeviceStatus.NoDevice;
+  private dataBaseUpdated?: () => void;
 
-  constructor(
-    url: string,
-    private dataBaseUpdated?: () => void
-  ) {
+  constructor(url: string, dataBaseUpdated?: () => void) {
     this.url = url;
+    this.dataBaseUpdated = dataBaseUpdated;
     this.status = DeviceStatus.Connecting;
     this.setupWebSocket();
   }
@@ -189,12 +210,19 @@ export class RFIDWebSocketProcessor {
       this.status = DeviceStatus.Connected;
       this.reconnectAttempts = 0;
       this.eventEmitter.emit("connected");
+      this.requestProcessPendingMessages();
     });
 
     this.ws.on("message", (data) => {
       const payload = data.toString();
       console.debug("Received data:", payload);
-      this.processIncomingMessages(payload);
+
+      try {
+        dbRFIDInbox.enqueue(payload);
+        this.requestProcessPendingMessages();
+      } catch (error) {
+        logRFID(LogLevel.error, "Unable to persist RFID message:", error);
+      }
     });
 
     this.ws.on("close", () => {
@@ -211,13 +239,13 @@ export class RFIDWebSocketProcessor {
 
     this.ws.on("error", (error) => {
       this.errorCount++;
-      console.error("WebSocket", error);
+      logRFID(LogLevel.error, "WebSocket", error);
 
       if (error.toString().includes("EHOSTUNREACH") || error.toString().includes("ETIMEDOUT")) {
         //failed to find device
         switch (this.status) {
           case DeviceStatus.Connected:
-            console.error("RFID host unreachable attempting to reconnect.");
+            logRFID(LogLevel.error, "RFID host unreachable attempting to reconnect.");
             this.eventEmitter.emit("error", error);
             break;
           case DeviceStatus.Connecting:
@@ -247,59 +275,147 @@ export class RFIDWebSocketProcessor {
       if (this.status == DeviceStatus.Connected) {
         this.eventEmitter.emit("error", "RFID Lost Connection max reconnection attempts reached"); //static string
       } else if (this.status == DeviceStatus.Connecting) {
-        console.error("Max reconnection attempts reached. Unable connect to RFID");
+        logRFID(LogLevel.error, "Max reconnection attempts reached. Unable connect to RFID");
       }
       this.status = DeviceStatus.NoDevice;
       this.eventEmitter.emit("status", this.status, "NO RFID Found");
     }
   }
 
-  private processIncomingMessages(data: string): void {
-    this.buffer += data;
+  private processPendingMessages(): boolean {
+    const pendingMessages = dbRFIDInbox.getPending();
+    if (pendingMessages.length === 0) {
+      this.resetPendingRetry();
+      return false;
+    }
 
-    const { frames, incompleteStart } = extractRFIDFrames(this.buffer);
+    const payload = pendingMessages.map((message) => message.payload).join("");
+    const result = this.processIncomingMessages(payload);
+    let consumedLength = 0;
 
-    for (const frame of frames) {
-      try {
-        const obj = JSON.parse(frame.payload) as unknown;
-
-        if (!isRFIDMessage(obj)) {
-          console.error("Invalid RFID message structure:", frame.payload);
-          this.eventEmitter.emit("error", new Error("Invalid RFID message structure"));
-          continue;
-        }
-
-        if (!this.rfidTagPattern.test(obj.data.idHex)) {
-          console.log("RFID idHex did not match expected tag pattern:", obj.data.idHex);
-          continue;
-        }
-
-        this.handleDatabaseInsert(obj);
-      } catch (error) {
-        console.error("Failed to parse RFID JSON:", error, "Raw payload:", frame.payload);
-        this.eventEmitter.emit("error", error as Error);
+    for (const message of pendingMessages) {
+      const messageStart = consumedLength;
+      consumedLength += message.payload.length;
+      if (consumedLength <= result.consumedLength) {
+        dbRFIDInbox.markProcessed(message.index);
+      } else if (messageStart < result.consumedLength) {
+        dbRFIDInbox.replacePayload(
+          message.index,
+          message.payload.slice(result.consumedLength - messageStart)
+        );
+        break;
       }
     }
 
-    if (incompleteStart !== undefined) {
-      this.buffer = this.buffer.substring(incompleteStart);
-    } else if (frames.length > 0) {
-      const lastFrame = frames[frames.length - 1];
-      this.buffer = this.buffer.substring(lastFrame.end);
+    if (result.retryable) {
+      this.schedulePendingRetry();
+    } else {
+      this.resetPendingRetry();
+    }
+
+    return result.retryable;
+  }
+
+  private requestProcessPendingMessages(): void {
+    this.pendingProcessingRequested = true;
+    if (this.processingPendingMessages) return;
+
+    this.processingPendingMessages = true;
+    try {
+      while (this.pendingProcessingRequested) {
+        this.pendingProcessingRequested = false;
+        if (this.processPendingMessages()) {
+          this.pendingProcessingRequested = false;
+        }
+      }
+    } finally {
+      this.processingPendingMessages = false;
     }
   }
 
-  private handleDatabaseInsert(obj: RfidData): void {
-    const idhex = Number.parseInt(obj.data.idHex, 10);
-    const timestamp = new Date(obj.timestamp);
+  private schedulePendingRetry(): void {
+    if (this.pendingRetryTimer) return;
 
-    if (!Number.isFinite(idhex) || Number.isNaN(timestamp.getTime())) {
-      console.error("Invalid RFID tag payload", obj);
-      return;
+    const delay = Math.min(
+      this.initialRetryDelay * 2 ** this.pendingRetryAttempt,
+      this.maxRetryDelay
+    );
+    this.pendingRetryAttempt++;
+    logRFID(LogLevel.warn, `Retrying pending RFID messages in ${delay}ms`);
+    this.pendingRetryTimer = setTimeout(() => {
+      this.pendingRetryTimer = null;
+      this.requestProcessPendingMessages();
+    }, delay);
+  }
+
+  private resetPendingRetry(): void {
+    if (this.pendingRetryTimer) {
+      clearTimeout(this.pendingRetryTimer);
+      this.pendingRetryTimer = null;
+    }
+    this.pendingRetryAttempt = 0;
+  }
+
+  private processIncomingMessages(payload: string): {
+    consumedLength: number;
+    retryable: boolean;
+  } {
+    const { frames, incompleteStart } = extractRFIDFrames(payload);
+
+    if (frames.length === 0) {
+      if (incompleteStart !== undefined) return { consumedLength: 0, retryable: false };
+
+      logRFID(LogLevel.error, "No valid JSON objects found", payload);
+      return { consumedLength: payload.length, retryable: false };
     }
 
+    let processedLength = 0;
+    let retryable = false;
+    // Process each parsed JSON object
+    for (const frame of frames) {
+      const jsonStr = frame.payload;
+      try {
+        const parsed: unknown = JSON.parse(jsonStr);
+        if (!isRFIDMessage(parsed)) {
+          logRFID(LogLevel.error, "Invalid RFID message:", jsonStr);
+          processedLength = frame.end;
+          continue;
+        }
+        const obj = parsed;
+
+        // Check if the RFID matches Bear 100 regex
+        if (this.RFIRegex.test(obj.data.idHex)) {
+          if (!this.handleDatabaseInsert(obj)) {
+            retryable = true;
+            break;
+          }
+        } else {
+          console.log("Not Bear 100 regex");
+        }
+        processedLength = frame.end;
+      } catch (error) {
+        logRFID(LogLevel.error, "Failed to parse JSON:", error, "Raw JSON:", jsonStr);
+        processedLength = frame.end;
+      }
+    }
+
+    if (retryable) {
+      return { consumedLength: processedLength, retryable };
+    }
+
+    if (incompleteStart === undefined) {
+      return { consumedLength: payload.length, retryable };
+    }
+
+    return { consumedLength: incompleteStart, retryable };
+  }
+
+  private handleDatabaseInsert(obj: RFIDMessage): boolean {
+    const idhex = parseInt(obj.data.idHex);
+    const timestamp = new Date(obj.timestamp);
+
     try {
-      dbTimings.insertOrUpdateTimeRecord({
+      const [status] = dbTimings.insertOrUpdateTimeRecord({
         index: -1, // Set by backend
         bibId: idhex,
         stationId: -1, // Set by backend
@@ -314,8 +430,10 @@ export class RFIDWebSocketProcessor {
       if (this.dataBaseUpdated) {
         this.dataBaseUpdated();
       }
+      return status !== DatabaseStatus.Error;
     } catch (error) {
-      console.error("Error updating database:", error);
+      logRFID(LogLevel.error, "Error updating database:", error);
+      return false;
     }
   }
 
@@ -342,7 +460,7 @@ export class RFIDWebSocketProcessor {
 
   public on(
     event: "connected" | "disconnected" | "error" | "status",
-    listener: (...args: unknown[]) => void
+    listener: RFIDEventListener
   ): void {
     this.eventEmitter.on(event, listener);
   }

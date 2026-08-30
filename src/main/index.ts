@@ -100,7 +100,7 @@ app.on("activate", () => {
     createWindow();
   }
 });
-//Window Close Handler 
+//Window Close Handler
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     DisconnectRFIDReader();

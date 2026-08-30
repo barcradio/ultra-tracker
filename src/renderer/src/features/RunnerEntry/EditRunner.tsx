@@ -15,8 +15,8 @@ import {
   TextInput
 } from "~/components";
 import { useAthlete } from "~/hooks/data/useAthlete";
-import { useSetAthleteProgress } from "~/hooks/data/useStatus";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
+import { useSetAthleteProgress } from "~/hooks/data/useStatus";
 import { useDeleteTiming, useEditTiming } from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
 import { DNFType, RecordStatus } from "$shared/enums";

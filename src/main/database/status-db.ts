@@ -2,9 +2,9 @@ import fs from "fs";
 import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
+import { logEvent } from "./eventLogger-db";
 import { AthleteProgress, DNFType, DatabaseStatus } from "../../shared/enums";
 import { DNFRecord, DNSRecord, StatusDB } from "../../shared/models";
-import { logEvent } from "./eventLogger-db";
 import { DatabaseResponse } from "../../shared/types";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
@@ -60,7 +60,7 @@ export async function LoadDNF() {
     )
     .on("data", (row) => {
       // load dnf into current station only if from earlier or current
-      var dnfStationId = Number(row.stationId.split("-", 1)[0]);
+      const dnfStationId = Number(row.stationId.split("-", 1)[0]);
       const stationId = appStore.get("station.id") as number;
 
       if (dnfStationId <= stationId) {

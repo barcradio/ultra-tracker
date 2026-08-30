@@ -1,7 +1,7 @@
 import { DatabaseResponse } from "$shared/types";
-import * as dbStatus from "./status-db";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
+import * as dbStatus from "./status-db";
 import { DatabaseStatus, EntryMode, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 import { appStore } from "../lib/store";
@@ -186,9 +186,9 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
 function formatTime(date) {
   if (date == null) return "";
 
-  let hours = date.getHours().toString().padStart(2, "0");
-  let minutes = date.getMinutes().toString().padStart(2, "0");
-  let seconds = date.getSeconds().toString().padStart(2, "0");
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
 
   return `${hours}:${minutes}:${seconds}`;
 }
