@@ -11,23 +11,96 @@
 import { EventEmitter } from "events";
 import WebSocket from "ws";
 import { DeviceStatus } from "../../shared/enums";
+import { RfidData } from "../../shared/types";
 import * as dbTimings from "../database/timingRecords-db";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
 let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
 const rfidReaderUrl = "wss://fxr90c94e1c/ws:80"; //connecting directly via hostname
 
-// Define interfaces to type the expected JSON data structure
-interface RFIDData {
-  eventNum: number;
-  format: string;
-  idHex: string;
+interface RFIDFrame {
+  start: number;
+  end: number;
+  payload: string;
 }
 
-interface RFIDMessage {
-  data: RFIDData;
-  timestamp: string;
-  type: string;
+function isRFIDMessage(value: unknown): value is RfidData {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const message = value as Partial<RfidData>;
+  const data = message.data as Record<string, unknown> | undefined;
+
+  return (
+    data !== undefined &&
+    data !== null &&
+    typeof data === "object" &&
+    typeof data.eventNum === "number" &&
+    Number.isFinite(data.eventNum) &&
+    data.format === "epc" &&
+    typeof data.idHex === "string" &&
+    /^0{20}\d+$/.test(data.idHex) &&
+    typeof message.timestamp === "string" &&
+    !Number.isNaN(Date.parse(message.timestamp)) &&
+    message.type === "CUSTOM"
+  );
+}
+
+function extractRFIDFrames(payload: string): { frames: RFIDFrame[]; incompleteStart?: number } {
+  const frames: RFIDFrame[] = [];
+  let searchStart = 0;
+
+  while (searchStart < payload.length) {
+    const start = payload.indexOf("{", searchStart);
+    if (start === -1) break;
+
+    let depth = 0;
+    let escaped = false;
+    let inString = false;
+
+    for (let index = start; index < payload.length; index++) {
+      const character = payload[index];
+
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+
+      if (inString && character === "\\") {
+        escaped = true;
+        continue;
+      }
+
+      if (character === '"') {
+        inString = !inString;
+        continue;
+      }
+
+      if (!inString) {
+        if (character === "{") {
+          depth++;
+        } else if (character === "}") {
+          depth--;
+          if (depth === 0) {
+            frames.push({
+              start,
+              end: index + 1,
+              payload: payload.substring(start, index + 1)
+            });
+            searchStart = index + 1;
+            break;
+          }
+        }
+      }
+    }
+
+    if (depth > 0) {
+      return { frames, incompleteStart: start };
+    }
+  }
+
+  return { frames };
 }
 
 export function InitializeRFIDReader() {
@@ -94,7 +167,7 @@ export class RFIDWebSocketProcessor {
   private eventEmitter: EventEmitter = new EventEmitter();
   private errorCount: number = 0;
   private buffer: string = "";
-  private RFIRegex = /0{20}/;
+  private rfidTagPattern = /^0{20}\d+$/;
   private url: string = "";
   private status: DeviceStatus = DeviceStatus.NoDevice;
 
@@ -119,9 +192,9 @@ export class RFIDWebSocketProcessor {
     });
 
     this.ws.on("message", (data) => {
-      this.buffer = data.toString();
-      console.debug("Received data:", data.toString());
-      this.processIncomingMessages();
+      const payload = data.toString();
+      console.debug("Received data:", payload);
+      this.processIncomingMessages(payload);
     });
 
     this.ws.on("close", () => {
@@ -181,35 +254,49 @@ export class RFIDWebSocketProcessor {
     }
   }
 
-  private processIncomingMessages(): void {
-    // Extract JSON objects from buffer
-    const jsonObjects = this.buffer.match(/{.*?}(?=\{|\s*$)/g);
+  private processIncomingMessages(data: string): void {
+    this.buffer += data;
 
-    if (!jsonObjects) {
-      console.log("No valid JSON objects found");
-      return;
+    const { frames, incompleteStart } = extractRFIDFrames(this.buffer);
+
+    for (const frame of frames) {
+      try {
+        const obj = JSON.parse(frame.payload) as unknown;
+
+        if (!isRFIDMessage(obj)) {
+          console.error("Invalid RFID message structure:", frame.payload);
+          this.eventEmitter.emit("error", new Error("Invalid RFID message structure"));
+          continue;
+        }
+
+        if (!this.rfidTagPattern.test(obj.data.idHex)) {
+          console.log("RFID idHex did not match expected tag pattern:", obj.data.idHex);
+          continue;
+        }
+
+        this.handleDatabaseInsert(obj);
+      } catch (error) {
+        console.error("Failed to parse RFID JSON:", error, "Raw payload:", frame.payload);
+        this.eventEmitter.emit("error", error as Error);
+      }
     }
 
-    // Process each parsed JSON object
-    jsonObjects.forEach((jsonStr) => {
-      try {
-        const obj = JSON.parse(jsonStr) as RFIDMessage;
-
-        // Check if the RFID matches Bear 100 regex
-        if (this.RFIRegex.test(obj.data.idHex)) {
-          this.handleDatabaseInsert(obj);
-        } else {
-          console.log("Not Bear 100 regex");
-        }
-      } catch (error) {
-        console.error("Failed to parse JSON:", error, "Raw JSON:", jsonStr);
-      }
-    });
+    if (incompleteStart !== undefined) {
+      this.buffer = this.buffer.substring(incompleteStart);
+    } else if (frames.length > 0) {
+      const lastFrame = frames[frames.length - 1];
+      this.buffer = this.buffer.substring(lastFrame.end);
+    }
   }
 
-  private handleDatabaseInsert(obj: RFIDMessage): void {
-    const idhex = parseInt(obj.data.idHex);
+  private handleDatabaseInsert(obj: RfidData): void {
+    const idhex = Number.parseInt(obj.data.idHex, 10);
     const timestamp = new Date(obj.timestamp);
+
+    if (!Number.isFinite(idhex) || Number.isNaN(timestamp.getTime())) {
+      console.error("Invalid RFID tag payload", obj);
+      return;
+    }
 
     try {
       dbTimings.insertOrUpdateTimeRecord({

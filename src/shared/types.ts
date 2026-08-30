@@ -15,3 +15,15 @@ export interface Toast {
   timeoutMs?: number;
   noIcon?: boolean;
 }
+
+export interface RfidTag {
+  eventNum: number;
+  format: string;
+  idHex: string;
+}
+
+export interface RfidData {
+  data: RfidTag;
+  timestamp: string;
+  type: string;
+}
