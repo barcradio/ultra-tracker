@@ -102,7 +102,7 @@ function extractRFIDFrames(payload: string): { frames: RFIDFrame[]; incompleteSt
   return { frames };
 }
 
-export class RfidDataProcessor {
+export class ZebraWebSocketProcessor {
   private ws: WebSocket | null = null;
   private url: string;
   private eventEmitter: EventEmitter = new EventEmitter();

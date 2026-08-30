@@ -2,13 +2,13 @@ import EventEmitter from "events";
 import { DatabaseStatus, DeviceStatus } from "$shared/enums";
 import { RfidSettings } from "$shared/models";
 import { RfidData } from "$shared/types";
-import * as dbRFIDPendingWrites from "../../database/rfidPendingWrites-db";
-import * as dbTimings from "../../database/timingRecords-db";
-import * as rfidEmitter from "../../ipc/rfid-emitter";
-import { IRfidController, RfidEvent } from "./interfaces/IRfid-controller";
-import { LogLevel, logRFID } from "./rfid-log";
-import { RfidDataProcessor } from "./web/rfid-processor";
-import { RfidRestClient } from "./web/rfid-rest-client";
+import * as dbRFIDPendingWrites from "../../../database/rfidPendingWrites-db";
+import * as dbTimings from "../../../database/timingRecords-db";
+import * as rfidEmitter from "../../../ipc/rfid-emitter";
+import { IRfidController, RfidEvent } from "../interfaces/IRfid-controller";
+import { LogLevel, logRFID } from "../rfid-log";
+import { ZebraWebSocketProcessor } from "./zebra-websocket-processor";
+import { ZebraRestClient } from "./zebra-rest-client";
 
 // Shared by the immediate write path and the durable retry sweep; throws so both can reuse retry/catch logic.
 function writeTimeRecord(bibId: number, timestamp: Date): void {
@@ -29,9 +29,9 @@ function writeTimeRecord(bibId: number, timestamp: Date): void {
   }
 }
 
-export class RfidService implements IRfidController {
-  private restClient?: RfidRestClient;
-  private rfidProcessor?: RfidDataProcessor;
+export class ZebraFxr90Controller implements IRfidController {
+  private restClient?: ZebraRestClient;
+  private rfidProcessor?: ZebraWebSocketProcessor;
   private eventEmitter: EventEmitter = new EventEmitter();
 
   private rfidSettings!: RfidSettings;
@@ -51,8 +51,8 @@ export class RfidService implements IRfidController {
     this.rfidSettings = settings;
 
     // Only initialize REST client if using REST API
-    if (settings.type === "web") {
-      this.restClient = new RfidRestClient(settings);
+    if (settings.type === "zebra-fxr90") {
+      this.restClient = new ZebraRestClient(settings);
       const loginSuccess = await this.restClient.login();
       if (!loginSuccess) {
         const detail = this.restClient.getLastError() ?? "unknown error";
@@ -62,7 +62,7 @@ export class RfidService implements IRfidController {
     }
 
     // Initialize the WebSocket processor
-    this.rfidProcessor = new RfidDataProcessor(settings);
+    this.rfidProcessor = new ZebraWebSocketProcessor(settings);
     this.rfidProcessor.on("tag-read", this.handleTagRead.bind(this));
     this.rfidProcessor.on("error", this.handleError.bind(this));
     this.rfidProcessor.on("connected", this.onConnected.bind(this));

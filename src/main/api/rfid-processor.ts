@@ -1,6 +1,7 @@
 ﻿/*
   RFID Processor - Main entry point for RFID functionality
-  Provides backward-compatible interface while using the extensible RfidService
+  Provides a reader-agnostic interface; RfidFactory picks the concrete
+  controller (e.g. ZebraFxr90Controller) based on settings.type.
 */
 
 import { config } from "dotenv";
@@ -15,7 +16,7 @@ config({ path: "rfid.env" });
 
 let rfidController: IRfidController | null = null;
 const defaultRfidSettings: RfidSettings = {
-  type: "web",
+  type: "zebra-fxr90",
   restApiUrl: "fxr90c94e1c",
   webSocketUrl: "fxr90c94e1c",
   websocketPort: 80,

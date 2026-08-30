@@ -107,7 +107,7 @@ function describeNetworkError(url: string, error: NodeJS.ErrnoException): Error 
 }
 
 
-export class RfidRestClient {
+export class ZebraRestClient {
   private settings: RfidSettings;
   private token: string | undefined;
   private lastError: string | undefined;
