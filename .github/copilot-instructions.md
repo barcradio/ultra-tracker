@@ -57,6 +57,7 @@
   - `pnpm run build` for cross-boundary or packaging-sensitive changes
 - Add or update focused tests when a test harness exists for the touched behavior. If no tests exist, validate with the relevant typecheck/lint/build command and state any remaining risk.
 - Do not claim validation you did not run. Report unrelated pre-existing failures separately.
+- Treat ESLint and Prettier compliance as part of the initial implementation: follow nearby formatting conventions, run the scoped ESLint check after edits, and correct formatting or lint errors before declaring work complete.
 
 ## Token And Context Optimization
 
