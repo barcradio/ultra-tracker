@@ -53,3 +53,16 @@ export function setPushStatus(
     if (e instanceof Error) console.error(`Failed to save OpenSplitTime push status: ${e.message}`);
   }
 }
+
+// Called when a timing record is deleted so a stale "success"/"error" status doesn't linger for a
+// bib that no longer has a record at this station.
+export function clearPushStatus(bibId: number): void {
+  const db = getDatabaseConnection();
+
+  try {
+    db.prepare(`DELETE FROM OpenSplitTimePushStatus WHERE bibId = ?`).run(bibId);
+  } catch (e) {
+    if (e instanceof Error)
+      console.error(`Failed to clear OpenSplitTime push status: ${e.message}`);
+  }
+}
