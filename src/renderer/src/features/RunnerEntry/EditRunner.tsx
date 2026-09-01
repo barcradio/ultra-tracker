@@ -16,7 +16,12 @@ import {
 import { useAthlete } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useSetAthleteProgress } from "~/hooks/data/useStatus";
-import { useDeleteTiming, useEditTiming, usePushOpenSplitTimeRecord } from "~/hooks/data/useTiming";
+import {
+  useDeleteTiming,
+  useEditTiming,
+  useOpenSplitTimeAuthStatus,
+  usePushOpenSplitTimeRecord
+} from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
 import { DNFType, RecordStatus } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
@@ -53,6 +58,7 @@ export function EditRunner(props: Props) {
   const deleteTiming = useDeleteTiming();
   const setAthlete = useSetAthleteProgress();
   const pushOpenSplitTimeRecord = usePushOpenSplitTimeRecord();
+  const { data: openSplitTimeAuthStatus } = useOpenSplitTimeAuthStatus(isOpen);
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
@@ -77,6 +83,11 @@ export function EditRunner(props: Props) {
         await setAthlete.mutateAsync(formattedData);
       } catch (error) {
         console.error("Failed to save runner record:", error);
+        createToast({
+          message: `Failed to save runner #${formattedData.bibId}: ${error instanceof Error ? error.message : String(error)}`,
+          type: "danger",
+          timeoutMs: -1
+        });
       }
 
       if (didReplaceComma)
@@ -285,8 +296,10 @@ export function EditRunner(props: Props) {
                     color="primary"
                     size="sm"
                     disabled={
+                      !openSplitTimeAuthStatus?.authenticated ||
                       pushOpenSplitTimeRecord.isPending ||
-                      selectedRunner.state.openSplitTimePushStatus === "success"
+                      selectedRunner.state.openSplitTimePushStatus === "success" ||
+                      selectedRunner.state.status === RecordStatus.Duplicate
                     }
                     onClick={() => {
                       const bibToPush = Number(form.watch("bibId")) || selectedRunner.state.bibId;

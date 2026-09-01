@@ -46,6 +46,7 @@ export function OpenSplitTimeLogin() {
     null
   );
   const [pushPaused, setPushPaused] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -97,6 +98,27 @@ export function OpenSplitTimeLogin() {
     };
   }, [ipcRenderer]);
 
+  // A push failure can clear the token in the main process at any time (e.g. expiration), so poll
+  // for that instead of only checking auth status once on mount.
+  useEffect(() => {
+    if (!expiration) return;
+
+    const interval = setInterval(() => {
+      ipcRenderer
+        .invoke("opensplittime-get-auth-status")
+        .then((result) => {
+          const authStatus = result as OpenSplitTimeAuthStatus;
+          if (!authStatus.authenticated) {
+            setSessionExpired(true);
+            setExpiration(null);
+          }
+        })
+        .catch(() => undefined);
+    }, 20_000);
+
+    return () => clearInterval(interval);
+  }, [ipcRenderer, expiration]);
+
   const applyEnvironment = async (nextEnvironment: OpenSplitTimeEnvironment) => {
     await ipcRenderer.invoke("opensplittime-set-environment", { environment: nextEnvironment });
     setEnvironment(nextEnvironment);
@@ -134,7 +156,8 @@ export function OpenSplitTimeLogin() {
       })) as OpenSplitTimeAuthResult;
       setExpiration(result.expiration);
       setHasSavedCredentials(result.credentialsSaved);
-      setPushPaused(true);
+      setPushPaused(false);
+      setSessionExpired(false);
       setPassword("");
     } catch {
       setExpiration(null);
@@ -154,7 +177,8 @@ export function OpenSplitTimeLogin() {
         "opensplittime-authenticate-saved"
       )) as OpenSplitTimeAuthResult;
       setExpiration(result.expiration);
-      setPushPaused(true);
+      setPushPaused(false);
+      setSessionExpired(false);
     } catch {
       setExpiration(null);
       setError(true);
@@ -168,6 +192,7 @@ export function OpenSplitTimeLogin() {
     setExpiration(null);
     setPassword("");
     setPushPaused(true);
+    setSessionExpired(false);
   };
 
   const handleTogglePush = async () => {
@@ -209,6 +234,11 @@ export function OpenSplitTimeLogin() {
         </Stack>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          {sessionExpired && (
+            <span className="text-sm font-medium text-danger">
+              Your OpenSplitTime session has expired. Please sign in again.
+            </span>
+          )}
           {environmentOptions.length > 0 && (
             <Select
               label="OST Environment"
