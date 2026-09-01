@@ -1,15 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { Tooltip } from "primereact/tooltip";
 import BarcLogoDark from "~/assets/barc_dark.svg?react";
 import BarcLogoLight from "~/assets/barc_light.svg?react";
+import CheckIcon from "~/assets/icons/check-circle.svg?react";
+import DangerIcon from "~/assets/icons/error-octagon.svg?react";
+import InfoIcon from "~/assets/icons/info-circle.svg?react";
 import { Stack } from "~/components";
 import { useTheme } from "~/hooks/dom/useTheme";
-import { useIpcRenderer } from "~/hooks/useIpcRenderer";
+import { useId } from "~/hooks/useId";
+import { ConnectionStatus, useConnectionStatus } from "./hooks/useConnectionStatus";
 import { useStation } from "../../hooks/data/useStation";
-
-interface ConnectionStatus {
-  internet: "connected" | "disconnected";
-  openSplitTime: "connected" | "disconnected";
-}
 
 function useFooterInfo() {
   const { data: station } = useStation();
@@ -24,22 +23,28 @@ function useFooterInfo() {
 export function Footer() {
   const { theme } = useTheme();
   const { title, callsign } = useFooterInfo();
-  const ipcRenderer = useIpcRenderer();
-  const { data: connectionStatus } = useQuery({
-    queryKey: ["opensplittime-connection-status"],
-    queryFn: () =>
-      ipcRenderer.invoke("opensplittime-get-connection-status") as Promise<ConnectionStatus>,
-    refetchInterval: 30_000
-  });
+  const connectionStatus = useConnectionStatus();
+  const internetTooltipId = useId("internet-status");
+  const openSplitTimeTooltipId = useId("opensplittime-status");
 
-  const statusText = (status: ConnectionStatus["internet"] | undefined) =>
-    status === undefined ? "Unknown" : status === "connected" ? "Connected" : "Disconnected";
-  const statusClass = (status: ConnectionStatus["internet"] | undefined) =>
-    status === "connected"
-      ? "text-success"
-      : status === "disconnected"
-        ? "text-danger"
-        : "text-warning";
+  const statusText = (checking: boolean, status: ConnectionStatus["internet"] | undefined) => {
+    if (checking) return "Checking...";
+    return status === undefined ? "Unknown" : status === "connected" ? "Connected" : "Disconnected";
+  };
+  const statusFillClass = (checking: boolean, status: ConnectionStatus["internet"] | undefined) => {
+    if (checking) return "fill-[#64C6FF]";
+    return status === "connected" ? "fill-success" : "fill-danger";
+  };
+  const statusIcon = (checking: boolean, status: ConnectionStatus["internet"] | undefined) => {
+    const className = `${statusFillClass(checking, status)} ${checking ? "animate-pulse" : ""}`;
+
+    if (checking) return <InfoIcon height={18} width={18} className={className} />;
+    return status === "connected" ? (
+      <CheckIcon height={18} width={18} className={className} />
+    ) : (
+      <DangerIcon height={18} width={18} className={className} />
+    );
+  };
 
   return (
     <Stack
@@ -47,22 +52,35 @@ export function Footer() {
       align="center"
       className="py-6 pl-4 m-4 text-lg bg-component font-display"
     >
-      <Stack direction="col">
-        <p className="text-on-component">
-          <span className="font-bold">Aid Station</span> - {title}
-        </p>
-        <p className="text-on-component">
-          <span className="font-bold">Operator Call Sign</span> - {callsign}
-        </p>
-      </Stack>
+      <Stack direction="row" align="center" className="gap-4">
+        <Stack direction="col">
+          <p className="text-on-component">
+            <span className="font-bold">Aid Station</span> - {title}
+          </p>
+          <p className="text-on-component">
+            <span className="font-bold">Operator Call Sign</span> - {callsign}
+          </p>
+        </Stack>
 
-      <Stack direction="col" className="gap-1 px-4 text-sm font-medium">
-        <span className={statusClass(connectionStatus?.internet)}>
-          Internet: {statusText(connectionStatus?.internet)}
-        </span>
-        <span className={statusClass(connectionStatus?.openSplitTime)}>
-          OpenSplitTime: {statusText(connectionStatus?.openSplitTime)}
-        </span>
+        <Stack
+          direction="col"
+          className="gap-2 px-4 py-2 text-sm border rounded-md border-component-strong bg-surface-tertiary"
+        >
+          <Stack id={internetTooltipId} direction="row" align="center" className="gap-2">
+            <span className="text-on-component">Internet:</span>
+            {statusIcon(connectionStatus.checking, connectionStatus.internet)}
+            <Tooltip position="top" target={`#${internetTooltipId}`}>
+              {statusText(connectionStatus.checking, connectionStatus.internet)}
+            </Tooltip>
+          </Stack>
+          <Stack id={openSplitTimeTooltipId} direction="row" align="center" className="gap-2">
+            <span className="text-on-component">OpenSplitTime:</span>
+            {statusIcon(connectionStatus.checking, connectionStatus.openSplitTime)}
+            <Tooltip position="top" target={`#${openSplitTimeTooltipId}`}>
+              {statusText(connectionStatus.checking, connectionStatus.openSplitTime)}
+            </Tooltip>
+          </Stack>
+        </Stack>
       </Stack>
 
       {theme === "dark" ? (
