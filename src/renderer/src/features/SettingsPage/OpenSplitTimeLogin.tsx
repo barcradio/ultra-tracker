@@ -29,7 +29,11 @@ interface OpenSplitTimeEnvironmentsResult {
   current: OpenSplitTimeEnvironment;
 }
 
-export function OpenSplitTimeLogin() {
+interface OpenSplitTimeLoginProps {
+  className?: string;
+}
+
+export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) {
   const ipcRenderer = useIpcRenderer();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -204,7 +208,7 @@ export function OpenSplitTimeLogin() {
   };
 
   return (
-    <VerticalButtonGroup label="OpenSplitTime Steward Login">
+    <VerticalButtonGroup label="OpenSplitTime Steward Login" className={className}>
       {expiration ? (
         <Stack direction="col" className="gap-2">
           {environmentOptions.length > 0 && (

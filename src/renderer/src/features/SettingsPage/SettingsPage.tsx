@@ -40,9 +40,10 @@ export function SettingsPage() {
   const rfidLinkVisibility = shouldEnableRFID ? "visible" : "invisible";
 
   return (
-    <Stack className="w-full h-full bg-component" justify="center" align="center">
-      <Stack direction="col" justify="center" align="stretch" className="gap-4 mb-32">
-        <Stack align="stretch" className="gap-4">
+    <div className="w-full h-full overflow-y-auto bg-component p-6">
+      <Stack justify="center" align="start" className="gap-6 flex-wrap xl:flex-nowrap min-w-full">
+        {/* Column 1: Station Setup + RFID Configuration */}
+        <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <VerticalButtonGroup label="Station Setup">
             <Button size="wide" onClick={() => settingsMutations.importStationsFile.mutate()}>
               Load Stations File
@@ -58,35 +59,33 @@ export function SettingsPage() {
             </Button>
           </VerticalButtonGroup>
 
-          <Stack direction="col" className="gap-4" justify="stretch">
-            <VerticalButtonGroup
-              className="grow"
-              label={
-                <Stack direction="col">
-                  <span className="font-medium">RFID Configuration</span>
-                  <span className="text-xs font-medium">(Start and Finish Lines Only)</span>
-                </Stack>
-              }
+          <VerticalButtonGroup
+            label={
+              <Stack direction="col">
+                <span className="font-medium">RFID Configuration</span>
+                <span className="text-xs font-medium">(Start and Finish Lines Only)</span>
+              </Stack>
+            }
+          >
+            <Button
+              size="wide"
+              onClick={() => handleRfidButtonClick()}
+              disabled={!shouldEnableRFID}
             >
-              <Button
-                size="wide"
-                onClick={() => handleRfidButtonClick()}
-                disabled={!shouldEnableRFID}
-              >
-                {rfidButtonText}
-              </Button>
-              <a href="https://fxr90c94e1c/" className={`${rfidLinkVisibility}`}>
-                <span className="font-semibold underline">RFID Reader Control Page</span>
-              </a>
-            </VerticalButtonGroup>
-            <VerticalButtonGroup label="App Settings" className="grow">
-              <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
-                Reset App Settings
-              </Button>
-            </VerticalButtonGroup>
-          </Stack>
+              {rfidButtonText}
+            </Button>
+            <a href="https://fxr90c94e1c/" className={`${rfidLinkVisibility}`}>
+              <span className="font-semibold underline">RFID Reader Control Page</span>
+            </a>
+          </VerticalButtonGroup>
+        </Stack>
 
-          <VerticalButtonGroup label="Developer Tools" className="border-2 grow border-danger/30">
+        {/* Column 2: OpenSplitTime Steward Login */}
+        <OpenSplitTimeLogin className="w-[22rem]" />
+
+        {/* Column 3: Developer Tools + App Settings */}
+        <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
+          <VerticalButtonGroup label="Developer Tools" className="border-2 border-danger/30">
             <Stack direction="col" className="gap-2">
               <p className="w-80 text-on-surface-strong italic font-display text-sm font-bold mt-2 mb-4">
                 This is a destructive operation! Under most circumstances you should not do this
@@ -100,10 +99,12 @@ export function SettingsPage() {
               </Button>
             </Stack>
           </VerticalButtonGroup>
-        </Stack>
 
-        <Stack align="stretch" className="gap-4">
-          <OpenSplitTimeLogin />
+          <VerticalButtonGroup label="App Settings">
+            <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
+              Reset App Settings
+            </Button>
+          </VerticalButtonGroup>
         </Stack>
       </Stack>
 
@@ -144,6 +145,6 @@ export function SettingsPage() {
         Are you sure you want to recover data from a preexisting Runners file? Note that this will
         overwrite any existing data.
       </ConfirmationModal>
-    </Stack>
+    </div>
   );
 }
