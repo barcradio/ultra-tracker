@@ -9,8 +9,9 @@ import {
   authenticate,
   authenticateSaved,
   clearAuthentication,
+  forceConnectivityRecheck,
   getAuthStatus,
-  getConnectionStatus,
+  getCachedConnectionStatus,
   getEventGroup,
   getOpenSplitTimeEnvironment,
   getSavedCredentials,
@@ -19,6 +20,7 @@ import {
   pushTimeRecordUpdate,
   setOpenSplitTimeEnvironment,
   setOpenSplitTimePushPaused,
+  startConnectivityMonitor,
   submitRawTimes
 } from "../services/opensplittime";
 import { Handler } from "../types";
@@ -70,7 +72,8 @@ const authenticateWithOpenSplitTime: Handler<AuthenticateParams> = async (_, par
 const authenticateWithSavedOpenSplitTime: Handler = () => authenticateSaved();
 const getSavedOpenSplitTimeCredentials: Handler = () => getSavedCredentials();
 const getOpenSplitTimeAuthStatus: Handler = () => getAuthStatus();
-const getOpenSplitTimeConnectionStatus: Handler = () => getConnectionStatus();
+const getOpenSplitTimeConnectionStatus: Handler = () => getCachedConnectionStatus();
+const recheckOpenSplitTimeConnection: Handler = () => forceConnectivityRecheck();
 
 const getOpenSplitTimeEnvironments: Handler = () => ({
   environments: listOpenSplitTimeEnvironments(),
@@ -139,6 +142,7 @@ export const initOpenSplitTimeHandlers = () => {
   ipcMain.handle("opensplittime-get-saved-credentials", getSavedOpenSplitTimeCredentials);
   ipcMain.handle("opensplittime-get-auth-status", getOpenSplitTimeAuthStatus);
   ipcMain.handle("opensplittime-get-connection-status", getOpenSplitTimeConnectionStatus);
+  ipcMain.handle("opensplittime-recheck-connection", recheckOpenSplitTimeConnection);
   ipcMain.handle("opensplittime-get-event-group", getOpenSplitTimeEventGroup);
   ipcMain.handle("opensplittime-get-environments", getOpenSplitTimeEnvironments);
   ipcMain.handle("opensplittime-set-environment", setOpenSplitTimeEnvironmentHandler);
@@ -147,4 +151,6 @@ export const initOpenSplitTimeHandlers = () => {
   ipcMain.handle("opensplittime-get-push-paused", getOpenSplitTimePushPaused);
   ipcMain.handle("opensplittime-set-push-paused", setOpenSplitTimePushPausedHandler);
   ipcMain.handle("opensplittime-push-record", pushOpenSplitTimeRecord);
+
+  startConnectivityMonitor();
 };

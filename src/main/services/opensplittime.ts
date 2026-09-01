@@ -3,6 +3,9 @@ import { config } from "dotenv";
 import { safeStorage } from "electron";
 import { RunnerDB } from "$shared/models";
 import * as opensplittimeStatusDb from "../database/opensplittimeStatus-db";
+import { emitConnectionStatus } from "../ipc/connectivity-emitter";
+import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
+import { sendToastToRenderer } from "../ipc/toast-ipc";
 import { appStore } from "../lib/store";
 
 config({ path: "opensplittime.env" });
@@ -12,11 +15,10 @@ const apiHosts = {
   production: "https://www.opensplittime.org"
 } as const;
 export type OpenSplitTimeEnvironment = "production" | "staging";
-const apiTokens = {
-  staging: process.env.OPENSPLITTIME_STAGING_API_KEY,
-  production: process.env.OPENSPLITTIME_API_KEY
-} as const;
 const requestTimeoutMs = 30_000;
+// Probes use a much shorter timeout than authenticated API calls so a dead link is detected quickly.
+const probeTimeoutMs = 5_000;
+const connectivityPollIntervalMs = 15_000;
 
 export type OpenSplitTimeConnectionStatus = "connected" | "disconnected";
 
@@ -24,6 +26,18 @@ export interface OpenSplitTimeConnectionResult {
   internet: OpenSplitTimeConnectionStatus;
   openSplitTime: OpenSplitTimeConnectionStatus;
 }
+
+export interface OpenSplitTimeConnectionState extends OpenSplitTimeConnectionResult {
+  checking: boolean;
+}
+
+let cachedConnectionStatus: OpenSplitTimeConnectionState = {
+  internet: "disconnected",
+  openSplitTime: "disconnected",
+  checking: false
+};
+let connectivityCheckInFlight = false;
+let monitorStarted = false;
 
 interface RequestOptions {
   method?: string;
@@ -79,8 +93,7 @@ export interface OpenSplitTimeEnvironmentOption {
 // prefer staging and fall back to whichever environment is actually configured.
 function computeDefaultEnvironment(): OpenSplitTimeEnvironment {
   const eventMetadata = appStore.get("event.openSplitTime") as
-    | OpenSplitTimeEventMetadataStore
-    | undefined;
+    OpenSplitTimeEventMetadataStore | undefined;
 
   if (eventMetadata?.staging?.name) return "staging";
   if (eventMetadata?.production?.name) return "production";
@@ -89,10 +102,10 @@ function computeDefaultEnvironment(): OpenSplitTimeEnvironment {
 }
 
 let currentEnvironment: OpenSplitTimeEnvironment = computeDefaultEnvironment();
-let apiToken: string | null = apiTokens[currentEnvironment]?.trim() || null;
+let apiToken: string | null = null;
 // Tracks the active token's expiration so the UI can restore its signed-in state after remounting.
 let tokenExpiration: string | null = null;
-// Pushes are paused by default so an operator must explicitly resume them after signing in.
+// Paused until a real sign-in sets tokenExpiration.
 let pushPaused = true;
 
 export interface OpenSplitTimeAuthStatus {
@@ -101,7 +114,10 @@ export interface OpenSplitTimeAuthStatus {
 }
 
 export function getAuthStatus(): OpenSplitTimeAuthStatus {
-  return { authenticated: apiToken !== null, expiration: tokenExpiration };
+  return {
+    authenticated: apiToken !== null && tokenExpiration !== null,
+    expiration: tokenExpiration
+  };
 }
 
 export function getOpenSplitTimeEnvironment(): OpenSplitTimeEnvironment {
@@ -135,8 +151,7 @@ export function getOpenSplitTimePushStatus(bibId: number): OpenSplitTimePushStat
 
 export function listOpenSplitTimeEnvironments(): OpenSplitTimeEnvironmentOption[] {
   const eventMetadata = appStore.get("event.openSplitTime") as
-    | OpenSplitTimeEventMetadataStore
-    | undefined;
+    OpenSplitTimeEventMetadataStore | undefined;
   const options: OpenSplitTimeEnvironmentOption[] = [];
 
   if (eventMetadata?.staging?.name) {
@@ -153,8 +168,9 @@ export function setOpenSplitTimeEnvironment(environment: OpenSplitTimeEnvironmen
   if (environment === currentEnvironment) return;
 
   currentEnvironment = environment;
-  apiToken = apiTokens[environment]?.trim() || null;
+  apiToken = null;
   tokenExpiration = null;
+  pushPaused = true;
 }
 
 export class OpenSplitTimeApiError extends Error {
@@ -193,7 +209,21 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
     }
 
     if (!response.ok) {
-      const detail = typeof responseBody === "string" ? responseBody : JSON.stringify(responseBody);
+      const detail =
+        typeof responseBody === "string"
+          ? responseBody
+          : ((responseBody as { error?: string; message?: string })?.error ??
+            (responseBody as { message?: string })?.message ??
+            JSON.stringify(responseBody));
+
+      // A 401 means the server has rejected the token outright, so clear it instead of leaving
+      // the app believing it's still authenticated until the next manual auth check.
+      if (response.status === 401) {
+        apiToken = null;
+        tokenExpiration = null;
+        pushPaused = true;
+      }
+
       throw new OpenSplitTimeApiError(
         `OpenSplitTime API request failed: ${detail}`,
         response.status
@@ -208,7 +238,7 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
 
 async function probe(url: string): Promise<boolean> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
+  const timeout = setTimeout(() => controller.abort(), probeTimeoutMs);
 
   try {
     const response = await fetch(url, { method: "HEAD", signal: controller.signal });
@@ -230,6 +260,42 @@ export async function getConnectionStatus(): Promise<OpenSplitTimeConnectionResu
     internet: internet ? "connected" : "disconnected",
     openSplitTime: openSplitTime ? "connected" : "disconnected"
   };
+}
+
+// Returns the last known status instantly, without waiting on a network probe.
+export function getCachedConnectionStatus(): OpenSplitTimeConnectionState {
+  return cachedConnectionStatus;
+}
+
+async function runConnectivityCheck(): Promise<void> {
+  if (connectivityCheckInFlight) return;
+
+  connectivityCheckInFlight = true;
+  cachedConnectionStatus = { ...cachedConnectionStatus, checking: true };
+  emitConnectionStatus(cachedConnectionStatus);
+
+  try {
+    const result = await getConnectionStatus();
+    cachedConnectionStatus = { ...result, checking: false };
+  } finally {
+    connectivityCheckInFlight = false;
+    emitConnectionStatus(cachedConnectionStatus);
+  }
+}
+
+// Starts the background connectivity poll once at app boot; safe to call more than once.
+export function startConnectivityMonitor(): void {
+  if (monitorStarted) return;
+  monitorStarted = true;
+
+  void runConnectivityCheck();
+  setInterval(() => void runConnectivityCheck(), connectivityPollIntervalMs);
+}
+
+// Triggers an out-of-cycle probe, used when the renderer detects an OS-level network change.
+export async function forceConnectivityRecheck(): Promise<OpenSplitTimeConnectionState> {
+  await runConnectivityCheck();
+  return cachedConnectionStatus;
 }
 
 function requireToken(): string {
@@ -266,7 +332,7 @@ export async function authenticate(
 
   apiToken = response.token;
   tokenExpiration = response.expiration;
-  pushPaused = true;
+  pushPaused = false;
 
   if (saveCredentials && safeStorage.isEncryptionAvailable()) {
     appStore.set("openSplitTime.email", email);
@@ -290,8 +356,7 @@ export async function authenticate(
 // verify it against the live event group and correct it if OpenSplitTime disagrees.
 export async function syncEventGroupId(): Promise<void> {
   const eventMetadata = appStore.get("event.openSplitTime") as
-    | OpenSplitTimeEventMetadataStore
-    | undefined;
+    OpenSplitTimeEventMetadataStore | undefined;
   const configuredEvent =
     currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
   const eventGroupIdOrSlug = configuredEvent?.name || (appStore.get("event.name") as string);
@@ -374,6 +439,7 @@ export async function submitRawTimes(
 export interface OpenSplitTimePushOutcome {
   pushed: boolean;
   result?: unknown;
+  error?: string;
 }
 
 interface OpenSplitTimePushConfig {
@@ -384,8 +450,7 @@ interface OpenSplitTimePushConfig {
 
 function resolvePushConfig(): OpenSplitTimePushConfig {
   const eventMetadata = appStore.get("event.openSplitTime") as
-    | OpenSplitTimeEventMetadataStore
-    | undefined;
+    OpenSplitTimeEventMetadataStore | undefined;
   const configuredEvent =
     currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
   const eventGroupIdOrSlug = configuredEvent?.name || (appStore.get("event.name") as string);
@@ -434,6 +499,7 @@ function buildRawTimeRecords(
 function recordPushSuccess(bibId: number): void {
   opensplittimeStatusDb.setPushStatus(bibId, "success");
   console.info(`OpenSplitTime push succeeded for bib ${bibId}`);
+  emitRunnersTableChanged();
 }
 
 // Logs the rejected payload alongside the error so a server-side 500 can be diagnosed against the OST
@@ -443,17 +509,25 @@ function recordPushFailure(
   eventGroupIdOrSlug: string,
   records: OpenSplitTimeRawTime[],
   error: unknown
-): void {
-  opensplittimeStatusDb.setPushStatus(
-    bibId,
-    "error",
-    error instanceof Error ? error.message : String(error)
-  );
+): string {
+  const message = error instanceof Error ? error.message : String(error);
+
+  opensplittimeStatusDb.setPushStatus(bibId, "error", message);
   console.error(
     `OpenSplitTime push failed for bib ${bibId} (event group "${eventGroupIdOrSlug}", environment ${currentEnvironment})`,
     records,
     error
   );
+  // Surfaced regardless of whether the push was triggered manually or automatically in the
+  // background, since background failures otherwise only ever reach the console.
+  sendToastToRenderer({
+    message: `Runner #${bibId} push failed: ${message}`,
+    type: "warning",
+    timeoutMs: -1
+  });
+  emitRunnersTableChanged();
+
+  return message;
 }
 
 export async function pushTimeRecordUpdate(
@@ -480,7 +554,7 @@ export async function pushTimeRecordUpdate(
     recordPushSuccess(record.bibId);
     return { pushed: true, result };
   } catch (error) {
-    recordPushFailure(record.bibId, config.eventGroupIdOrSlug, records, error);
-    throw error;
+    const message = recordPushFailure(record.bibId, config.eventGroupIdOrSlug, records, error);
+    return { pushed: false, error: message };
   }
 }

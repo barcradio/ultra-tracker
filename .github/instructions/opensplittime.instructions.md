@@ -14,8 +14,9 @@ applyTo: "src/main/services/opensplittime.ts, src/main/ipc/opensplittime-ipc.ts,
 
 ## Credentials & Tokens
 
-- `.env`-style API keys (`OPENSPLITTIME_API_KEY`, `OPENSPLITTIME_STAGING_API_KEY`) live in the git-ignored `opensplittime.env` file at the repo root, loaded via `dotenv`. These are dev/test shortcut tokens, not the operator's personal login.
-- Real steward logins go through `/auth` (`authenticate()`), optionally saving encrypted credentials via `safeStorage` (`openSplitTime.email` / `openSplitTime.encryptedPassword` in `appStore`). Never store plaintext passwords.
+- No dev/test API key shortcut exists anymore; `apiToken` only ever gets set by a real steward sign-in.
+- Steward logins go through `/auth` (`authenticate()`), optionally saving encrypted credentials via `safeStorage` (`openSplitTime.email` / `openSplitTime.encryptedPassword` in `appStore`). Never store plaintext passwords.
+- `getAuthStatus()` reports `authenticated: true` only once both `apiToken` and `tokenExpiration` are set, i.e. after a successful `/auth` response — never assume a token is valid without one.
 
 ## Event Group Metadata
 
