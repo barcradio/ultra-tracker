@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 
+export type RowStatus = "success" | "pending" | "error";
+
 export type Column<T extends object> = {
   [K in keyof T]: {
     field: K;

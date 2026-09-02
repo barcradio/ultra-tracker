@@ -1,10 +1,12 @@
 import { DatabaseResponse } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
+import { clearPushStatus } from "./opensplittimeStatus-db";
 import * as dbStatus from "./status-db";
 import { DatabaseStatus, EntryMode, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 import { appStore } from "../lib/store";
+import { pushTimeRecordUpdate } from "../services/opensplittime";
 
 interface TypedRunnerDB extends RunnerDB {
   recordType: RecordType;
@@ -171,6 +173,9 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
         verbose
       );
 
+      // Avoid a stale "success"/"error" status lingering for a bib that no longer has a record here.
+      clearPushStatus(record.bibId);
+
       return [DatabaseStatus.Deleted, `timing-record:delete ${record.index}`];
     } catch (e) {
       if (e instanceof Error) {
@@ -268,6 +273,25 @@ function updateTimeRecord(
   );
 
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+  const timeValue = (time: Date | null): number | null =>
+    time == null ? null : new Date(time).getTime();
+
+  // A duplicate's fractional bib (e.g. 150.2) floors to the original bib number when pushed, so
+  // pushing here would incorrectly overwrite the original runner's time on OST.
+  if (
+    record.status !== RecordStatus.Duplicate &&
+    (existingRecord.bibId !== record.bibId ||
+      timeValue(existingRecord.timeIn) !== timeValue(record.timeIn) ||
+      timeValue(existingRecord.timeOut) !== timeValue(record.timeOut))
+  ) {
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId))
+      .then((outcome) => {
+        if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
+      })
+      .catch((error: unknown) => {
+        console.error("OpenSplitTime record update failed", error);
+      });
+  }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
 
@@ -316,6 +340,19 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   );
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
+
+  // A duplicate's fractional bib (e.g. 150.2) floors to the original bib number when pushed, so
+  // pushing here would incorrectly overwrite the original runner's time on OST until the operator
+  // resolves the duplicate to a real bib number.
+  if (record.status !== RecordStatus.Duplicate) {
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId))
+      .then((outcome) => {
+        if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
+      })
+      .catch((error: unknown) => {
+        console.error("OpenSplitTime record update failed", error);
+      });
+  }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
 

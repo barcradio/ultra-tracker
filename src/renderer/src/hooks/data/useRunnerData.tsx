@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DNFType, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
@@ -15,15 +16,34 @@ export interface Runner {
 
 export interface RunnerEx extends Runner {
   sequence: number;
+  sent: boolean;
   dns: boolean;
   dnf: boolean;
   dnfType: DNFType;
   status: RecordStatus;
+  openSplitTimePushStatus?: "success" | "pending" | "error";
+  openSplitTimePushError?: string;
 }
 
 export function useRunnerData() {
   const handleError = useHandleStatusToasts();
   const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
+
+  // A background OST push (triggered by an edit/insert) can finish after that mutation's own IPC
+  // response already returned, so its push status wouldn't otherwise be reflected until some
+  // unrelated refetch happens.
+  useEffect(() => {
+    const handleRunnersTableChanged = () => {
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+    };
+
+    ipcRenderer.on("runners-table-changed", handleRunnersTableChanged);
+
+    return () => {
+      ipcRenderer.removeAllListeners("runners-table-changed");
+    };
+  }, [ipcRenderer, queryClient]);
 
   return useQuery({
     queryKey: ["runners-table"],
@@ -42,10 +62,13 @@ export function useRunnerData() {
         in: runner.timeIn,
         out: runner.timeOut,
         note: runner.note,
+        sent: runner.sent,
         dns: runner.dns ?? false,
         dnf: runner.dnf ?? false,
         dnfType: runner.dnfType ?? DNFType.None,
-        status: runner.status ?? RecordStatus.OK
+        status: runner.status ?? RecordStatus.OK,
+        openSplitTimePushStatus: runner.openSplitTimePushStatus,
+        openSplitTimePushError: runner.openSplitTimePushError
       }));
     }
   });

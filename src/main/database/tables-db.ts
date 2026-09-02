@@ -6,8 +6,9 @@ import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
 import * as tableDefs4 from "./schema/table-definitions-v4";
+import * as tableDefs5 from "./schema/table-definitions-v5";
 
-const userVersion: number = 4;
+const userVersion: number = 5;
 let tableDefs;
 
 interface Table {
@@ -71,6 +72,10 @@ export function validateDatabaseTables() {
     case 4:
       tableDefs = tableDefs4;
       break;
+
+    case 5:
+      tableDefs = tableDefs5;
+      break;
   }
 
   for (const key in tableDefs.expectedTableNames) {
@@ -133,7 +138,9 @@ export function CreateTables() {
     createStationsTable() &&
     createOutputTable() &&
     createStatusTable() &&
-    createRFIDInboxTable();
+    createOpenSplitTimePushStatusTable() &&
+    createRFIDInboxTable() &&
+    createRFIDPendingWritesTable();
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
@@ -171,6 +178,13 @@ export const createStatusTable = () =>
   createTable(tableDefs.expectedTableNames.Status, tableDefs.Status);
 export const createRFIDInboxTable = () =>
   createTable(tableDefs.expectedTableNames.RFIDInbox, tableDefs.RFIDInbox);
+export const createOpenSplitTimePushStatusTable = () =>
+  createTable(
+    tableDefs.expectedTableNames.OpenSplitTimePushStatus,
+    tableDefs.OpenSplitTimePushStatus
+  );
+export const createRFIDPendingWritesTable = () =>
+  createTable(tableDefs.expectedTableNames.RFIDPendingWrites, tableDefs.RFIDPendingWrites);
 
 export function ClearTables() {
   const result =
@@ -179,7 +193,8 @@ export function ClearTables() {
     clearRunnersTable() &&
     clearStationsTable() &&
     clearOutputTable() &&
-    clearStatusTable();
+    clearStatusTable() &&
+    clearOpenSplitTimePushStatusTable();
 
   return result ? `Database tables cleared; Reinitialize or Restart!` : `Database Clear Failed`;
 }
@@ -206,3 +221,5 @@ export const clearRunnersTable = () => clearTable(tableDefs.expectedTableNames.T
 export const clearStationsTable = () => clearTable(tableDefs.expectedTableNames.Stations);
 export const clearOutputTable = () => clearTable(tableDefs.expectedTableNames.Output);
 export const clearStatusTable = () => clearTable(tableDefs.expectedTableNames.Status);
+export const clearOpenSplitTimePushStatusTable = () =>
+  clearTable(tableDefs.expectedTableNames.OpenSplitTimePushStatus);

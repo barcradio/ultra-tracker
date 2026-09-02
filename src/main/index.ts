@@ -1,6 +1,6 @@
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { BrowserWindow, app, shell } from "electron";
+import { BrowserWindow, Event, app, dialog, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
 import { DisconnectRFIDReader } from "./api/rfid-processor";
 import { createDatabaseConnection } from "./database/connect-db";
@@ -26,6 +26,7 @@ function createWindow(): BrowserWindow {
       sandbox: false
     }
   });
+  let rendererCrashDialogOpen = false;
 
   mainWindow.once("ready-to-show", () => {
     uberLog(LogLevel.info, "ui", "Main window ready to show", true);
@@ -45,6 +46,34 @@ function createWindow(): BrowserWindow {
       event.preventDefault();
       shell.openExternal(url);
     }
+  });
+
+  mainWindow.webContents.on("render-process-gone", (_event, details) => {
+    if (rendererCrashDialogOpen || mainWindow.isDestroyed()) return;
+
+    rendererCrashDialogOpen = true;
+    const reloadShortcut = process.platform === "darwin" ? "Cmd+R" : "Ctrl+R";
+    const forceReloadShortcut = process.platform === "darwin" ? "Cmd+Shift+R" : "Ctrl+Shift+R";
+
+    void dialog
+      .showMessageBox(mainWindow, {
+        type: "error",
+        title: "Ultra-Tracker renderer stopped",
+        message: "The application window encountered an error and needs to be reloaded.",
+        detail: `Try Reload (${reloadShortcut}) first. If the problem continues, try Force Reload (${forceReloadShortcut}).\n\nReason: ${details.reason}`,
+        buttons: ["Reload", "Force Reload", "Close"],
+        defaultId: 0,
+        cancelId: 2,
+        noLink: true
+      })
+      .then(({ response }) => {
+        if (mainWindow.isDestroyed()) return;
+        if (response === 0) mainWindow.reload();
+        if (response === 1) mainWindow.webContents.reloadIgnoringCache();
+      })
+      .finally(() => {
+        rendererCrashDialogOpen = false;
+      });
   });
 
   return mainWindow;
@@ -85,7 +114,7 @@ app.on("ready", async () => {
   openDevToolsOnDomReady(mainWindow);
 
   // Prevent navigation in the main window
-  const handleRedirect = (event: Electron.Event, url: string) => {
+  const handleRedirect = (event: Event, url: string) => {
     if (url !== mainWindow.webContents.getURL()) {
       event.preventDefault();
       shell.openExternal(url);

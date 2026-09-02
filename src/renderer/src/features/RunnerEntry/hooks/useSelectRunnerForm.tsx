@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
@@ -11,6 +11,12 @@ export function useSelectRunnerForm(runner: RunnerEx, runners: RunnerEx[]) {
     defaultValues: runner,
     values: currentRunner
   });
+
+  useEffect(() => {
+    if (currentRunner.id !== runner.id) return;
+
+    setCurrentRunner(runner);
+  }, [currentRunner.id, runner]);
 
   const handleChangeCurrent = (direction: "previous" | "next") => {
     const sequence = currentRunner.sequence + (direction === "next" ? 1 : -1);

@@ -6,7 +6,7 @@ import { Headers } from "./Headers";
 import { FilterState, useFilterState } from "./hooks/useFilterState";
 import { InitialSortState, useSortState } from "./hooks/useSortState";
 import { TableContent } from "./TableContent";
-import { ColumnDef } from "./types";
+import { ColumnDef, RowStatus } from "./types";
 
 interface GridClassNames {
   root: string;
@@ -26,6 +26,7 @@ interface Props<T extends object> {
   getKey?: (row: T) => string | number;
   overscan?: number;
   showFooter?: boolean;
+  rowStatus?: (row: T) => RowStatus;
 }
 
 const Table = classed.table("overflow-auto w-full table-fixed font-display text-on-component");
@@ -52,7 +53,8 @@ export function DataGrid<T extends object>(props: Props<T>) {
     count: filteredData.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40,
-    overscan: props.overscan ?? 0
+    overscan: props.overscan ?? 0,
+    useAnimationFrameWithResizeObserver: true
   });
 
   const handleSetSortField = (field: keyof T) => {
@@ -71,6 +73,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
         actionButtons={props.actionButtons}
         className={props.classNames?.header}
         onClearFilters={props.onClearFilters}
+        hasRowStatus={Boolean(props.rowStatus)}
       />
     );
   };
@@ -89,6 +92,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
             data={filteredData}
             columns={props.columns}
             actionButtons={props.actionButtons}
+            rowStatus={props.rowStatus}
             getKey={props.getKey}
           />
           {props.showFooter && getSection("footer")}

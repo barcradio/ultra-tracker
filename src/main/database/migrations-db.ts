@@ -5,6 +5,7 @@ import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
 import * as tableDefs4 from "./schema/table-definitions-v4";
+import * as tableDefs5 from "./schema/table-definitions-v5";
 
 export const migrations: IMigration[] = [
   {
@@ -72,6 +73,18 @@ export const migrations: IMigration[] = [
       `,
     down: `
         DROP TABLE IF EXISTS RFIDPendingWrites;
+      `
+  },
+  {
+    version: 5,
+    up: `
+        CREATE TABLE IF NOT EXISTS OpenSplitTimePushStatus (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          ${tableDefs5.OpenSplitTimePushStatus}
+        );
+      `,
+    down: `
+        DROP TABLE IF EXISTS OpenSplitTimePushStatus;
       `
   }
 ];

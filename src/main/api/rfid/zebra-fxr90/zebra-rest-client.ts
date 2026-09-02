@@ -23,9 +23,10 @@ function normalizePin(value: string): string {
 function isTrustedCert(cert: PeerCertificate | undefined, pin: string): boolean {
   if (!cert || !pin) return false;
   const normalizedPin = normalizePin(pin);
+  const commonNames = Array.isArray(cert.subject?.CN) ? cert.subject.CN : [cert.subject?.CN ?? ""];
   return (
     normalizePin(cert.serialNumber ?? "") === normalizedPin ||
-    normalizePin(cert.subject?.CN ?? "") === normalizedPin
+    commonNames.some((commonName) => normalizePin(commonName) === normalizedPin)
   );
 }
 

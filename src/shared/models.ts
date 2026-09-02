@@ -13,6 +13,8 @@ export interface RunnerDB {
   note: string;
   sent: boolean;
   status: number;
+  openSplitTimePushStatus?: "success" | "error";
+  openSplitTimePushError?: string;
 }
 
 export interface RunnerCSV {
