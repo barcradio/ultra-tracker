@@ -15,6 +15,7 @@ export class ZebraFxr90Controller implements IRfidController {
   private eventEmitter: EventEmitter = new EventEmitter();
   private timingWriter = new RfidTimingWriter();
   private rfidSettings!: RfidSettings;
+  private scanning = false;
 
   public on(event: RfidEvent, listener: Parameters<EventEmitter["on"]>[1]): void {
     this.eventEmitter.on(event, listener);
@@ -43,7 +44,6 @@ export class ZebraFxr90Controller implements IRfidController {
 
     this.rfidSettings.status = DeviceStatus.Connecting;
     await this.rfidProcessor.connect();
-    await this.restClient?.start();
 
     this.timingWriter.recoverPendingWrites();
   }
@@ -58,12 +58,14 @@ export class ZebraFxr90Controller implements IRfidController {
 
   public async disconnect(): Promise<void> {
     await this.stopRFID();
+    this.rfidProcessor?.disconnect();
   }
 
   public async startRFID(): Promise<void> {
     if (this.rfidProcessor) {
       await this.rfidProcessor.connect();
       await this.restClient?.start();
+      this.scanning = true;
     } else {
       throw new Error("Cannot start RFID: reader not initialized");
     }
@@ -71,7 +73,11 @@ export class ZebraFxr90Controller implements IRfidController {
 
   public async stopRFID(): Promise<void> {
     await this.restClient?.stop();
-    this.rfidProcessor?.disconnect();
+    this.scanning = false;
+  }
+
+  public isScanning(): boolean {
+    return this.scanning;
   }
 
   public setMode(mode: string): void {

@@ -9,7 +9,7 @@ import { IRfidController } from "./rfid/interfaces/IRfid-controller";
 import { LogLevel, logRFID } from "./rfid/rfid-log";
 import { RfidFactory } from "./rfid/rfid-reader-factory";
 import { DeviceStatus } from "../../shared/enums";
-import { RfidSettings } from "../../shared/models";
+import { RfidConnectionSettings, RfidSettings } from "../../shared/models";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
 config({ path: "rfid.env" });
@@ -31,7 +31,7 @@ const defaultRfidSettings: RfidSettings = {
 /**
  * Initialize RFID reader with default or provided settings
  */
-export async function InitializeRFIDReader(settings?: Partial<RfidSettings>): Promise<string> {
+export async function InitializeRFIDReader(settings?: Partial<RfidConnectionSettings>): Promise<string> {
   if (rfidController && rfidController.getStatus() === DeviceStatus.Connected) {
     return "RFID already connected";
   }
@@ -64,7 +64,7 @@ export async function InitializeRFIDReader(settings?: Partial<RfidSettings>): Pr
     // Initialize the reader
     await rfidController.initialize(finalSettings);
 
-    return "RFID initializing";
+    return "RFID authenticated";
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logRFID(LogLevel.error, "Failed to initialize RFID:", errorMessage);
@@ -130,6 +130,10 @@ export function GetRFIDStatus(): DeviceStatus {
     return rfidController.getStatus();
   }
   return DeviceStatus.NoDevice;
+}
+
+export function IsRFIDScanning(): boolean {
+  return rfidController?.isScanning() ?? false;
 }
 
 /**

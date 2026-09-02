@@ -159,3 +159,8 @@ export type RfidSettings = {
   status: DeviceStatus;
   mode: number;
 };
+
+export type RfidConnectionSettings = Pick<
+  RfidSettings,
+  "type" | "restApiUrl" | "webSocketUrl" | "userName" | "password" | "sslCert"
+>;
