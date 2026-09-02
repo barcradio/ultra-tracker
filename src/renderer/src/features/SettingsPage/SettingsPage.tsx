@@ -1,45 +1,14 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
-import { useStoreValue } from "~/hooks/ipc/useStoreValue";
-import { useRFIDStatus } from "./hooks/useRFIDStatus";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 import { OpenSplitTimeLogin } from "./OpenSplitTimeLogin";
-import { DeviceStatus } from "../../../../shared/enums";
-
-function useShouldEnableRFID() {
-  const { data: startline } = useStoreValue("event.startline");
-  const { data: finishline } = useStoreValue("event.finishline");
-  const { data: stationIdentifier } = useStoreValue("station.identifier");
-
-  if (!startline || !stationIdentifier || !finishline) return false;
-  return startline === stationIdentifier || finishline === stationIdentifier;
-}
+import { RfidConfiguration } from "./RfidConfiguration";
 
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
   const [resetOpen, setResetOpen] = useState(false);
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
-
-  const shouldEnableRFID = useShouldEnableRFID();
-  const [rfidStatus, setRfidStatus] = useRFIDStatus();
-
-  const handleRfidButtonClick = async () => {
-    if (rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting) {
-      await settingsMutations.disconnectRfid.mutateAsync();
-    } else {
-      await settingsMutations.initializeRfid.mutateAsync();
-    }
-
-    setRfidStatus(await window.electron.ipcRenderer.invoke("rfid-get-status"));
-  };
-
-  const rfidButtonText =
-    rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting
-      ? "Disconnect RFID"
-      : "Initialize RFID";
-
-  const rfidLinkVisibility = shouldEnableRFID ? "visible" : "invisible";
 
   return (
     <div className="w-full h-full overflow-y-auto bg-component p-6">
@@ -61,21 +30,7 @@ export function SettingsPage() {
             </Button>
           </VerticalButtonGroup>
 
-          <VerticalButtonGroup
-            label={
-              <Stack direction="col">
-                <span className="font-medium">RFID Configuration</span>
-                <span className="text-xs font-medium">(Start and Finish Lines Only)</span>
-              </Stack>
-            }
-          >
-            <Button size="wide" onClick={handleRfidButtonClick} disabled={!shouldEnableRFID}>
-              {rfidButtonText}
-            </Button>
-            <a href="https://fxr90c94e1c/" className={`${rfidLinkVisibility}`}>
-              <span className="font-semibold underline">RFID Reader Control Page</span>
-            </a>
-          </VerticalButtonGroup>
+          <RfidConfiguration />
         </Stack>
 
         {/* Column 2: OpenSplitTime Steward Login */}
