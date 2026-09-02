@@ -13,48 +13,48 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RosterRouteImport } from './routes/roster'
 
-const StationsLazyRouteImport = createFileRoute('/stations')()
-const SettingsLazyRouteImport = createFileRoute('/settings')()
-const LogsLazyRouteImport = createFileRoute('/logs')()
-const HelpLazyRouteImport = createFileRoute('/help')()
-const ExportLazyRouteImport = createFileRoute('/export')()
 const IndexLazyRouteImport = createFileRoute('/')()
+const ExportLazyRouteImport = createFileRoute('/export')()
+const HelpLazyRouteImport = createFileRoute('/help')()
+const LogsLazyRouteImport = createFileRoute('/logs')()
+const SettingsLazyRouteImport = createFileRoute('/settings')()
+const StationsLazyRouteImport = createFileRoute('/stations')()
 
-const StationsLazyRoute = StationsLazyRouteImport.update({
-  id: '/stations',
-  path: '/stations',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/stations.lazy').then((d) => d.Route))
-const SettingsLazyRoute = SettingsLazyRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
-const LogsLazyRoute = LogsLazyRouteImport.update({
-  id: '/logs',
-  path: '/logs',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/logs.lazy').then((d) => d.Route))
-const HelpLazyRoute = HelpLazyRouteImport.update({
-  id: '/help',
-  path: '/help',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/help.lazy').then((d) => d.Route))
-const ExportLazyRoute = ExportLazyRouteImport.update({
-  id: '/export',
-  path: '/export',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/export.lazy').then((d) => d.Route))
-const RosterRoute = RosterRouteImport.update({
-  id: '/roster',
-  path: '/roster',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexLazyRoute = IndexLazyRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+const ExportLazyRoute = ExportLazyRouteImport.update({
+  id: '/export',
+  path: '/export',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/export.lazy').then((d) => d.Route))
+const HelpLazyRoute = HelpLazyRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/help.lazy').then((d) => d.Route))
+const LogsLazyRoute = LogsLazyRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/logs.lazy').then((d) => d.Route))
+const RosterRoute = RosterRouteImport.update({
+  id: '/roster',
+  path: '/roster',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsLazyRoute = SettingsLazyRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
+const StationsLazyRoute = StationsLazyRouteImport.update({
+  id: '/stations',
+  path: '/stations',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/stations.lazy').then((d) => d.Route))
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
@@ -87,22 +87,10 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/roster'
-    | '/export'
-    | '/help'
-    | '/logs'
-    | '/settings'
-    | '/stations'
+    '/' | '/roster' | '/export' | '/help' | '/logs' | '/settings' | '/stations'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/roster'
-    | '/export'
-    | '/help'
-    | '/logs'
-    | '/settings'
-    | '/stations'
+    '/' | '/roster' | '/export' | '/help' | '/logs' | '/settings' | '/stations'
   id:
     | '__root__'
     | '/'
@@ -126,32 +114,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/stations': {
-      id: '/stations'
-      path: '/stations'
-      fullPath: '/stations'
-      preLoaderRoute: typeof StationsLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/logs': {
-      id: '/logs'
-      path: '/logs'
-      fullPath: '/logs'
-      preLoaderRoute: typeof LogsLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/help': {
-      id: '/help'
-      path: '/help'
-      fullPath: '/help'
-      preLoaderRoute: typeof HelpLazyRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/export': {
@@ -161,6 +128,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExportLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roster': {
       id: '/roster'
       path: '/roster'
@@ -168,11 +149,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RosterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexLazyRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stations': {
+      id: '/stations'
+      path: '/stations'
+      fullPath: '/stations'
+      preLoaderRoute: typeof StationsLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

@@ -1,13 +1,26 @@
 import { ipcMain } from "electron";
+import { DatabaseStatus } from "../../shared/enums";
+import { RunnerDB } from "../../shared/models";
+import { getStoppedHereForBib } from "../database/status-db";
+import { getTimeRecordbyBib, markTimeRecordAsSent } from "../database/timingRecords-db";
 import {
+  OpenSplitTimeEnvironment,
   OpenSplitTimeRawTime,
   authenticate,
   authenticateSaved,
   clearAuthentication,
-  getConnectionStatus,
+  forceConnectivityRecheck,
+  getAuthStatus,
+  getCachedConnectionStatus,
   getEventGroup,
-  getOrganization,
+  getOpenSplitTimeEnvironment,
   getSavedCredentials,
+  isOpenSplitTimePushPaused,
+  listOpenSplitTimeEnvironments,
+  pushTimeRecordUpdate,
+  setOpenSplitTimeEnvironment,
+  setOpenSplitTimePushPaused,
+  startConnectivityMonitor,
   submitRawTimes
 } from "../services/opensplittime";
 import { Handler } from "../types";
@@ -20,6 +33,18 @@ interface AuthenticateParams {
 
 interface EventGroupParams {
   eventGroupIdOrSlug: string;
+}
+
+interface SetEnvironmentParams {
+  environment: string;
+}
+
+interface SetPushPausedParams {
+  paused: boolean;
+}
+
+interface PushRecordParams {
+  bibId: number;
 }
 
 interface SubmitRawTimesParams extends EventGroupParams {
@@ -46,11 +71,37 @@ const authenticateWithOpenSplitTime: Handler<AuthenticateParams> = async (_, par
 
 const authenticateWithSavedOpenSplitTime: Handler = () => authenticateSaved();
 const getSavedOpenSplitTimeCredentials: Handler = () => getSavedCredentials();
-const getOpenSplitTimeConnectionStatus: Handler = () => getConnectionStatus();
-const getOpenSplitTimeOrganization: Handler = () => getOrganization();
+const getOpenSplitTimeAuthStatus: Handler = () => getAuthStatus();
+const getOpenSplitTimeConnectionStatus: Handler = () => getCachedConnectionStatus();
+const recheckOpenSplitTimeConnection: Handler = () => forceConnectivityRecheck();
+
+const getOpenSplitTimeEnvironments: Handler = () => ({
+  environments: listOpenSplitTimeEnvironments(),
+  current: getOpenSplitTimeEnvironment()
+});
+
+const setOpenSplitTimeEnvironmentHandler: Handler<SetEnvironmentParams> = (_, params) => {
+  const environment = requiredString(params?.environment, "environment");
+
+  if (environment !== "production" && environment !== "staging") {
+    throw new TypeError("environment must be 'production' or 'staging'");
+  }
+
+  setOpenSplitTimeEnvironment(environment as OpenSplitTimeEnvironment);
+};
 
 const getOpenSplitTimeEventGroup: Handler<EventGroupParams> = (_, params) => {
   return getEventGroup(requiredString(params?.eventGroupIdOrSlug, "eventGroupIdOrSlug"));
+};
+
+const getOpenSplitTimePushPaused: Handler = () => ({ paused: isOpenSplitTimePushPaused() });
+
+const setOpenSplitTimePushPausedHandler: Handler<SetPushPausedParams> = (_, params) => {
+  if (typeof params?.paused !== "boolean") {
+    throw new TypeError("paused must be a boolean");
+  }
+
+  setOpenSplitTimePushPaused(params.paused);
 };
 
 const submitOpenSplitTimeRawTimes: Handler<SubmitRawTimesParams> = (_, params) => {
@@ -67,13 +118,39 @@ const submitOpenSplitTimeRawTimes: Handler<SubmitRawTimesParams> = (_, params) =
   return submitRawTimes(eventGroupIdOrSlug, params.records);
 };
 
+const pushOpenSplitTimeRecord: Handler<PushRecordParams> = async (_, params) => {
+  if (typeof params?.bibId !== "number" || !Number.isFinite(params.bibId)) {
+    throw new TypeError("bibId must be a number");
+  }
+
+  const [record, status] = getTimeRecordbyBib({ bibId: params.bibId } as RunnerDB);
+  if (status !== DatabaseStatus.Success || !record) {
+    throw new TypeError(`No timing record found for bib ${params.bibId}`);
+  }
+
+  const outcome = await pushTimeRecordUpdate(record, getStoppedHereForBib(record.bibId), {
+    force: true
+  });
+  if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
+
+  return outcome;
+};
+
 export const initOpenSplitTimeHandlers = () => {
   ipcMain.handle("opensplittime-authenticate", authenticateWithOpenSplitTime);
   ipcMain.handle("opensplittime-authenticate-saved", authenticateWithSavedOpenSplitTime);
   ipcMain.handle("opensplittime-get-saved-credentials", getSavedOpenSplitTimeCredentials);
+  ipcMain.handle("opensplittime-get-auth-status", getOpenSplitTimeAuthStatus);
   ipcMain.handle("opensplittime-get-connection-status", getOpenSplitTimeConnectionStatus);
-  ipcMain.handle("opensplittime-get-organization", getOpenSplitTimeOrganization);
+  ipcMain.handle("opensplittime-recheck-connection", recheckOpenSplitTimeConnection);
   ipcMain.handle("opensplittime-get-event-group", getOpenSplitTimeEventGroup);
+  ipcMain.handle("opensplittime-get-environments", getOpenSplitTimeEnvironments);
+  ipcMain.handle("opensplittime-set-environment", setOpenSplitTimeEnvironmentHandler);
   ipcMain.handle("opensplittime-submit-raw-times", submitOpenSplitTimeRawTimes);
   ipcMain.handle("opensplittime-clear-authentication", clearAuthentication);
+  ipcMain.handle("opensplittime-get-push-paused", getOpenSplitTimePushPaused);
+  ipcMain.handle("opensplittime-set-push-paused", setOpenSplitTimePushPausedHandler);
+  ipcMain.handle("opensplittime-push-record", pushOpenSplitTimeRecord);
+
+  startConnectivityMonitor();
 };

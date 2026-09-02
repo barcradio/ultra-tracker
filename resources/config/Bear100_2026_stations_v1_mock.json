@@ -1,0 +1,519 @@
+{
+    "event": {
+        "name": "bear-100-2026",
+        "starttime": "06:00:00 Sept 25 2026",
+        "endtime": "18:00:00 Sept 26 2026",
+        "openSplitTime": {
+            "production": {
+                "name": "the-bear-100-2026",
+                "id": 1344
+            },
+            "staging": {
+                "name": "bear-100-test",
+                "id": 75
+            },
+            "splitNames": {
+                "0-start-line": "Start",
+                "1-logan-peak": "Logan Peak",
+                "2-leatham-hollow": "Leatham Hollow",
+                "3-richards-hollow": "Upper Richards",
+                "4-righthand-fork": "Right Hand Fork",
+                "5-temple-fork": "Temple Fork",
+                "6-tony-grove": "Tony Grove",
+                "7-franklin-trailhead": "Franklin Basin",
+                "8-logan-river": "Logan River",
+                "9-beaver-mtn": "Beaver Mountain",
+                "10-peter-sinks": "Peter Sinks",
+                "11-burnt-fork": "Burnt Fork",
+                "12-finish-line": "Finish"
+            }
+        }
+    },
+    "stations": [
+        {
+            "name": "Start Line",
+            "identifier": "0-start-line",
+            "description": "Hyrum Gibbons/Mount Logan Park",
+            "location": {
+                "latitude": 41.7283,
+                "longitude": -111.7995,
+                "elevation": 4852
+            },
+            "distance": 0.0,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": false,
+            "shiftBegin": "05:00:00 Sept 25 2026",
+            "cutofftime": "06:30:00 Sept 25 2026",
+            "shiftEnd": "07:00:00 Sept 25 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Alex Carter",
+                    "callsign": "N0AAA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Jamie Ross",
+                    "callsign": "N0AAB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Morgan Lee",
+                    "callsign": "N0AAC",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Logan Peak",
+            "identifier": "1-logan-peak",
+            "description": "[No Crew]",
+            "location": {
+                "latitude": 41.7101,
+                "longitude": -111.6989,
+                "elevation": 8868
+            },
+            "distance": 10,
+            "dropbags": false,
+            "crewaccess": false,
+            "paceraccess": false,
+            "shiftBegin": "07:15:00 Sept 25 2026",
+            "cutofftime": "10:00:00 Sept 25 2026",
+            "shiftEnd": "10:30:00 Sept 25 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Taylor Reed",
+                    "callsign": "N0ABA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Jordan Blake",
+                    "callsign": "N0ABB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Casey Quinn",
+                    "callsign": "N0ABC",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Leatham Hollow",
+            "identifier": "2-leatham-hollow",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.6431,
+                "longitude": -111.7066,
+                "elevation": 5140
+            },
+            "distance": 20,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": false,
+            "shiftBegin": "08:30:00 Sept 25 2026",
+            "cutofftime": "13:00:00 Sept 25 2026",
+            "shiftEnd": "13:30:00 Sept 25 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Riley Sloan",
+                    "callsign": "N0ACA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Drew Palmer",
+                    "callsign": "N0ACB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Skyler Hayes",
+                    "callsign": "N0ACC",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Upper Richards Hollow",
+            "identifier": "3-richards-hollow",
+            "description": "[No Crew]",
+            "location": {
+                "latitude": 41.7259,
+                "longitude": -111.6378,
+                "elevation": 7490
+            },
+            "distance": 28.5,
+            "dropbags": true,
+            "crewaccess": false,
+            "paceraccess": false,
+            "shiftBegin": "09:45:00 Sept 25 2026",
+            "cutofftime": "16:30:00 Sept 25 2026",
+            "shiftEnd": "17:00:00 Sept 25 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Cameron Wells",
+                    "callsign": "N0ADA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Reese Foster",
+                    "callsign": "N0ADB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Avery Stone",
+                    "callsign": "N0ADC",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Right Hand Fork",
+            "identifier": "4-righthand-fork",
+            "description": "[Limited Crew]",
+            "location": {
+                "latitude": 41.7748,
+                "longitude": -111.6101,
+                "elevation": 5551
+            },
+            "distance": 37.5,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "11:00:00 Sept 25 2026",
+            "cutofftime": "19:30:00 Sept 25 2026",
+            "shiftEnd": "20:00:00 Sept 25 2026",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "Hayden Brooks",
+                    "callsign": "N0AEA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Peyton Cross",
+                    "callsign": "N0AEB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Rowan Grant",
+                    "callsign": "N0AEC",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Temple Fork",
+            "identifier": "5-temple-fork",
+            "description": "[Limited Crew]",
+            "location": {
+                "latitude": 41.8349,
+                "longitude": -111.5924,
+                "elevation": 5837
+            },
+            "distance": 45.5,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "12:00:00 Sept 25 2026",
+            "cutofftime": "22:30:00 Sept 25 2026",
+            "shiftEnd": "23:00:00 Sept 25 2026",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "Emerson Blake",
+                    "callsign": "N0AFA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Finley Marsh",
+                    "callsign": "N0AFB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Sawyer Vance",
+                    "callsign": "N0AFC",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Tony Grove",
+            "identifier": "6-tony-grove",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.8901,
+                "longitude": -111.6335,
+                "elevation": 7980
+            },
+            "distance": 52.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "13:30:00 Sept 25 2026",
+            "cutofftime": "01:00:00 Sept 26 2026",
+            "shiftEnd": "01:30:00 Sept 26 2026",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "Dakota Reyes",
+                    "callsign": "N0AGA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Blair Dunn",
+                    "callsign": "N0AGB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Quinn Archer",
+                    "callsign": "N0AGC",
+                    "phone": ""
+                },
+                "quaditiary": {
+                    "fullname": "Elliot Frost",
+                    "callsign": "N0AGD",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Franklin Trailhead",
+            "identifier": "7-franklin-trailhead",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.9308,
+                "longitude": -111.5638,
+                "elevation": 6717
+            },
+            "distance": 62.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "15:30:00 Sept 25 2026",
+            "cutofftime": "05:30:00 Sept 26 2026",
+            "shiftEnd": "06:00:00 Sept 26 2026",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "Sydney Pierce",
+                    "callsign": "N0AHA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Kendall Rhodes",
+                    "callsign": "N0AHB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Marlowe Bishop",
+                    "callsign": "N0AHC",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Logan River",
+            "identifier": "8-logan-river",
+            "description": "[No Crew][No Pacer]",
+            "location": {
+                "latitude": 41.9602,
+                "longitude": -111.5911,
+                "elevation": 7280
+            },
+            "distance": 70.5,
+            "dropbags": true,
+            "crewaccess": false,
+            "paceraccess": false,
+            "shiftBegin": "17:00:00 Sept 25 2026",
+            "cutofftime": "09:00:00 Sept 26 2026",
+            "shiftEnd": "09:30:00 Sept 26 2026",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "Harlow Bennett",
+                    "callsign": "N0AIA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Remy Sutton",
+                    "callsign": "N0AIB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Charlie Nash",
+                    "callsign": "N0AIC",
+                    "phone": ""
+                },
+                "quaditiary": {
+                    "fullname": "Frankie Dale",
+                    "callsign": "N0AID",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Beaver Mtn Lodge",
+            "identifier": "9-beaver-mtn",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.9686,
+                "longitude": -111.5415,
+                "elevation": 7269
+            },
+            "distance": 76.5,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "18:00:00 Sept 25 2026",
+            "cutofftime": "11:00:00 Sept 26 2026",
+            "shiftEnd": "11:30:00 Sept 26 2026",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "Jesse Monroe",
+                    "callsign": "N0AJA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Micah Sterling",
+                    "callsign": "N0AJB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Corey Whitfield",
+                    "callsign": "N0AJC",
+                    "phone": ""
+                },
+                "quaditiary": {
+                    "fullname": "Devon Ashford",
+                    "callsign": "N0AJD",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Peter Sinks",
+            "identifier": "10-peter-sinks",
+            "description": "[No Crew][No Pacer]",
+            "location": {
+                "latitude": 41.9096,
+                "longitude": -111.5209,
+                "elevation": 8240
+            },
+            "distance": 83.5,
+            "dropbags": false,
+            "crewaccess": false,
+            "paceraccess": false,
+            "shiftBegin": "19:15:00 Sept 25 2026",
+            "cutofftime": "13:30:00 Sept 26 2026",
+            "shiftEnd": "14:00:00 Sept 26 2026",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "Angel Reed",
+                    "callsign": "N0AKA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Robin Vance",
+                    "callsign": "N0AKB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Toby Marsh",
+                    "callsign": "N0AKC",
+                    "phone": ""
+                },
+                "quaditiary": {
+                    "fullname": "Lane Ford",
+                    "callsign": "N0AKD",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Burnt Fork",
+            "identifier": "11-burnt-fork",
+            "description": "[Crew][Pacer Exchange]",
+            "location": {
+                "latitude": 41.9053,
+                "longitude": -111.4789,
+                "elevation": 7715
+            },
+            "distance": 92.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "21:00:00 Sept 25 2026",
+            "cutofftime": "16:15:00 Sept 26 2026",
+            "shiftEnd": "16:45:00 Sept 26 2026",
+            "entrymode": 0,
+            "operators": {
+                "primary": {
+                    "fullname": "Justice Hale",
+                    "callsign": "N0ALA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Merritt Cole",
+                    "callsign": "N0ALB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Sutton Reid",
+                    "callsign": "N0ALC",
+                    "phone": ""
+                },
+                "quaditiary": {
+                    "fullname": "Baxter Lowe",
+                    "callsign": "N0ALD",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Finish Line",
+            "identifier": "12-finish-line",
+            "description": "Garden City (Conestoga Ranch)",
+            "location": {
+                "latitude": 41.9540,
+                "longitude": -111.4023,
+                "elevation": 5969
+            },
+            "distance": 100.0,
+            "dropbags": true,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "22:30:00 Sept 25 2026",
+            "cutofftime": "18:00:00 Sept 26 2026",
+            "shiftEnd": "18:30:00 Sept 26 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Emory Vaughn",
+                    "callsign": "N0AMA",
+                    "phone": ""
+                },
+                "secondary": {
+                    "fullname": "Presley Kane",
+                    "callsign": "N0AMB",
+                    "phone": ""
+                },
+                "tertiary": {
+                    "fullname": "Shiloh Voss",
+                    "callsign": "N0AMC",
+                    "phone": ""
+                },
+                "quaditiary": {
+                    "fullname": "Bellamy Frost",
+                    "callsign": "N0AMD",
+                    "phone": ""
+                }
+            }
+        }
+    ]
+}

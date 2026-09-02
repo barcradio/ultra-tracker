@@ -9,12 +9,18 @@ const defaults = {
     startline: "0-start-line",
     starttime: "00:00:00 Jan 01 2024",
     finishline: "99-finish-line",
-    endtime: "00:00:00 Jan 01 2024"
+    endtime: "00:00:00 Jan 01 2024",
+    openSplitTime: {
+      production: { name: "", id: 0 },
+      staging: { name: "", id: 0 },
+      splitNames: {} as Record<string, string>
+    }
   },
   station: {
     id: 1,
     identifier: "1-default-station",
     name: "Default Station",
+    openSplitTimeSplitName: "Default Station",
     entryMode: "Normal",
     shiftBegin: "00:00:00 Jan 01 2024",
     shiftEnd: "00:00:00 Jan 01 2024",
@@ -52,7 +58,27 @@ export const appStore = new Store({
         startline: { type: "string", default: "" },
         starttime: { type: "string", default: "" },
         finishline: { type: "string", default: "" },
-        endtime: { type: "string", default: "" }
+        endtime: { type: "string", default: "" },
+        openSplitTime: {
+          type: "object",
+          properties: {
+            production: {
+              type: "object",
+              properties: {
+                name: { type: "string", default: "" },
+                id: { type: "number", default: 0 }
+              }
+            },
+            staging: {
+              type: "object",
+              properties: {
+                name: { type: "string", default: "" },
+                id: { type: "number", default: 0 }
+              }
+            },
+            splitNames: { type: "object", default: {} }
+          }
+        }
       }
       //required: ["name", "startline, "finishline"]
     },
@@ -62,6 +88,7 @@ export const appStore = new Store({
         id: { type: "number", default: 0 },
         identifier: { type: "string", default: "" },
         name: { type: "string", default: "" },
+        openSplitTimeSplitName: { type: "string", default: "" },
         entryMode: { enum: ["Normal", "Fast", "InOnly", "OutOnly"], default: "Normal" },
         shiftBegin: { type: "string", default: "00:00:00 Jan 01 2024" },
         shiftEnd: { type: "string", default: "00:00:00 Jan 01 2024" },

@@ -34,6 +34,7 @@ interface Props<T extends object> {
   actionButtons?: (row: T) => ReactNode;
   className?: string;
   type: "header" | "footer";
+  hasRowStatus?: boolean;
 }
 
 export function Headers<T extends object>(props: Props<T>) {
@@ -47,6 +48,11 @@ export function Headers<T extends object>(props: Props<T>) {
   return (
     <Section type={props.type}>
       <Row>
+        {props.hasRowStatus && (
+          <th aria-label="OpenSplitTime upload status" className="w-4 text-center">
+            ↑
+          </th>
+        )}
         {props.columns.map((column) => (
           <th
             key={column.name ?? String(column.field)}

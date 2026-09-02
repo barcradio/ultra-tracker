@@ -23,6 +23,19 @@ interface EventJSON {
   name: string;
   starttime: Date;
   endtime: Date;
+  openSplitTime?: OpenSplitTimeEventJSON;
+}
+
+interface OpenSplitTimeEventJSON {
+  production?: OpenSplitTimeEventMetadata;
+  staging?: OpenSplitTimeEventMetadata;
+  // Maps a station identifier to the split name already configured in OST, when it differs from the station name.
+  splitNames?: Record<string, string>;
+}
+
+interface OpenSplitTimeEventMetadata {
+  name: string;
+  id: number;
 }
 
 function importJsonFile(filePath: string): stationsJSON {
@@ -48,9 +61,17 @@ export async function LoadStations() {
   // TODO: Begin transaction
   for (const index in stationData) {
     if (index == "event") {
-      appStore.set("event.name", stationData.event.name);
+      const stagingEvent = stationData.event.openSplitTime?.staging;
+      appStore.set("event.name", stagingEvent?.name || stationData.event.name);
       appStore.set("event.starttime", formatDate(stationData.event.starttime));
       appStore.set("event.endtime", formatDate(stationData.event.endtime));
+      appStore.set(
+        "event.openSplitTime",
+        stationData.event.openSplitTime ?? {
+          production: { name: "", id: 0 },
+          staging: { name: "", id: 0 }
+        }
+      );
     }
 
     if (index == "stations") {
@@ -82,9 +103,16 @@ export async function setStation(stationIdentifier: string) {
   const selectedStation: Station | null = GetStationByIdentifier(stationIdentifier)?.[0];
   if (!selectedStation) return;
 
+  const splitNameOverrides =
+    (appStore.get("event.openSplitTime.splitNames") as Record<string, string>) ?? {};
+
   appStore.set("station.name", selectedStation.name);
   appStore.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
   appStore.set("station.identifier", selectedStation.identifier);
+  appStore.set(
+    "station.openSplitTimeSplitName",
+    splitNameOverrides[selectedStation.identifier] || selectedStation.name
+  );
   appStore.set("station.entrymode", selectedStation.entrymode);
   appStore.set(`station.shiftBegin`, formatDate(selectedStation.shiftBegin));
   appStore.set(`station.cutofftime`, formatDate(selectedStation.cutofftime));
