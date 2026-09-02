@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "node .github/hooks/scripts/post-edit-lint.cjs",
+        "timeout": 30
+      }
+    ]
+  }
+}
