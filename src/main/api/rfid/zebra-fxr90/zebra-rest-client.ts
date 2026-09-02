@@ -4,11 +4,14 @@
 */
 
 import https from "node:https";
-import type { PeerCertificate, TLSSocket } from "node:tls";
+import { type PeerCertificate, type TLSSocket } from "node:tls";
 import { RfidSettings } from "$shared/models";
 import { LogLevel, logRFID } from "../rfid-log";
 
 type HttpMethod = "GET" | "PUT";
+type NetworkError = Error & { code?: string };
+type ZebraApiError = Error & { status?: number; responseText?: string };
+type ZebraReaderStatus = { radioActivity?: string };
 
 // Zebra FXR90 units ship with a self-signed cert, so the normal CA chain
 // can't be validated. Instead, pin the leaf cert's serial number or CN
@@ -44,9 +47,7 @@ function requestJson(
       url,
       {
         method,
-        headers: payload
-          ? { ...headers, "Content-Length": Buffer.byteLength(payload) }
-          : headers,
+        headers: payload ? { ...headers, "Content-Length": Buffer.byteLength(payload) } : headers,
         rejectUnauthorized: false
       },
       (res) => {
@@ -80,7 +81,7 @@ function requestJson(
       });
     });
 
-    req.on("error", (error: NodeJS.ErrnoException) => {
+    req.on("error", (error: NetworkError) => {
       reject(describeNetworkError(url, error));
     });
     if (payload) req.write(payload);
@@ -89,13 +90,15 @@ function requestJson(
 }
 
 // Turn Node's low-level connection errors into a message an operator can act on.
-function describeNetworkError(url: string, error: NodeJS.ErrnoException): Error {
+function describeNetworkError(url: string, error: NetworkError): Error {
   const host = new URL(url).host;
   switch (error.code) {
     case "ENOTFOUND":
       return new Error(`Could not resolve RFID reader host "${host}". Check the network/hostname.`);
     case "ECONNREFUSED":
-      return new Error(`RFID reader at "${host}" refused the connection. Is it powered on and reachable?`);
+      return new Error(
+        `RFID reader at "${host}" refused the connection. Is it powered on and reachable?`
+      );
     case "ETIMEDOUT":
     case "ECONNRESET":
       return new Error(`Connection to RFID reader at "${host}" timed out or was reset.`);
@@ -106,11 +109,12 @@ function describeNetworkError(url: string, error: NodeJS.ErrnoException): Error 
   }
 }
 
-
 export class ZebraRestClient {
   private settings: RfidSettings;
   private token: string | undefined;
   private lastError: string | undefined;
+  private readonly radioStatePollIntervalMs = 500;
+  private readonly radioStateTimeoutMs = 15000;
 
   constructor(settings: RfidSettings) {
     this.settings = settings;
@@ -183,35 +187,65 @@ export class ZebraRestClient {
     };
 
     const url = `https://${this.settings.restApiUrl}${endpoint}`;
-    const response = await requestJson(url, method, headers, this.settings.sslCert, body ?? undefined);
+    const response = await requestJson(
+      url,
+      method,
+      headers,
+      this.settings.sslCert,
+      body ?? undefined
+    );
 
     if (!response.ok) {
-      throw new Error(
+      const error = new Error(
         `Request failed: ${response.status} ${response.statusText} (${response.text || "no body"})`
-      );
+      ) as ZebraApiError;
+      error.status = response.status;
+      error.responseText = response.text;
+      throw error;
     }
 
     return response.json();
   }
 
-
   // API Methods
   async stop(): Promise<void> {
-    try {
-      await this.request("PUT", "/cloud/stop");
-      logRFID(LogLevel.info, "RFID stop command sent.");
-    } catch (error) {
-      logRFID(LogLevel.error, "Failed to stop RFID:", error);
-    }
+    await this.request("PUT", "/cloud/stop");
+    await this.waitForRadioActivity("inactive");
+    logRFID(LogLevel.info, "RFID reader stopped.");
   }
 
   async start(): Promise<void> {
     try {
-      await this.request("PUT", "/cloud/start");
-      logRFID(LogLevel.info, "RFID start command sent.");
+      await this.request("PUT", "/cloud/start", { doNotPersistState: true });
+      logRFID(LogLevel.info, "RFID start command accepted.");
     } catch (error) {
-      logRFID(LogLevel.error, "Failed to start RFID:", error);
+      const zebraError = error as ZebraApiError;
+      if (
+        zebraError.status === 422 &&
+        /start currently ongoing/i.test(zebraError.responseText ?? "")
+      ) {
+        logRFID(
+          LogLevel.info,
+          "RFID reader was already starting; waiting for it to become active."
+        );
+      } else {
+        throw error;
+      }
     }
+    await this.waitForRadioActivity("active");
+    logRFID(LogLevel.info, "RFID reader is active.");
+  }
+
+  private async waitForRadioActivity(expectedState: "active" | "inactive"): Promise<void> {
+    const deadline = Date.now() + this.radioStateTimeoutMs;
+
+    while (Date.now() < deadline) {
+      const status = (await this.request("GET", "/cloud/status")) as ZebraReaderStatus;
+      if (status.radioActivity?.toLowerCase() === expectedState) return;
+      await new Promise<void>((resolve) => setTimeout(resolve, this.radioStatePollIntervalMs));
+    }
+
+    throw new Error(`RFID reader did not become ${expectedState} within 15 seconds.`);
   }
 
   async getMode(): Promise<unknown> {

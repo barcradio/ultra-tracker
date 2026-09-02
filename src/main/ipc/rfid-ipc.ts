@@ -7,9 +7,16 @@ const startRFID: Handler<string> = () => {
   return rfid.InitializeRFIDReader();
 };
 
-const disconnectRFID: Handler<string> = () => {
-  rfid.DisconnectRFIDReader();
-  return "RFID Disconnected";
+const beginReadingRFID: Handler<string, Promise<string>> = () => {
+  return rfid.StartRFIDReader();
+};
+
+const stopReadingRFID: Handler<string, Promise<string>> = () => {
+  return rfid.StopRFIDReader();
+};
+
+const disconnectRFID: Handler<string, Promise<string>> = () => {
+  return rfid.DisconnectRFIDReader();
 };
 
 const getStatusRFID: Handler<DeviceStatus> = () => {
@@ -18,6 +25,8 @@ const getStatusRFID: Handler<DeviceStatus> = () => {
 
 export const initRFIDHandlers = () => {
   ipcMain.handle("rfid-initialize", startRFID);
+  ipcMain.handle("rfid-start-reading", beginReadingRFID);
+  ipcMain.handle("rfid-stop-reading", stopReadingRFID);
   ipcMain.handle("rfid-disconnect", disconnectRFID);
   ipcMain.handle("rfid-get-status", getStatusRFID);
 };

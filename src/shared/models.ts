@@ -154,8 +154,6 @@ export type RfidSettings = {
   secureWebsocket: boolean;
   // Pinned cert serial number or CN for the reader's self-signed cert
   sslCert: string;
-  rfidTagRegx: RegExp;
   status: DeviceStatus;
   mode: number;
 };
-

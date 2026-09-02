@@ -38,7 +38,7 @@ export function applyMigrations() {
       db.pragma(`user_version = ${migrationVersion}`);
       console.log(`[success] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
     }
-  } catch (e) {
+  } catch {
     db.pragma(`user_version = ${Math.max(0, userVersion - 1)}`);
     console.log(
       `[error] pragma user_version: ${db.pragma("user_version", { simple: true })} reverted`

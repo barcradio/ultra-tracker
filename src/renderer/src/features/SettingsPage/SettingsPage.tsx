@@ -22,14 +22,16 @@ export function SettingsPage() {
   const [recoverOpen, setRecoverOpen] = useState(false);
 
   const shouldEnableRFID = useShouldEnableRFID();
-  const [rfidStatus] = useRFIDStatus();
+  const [rfidStatus, setRfidStatus] = useRFIDStatus();
 
-  const handleRfidButtonClick = () => {
+  const handleRfidButtonClick = async () => {
     if (rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting) {
-      settingsMutations.disconnectRfid.mutate();
+      await settingsMutations.disconnectRfid.mutateAsync();
     } else {
-      settingsMutations.initializeRfid.mutate();
+      await settingsMutations.initializeRfid.mutateAsync();
     }
+
+    setRfidStatus(await window.electron.ipcRenderer.invoke("rfid-get-status"));
   };
 
   const rfidButtonText =
@@ -68,11 +70,7 @@ export function SettingsPage() {
                 </Stack>
               }
             >
-              <Button
-                size="wide"
-                onClick={() => handleRfidButtonClick()}
-                disabled={!shouldEnableRFID}
-              >
+              <Button size="wide" onClick={handleRfidButtonClick} disabled={!shouldEnableRFID}>
                 {rfidButtonText}
               </Button>
               <a href="https://fxr90c94e1c/" className={`${rfidLinkVisibility}`}>

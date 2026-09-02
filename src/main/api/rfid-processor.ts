@@ -5,11 +5,11 @@
 */
 
 import { config } from "dotenv";
-import { DeviceStatus } from "../../shared/enums";
-import { RfidSettings } from "../../shared/models";
 import { IRfidController } from "./rfid/interfaces/IRfid-controller";
 import { LogLevel, logRFID } from "./rfid/rfid-log";
 import { RfidFactory } from "./rfid/rfid-reader-factory";
+import { DeviceStatus } from "../../shared/enums";
+import { RfidSettings } from "../../shared/models";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
 config({ path: "rfid.env" });
@@ -19,12 +19,11 @@ const defaultRfidSettings: RfidSettings = {
   type: "zebra-fxr90",
   restApiUrl: "fxr90c94e1c",
   webSocketUrl: "fxr90c94e1c",
-  websocketPort: 80,
+  websocketPort: 443,
   secureWebsocket: true,
   userName: process.env.RFID_USERNAME ?? "",
   password: process.env.RFID_PASSWORD ?? "",
   sslCert: "5ecb6929",
-  rfidTagRegx: /0{20}/,
   status: DeviceStatus.NoDevice,
   mode: 0 // RfidMode.idle
 };
@@ -52,7 +51,10 @@ export async function InitializeRFIDReader(settings?: Partial<RfidSettings>): Pr
 
     rfidController.on("error", (error) => {
       logRFID(LogLevel.error, "RFID error:", error);
-      rfidEmitter.statusRFID(DeviceStatus.Error, error instanceof Error ? error.message : String(error));
+      rfidEmitter.statusRFID(
+        DeviceStatus.Error,
+        error instanceof Error ? error.message : String(error)
+      );
     });
 
     rfidController.on("tag-read", () => {
@@ -74,11 +76,16 @@ export async function InitializeRFIDReader(settings?: Partial<RfidSettings>): Pr
 /**
  * Disconnect RFID reader
  */
-export function DisconnectRFIDReader(): string {
+export async function DisconnectRFIDReader(): Promise<string> {
   if (rfidController) {
-    rfidController.disconnect();
-    rfidController = null;
-    return "RFID disconnected";
+    try {
+      await rfidController.disconnect();
+      rfidController = null;
+      return "RFID reader stopped and disconnected";
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return `Failed to stop RFID reader before disconnecting: ${errorMessage}`;
+    }
   }
   return "RFID was not connected";
 }
@@ -86,10 +93,10 @@ export function DisconnectRFIDReader(): string {
 /**
  * Start reading tags
  */
-export function StartRFIDReader(): string {
+export async function StartRFIDReader(): Promise<string> {
   if (rfidController) {
     try {
-      rfidController.startRFID();
+      await rfidController.startRFID();
       return "RFID reading started";
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -102,10 +109,10 @@ export function StartRFIDReader(): string {
 /**
  * Stop reading tags
  */
-export function StopRFIDReader(): string {
+export async function StopRFIDReader(): Promise<string> {
   if (rfidController) {
     try {
-      rfidController.stopRFID();
+      await rfidController.stopRFID();
       return "RFID reading stopped";
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

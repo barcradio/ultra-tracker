@@ -16,14 +16,7 @@ export interface Toast {
   noIcon?: boolean;
 }
 
-export interface RfidTag {
-  eventNum: number;
-  format: string;
-  idHex: string;
-}
-
-export interface RfidData {
-  data: RfidTag;
-  timestamp: string;
-  type: string;
+export interface RfidTagRead {
+  bibId: number;
+  timestamp: Date;
 }

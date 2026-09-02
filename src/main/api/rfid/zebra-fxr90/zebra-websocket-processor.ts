@@ -8,13 +8,13 @@ import EventEmitter from "events";
 import WebSocket from "ws";
 import { DeviceStatus } from "$shared/enums";
 import { RfidSettings } from "$shared/models";
-import { RfidData } from "$shared/types";
+import { RfidTagRead } from "$shared/types";
 import * as dbRFIDInbox from "../../../database/rfidInbox-db";
 import { LogLevel, logRFID } from "../rfid-log";
 
 type RfidProcessorEvents = {
-  error: (error: Error) => void;
-  "tag-read": (data: RfidData) => void;
+  error: Parameters<EventEmitter["on"]>[1];
+  "tag-read": Parameters<EventEmitter["on"]>[1];
   connected: () => void;
   disconnected: () => void;
 };
@@ -25,10 +25,22 @@ interface RFIDFrame {
   payload: string;
 }
 
-function isRFIDMessage(value: unknown): value is RfidData {
+interface ZebraFxr90Message {
+  data: {
+    eventNum: number;
+    format: string;
+    idHex: string;
+  };
+  timestamp: string;
+  type: string;
+}
+
+const zebraBibIdPattern = /^0{20}\d+$/;
+
+function isRFIDMessage(value: unknown): value is ZebraFxr90Message {
   if (typeof value !== "object" || value === null) return false;
 
-  const message = value as Partial<RfidData>;
+  const message = value as Partial<ZebraFxr90Message>;
   const data = message.data as Record<string, unknown> | undefined;
 
   return (
@@ -39,7 +51,7 @@ function isRFIDMessage(value: unknown): value is RfidData {
     Number.isFinite(data.eventNum) &&
     data.format === "epc" &&
     typeof data.idHex === "string" &&
-    /^0{20}\d+$/.test(data.idHex) &&
+    zebraBibIdPattern.test(data.idHex) &&
     typeof message.timestamp === "string" &&
     !Number.isNaN(Date.parse(message.timestamp)) &&
     message.type === "CUSTOM"
@@ -106,6 +118,10 @@ export class ZebraWebSocketProcessor {
   private ws: WebSocket | null = null;
   private url: string;
   private eventEmitter: EventEmitter = new EventEmitter();
+  private connectionPromise: Promise<void> | null = null;
+  private resolveConnection: (() => void) | null = null;
+  // eslint-disable-next-line no-unused-vars
+  private rejectConnection: ((error: Error) => void) | null = null;
   private status: DeviceStatus = DeviceStatus.NoDevice;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
@@ -116,17 +132,23 @@ export class ZebraWebSocketProcessor {
   private pendingRetryAttempt = 0;
   private readonly initialRetryDelay = 1000;
   private readonly maxRetryDelay = 30000;
-  private rfidRegex: RegExp;
 
   constructor(settings: RfidSettings) {
     const protocol = settings.secureWebsocket ? "wss" : "ws";
     this.url = `${protocol}://${settings.webSocketUrl}:${settings.websocketPort}/ws`;
-    this.rfidRegex = settings.rfidTagRegx || /0{20}/;
   }
 
-  public connect(): void {
+  public connect(): Promise<void> {
+    if (this.ws?.readyState === WebSocket.OPEN) return Promise.resolve();
+    if (this.connectionPromise) return this.connectionPromise;
+
     this.status = DeviceStatus.Connecting;
-    this.setupWebSocket();
+    this.connectionPromise = new Promise((resolve, reject) => {
+      this.resolveConnection = resolve;
+      this.rejectConnection = reject;
+      this.setupWebSocket();
+    });
+    return this.connectionPromise;
   }
 
   public disconnect(): void {
@@ -135,19 +157,17 @@ export class ZebraWebSocketProcessor {
     this.ws = null;
   }
 
-  public on<K extends keyof RfidProcessorEvents>(
-    event: K,
-    listener: RfidProcessorEvents[K]
-  ): void {
+  public on<K extends keyof RfidProcessorEvents>(event: K, listener: RfidProcessorEvents[K]): void {
     this.eventEmitter.on(event, listener);
   }
 
   private setupWebSocket(): void {
-    this.ws = new WebSocket(this.url, { rejectUnauthorized: false });
+    this.ws = new WebSocket(this.url, { handshakeTimeout: 10000, rejectUnauthorized: false });
 
     this.ws.on("open", () => {
       this.status = DeviceStatus.Connected;
       this.reconnectAttempts = 0;
+      this.resolvePendingConnection();
       this.eventEmitter.emit("connected");
       this.requestProcessPendingMessages();
     });
@@ -166,6 +186,7 @@ export class ZebraWebSocketProcessor {
 
     this.ws.on("close", () => {
       logRFID(LogLevel.info, "WebSocket disconnected");
+      this.rejectPendingConnection(new Error("RFID WebSocket closed before connecting"));
       if (this.status === DeviceStatus.Disconnecting) {
         this.status = DeviceStatus.Disconnected;
         this.eventEmitter.emit("disconnected");
@@ -176,6 +197,7 @@ export class ZebraWebSocketProcessor {
 
     this.ws.on("error", (error) => {
       logRFID(LogLevel.error, "WebSocket error:", error);
+      this.rejectPendingConnection(error);
 
       if (error.toString().includes("EHOSTUNREACH") || error.toString().includes("ETIMEDOUT")) {
         switch (this.status) {
@@ -194,6 +216,20 @@ export class ZebraWebSocketProcessor {
         this.eventEmitter.emit("error", error);
       }
     });
+  }
+
+  private resolvePendingConnection(): void {
+    this.resolveConnection?.();
+    this.connectionPromise = null;
+    this.resolveConnection = null;
+    this.rejectConnection = null;
+  }
+
+  private rejectPendingConnection(error: Error): void {
+    this.rejectConnection?.(error);
+    this.connectionPromise = null;
+    this.resolveConnection = null;
+    this.rejectConnection = null;
   }
 
   private handleReconnection(): void {
@@ -308,13 +344,10 @@ export class ZebraWebSocketProcessor {
           continue;
         }
 
-        if (!this.rfidRegex.test(obj.data.idHex)) {
-          logRFID(LogLevel.debug, "RFID tag did not match configured pattern:", obj.data.idHex);
-          processedLength = frame.end;
-          continue;
-        }
-
-        this.eventEmitter.emit("tag-read", obj);
+        this.eventEmitter.emit("tag-read", {
+          bibId: Number.parseInt(obj.data.idHex, 10),
+          timestamp: new Date(obj.timestamp)
+        } satisfies RfidTagRead);
         processedLength = frame.end;
       } catch (error) {
         logRFID(LogLevel.error, "Failed to parse RFID JSON:", error, "Raw:", frame.payload);
