@@ -10,6 +10,7 @@
 ## Repository Conventions
 
 - Use `pnpm` for dependency and script execution, and keep `pnpm-lock.yaml` consistent when dependencies change.
+- Commit messages must pass `commitlint` (`@commitlint/config-conventional`) on the first attempt: use the Conventional Commits format `type(scope): subject`, where `type` is one of `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`; `scope` is optional and lowercase; `subject` is lowercase, uses the imperative mood, has no trailing period, and the full header stays under 100 characters. Add a body/footer only when more explanation is needed, separated from the header by a blank line.
 - Use the existing Prettier, ESLint, and TypeScript configuration. Prefer the repository's aliases and established component patterns.
 - Keep changes focused. Do not reformat unrelated code, rename public APIs without a migration, or edit generated/build output in `dist/` or `out/`.
 - Treat `src/renderer/src/routeTree.gen.ts` and other generated files as generated; change their source/configuration instead of hand-editing them when possible.
