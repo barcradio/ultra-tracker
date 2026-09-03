@@ -24,7 +24,17 @@ export function TableContent<T extends object>(props: Props<T>) {
   const statusClass = (status: RowStatus) => {
     if (status === "success") return "bg-success";
     if (status === "error") return "bg-danger";
-    return "bg-[#FBBE00]";
+    if (status === "pending") return "bg-[#FBBE00]";
+    if (status === "exported") return "border-2 border-success";
+    return "border-2 border-gray-500";
+  };
+
+  const statusLabel = (status: RowStatus) => {
+    if (status === "success") return "Uploaded";
+    if (status === "error") return "Upload failed";
+    if (status === "pending") return "Pending upload";
+    if (status === "exported") return "Exported";
+    return "Not exported";
   };
 
   const renderCell = (column: Column<T>, row: T) => {
@@ -49,17 +59,20 @@ export function TableContent<T extends object>(props: Props<T>) {
           last={isLast(row.index)}
           ref={props.rowVirtualizer.measureElement}
         >
-          {props.rowStatus && (
-            <td
-              className="w-4 px-1"
-              aria-label={`OpenSplitTime upload status: ${props.rowStatus(props.data[row.index])}`}
-            >
-              <span
-                className={`block h-3 w-3 rounded-full ${statusClass(props.rowStatus(props.data[row.index]))}`}
-                aria-hidden="true"
-              />
-            </td>
-          )}
+          {props.rowStatus &&
+            (() => {
+              const status = props.rowStatus(props.data[row.index]);
+              const label = statusLabel(status);
+
+              return (
+                <td className="w-4 px-1" aria-label={label} title={label}>
+                  <span
+                    className={`block h-3 w-3 rounded-full ${statusClass(status)}`}
+                    aria-hidden="true"
+                  />
+                </td>
+              );
+            })()}
           {props.columns.map((column) => (
             <Cell
               key={column.name ?? String(column.field)}

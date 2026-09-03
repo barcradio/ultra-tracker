@@ -284,13 +284,11 @@ function updateTimeRecord(
       timeValue(existingRecord.timeIn) !== timeValue(record.timeIn) ||
       timeValue(existingRecord.timeOut) !== timeValue(record.timeOut))
   ) {
-    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId))
-      .then((outcome) => {
-        if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
-      })
-      .catch((error: unknown) => {
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId)).catch(
+      (error: unknown) => {
         console.error("OpenSplitTime record update failed", error);
-      });
+      }
+    );
   }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
@@ -345,13 +343,11 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   // pushing here would incorrectly overwrite the original runner's time on OST until the operator
   // resolves the duplicate to a real bib number.
   if (record.status !== RecordStatus.Duplicate) {
-    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId))
-      .then((outcome) => {
-        if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
-      })
-      .catch((error: unknown) => {
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId)).catch(
+      (error: unknown) => {
         console.error("OpenSplitTime record update failed", error);
-      });
+      }
+    );
   }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];

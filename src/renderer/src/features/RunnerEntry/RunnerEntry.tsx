@@ -1,12 +1,19 @@
 import { Stack } from "~/components";
 import { StatusTag } from "~/components/StatusTag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
+import { RowStatus } from "~/features/DataGrid/types";
 import { formatDate } from "~/lib/datetimes";
 import { DNFType, RecordStatus } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { InTimeCell } from "./InTimeCell";
 import { RunnerFormStats } from "./RunnerFormStats";
 import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
+
+function getRowStatus(row: RunnerEx): RowStatus {
+  if (!row.openSplitTimeAuthenticated) return row.sent ? "exported" : "not-exported";
+
+  return row.openSplitTimePushStatus ?? "pending";
+}
 
 export function RunnerEntry() {
   const { data: runnerData } = useRunnerData();
@@ -67,7 +74,7 @@ export function RunnerEntry() {
             field: "sequence",
             ascending: false
           }}
-          rowStatus={(row) => row.openSplitTimePushStatus ?? (row.sent ? "success" : "pending")}
+          rowStatus={getRowStatus}
         />
       </div>
     </Stack>

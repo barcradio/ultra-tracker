@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button, Modal, Select, Stack, TextInput, VerticalButtonGroup } from "~/components";
 import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 
@@ -35,6 +36,7 @@ interface OpenSplitTimeLoginProps {
 
 export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) {
   const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [expiration, setExpiration] = useState<string | null>(null);
@@ -115,13 +117,14 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
           if (!authStatus.authenticated) {
             setSessionExpired(true);
             setExpiration(null);
+            queryClient.invalidateQueries({ queryKey: ["runners-table"] });
           }
         })
         .catch(() => undefined);
     }, 20_000);
 
     return () => clearInterval(interval);
-  }, [ipcRenderer, expiration]);
+  }, [ipcRenderer, expiration, queryClient]);
 
   const applyEnvironment = async (nextEnvironment: OpenSplitTimeEnvironment) => {
     await ipcRenderer.invoke("opensplittime-set-environment", { environment: nextEnvironment });
@@ -163,6 +166,7 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
       setPushPaused(false);
       setSessionExpired(false);
       setPassword("");
+      await queryClient.invalidateQueries({ queryKey: ["runners-table"] });
     } catch {
       setExpiration(null);
       setError(true);
@@ -183,6 +187,7 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
       setExpiration(result.expiration);
       setPushPaused(false);
       setSessionExpired(false);
+      await queryClient.invalidateQueries({ queryKey: ["runners-table"] });
     } catch {
       setExpiration(null);
       setError(true);
@@ -197,6 +202,7 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
     setPassword("");
     setPushPaused(true);
     setSessionExpired(false);
+    await queryClient.invalidateQueries({ queryKey: ["runners-table"] });
   };
 
   const handleTogglePush = async () => {

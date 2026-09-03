@@ -2,7 +2,7 @@ import { ipcMain } from "electron";
 import { DatabaseStatus } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 import { getStoppedHereForBib } from "../database/status-db";
-import { getTimeRecordbyBib, markTimeRecordAsSent } from "../database/timingRecords-db";
+import { getTimeRecordbyBib } from "../database/timingRecords-db";
 import {
   OpenSplitTimeEnvironment,
   OpenSplitTimeRawTime,
@@ -128,12 +128,9 @@ const pushOpenSplitTimeRecord: Handler<PushRecordParams> = async (_, params) => 
     throw new TypeError(`No timing record found for bib ${params.bibId}`);
   }
 
-  const outcome = await pushTimeRecordUpdate(record, getStoppedHereForBib(record.bibId), {
+  return pushTimeRecordUpdate(record, getStoppedHereForBib(record.bibId), {
     force: true
   });
-  if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
-
-  return outcome;
 };
 
 export const initOpenSplitTimeHandlers = () => {
