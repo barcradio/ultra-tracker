@@ -24,8 +24,7 @@ const defaultRfidSettings: RfidSettings = {
   userName: process.env.RFID_USERNAME ?? "",
   password: process.env.RFID_PASSWORD ?? "",
   sslCert: "5ecb6929",
-  status: DeviceStatus.NoDevice,
-  mode: 0 // RfidMode.idle
+  status: DeviceStatus.NoDevice
 };
 
 /**

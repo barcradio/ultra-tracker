@@ -49,7 +49,3 @@ export enum DeviceStatus {
   Error
 }
 
-export enum RfidMode {
-  idle = "idle",
-  active = "active"
-}
