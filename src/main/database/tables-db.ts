@@ -4,9 +4,10 @@ import { migrations } from "./migrations-db";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
+import * as tableDefs3 from "./schema/table-definitions-v3";
 
-const userVersion: number = 2;
-var tableDefs;
+const userVersion: number = 3;
+let tableDefs;
 
 interface Table {
   type: string;
@@ -27,7 +28,7 @@ export function applyMigrations() {
       const currentVersion = db.pragma("user_version", { simple: true }) as number;
       if (currentVersion == userVersion) return;
 
-      var migrationVersion = currentVersion + 1;
+      const migrationVersion = currentVersion + 1;
 
       console.log(
         `[begin] pragma user_version: current: ${currentVersion} target: ${migrationVersion}`
@@ -36,7 +37,7 @@ export function applyMigrations() {
       db.pragma(`user_version = ${migrationVersion}`);
       console.log(`[success] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
     }
-  } catch (e) {
+  } catch {
     db.pragma(`user_version = ${Math.max(0, userVersion - 1)}`);
     console.log(
       `[error] pragma user_version: ${db.pragma("user_version", { simple: true })} reverted`
@@ -61,6 +62,10 @@ export function validateDatabaseTables() {
     case 2:
       tableDefs = tableDefs2;
       break;
+
+    case 3:
+      tableDefs = tableDefs3;
+      break;
   }
 
   for (const key in tableDefs.expectedTableNames) {
@@ -69,7 +74,7 @@ export function validateDatabaseTables() {
 
     if (!tableNames.find((element) => element == name)) {
       console.log(`Table not found: ${tableDefs.expectedTableNames[key]}`);
-      createTable(tableDefs.expectedTableNames[key], tableDefs[name]); // eslint-disable-line import/namespace
+      createTable(tableDefs.expectedTableNames[key], tableDefs[name]);
     }
   }
 
@@ -123,7 +128,9 @@ export function CreateTables() {
     createStationsTable() &&
     createOutputTable() &&
     createStatusTable() &&
-    createOpenSplitTimePushStatusTable();
+    createOpenSplitTimePushStatusTable() &&
+    createRFIDInboxTable() &&
+    createRFIDPendingWritesTable();
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
@@ -159,11 +166,15 @@ export const createOutputTable = () =>
   createTable(tableDefs.expectedTableNames.Output, tableDefs.Output);
 export const createStatusTable = () =>
   createTable(tableDefs.expectedTableNames.Status, tableDefs.Status);
+export const createRFIDInboxTable = () =>
+  createTable(tableDefs.expectedTableNames.RFIDInbox, tableDefs.RFIDInbox);
 export const createOpenSplitTimePushStatusTable = () =>
   createTable(
     tableDefs.expectedTableNames.OpenSplitTimePushStatus,
     tableDefs.OpenSplitTimePushStatus
   );
+export const createRFIDPendingWritesTable = () =>
+  createTable(tableDefs.expectedTableNames.RFIDPendingWrites, tableDefs.RFIDPendingWrites);
 
 export function ClearTables() {
   const result =

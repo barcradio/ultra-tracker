@@ -1,262 +1,170 @@
-/*
-/ RFID Web Sockets
-// This is to interface with the ZEBRA FXR90 RFID scanner.  Currently Expects to receive Similar looking form the scanner"
- {"data":{"eventNum":5938,"format":"epc","idHex":"000000000000000000000343"},"timestamp":"2024-09-05T01:07:01.785-0600","type":"CUSTOM"}
-/ where idhex is the the Bib number and the time stamp is the time when the bib was reed
-/
-/ USER APPS repo for Zebra https://github.com/ZebraDevs/RFID_ZIOTC_Examples
-// Documentation: https://zebradevs.github.io/rfid-ziotc-docs/setupziotc/index.html#start-reads
+﻿/*
+  RFID Processor - Main entry point for RFID functionality
+  Provides a reader-agnostic interface; RfidFactory picks the concrete
+  controller (e.g. ZebraFxr90Controller) based on settings.type.
 */
 
-import { EventEmitter } from "events";
-import WebSocket from "ws";
+import { config } from "dotenv";
+import { IRfidController } from "./rfid/interfaces/IRfid-controller";
+import { LogLevel, logRFID } from "./rfid/rfid-log";
+import { RfidFactory } from "./rfid/rfid-reader-factory";
 import { DeviceStatus } from "../../shared/enums";
-import * as dbTimings from "../database/timingRecords-db";
+import { RfidConnectionSettings, RfidSettings } from "../../shared/models";
 import * as rfidEmitter from "../ipc/rfid-emitter";
 
-let rfidWebSocketProcessor: RFIDWebSocketProcessor | null = null;
-const rfidReaderUrl = "wss://fxr90c94e1c/ws:80"; //connecting directly via hostname
+config({ path: "rfid.env" });
 
-// Define interfaces to type the expected JSON data structure
-interface RFIDData {
-  eventNum: number;
-  format: string;
-  idHex: string;
-}
+let rfidController: IRfidController | null = null;
+const defaultRfidSettings: RfidSettings = {
+  type: "zebra-fxr90",
+  restApiUrl: "fxr90c94e1c",
+  webSocketUrl: "fxr90c94e1c",
+  websocketPort: 443,
+  secureWebsocket: true,
+  userName: process.env.RFID_USERNAME ?? "",
+  password: process.env.RFID_PASSWORD ?? "",
+  sslCert: "5ecb6929",
+  status: DeviceStatus.NoDevice
+};
 
-interface RFIDMessage {
-  data: RFIDData;
-  timestamp: string;
-  type: string;
-}
-
-export function InitializeRFIDReader() {
-  const rfidRead = rfidEmitter.hasReadRFID;
-  const rfidStatus = rfidEmitter.statusRFID;
-
-  if (rfidWebSocketProcessor != null) {
-    if (rfidWebSocketProcessor.getStatus() == DeviceStatus.Connected) {
-      return "RFID Connected"; // static string
-    }
+/**
+ * Initialize RFID reader with default or provided settings
+ */
+export async function InitializeRFIDReader(
+  settings?: Partial<RfidConnectionSettings>
+): Promise<string> {
+  if (rfidController && rfidController.getStatus() === DeviceStatus.Connected) {
+    return "RFID already connected";
   }
 
   try {
-    rfidWebSocketProcessor = new RFIDWebSocketProcessor(rfidReaderUrl, rfidRead);
-  } catch (e) {
-    if (e instanceof Error) {
-      console.error(`This RFID is broke: ${e.message}`);
-      rfidStatus(DeviceStatus.Error, e.message);
+    const finalSettings = { ...defaultRfidSettings, ...settings };
+    rfidController = RfidFactory.create(finalSettings);
+
+    // Subscribe to controller events
+    rfidController.on("connected", () => {
+      rfidEmitter.statusRFID(DeviceStatus.Connected, "RFID Connected");
+    });
+
+    rfidController.on("disconnected", () => {
+      rfidEmitter.statusRFID(DeviceStatus.Disconnected, "RFID Disconnected");
+    });
+
+    rfidController.on("error", (error) => {
+      logRFID(LogLevel.error, "RFID error:", error);
+      rfidEmitter.statusRFID(
+        DeviceStatus.Error,
+        error instanceof Error ? error.message : String(error)
+      );
+    });
+
+    rfidController.on("tag-read", () => {
+      rfidEmitter.hasReadRFID();
+    });
+
+    // Initialize the reader
+    await rfidController.initialize(finalSettings);
+
+    return "RFID authenticated";
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logRFID(LogLevel.error, "Failed to initialize RFID:", errorMessage);
+    rfidEmitter.statusRFID(DeviceStatus.Error, errorMessage);
+    return `RFID initialization failed: ${errorMessage}`;
+  }
+}
+
+/**
+ * Disconnect RFID reader
+ */
+export async function DisconnectRFIDReader(): Promise<string> {
+  if (!rfidController) return "RFID was not connected";
+
+  // Clear the shared reference first so a failed network stop cannot leave the UI locked.
+  const controller = rfidController;
+  rfidController = null;
+
+  try {
+    await controller.disconnect();
+    return "RFID reader stopped and disconnected";
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return `RFID reader disconnected locally; unable to stop it remotely: ${errorMessage}`;
+  }
+}
+
+export function RecoverRFIDReader(): void {
+  rfidController?.recover();
+}
+
+/**
+ * Start reading tags
+ */
+export async function StartRFIDReader(): Promise<string> {
+  if (rfidController) {
+    try {
+      await rfidController.startRFID();
+      return "RFID reading started";
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return `Failed to start RFID: ${errorMessage}`;
     }
-    return "RFID: Not Connected"; //static string
   }
-
-  rfidWebSocketProcessor.on("connected", () => {
-    console.log("RFID WebSocket connected");
-    rfidStatus(DeviceStatus.Connected, "RFID Connected"); //Static string
-  });
-
-  rfidWebSocketProcessor.on("disconnected", () => {
-    console.log("RFID WebSocket disconnected");
-    rfidStatus(DeviceStatus.Disconnected, "RFID Disconnected"); //static string
-  });
-
-  rfidWebSocketProcessor.on("error", (error) => {
-    console.error("RFID WebSocket error:", error);
-  });
-
-  rfidWebSocketProcessor.on("status", (...args: unknown[]) => {
-    const [status, mess] = args as [DeviceStatus, string];
-
-    rfidStatus(<DeviceStatus>status, mess);
-  });
-
-  return "Connecting RFID"; //static string
+  return "RFID not initialized";
 }
 
-export function DisconnectRFIDReader() {
-  if (rfidWebSocketProcessor != null) {
-    rfidWebSocketProcessor.disconnect();
-    rfidWebSocketProcessor = null; // makes sure it is closed before setting null;
+/**
+ * Stop reading tags
+ */
+export async function StopRFIDReader(): Promise<string> {
+  if (rfidController) {
+    try {
+      await rfidController.stopRFID();
+      return "RFID reading stopped";
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return `Failed to stop RFID: ${errorMessage}`;
+    }
   }
+  return "RFID not initialized";
 }
 
+/**
+ * Get current RFID status
+ */
 export function GetRFIDStatus(): DeviceStatus {
-  if (rfidWebSocketProcessor != null) {
-    return rfidWebSocketProcessor.getStatus();
+  if (rfidController) {
+    return rfidController.getStatus();
   }
   return DeviceStatus.NoDevice;
 }
-export class RFIDWebSocketProcessor {
-  private ws: WebSocket | null = null;
-  private reconnectInterval: number = 5000; // milliseconds
-  private maxReconnectAttempts: number = 10;
-  private reconnectAttempts: number = 0;
-  private eventEmitter: EventEmitter = new EventEmitter();
-  private errorCount: number = 0;
-  private buffer: string = "";
-  private RFIRegex = /0{20}/;
-  private url: string = "";
-  private status: DeviceStatus = DeviceStatus.NoDevice;
 
-  constructor(
-    url: string,
-    private dataBaseUpdated?: () => void
-  ) {
-    this.url = url;
-    this.status = DeviceStatus.Connecting;
-    this.setupWebSocket();
+export function IsRFIDScanning(): boolean {
+  return rfidController?.isScanning() ?? false;
+}
+
+/**
+ * Get RFID settings
+ */
+export function GetRFIDSettings(): RfidSettings | null {
+  if (rfidController) {
+    return rfidController.getSettings();
   }
+  return null;
+}
 
-  private setupWebSocket(): void {
-    this.ws = new WebSocket(this.url, {
-      rejectUnauthorized: false // Allow self-signed certificates
-    });
-
-    this.ws.on("open", () => {
-      this.status = DeviceStatus.Connected;
-      this.reconnectAttempts = 0;
-      this.eventEmitter.emit("connected");
-    });
-
-    this.ws.on("message", (data) => {
-      this.buffer = data.toString();
-      console.debug("Received data:", data.toString());
-      this.processIncomingMessages();
-    });
-
-    this.ws.on("close", () => {
-      console.log("Disconnected from RFID reader");
-      //make sure they don't want to disconnect RFID
-      if (this.status == DeviceStatus.Disconnecting) {
-        this.status = DeviceStatus.Disconnected;
-        this.eventEmitter.emit("disconnected");
-      }
-      if (this.status == DeviceStatus.Connected) {
-        this.handleReconnection();
-      }
-    });
-
-    this.ws.on("error", (error) => {
-      this.errorCount++;
-      console.error("WebSocket", error);
-
-      if (error.toString().includes("EHOSTUNREACH") || error.toString().includes("ETIMEDOUT")) {
-        //failed to find device
-        switch (this.status) {
-          case DeviceStatus.Connected:
-            console.error("RFID host unreachable attempting to reconnect.");
-            this.eventEmitter.emit("error", error);
-            break;
-          case DeviceStatus.Connecting:
-            this.status = DeviceStatus.NoDevice;
-            this.eventEmitter.emit("status", this.status, "No RFID Found");
-            break;
-          case DeviceStatus.NoDevice:
-          case DeviceStatus.Disconnected:
-          case DeviceStatus.Disconnecting:
-          case DeviceStatus.Error:
-            this.eventEmitter.emit("error", error);
-        }
-      }
-      this.eventEmitter.emit("error", error);
-    });
-  }
-
-  private handleReconnection(): void {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      setTimeout(() => {
-        this.reconnectAttempts++;
-        console.log(`Reconnection attempt ${this.reconnectAttempts}`);
-        this.setupWebSocket();
-      }, this.reconnectInterval);
-    } else {
-      //called only if it was once connected and connection was never able to reconnect
-      if (this.status == DeviceStatus.Connected) {
-        this.eventEmitter.emit("error", "RFID Lost Connection max reconnection attempts reached"); //static string
-      } else if (this.status == DeviceStatus.Connecting) {
-        console.error("Max reconnection attempts reached. Unable connect to RFID");
-      }
-      this.status = DeviceStatus.NoDevice;
-      this.eventEmitter.emit("status", this.status, "NO RFID Found");
-    }
-  }
-
-  private processIncomingMessages(): void {
-    // Extract JSON objects from buffer
-    const jsonObjects = this.buffer.match(/{.*?}(?=\{|\s*$)/g);
-
-    if (!jsonObjects) {
-      console.log("No valid JSON objects found");
-      return;
-    }
-
-    // Process each parsed JSON object
-    jsonObjects.forEach((jsonStr) => {
-      try {
-        const obj = JSON.parse(jsonStr) as RFIDMessage;
-
-        // Check if the RFID matches Bear 100 regex
-        if (this.RFIRegex.test(obj.data.idHex)) {
-          this.handleDatabaseInsert(obj);
-        } else {
-          console.log("Not Bear 100 regex");
-        }
-      } catch (error) {
-        console.error("Failed to parse JSON:", error, "Raw JSON:", jsonStr);
-      }
-    });
-  }
-
-  private handleDatabaseInsert(obj: RFIDMessage): void {
-    const idhex = parseInt(obj.data.idHex);
-    const timestamp = new Date(obj.timestamp);
-
+/**
+ * Set RFID mode (passed to REST API)
+ */
+export function SetRFIDMode(mode: string): string {
+  if (rfidController) {
     try {
-      dbTimings.insertOrUpdateTimeRecord({
-        index: -1, // Set by backend
-        bibId: idhex,
-        stationId: -1, // Set by backend
-        timeIn: timestamp,
-        timeOut: timestamp,
-        timeModified: timestamp,
-        note: "RFID",
-        sent: false, // Set by backend
-        status: -1 // Set by backend
-      });
-      //console.log(`RFID processed: ${idhex}`);
-      if (this.dataBaseUpdated) {
-        this.dataBaseUpdated();
-      }
+      rfidController.setMode(mode);
+      return "RFID mode set";
     } catch (error) {
-      console.error("Error updating database:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return `Failed to set RFID mode: ${errorMessage}`;
     }
   }
-
-  public connect(addr: string) {
-    this.url = "wss://" + addr + "/ws";
-    this.handleReconnection();
-  }
-
-  public disconnect(): void {
-    this.ws?.close(1000, "Client Closing Connection");
-    this.status = DeviceStatus.Disconnecting;
-  }
-
-  public sendMessage(message: string): void {
-    if (this.status == DeviceStatus.Connected) {
-      this.ws?.send(message);
-    }
-    this.eventEmitter.emit("error", "RFID not Connected"); //static message
-  }
-
-  public getStatus(): DeviceStatus {
-    return this.status;
-  }
-
-  public on(
-    event: "connected" | "disconnected" | "error" | "status",
-    listener: (...args: unknown[]) => void
-  ): void {
-    this.eventEmitter.on(event, listener);
-  }
+  return "RFID not initialized";
 }

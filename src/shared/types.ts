@@ -15,3 +15,8 @@ export interface Toast {
   timeoutMs?: number;
   noIcon?: boolean;
 }
+
+export interface RfidTagRead {
+  bibId: number;
+  timestamp: Date;
+}
