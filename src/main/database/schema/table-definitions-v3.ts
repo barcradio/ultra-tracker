@@ -2,6 +2,7 @@ export const expectedTableNames = {
   Athletes: "Athletes",
   EventLog: "EventLog",
   Output: "Output",
+  OpenSplitTimePushStatus: "OpenSplitTimePushStatus",
   Stations: "Stations",
   Status: "Status",
   TimeRecords: "TimeRecords",
