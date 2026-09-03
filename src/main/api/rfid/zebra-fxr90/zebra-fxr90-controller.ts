@@ -16,12 +16,24 @@ export class ZebraFxr90Controller implements IRfidController {
   private timingWriter = new RfidTimingWriter();
   private rfidSettings!: RfidSettings;
   private scanning = false;
+  private healthCheckTimer: ReturnType<typeof setInterval> | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private healthCheckInProgress = false;
+  private consecutiveHealthCheckFailures = 0;
+  private reconnectAttempts = 0;
+  private manuallyDisconnected = false;
+  private readonly healthCheckIntervalMs = 30000;
+  private readonly maxHealthCheckFailures = 3;
+  private readonly maxReconnectAttempts = 10;
+  private readonly initialReconnectDelayMs = 5000;
+  private readonly maxReconnectDelayMs = 60000;
 
   public on(event: RfidEvent, listener: Parameters<EventEmitter["on"]>[1]): void {
     this.eventEmitter.on(event, listener);
   }
 
   public async initialize(settings: RfidSettings): Promise<void> {
+    this.manuallyDisconnected = false;
     this.rfidSettings = settings;
 
     // Only initialize REST client if using REST API
@@ -44,6 +56,8 @@ export class ZebraFxr90Controller implements IRfidController {
 
     this.rfidSettings.status = DeviceStatus.Connecting;
     await this.rfidProcessor.connect();
+    await this.refreshScanningState();
+    this.startHealthChecks();
 
     this.timingWriter.recoverPendingWrites();
   }
@@ -57,7 +71,17 @@ export class ZebraFxr90Controller implements IRfidController {
   }
 
   public async disconnect(): Promise<void> {
-    await this.stopRFID();
+    this.manuallyDisconnected = true;
+    this.stopHealthChecks();
+    this.clearReconnectTimer();
+    this.scanning = false;
+    this.rfidProcessor?.disconnect();
+    await this.restClient?.stop();
+  }
+
+  public recover(): void {
+    this.manuallyDisconnected = false;
+    this.scanning = false;
     this.rfidProcessor?.disconnect();
   }
 
@@ -92,6 +116,94 @@ export class ZebraFxr90Controller implements IRfidController {
     return this.rfidSettings;
   }
 
+  private async refreshScanningState(): Promise<void> {
+    if (!this.restClient) throw new Error("RFID REST client is not initialized");
+    this.scanning = (await this.restClient.getRadioActivity()) === "active";
+  }
+
+  private startHealthChecks(): void {
+    this.stopHealthChecks();
+    this.healthCheckTimer = setInterval(
+      () => void this.checkReaderHealth(),
+      this.healthCheckIntervalMs
+    );
+  }
+
+  private stopHealthChecks(): void {
+    if (this.healthCheckTimer) clearInterval(this.healthCheckTimer);
+    this.healthCheckTimer = null;
+    this.consecutiveHealthCheckFailures = 0;
+  }
+
+  private async checkReaderHealth(): Promise<void> {
+    if (this.healthCheckInProgress || this.rfidSettings.status !== DeviceStatus.Connected) return;
+
+    this.healthCheckInProgress = true;
+    try {
+      await this.refreshScanningState();
+      this.consecutiveHealthCheckFailures = 0;
+    } catch (error) {
+      this.consecutiveHealthCheckFailures++;
+      logRFID(
+        LogLevel.warn,
+        `RFID health check failed (${this.consecutiveHealthCheckFailures}/${this.maxHealthCheckFailures}):`,
+        error
+      );
+
+      if (this.consecutiveHealthCheckFailures >= this.maxHealthCheckFailures) {
+        this.handleError(new Error("RFID reader is offline after repeated health check failures"));
+        this.rfidProcessor?.disconnect();
+      }
+    } finally {
+      this.healthCheckInProgress = false;
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (this.manuallyDisconnected || this.reconnectTimer) return;
+
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      this.handleError(new Error("RFID reconnection failed after 10 attempts"));
+      return;
+    }
+
+    this.reconnectAttempts++;
+    const delay = Math.min(
+      this.initialReconnectDelayMs * 2 ** (this.reconnectAttempts - 1),
+      this.maxReconnectDelayMs
+    );
+    logRFID(LogLevel.warn, `RFID reconnection attempt ${this.reconnectAttempts} in ${delay}ms`);
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.reconnect();
+    }, delay);
+  }
+
+  private async reconnect(): Promise<void> {
+    try {
+      if (!this.restClient || !this.rfidProcessor) {
+        throw new Error("RFID reader is not initialized");
+      }
+      if (!(await this.restClient.login())) {
+        throw new Error(this.restClient.getLastError() ?? "RFID REST login failed");
+      }
+
+      await this.rfidProcessor.connect();
+      await this.refreshScanningState();
+      this.startHealthChecks();
+      this.reconnectAttempts = 0;
+    } catch (error) {
+      logRFID(LogLevel.warn, "RFID reconnection failed:", error);
+      this.scheduleReconnect();
+    }
+  }
+
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.reconnectAttempts = 0;
+  }
+
   private onConnected(): void {
     this.rfidSettings.status = DeviceStatus.Connected;
     this.eventEmitter.emit("connected");
@@ -100,8 +212,11 @@ export class ZebraFxr90Controller implements IRfidController {
 
   private onDisconnected(): void {
     this.rfidSettings.status = DeviceStatus.Disconnected;
+    this.scanning = false;
+    this.stopHealthChecks();
     this.eventEmitter.emit("disconnected");
     rfidEmitter.statusRFID(DeviceStatus.Disconnected, "RFID reader disconnected");
+    this.scheduleReconnect();
   }
 
   private handleTagRead(tagRead: RfidTagRead): void {

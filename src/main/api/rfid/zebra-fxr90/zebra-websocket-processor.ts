@@ -6,7 +6,6 @@
 
 import EventEmitter from "events";
 import WebSocket from "ws";
-import { DeviceStatus } from "$shared/enums";
 import { RfidSettings } from "$shared/models";
 import { RfidTagRead } from "$shared/types";
 import * as dbRFIDInbox from "../../../database/rfidInbox-db";
@@ -122,10 +121,6 @@ export class ZebraWebSocketProcessor {
   private resolveConnection: (() => void) | null = null;
   // eslint-disable-next-line no-unused-vars
   private rejectConnection: ((error: Error) => void) | null = null;
-  private status: DeviceStatus = DeviceStatus.NoDevice;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 10;
-  private reconnectInterval = 5000;
   private processingPendingMessages = false;
   private pendingProcessingRequested = false;
   private pendingRetryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -142,7 +137,6 @@ export class ZebraWebSocketProcessor {
     if (this.ws?.readyState === WebSocket.OPEN) return Promise.resolve();
     if (this.connectionPromise) return this.connectionPromise;
 
-    this.status = DeviceStatus.Connecting;
     this.connectionPromise = new Promise((resolve, reject) => {
       this.resolveConnection = resolve;
       this.rejectConnection = reject;
@@ -152,9 +146,11 @@ export class ZebraWebSocketProcessor {
   }
 
   public disconnect(): void {
-    this.status = DeviceStatus.Disconnecting;
-    this.ws?.close(1000, "Normal closure");
+    const webSocket = this.ws;
     this.ws = null;
+    this.rejectPendingConnection(new Error("RFID WebSocket disconnected"));
+    webSocket?.terminate();
+    this.eventEmitter.emit("disconnected");
   }
 
   public on<K extends keyof RfidProcessorEvents>(event: K, listener: RfidProcessorEvents[K]): void {
@@ -162,17 +158,19 @@ export class ZebraWebSocketProcessor {
   }
 
   private setupWebSocket(): void {
-    this.ws = new WebSocket(this.url, { handshakeTimeout: 10000, rejectUnauthorized: false });
+    const webSocket = new WebSocket(this.url, {
+      handshakeTimeout: 10000,
+      rejectUnauthorized: false
+    });
+    this.ws = webSocket;
 
-    this.ws.on("open", () => {
-      this.status = DeviceStatus.Connected;
-      this.reconnectAttempts = 0;
+    webSocket.on("open", () => {
       this.resolvePendingConnection();
       this.eventEmitter.emit("connected");
       this.requestProcessPendingMessages();
     });
 
-    this.ws.on("message", (data) => {
+    webSocket.on("message", (data) => {
       const payload = data.toString();
       logRFID(LogLevel.debug, "RFID message received:", payload.length, "bytes");
 
@@ -184,37 +182,19 @@ export class ZebraWebSocketProcessor {
       }
     });
 
-    this.ws.on("close", () => {
+    webSocket.on("close", () => {
+      if (this.ws !== webSocket) return;
+
       logRFID(LogLevel.info, "WebSocket disconnected");
+      this.ws = null;
       this.rejectPendingConnection(new Error("RFID WebSocket closed before connecting"));
-      if (this.status === DeviceStatus.Disconnecting) {
-        this.status = DeviceStatus.Disconnected;
-        this.eventEmitter.emit("disconnected");
-      } else if (this.status === DeviceStatus.Connected) {
-        this.handleReconnection();
-      }
+      this.eventEmitter.emit("disconnected");
     });
 
-    this.ws.on("error", (error) => {
+    webSocket.on("error", (error) => {
       logRFID(LogLevel.error, "WebSocket error:", error);
       this.rejectPendingConnection(error);
-
-      if (error.toString().includes("EHOSTUNREACH") || error.toString().includes("ETIMEDOUT")) {
-        switch (this.status) {
-          case DeviceStatus.Connected:
-            logRFID(LogLevel.error, "RFID host unreachable, attempting reconnection");
-            this.eventEmitter.emit("error", error);
-            break;
-          case DeviceStatus.Connecting:
-            this.status = DeviceStatus.NoDevice;
-            this.eventEmitter.emit("error", new Error("RFID device not found"));
-            break;
-          default:
-            this.eventEmitter.emit("error", error);
-        }
-      } else {
-        this.eventEmitter.emit("error", error);
-      }
+      this.eventEmitter.emit("error", error);
     });
   }
 
@@ -230,18 +210,6 @@ export class ZebraWebSocketProcessor {
     this.connectionPromise = null;
     this.resolveConnection = null;
     this.rejectConnection = null;
-  }
-
-  private handleReconnection(): void {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      logRFID(LogLevel.warn, `RFID reconnection attempt ${this.reconnectAttempts}`);
-      setTimeout(() => this.setupWebSocket(), this.reconnectInterval);
-    } else {
-      this.status = DeviceStatus.NoDevice;
-      logRFID(LogLevel.error, "RFID max reconnection attempts reached");
-      this.eventEmitter.emit("error", new Error("RFID reconnection failed"));
-    }
   }
 
   private processPendingMessages(): boolean {

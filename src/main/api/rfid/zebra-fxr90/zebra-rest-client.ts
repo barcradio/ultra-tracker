@@ -12,6 +12,7 @@ type HttpMethod = "GET" | "PUT";
 type NetworkError = Error & { code?: string };
 type ZebraApiError = Error & { status?: number; responseText?: string };
 type ZebraReaderStatus = { radioActivity?: string };
+const requestTimeoutMs = 10000;
 
 // Zebra FXR90 units ship with a self-signed cert, so the normal CA chain
 // can't be validated. Instead, pin the leaf cert's serial number or CN
@@ -84,6 +85,11 @@ function requestJson(
 
     req.on("error", (error: NetworkError) => {
       reject(describeNetworkError(url, error));
+    });
+    req.setTimeout(requestTimeoutMs, () => {
+      const error = new Error("RFID reader request timed out.") as NetworkError;
+      error.code = "ETIMEDOUT";
+      req.destroy(error);
     });
     if (payload) req.write(payload);
     req.end();
@@ -237,12 +243,19 @@ export class ZebraRestClient {
     logRFID(LogLevel.info, "RFID reader is active.");
   }
 
+  async getRadioActivity(): Promise<"active" | "inactive"> {
+    const status = (await this.request("GET", "/cloud/status")) as ZebraReaderStatus;
+    const activity = status.radioActivity?.toLowerCase();
+
+    if (activity === "active" || activity === "inactive") return activity;
+    throw new Error("RFID reader did not report a valid radio activity state.");
+  }
+
   private async waitForRadioActivity(expectedState: "active" | "inactive"): Promise<void> {
     const deadline = Date.now() + this.radioStateTimeoutMs;
 
     while (Date.now() < deadline) {
-      const status = (await this.request("GET", "/cloud/status")) as ZebraReaderStatus;
-      if (status.radioActivity?.toLowerCase() === expectedState) return;
+      if ((await this.getRadioActivity()) === expectedState) return;
       await new Promise<void>((resolve) => setTimeout(resolve, this.radioStatePollIntervalMs));
     }
 

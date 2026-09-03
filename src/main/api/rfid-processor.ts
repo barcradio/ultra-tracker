@@ -31,7 +31,9 @@ const defaultRfidSettings: RfidSettings = {
 /**
  * Initialize RFID reader with default or provided settings
  */
-export async function InitializeRFIDReader(settings?: Partial<RfidConnectionSettings>): Promise<string> {
+export async function InitializeRFIDReader(
+  settings?: Partial<RfidConnectionSettings>
+): Promise<string> {
   if (rfidController && rfidController.getStatus() === DeviceStatus.Connected) {
     return "RFID already connected";
   }
@@ -77,17 +79,23 @@ export async function InitializeRFIDReader(settings?: Partial<RfidConnectionSett
  * Disconnect RFID reader
  */
 export async function DisconnectRFIDReader(): Promise<string> {
-  if (rfidController) {
-    try {
-      await rfidController.disconnect();
-      rfidController = null;
-      return "RFID reader stopped and disconnected";
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return `Failed to stop RFID reader before disconnecting: ${errorMessage}`;
-    }
+  if (!rfidController) return "RFID was not connected";
+
+  // Clear the shared reference first so a failed network stop cannot leave the UI locked.
+  const controller = rfidController;
+  rfidController = null;
+
+  try {
+    await controller.disconnect();
+    return "RFID reader stopped and disconnected";
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return `RFID reader disconnected locally; unable to stop it remotely: ${errorMessage}`;
   }
-  return "RFID was not connected";
+}
+
+export function RecoverRFIDReader(): void {
+  rfidController?.recover();
 }
 
 /**

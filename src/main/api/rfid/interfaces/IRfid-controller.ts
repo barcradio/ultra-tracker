@@ -10,6 +10,7 @@ export interface IRfidController {
   initialize(settings: RfidSettings): Promise<void>;
   connect(): void;
   disconnect(): Promise<void>;
+  recover(): void;
   startRFID(): Promise<void>;
   stopRFID(): Promise<void>;
   isScanning(): boolean;

@@ -1,8 +1,8 @@
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { BrowserWindow, Event, app, dialog, shell } from "electron";
+import { BrowserWindow, Event, app, dialog, powerMonitor, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
-import { DisconnectRFIDReader } from "./api/rfid-processor";
+import { DisconnectRFIDReader, RecoverRFIDReader } from "./api/rfid-processor";
 import { createDatabaseConnection } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
@@ -136,6 +136,14 @@ app.on("window-all-closed", () => {
     app.quit();
   }
   shutdown();
+});
+
+powerMonitor.on("suspend", () => {
+  RecoverRFIDReader();
+});
+
+powerMonitor.on("resume", () => {
+  RecoverRFIDReader();
 });
 
 // Shortcuts Watcher
