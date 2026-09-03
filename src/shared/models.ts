@@ -157,7 +157,6 @@ export type RfidSettings = {
   // Pinned cert serial number or CN for the reader's self-signed cert
   sslCert: string;
   status: DeviceStatus;
-  mode: number;
 };
 
 export type RfidConnectionSettings = Pick<
