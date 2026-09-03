@@ -117,7 +117,15 @@ This page displays the station log file that is auto-generated during station op
 
 This page provides Export utilities for sending station data to another station or race organizers. These file formats are optimized for human and machine readability.
 
-When OpenSplitTime is not signed in, the indicator at the left of each timing record shows its CSV export state: a gray hollow circle means the record has not been exported, and a green hollow circle means it has been exported. A successful incremental or full CSV export marks its included records as exported.
+Timing record indicators show the current delivery state:
+
+| State | Indicator | Meaning |
+| :--- | :--- | :--- |
+| CSV export | <img src="src/renderer/public/img/status/not-exported.svg" alt="Gray hollow circle" width="16"> | Not exported |
+| CSV export | <img src="src/renderer/public/img/status/exported.svg" alt="Green hollow circle" width="16"> | Exported by a successful incremental or full CSV export |
+| OpenSplitTime | <img src="src/renderer/public/img/status/upload-pending.svg" alt="Yellow solid circle" width="16"> | Pending upload |
+| OpenSplitTime | <img src="src/renderer/public/img/status/uploaded.svg" alt="Green solid circle" width="16"> | Uploaded |
+| OpenSplitTime | <img src="src/renderer/public/img/status/upload-failed.svg" alt="Red solid circle" width="16"> | Upload failed |
 
 - **Export Incremental CSV File**
   This function exports a `.csv` file of the station entries containing unsent or edited records, contains BibID, TimeIn, TimeOut, DNF/DNS status and any notes made by the operator. The exported file will be automatically named and incremented. e.g. `Aid05Times_04i.csv, Aid05Times_05i.csv, and Aid05Times_06i.csv`.
@@ -160,7 +168,7 @@ This page allows the operator to manage various input files and the database nee
 
 OpenSplitTime is an optional integration for sending timing records directly to the selected event group. Configure the event group in the Stations file, then sign in on the Settings page with an OpenSplitTime steward account. Credentials may be saved using the operating system's secure credential storage. If both staging and production event groups are configured, select the environment before signing in. Production sends times to the live event and requires confirmation when switching from staging.
 
-While signed in, OpenSplitTime status takes precedence over CSV export status in the timing-record indicator: yellow means pending upload, solid green means uploaded, and red means upload failed. Use Pause Pushes to temporarily stop automatic uploads without signing out; Resume Pushes restarts them. Sign Out returns the indicator to the CSV export state and does not change whether a record has been exported.
+While signed in, OpenSplitTime status takes precedence over CSV export status in the timing-record indicator. Use Pause Pushes to temporarily stop automatic uploads without signing out; Resume Pushes restarts them. Sign Out returns the indicator to the CSV export state and does not change whether a record has been exported.
 
 > [!CAUTION]
 > The functions marked in RED on the Settings page are completely destructive to the local database and **MUST NOT be performed during normal operation!** These are provided only for recovery of the database or data and should only be used at the direction of the software team.
@@ -174,7 +182,7 @@ The following is a description of each button's function. Each of these will ope
 
 - **Load Stations File**
   This loads a `JSON` file containing each of the stations and their detailed information to allow ease of selection while setting up this application. A typical filename will be `eventname-YYYY-stations.json`.
-- **Load Athletes File**  
+- **Load Athletes File**
   This function loads a `.csv` file, supplied by race organizers, containing all athletes registered or checked in for the event, whether they are known to have started _or not_.
 - **Load DNS File**
   This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not started** the race.
