@@ -18,6 +18,7 @@ export class ZebraFxr90Controller implements IRfidController {
   private scanning = false;
   private healthCheckTimer: ReturnType<typeof setInterval> | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectInProgress = false;
   private healthCheckInProgress = false;
   private consecutiveHealthCheckFailures = 0;
   private reconnectAttempts = 0;
@@ -160,7 +161,7 @@ export class ZebraFxr90Controller implements IRfidController {
   }
 
   private scheduleReconnect(): void {
-    if (this.manuallyDisconnected || this.reconnectTimer) return;
+    if (this.manuallyDisconnected || this.reconnectTimer || this.reconnectInProgress) return;
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       this.handleError(new Error("RFID reconnection failed after 10 attempts"));
@@ -180,6 +181,9 @@ export class ZebraFxr90Controller implements IRfidController {
   }
 
   private async reconnect(): Promise<void> {
+    if (this.reconnectInProgress) return;
+
+    this.reconnectInProgress = true;
     try {
       if (!this.restClient || !this.rfidProcessor) {
         throw new Error("RFID reader is not initialized");
@@ -194,13 +198,16 @@ export class ZebraFxr90Controller implements IRfidController {
       this.reconnectAttempts = 0;
     } catch (error) {
       logRFID(LogLevel.warn, "RFID reconnection failed:", error);
-      this.scheduleReconnect();
+    } finally {
+      this.reconnectInProgress = false;
+      if (this.rfidSettings.status !== DeviceStatus.Connected) this.scheduleReconnect();
     }
   }
 
   private clearReconnectTimer(): void {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.reconnectTimer = null;
+    this.reconnectInProgress = false;
     this.reconnectAttempts = 0;
   }
 

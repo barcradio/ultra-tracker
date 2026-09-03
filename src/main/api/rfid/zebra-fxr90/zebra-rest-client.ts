@@ -3,6 +3,7 @@
     A raspberry Pi version is in the works.
 */
 
+import { type ClientRequest } from "node:http";
 import https from "node:https";
 import { type PeerCertificate, type TLSSocket } from "node:tls";
 import { RfidSettings } from "$shared/models";
@@ -29,6 +30,18 @@ function isTrustedCert(cert: PeerCertificate | undefined, pin: string): boolean 
     normalizePin(cert.serialNumber ?? "") === normalizedPin ||
     commonNames.some((commonName) => normalizePin(commonName) === normalizedPin)
   );
+}
+
+function verifyReaderCertificate(req: ClientRequest, socket: TLSSocket, certPin: string): void {
+  const presentedCert = socket.getPeerCertificate();
+  if (!isTrustedCert(presentedCert, certPin)) {
+    req.destroy(
+      new Error(
+        `RFID reader certificate did not match pinned cert "${certPin}" ` +
+          `(reader presented serial="${presentedCert?.serialNumber}" cn="${presentedCert?.subject?.CN}")`
+      )
+    );
+  }
 }
 
 function requestJson(
@@ -70,17 +83,11 @@ function requestJson(
     );
 
     req.on("socket", (socket: TLSSocket) => {
-      socket.once("secureConnect", () => {
-        const presentedCert = socket.getPeerCertificate();
-        if (!isTrustedCert(presentedCert, certPin)) {
-          req.destroy(
-            new Error(
-              `RFID reader certificate did not match pinned cert "${certPin}" ` +
-                `(reader presented serial="${presentedCert?.serialNumber}" cn="${presentedCert?.subject?.CN}")`
-            )
-          );
-        }
-      });
+      if (socket.getPeerCertificate().raw) {
+        verifyReaderCertificate(req, socket, certPin);
+      } else {
+        socket.once("secureConnect", () => verifyReaderCertificate(req, socket, certPin));
+      }
     });
 
     req.on("error", (error: NetworkError) => {
