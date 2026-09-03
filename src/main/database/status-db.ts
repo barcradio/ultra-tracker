@@ -3,9 +3,11 @@ import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
+import { clearPushStatus } from "./opensplittimeStatus-db";
 import { AthleteProgress, DNFType, DatabaseStatus } from "../../shared/enums";
 import { DNFRecord, DNSRecord, RunnerDB, StatusDB } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
+import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
@@ -264,8 +266,7 @@ export function SetDNF(
   let dnf: DNFType | null = dnfType;
   const dnfDateTime = !timeOut ? new Date().toISOString() : timeOut.toISOString();
   const timingRecord = db.prepare(`SELECT * FROM TimeRecords WHERE bibId = ?`).get(bibId) as
-    | RunnerDB
-    | undefined;
+    RunnerDB | undefined;
   const previousDnf = db.prepare(`SELECT dnf FROM Status WHERE bibId = ?`).get(bibId) as
     | {
         dnf: number;
@@ -303,6 +304,15 @@ export function SetDNF(
   message = `status:update bibId: ${bibId}, dnf: ${dnfValue}, dnfType: ${dnfType}`;
 
   if (timingRecord && previousDnf?.dnf !== Number(dnfValue)) {
+    // Clear the prior push outcome immediately so the UI shows "Pending" even if the push
+    // below is skipped (paused/not signed in) or takes a while to resolve.
+    db.prepare(`UPDATE TimeRecords SET sent = ? WHERE "bibId" = ?`).run(
+      Number(false),
+      timingRecord.bibId
+    );
+    clearPushStatus(bibId);
+    emitRunnersTableChanged();
+
     void pushTimeRecordUpdate(timingRecord, dnfValue)
       .then((outcome) => {
         if (outcome.pushed) {
