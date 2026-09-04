@@ -53,7 +53,7 @@ export function SettingsPage() {
               Reset Grid Text Size
             </Button>
             <p className="w-80 text-on-surface-strong italic font-display text-sm mt-2">
-              Adjusts text size in data grids. You can also use Ctrl + / Ctrl - / Ctrl 0.
+              Adjusts text size in data grids. You can also use Ctrl/Cmd + = / - / 0.
             </p>
           </VerticalButtonGroup>
 
