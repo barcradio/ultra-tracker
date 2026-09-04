@@ -30,7 +30,7 @@ export function RosterPage() {
         <StatusTag dropReason={dropReason} AthleteProgress={progress} />
       ),
       valueFn: (athlete) =>
-        `${athlete.dropReason! === DropReason.None ? "" : athlete.dropReason}
+        `${athlete.dropReason! === DropReason.None ? "" : athlete.dropReason! === DropReason.DidNotStart ? "DNS" : athlete.dropReason}
          ${athlete.progress! === AthleteProgress.Incoming ? "Incoming" : ""}
          ${athlete.progress! === AthleteProgress.Present ? "In" : ""}
          ${athlete.progress! === AthleteProgress.Outgoing && athlete.dropReason! !== DropReason.DidNotStart ? "Out" : ""}
