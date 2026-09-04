@@ -50,7 +50,7 @@ export function Footer() {
     <Stack
       justify="between"
       align="center"
-      className="py-6 pl-4 m-4 text-lg bg-component font-display"
+      className="py-6 pl-4 m-4 text-lg shrink-0 bg-component font-display"
     >
       <Stack direction="row" align="center" className="gap-4">
         <Stack direction="col">
