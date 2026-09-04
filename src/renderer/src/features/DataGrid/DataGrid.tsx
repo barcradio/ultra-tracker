@@ -81,10 +81,10 @@ export function DataGrid<T extends object>(props: Props<T>) {
   return (
     <div
       ref={parentRef}
-      className={`overflow-y-auto overflow-x-hidden ${props.classNames?.root}`}
+      className={`overflow-y-auto overflow-x-hidden below-default:overflow-x-auto ${props.classNames?.root}`}
       style={{ height }}
     >
-      <div>
+      <div className="w-full">
         <Table className={props.classNames?.table}>
           {getSection("header")}
           <TableContent<T>
