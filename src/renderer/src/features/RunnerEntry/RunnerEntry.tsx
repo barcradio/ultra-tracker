@@ -22,13 +22,15 @@ export function RunnerEntry() {
       field: "sequence",
       name: "Seq",
       align: "right",
-      width: "80px"
+      width: "64px",
+      minWidth: "64px"
     },
     {
       field: "bibId",
       name: "Bib",
       align: "right",
-      width: "80px"
+      width: "64px",
+      minWidth: "64px"
     },
     {
       field: "in",
@@ -66,9 +68,9 @@ export function RunnerEntry() {
   ];
 
   return (
-    <Stack className="gap-4 mt-0 h-full" justify="stretch" align="stretch">
+    <Stack className="gap-4 mt-0 h-full min-h-0" justify="stretch" align="stretch">
       <RunnerFormStats />
-      <div className="h-full bg-component grow">
+      <div className="h-full min-h-0 min-w-0 bg-component grow">
         <DataGrid
           data={runnerData ?? []}
           columns={columns}
