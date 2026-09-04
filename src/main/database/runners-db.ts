@@ -285,7 +285,7 @@ export async function importRunnersFromCSV() {
         timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
         timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
         timeModified: new Date(),
-        note: !timing.note ? "" : timing.note.replaceAll(",", ""),
+        note: !timing.note ? "" : timing.note.replaceAll(",", ";"),
         sent: false,
         status: timing.bibId % 1 == 0 ? RecordStatus.OK : RecordStatus.Duplicate,
         dropped: Number(timing.dropReason != ""),
