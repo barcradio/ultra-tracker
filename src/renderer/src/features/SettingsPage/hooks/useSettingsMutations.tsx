@@ -11,7 +11,8 @@ export function useSettingsMutations() {
   });
 
   const importStationsFile = useBasicIpcCall("load-stations-file", {
-    preToast: "Loading Stations file"
+    preToast: "Loading Stations file",
+    invalidateQueryKeys: [["opensplittime-event-group-configured"]]
   });
 
   const importDNSFile = useBasicIpcCall("load-dns-file", {
