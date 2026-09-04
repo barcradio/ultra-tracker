@@ -1,11 +1,11 @@
+const { resolve } = require("path");
+const toolkitPrettier = require("@electron-toolkit/eslint-config-prettier");
+const toolkitTs = require("@electron-toolkit/eslint-config-ts");
 const js = require("@eslint/js");
-const react = require("eslint-plugin-react");
-const reactHooks = require("eslint-plugin-react-hooks");
 const importPlugin = require("eslint-plugin-import");
 const jsxA11y = require("eslint-plugin-jsx-a11y");
-const toolkitTs = require("@electron-toolkit/eslint-config-ts");
-const toolkitPrettier = require("@electron-toolkit/eslint-config-prettier");
-const { resolve } = require("path");
+const react = require("eslint-plugin-react");
+const reactHooks = require("eslint-plugin-react-hooks");
 
 module.exports = [
   {
@@ -24,6 +24,20 @@ module.exports = [
   importPlugin.flatConfigs.recommended,
   importPlugin.flatConfigs.typescript,
   jsxA11y.flatConfigs.recommended,
+  {
+    // TypeScript already checks undeclared identifiers and understands TS-only constructs
+    // (enum members, interface/type params); the base rules produce false positives here.
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      // Disabled: fires on the valid TS pattern of reusing an identifier across the
+      // type and value namespaces (e.g. `interface Foo` + `const Foo = ...`).
+      "no-redeclare": "off",
+      "@typescript-eslint/no-redeclare": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }]
+    }
+  },
   {
     settings: {
       react: {
