@@ -119,7 +119,6 @@ export class ZebraWebSocketProcessor {
   private eventEmitter: EventEmitter = new EventEmitter();
   private connectionPromise: Promise<void> | null = null;
   private resolveConnection: (() => void) | null = null;
-  // eslint-disable-next-line no-unused-vars
   private rejectConnection: ((error: Error) => void) | null = null;
   private processingPendingMessages = false;
   private pendingProcessingRequested = false;

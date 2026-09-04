@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 import { useEffect, useState } from "react";
 import { DeviceStatus } from "../../../../../shared/enums";
 import { useIpcRenderer } from "../../../hooks/useIpcRenderer";
