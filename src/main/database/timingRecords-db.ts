@@ -274,6 +274,9 @@ function updateTimeRecord(
     }
   }
 
+  // The row updated above is located by existingRecord.index; the incoming index can differ when
+  // records are merged by bib, so the note has to follow the same row.
+  record.index = existingRecord.index;
   processNote(record, dbStatus.SyncDirection.Incoming);
   dbStatus.SetProgress(record.bibId);
   const eventLogMessage = `[Update](Time): bibId: (${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`;
@@ -329,7 +332,18 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
     const stmt = db.prepare(
       `INSERT INTO TimeRecords (bibId, stationId, timeIn, timeOut, timeModified, sent, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    stmt.run(record.bibId, stationID, timeInISO, timeOutISO, modifiedISO, sent, status);
+    const result = stmt.run(
+      record.bibId,
+      stationID,
+      timeInISO,
+      timeOutISO,
+      modifiedISO,
+      sent,
+      status
+    );
+    // The renderer sends index 0 for a new record; the note is written by "index", so adopt the
+    // autoincremented rowid or the note would target a row that doesn't exist.
+    record.index = Number(result.lastInsertRowid);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
