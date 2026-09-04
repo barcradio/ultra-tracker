@@ -428,18 +428,19 @@ export async function exportDNFAsCSV() {
   const db = getDatabaseConnection();
   let queryResult;
   let filename: string = "";
-  const stationIdentifier = appStore.get("station.identifier") as number;
+  const stationId = appStore.get("station.id") as number;
 
   const stmt = `
-    SELECT t1.dnf, t1.dnfType, t1.dnfStation, t1.dnfDateTime, t2.*
-    FROM Status t1 INNER JOIN TimeRecords t2
+    SELECT t1.bibId AS dnfBibId, t1.dnf, t1.dnfType, t1.dnfStation, t1.dnfDateTime, t2.*
+    FROM Status t1 LEFT JOIN TimeRecords t2
     ON t1.bibId = t2.bibId
     WHERE t1.dnf == 1
-    AND t1.dnfStation == ?
   `;
 
   try {
-    queryResult = db.prepare(stmt).all(stationIdentifier);
+    const dnfRows = db.prepare(stmt).all() as DNFExportRow[];
+    queryResult = dnfRows
+      .filter((row) => Number(String(row.dnfStation).split("-", 1)[0]) <= stationId);
     filename = await dialogs.saveDNFRunnersToCSV();
 
     if (filename == undefined) return "Invalid file name";
@@ -499,6 +500,14 @@ interface DNFRunnerDB extends RunnerDB {
   dnfDateTime: Date | null;
 }
 
+interface DNFExportRow extends DNFRunnerDB {
+  dnfBibId: number;
+}
+
+function normalizeExportNote(note: string | null | undefined): string {
+  return note ?? "";
+}
+
 function writeDNSToCSV(filename: string, queryResult) {
   const fs = require("fs");
   const eventName = appStore.get("event.name") as string;
@@ -525,7 +534,7 @@ function writeDNSToCSV(filename: string, queryResult) {
         `${startLineIdentifier},` +
         `${row.bibId},` +
         `${eventStartTime == null ? "" : eventStartTime},` +
-        `${row.note}`;
+        `${normalizeExportNote(row.note)}`;
       stream.write(rowText + "\n");
     }
     stream.on("error", reject);
@@ -551,14 +560,14 @@ function writeDNFToCSV(filename: string, queryResult) {
     const rowText = `${columnNames[0]},${columnNames[1]},${columnNames[2]},${columnNames[3]},${columnNames[4]}`;
     stream.write(rowText + "\n");
 
-    for (const row of queryResult as DNFRunnerDB[]) {
+    for (const row of queryResult as DNFExportRow[]) {
       let rowText = "";
       rowText =
         `${row.dnfStation},` +
-        `${row.bibId},` +
+        `${row.dnfBibId},` +
         `${row.dnfType},` +
         `${row.dnfDateTime == null ? "" : formatDate(row.dnfDateTime)},` +
-        `${row.note}`;
+        `${normalizeExportNote(row.note)}`;
       stream.write(rowText + "\n");
     }
     stream.on("error", reject);

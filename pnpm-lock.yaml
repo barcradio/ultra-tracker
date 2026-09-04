@@ -257,7 +257,7 @@ importers:
         specifier: ^2.16.2
         version: 2.16.2
       node-abi:
-        specifier: ^3.95.0
+        specifier: ^3.94.0
         version: 3.95.0
       postcss:
         specifier: ^8.5.26

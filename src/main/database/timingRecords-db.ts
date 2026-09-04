@@ -5,6 +5,7 @@ import { clearPushStatus } from "./opensplittimeStatus-db";
 import * as dbStatus from "./status-db";
 import { DatabaseStatus, EntryMode, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
+import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { appStore } from "../lib/store";
 import { pushTimeRecordUpdate } from "../services/opensplittime";
 
@@ -212,6 +213,21 @@ function updateTimeRecord(
   preserveOrMergeTimes(merge, existingRecord, record);
   processDuplicate(record);
 
+  const timeValue = (time: Date | null): number | null =>
+    time == null ? null : new Date(time).getTime();
+
+  // A duplicate's fractional bib (e.g. 150.2) floors to the original bib number when pushed, so
+  // pushing here would incorrectly overwrite the original runner's time on OST.
+  const shouldPush =
+    record.status !== RecordStatus.Duplicate &&
+    (existingRecord.bibId !== record.bibId ||
+      timeValue(existingRecord.timeIn) !== timeValue(record.timeIn) ||
+      timeValue(existingRecord.timeOut) !== timeValue(record.timeOut));
+
+  // Edited values invalidate whatever was already pushed, so force sent=false rather than
+  // trusting the stale "sent" flag carried over from the renderer's original record.
+  if (shouldPush) record.sent = false;
+
   //build the time record
   const stationID = stationId;
   const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
@@ -273,17 +289,15 @@ function updateTimeRecord(
   );
 
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
-  const timeValue = (time: Date | null): number | null =>
-    time == null ? null : new Date(time).getTime();
 
   // A duplicate's fractional bib (e.g. 150.2) floors to the original bib number when pushed, so
   // pushing here would incorrectly overwrite the original runner's time on OST.
-  if (
-    record.status !== RecordStatus.Duplicate &&
-    (existingRecord.bibId !== record.bibId ||
-      timeValue(existingRecord.timeIn) !== timeValue(record.timeIn) ||
-      timeValue(existingRecord.timeOut) !== timeValue(record.timeOut))
-  ) {
+  if (shouldPush) {
+    // Clear the prior push outcome immediately so the UI shows "Pending" even if the push
+    // below is skipped (paused/not signed in) or takes a while to resolve.
+    clearPushStatus(record.bibId);
+    emitRunnersTableChanged();
+
     void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId)).catch(
       (error: unknown) => {
         console.error("OpenSplitTime record update failed", error);
