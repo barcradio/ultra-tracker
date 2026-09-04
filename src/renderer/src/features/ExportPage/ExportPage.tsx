@@ -19,23 +19,25 @@ export function ExportPage() {
   });
 
   return (
-    <Stack className="w-full h-full bg-component gap-4" align="center" justify="center">
-      <VerticalButtonGroup label="Export Tools" className="mb-32">
-        <Button color="primary" size="wide" onClick={() => createIncrementalCSVFile.mutate()}>
-          Export Incremental CSV File
-        </Button>
-        <Button color="primary" size="wide" onClick={() => createRunnerCSVFile.mutate()}>
-          Export Full CSV File
-        </Button>
-        <Button color="primary" size="wide" onClick={() => createDropsCSVFile.mutate()}>
-          Export Drops CSV File
-        </Button>
-      </VerticalButtonGroup>
-      <VerticalButtonGroup label="Export Files" className="align-text-top mb-32">
-        <Button color="primary" size="wide" onClick={() => openExportDirectory.mutate()}>
-          Open Export Folder
-        </Button>
-      </VerticalButtonGroup>
-    </Stack>
+    <div className="w-full h-full overflow-y-auto bg-component p-6">
+      <Stack justify="center" align="start" className="gap-6 flex-wrap xl:flex-nowrap min-w-full">
+        <VerticalButtonGroup label="Export Tools" className="w-[22rem]">
+          <Button color="primary" size="wide" onClick={() => createIncrementalCSVFile.mutate()}>
+            Export Incremental CSV File
+          </Button>
+          <Button color="primary" size="wide" onClick={() => createRunnerCSVFile.mutate()}>
+            Export Full CSV File
+          </Button>
+          <Button color="primary" size="wide" onClick={() => createDropsCSVFile.mutate()}>
+            Export Drops CSV File
+          </Button>
+        </VerticalButtonGroup>
+        <VerticalButtonGroup label="Export Files" className="w-[22rem]">
+          <Button color="primary" size="wide" onClick={() => openExportDirectory.mutate()}>
+            Open Export Folder
+          </Button>
+        </VerticalButtonGroup>
+      </Stack>
+    </div>
   );
 }
