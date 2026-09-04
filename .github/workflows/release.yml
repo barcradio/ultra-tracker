@@ -15,16 +15,13 @@ jobs:
     strategy:
       matrix:
         node-version: [24]
-        pnpm-version: [11]
         os: [windows-latest]
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Install pnpm v${{ matrix.pnpm-version }}
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ matrix.pnpm-version }}
+      - name: Enable Corepack (uses packageManager from package.json)
+        run: corepack enable
 
       - if: matrix.os == 'windows-latest'
         run: pnpm config set virtual-store-dir-max-length 80
