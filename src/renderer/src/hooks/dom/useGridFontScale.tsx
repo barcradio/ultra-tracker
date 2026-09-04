@@ -35,8 +35,10 @@ export function useGridFontScale() {
     void ipcRenderer.invoke("set-store-value", { key: STORE_KEY, value: clamped });
   };
 
-  const increase = () => setScale(scale + GRID_FONT_SCALE_STEP);
-  const decrease = () => setScale(scale - GRID_FONT_SCALE_STEP);
+  const increase = () =>
+    setScale((queryClient.getQueryData<number>(QUERY_KEY) ?? scale) + GRID_FONT_SCALE_STEP);
+  const decrease = () =>
+    setScale((queryClient.getQueryData<number>(QUERY_KEY) ?? scale) - GRID_FONT_SCALE_STEP);
   const reset = () => setScale(GRID_FONT_SCALE_DEFAULT);
 
   return { scale, increase, decrease, reset };
