@@ -67,7 +67,7 @@ export async function LoadDNF() {
       const stationId = appStore.get("station.id") as number;
 
       if (dnfStationId <= stationId) {
-        updateDNFFromCSV(row);
+        updateDNFFromCSV({ ...row, stationIdentifier: row.stationId });
         dnfCount++;
       }
     })
