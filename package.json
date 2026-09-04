@@ -97,7 +97,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "husky": "^9.1.7",
     "is-core-module": "^2.16.2",
-    "node-abi": "^3.95.0",
+    "node-abi": "^3.94.0",
     "postcss": "^8.5.26",
     "prettier": "^3.9.6",
     "react": "^19.2.8",
