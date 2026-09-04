@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { compareAsc } from "date-fns";
 import { createPortal } from "react-dom";
 import { v4 as uuid } from "uuid";
@@ -14,9 +14,15 @@ function useMainToastListener(createToast: (toast: Toast) => void) {
   const ipcRenderer = useIpcRenderer();
 
   useEffect(() => {
-    ipcRenderer.on("create-toast", (_event, toast: Toast) => {
+    const listener = (_event: unknown, toast: Toast) => {
       createToast(toast);
-    });
+    };
+
+    ipcRenderer.on("create-toast", listener);
+
+    return () => {
+      ipcRenderer.off("create-toast", listener);
+    };
   }, [createToast, ipcRenderer]);
 }
 
@@ -25,9 +31,9 @@ export function ToastProvider(props: { children: ReactNode }) {
 
   const [toasts, setToasts] = useState<InternalToast[]>([]);
 
-  const createToast = (toast: Toast) => {
-    setToasts([
-      ...toasts,
+  const createToast = useCallback((toast: Toast) => {
+    setToasts((prev) => [
+      ...prev,
       {
         ...toast,
         id: uuid(),
@@ -35,7 +41,7 @@ export function ToastProvider(props: { children: ReactNode }) {
         timeoutMs: toast.timeoutMs ?? DEFAULT_TIMEOUT
       }
     ]);
-  };
+  }, []);
 
   useMainToastListener(createToast);
 
