@@ -7,6 +7,8 @@ export type Column<T extends object> = {
     field: K;
     name?: string;
     width?: number | string;
+    /** Overrides the automatic label-based minimum width (see columnWidth.ts). */
+    minWidth?: number | string;
     valueFn?: (row: T) => unknown;
     filterable?: boolean;
     sortable?: boolean;

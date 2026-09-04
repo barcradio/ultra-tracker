@@ -20,7 +20,7 @@ export function RosterPage() {
     {
       field: "bibId",
       name: "Bib",
-      width: "6%",
+      width: "70px",
       align: "right"
     },
     {
@@ -35,38 +35,38 @@ export function RosterPage() {
          ${athlete.progress! === AthleteProgress.Present ? "In" : ""}
          ${athlete.progress! === AthleteProgress.Outgoing && athlete.dropReason! !== DropReason.DidNotStart ? "Out" : ""}
          ${athlete.dropReason! === DropReason.DidNotStart ? "Not Started" : ""}`,
-      width: "9%"
+      width: "110px"
     },
     {
       field: "firstName",
       name: "Name",
       valueFn: (athlete) => `${athlete.firstName} ${athlete.lastName}`,
-      width: "18%"
+      width: "180px"
     },
     {
       field: "age",
-      width: "6%"
+      width: "70px"
     },
     {
       field: "gender",
-      width: "6%"
+      width: "70px"
     },
     {
       field: "state",
       name: "Location",
-      width: "20%",
+      width: "200px",
       render: (state, { city }) => `${city}, ${state}`,
       valueFn: (athlete) => `${athlete.state}, ${athlete.city}`
     },
     {
       field: "emergencyName",
       name: "Emergency Contact",
-      width: "20%",
+      width: "220px",
       render: (value, row) => <EmergencyContact name={value} athlete={row} />
     },
     {
       field: "note",
-      width: "6%",
+      width: "240px",
       valueFn: ({ note }) => (note == null ? "" : note)
     }
   ];
