@@ -22,11 +22,8 @@ export function SettingsPage() {
             <Button size="wide" onClick={() => settingsMutations.importAthletesFile.mutate()}>
               Load Athletes File
             </Button>
-            <Button size="wide" onClick={() => settingsMutations.importDNSFile.mutate()}>
-              Load DNS File
-            </Button>
-            <Button size="wide" onClick={() => settingsMutations.importDNFFile.mutate()}>
-              Load DNF File
+            <Button size="wide" onClick={() => settingsMutations.importDropsFile.mutate()}>
+              Load Drops File
             </Button>
           </VerticalButtonGroup>
 

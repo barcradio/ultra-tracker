@@ -10,12 +10,8 @@ export function ExportPage() {
     preToast: "Exporting to CSV file"
   });
 
-  const createDNSCSVFile = useBasicIpcCall("export-dns-file", {
-    preToast: "Exporting DNS to CSV file"
-  });
-
-  const createDNFCSVFile = useBasicIpcCall("export-dnf-file", {
-    preToast: "Exporting DNF to CSV file"
+  const createDropsCSVFile = useBasicIpcCall("export-drops-file", {
+    preToast: "Exporting Drops to CSV file"
   });
 
   const openExportDirectory = useBasicIpcCall("open-export-dir", {
@@ -31,11 +27,8 @@ export function ExportPage() {
         <Button color="primary" size="wide" onClick={() => createRunnerCSVFile.mutate()}>
           Export Full CSV File
         </Button>
-        <Button color="primary" size="wide" onClick={() => createDNSCSVFile.mutate()}>
-          Export DNS CSV File
-        </Button>
-        <Button color="primary" size="wide" onClick={() => createDNFCSVFile.mutate()}>
-          Export DNF CSV File
+        <Button color="primary" size="wide" onClick={() => createDropsCSVFile.mutate()}>
+          Export Drops CSV File
         </Button>
       </VerticalButtonGroup>
       <VerticalButtonGroup label="Export Files" className="align-text-top mb-32">

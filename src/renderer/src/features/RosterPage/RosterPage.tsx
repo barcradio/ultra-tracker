@@ -3,7 +3,7 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { StatusTag } from "~/components/StatusTag";
 import { useAthletes } from "~/hooks/data/useAthletes";
-import { AthleteProgress, DNFType } from "$shared/enums";
+import { AthleteProgress, DropReason } from "$shared/enums";
 import { AthleteStatusDB } from "$shared/models";
 import { EmergencyContact } from "./EmergencyContact";
 import { ColumnDef, DataGrid } from "../DataGrid";
@@ -24,17 +24,17 @@ export function RosterPage() {
       align: "right"
     },
     {
-      field: "dnfType",
+      field: "dropReason",
       name: "Status",
-      render: (dnfType, { dns, progress }) => (
-        <StatusTag dnfType={dnfType} dns={dns} AthleteProgress={progress} />
+      render: (dropReason, { progress }) => (
+        <StatusTag dropReason={dropReason} AthleteProgress={progress} />
       ),
       valueFn: (athlete) =>
-        `${athlete.dnfType! === DNFType.None ? "" : athlete.dnfType + "dnf"}
+        `${athlete.dropReason! === DropReason.None ? "" : athlete.dropReason! === DropReason.DidNotStart ? "DNS" : athlete.dropReason}
          ${athlete.progress! === AthleteProgress.Incoming ? "Incoming" : ""}
          ${athlete.progress! === AthleteProgress.Present ? "In" : ""}
-         ${athlete.progress! === AthleteProgress.Outgoing && !athlete.dns! ? "Out" : ""}
-         ${athlete.dns! ? "DNS" : ""}`,
+         ${athlete.progress! === AthleteProgress.Outgoing && athlete.dropReason! !== DropReason.DidNotStart ? "Out" : ""}
+         ${athlete.dropReason! === DropReason.DidNotStart ? "Not Started" : ""}`,
       width: "9%"
     },
     {

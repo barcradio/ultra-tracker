@@ -51,12 +51,8 @@ export const loadRunnersFromCSV = (): Promise<string[]> => {
   return loadFromCSV("Select a runners file");
 };
 
-export const loadDNSFromCSV = (): Promise<string[]> => {
-  return loadFromCSV("Select a DNS file");
-};
-
-export const loadDNFFromCSV = (): Promise<string[]> => {
-  return loadFromCSV("Select a DNF file");
+export const loadDropsFromCSV = (): Promise<string[]> => {
+  return loadFromCSV("Select a Drops file");
 };
 
 export const loadFromCSV = async (title: string): Promise<string[]> => {
@@ -109,7 +105,7 @@ export const saveRunnersToCSV = async (): Promise<string> => {
   return result.filePath as string;
 };
 
-export const saveDNSRunnersToCSV = async (): Promise<string> => {
+export const saveDropsToCSV = async (): Promise<string> => {
   const stationId = appStore.get("station.id") as number;
   const formattedStationId = stationId.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
@@ -117,36 +113,8 @@ export const saveDNSRunnersToCSV = async (): Promise<string> => {
   });
 
   const dialogConfig = {
-    title: "Specify a DNS export file",
-    defaultPath: path.join(AppPaths.userRoot, `Aid${formattedStationId}-dns`),
-    filters: [
-      { name: "Comma-Separated Values", extensions: ["csv"] },
-      { name: "All Files", extensions: ["*"] }
-    ]
-  };
-
-  const result = await openFileDialog("showSaveDialog", dialogConfig)
-    .then((result) => {
-      result.canceled ? console.log(result.canceled) : console.log(result.filePaths);
-      return result;
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-
-  return result.filePath as string;
-};
-
-export const saveDNFRunnersToCSV = async (): Promise<string> => {
-  const stationId = appStore.get("station.id") as number;
-  const formattedStationId = stationId.toLocaleString("en-US", {
-    minimumIntegerDigits: 2,
-    useGrouping: false
-  });
-
-  const dialogConfig = {
-    title: "Specify a DNF export file",
-    defaultPath: path.join(AppPaths.userRoot, `Aid${formattedStationId}-dnf`),
+    title: "Specify a Drops export file",
+    defaultPath: path.join(AppPaths.userRoot, `Aid${formattedStationId}-drops`),
     filters: [
       { name: "Comma-Separated Values", extensions: ["csv"] },
       { name: "All Files", extensions: ["*"] }

@@ -6,3 +6,5 @@ out
 /Database/
 opensplittime.env
 rfid.env
+resources/ost-api-responses/
+resources/dns-dnf-files/

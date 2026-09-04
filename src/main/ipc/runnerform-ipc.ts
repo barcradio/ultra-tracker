@@ -8,7 +8,7 @@ import { getOpenSplitTimePushStatus } from "../services/opensplittime";
 import { Handler } from "../types";
 
 interface GetRunnersTableOptions {
-  includeDNF: boolean;
+  includeDrops: boolean;
 }
 
 const getRunnersTable: Handler<GetRunnersTableOptions, DatabaseResponse<RunnerDB[]>> = (

@@ -14,8 +14,9 @@ export enum DatabaseStatus {
   Success
 }
 
-export enum DNFType {
+export enum DropReason {
   None = "none",
+  DidNotStart = "did-not-start",
   Withdrew = "withdrew",
   Timeout = "timeout",
   Medical = "medical",
@@ -48,4 +49,3 @@ export enum DeviceStatus {
   Disconnecting,
   Error
 }
-

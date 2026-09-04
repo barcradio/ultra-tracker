@@ -4,8 +4,8 @@ import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearPushStatus } from "./opensplittimeStatus-db";
-import { AthleteProgress, DNFType, DatabaseStatus } from "../../shared/enums";
-import { DNFRecord, DNSRecord, RunnerDB, StatusDB } from "../../shared/models";
+import { AthleteProgress, DatabaseStatus, DropReason } from "../../shared/enums";
+import { DropRecord, RunnerDB, StatusDB } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
 import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
@@ -15,11 +15,12 @@ import { pushTimeRecordUpdate } from "../services/opensplittime";
 
 const invalidResult = -999;
 
-export async function LoadDNS() {
-  const headers = ["stationId", "bibId", "dnsDateTime", "note"];
-  const dnsFilePath = await dialogs.loadDNSFromCSV();
-  const fileContent = fs.createReadStream(dnsFilePath[0], { encoding: "utf-8" });
+export async function LoadDrops() {
+  const headers = ["stationId", "bibId", "dropReason", "dropDateTime", "note"];
+  const dropsFilePath = await dialogs.loadDropsFromCSV();
+  const fileContent = fs.createReadStream(dropsFilePath[0], { encoding: "utf-8" });
   let message: string = "";
+  let dropCount: number = 0;
 
   const parser = fileContent
     .pipe(
@@ -30,55 +31,24 @@ export async function LoadDNS() {
       })
     )
     .on("data", (row) => {
-      updateDNSFromCSV(row);
-    })
-    .on("error", (error) => {
-      console.error(error);
-      message = `Loading dnsRecords: ${error.message}`;
-      sendToastToRenderer({ message: error.message, type: "danger" });
-    })
-    .on("end", () => {
-      const { records } = parser.info;
-      message = `${dnsFilePath}\r\n${records} dnsRecords imported`;
-    });
-  await finished(parser);
-
-  return message;
-}
-
-export async function LoadDNF() {
-  const headers = ["stationId", "bibId", "dnfType", "dnfDateTime", "note"];
-  const dnfFilePath = await dialogs.loadDNFFromCSV();
-  const fileContent = fs.createReadStream(dnfFilePath[0], { encoding: "utf-8" });
-  let message: string = "";
-  let dnfCount: number = 0;
-
-  const parser = fileContent
-    .pipe(
-      parse({
-        delimiter: ",",
-        columns: headers,
-        fromLine: 3
-      })
-    )
-    .on("data", (row) => {
-      // load dnf into current station only if from earlier or current
-      const dnfStationId = Number(row.stationId.split("-", 1)[0]);
+      // load a drop into the current station only if it occurred at an earlier or the current
+      // station; the start-line is station 0, so did-not-start rows always pass this check
+      const dropStationId = Number(row.stationId.split("-", 1)[0]);
       const stationId = appStore.get("station.id") as number;
 
-      if (dnfStationId <= stationId) {
-        updateDNFFromCSV({ ...row, stationIdentifier: row.stationId });
-        dnfCount++;
+      if (dropStationId <= stationId) {
+        updateDropFromCSV(row);
+        dropCount++;
       }
     })
     .on("error", (error) => {
       console.error(error);
-      message = `Loading dnfRecords: ${error.message}`;
+      message = `Loading dropRecords: ${error.message}`;
       sendToastToRenderer({ message: error.message, type: "danger" });
     })
     .on("end", () => {
       const { records } = parser.info;
-      message = `${dnfFilePath}\r\n${records} dnfRecords processed, ${dnfCount} imported`;
+      message = `${dropsFilePath}\r\n${records} dropRecords processed, ${dropCount} imported`;
     });
   await finished(parser);
 
@@ -89,13 +59,13 @@ export function GetStatusByBib(bibNumber: number): [StatusDB | null, DatabaseSta
   return GetStatusFromColumn("bibId", bibNumber);
 }
 
-// A runner is "stopped here" for OST purposes when they have an active DNF recorded at the current station.
+// A runner is "stopped here" for OST purposes when they have an active drop recorded at the current station.
 export function getStoppedHereForBib(bibId: number): boolean {
   const [status] = GetStatusByBib(bibId);
-  if (!status?.dnf) return false;
+  if (!status?.dropped) return false;
 
   const stationIdentifier = appStore.get("station.identifier") as string;
-  return status.dnfStation === stationIdentifier;
+  return status.dropStation === stationIdentifier;
 }
 
 export function GetStatusFromColumn(
@@ -127,11 +97,10 @@ export function GetStatusFromColumn(
   // map result to athlete object
   const athleteStatus: StatusDB = {
     bibId: queryResult.bibId,
-    dns: queryResult.dns,
-    dnf: queryResult.dnf,
-    dnfType: queryResult.dnfType,
-    dnfStation: queryResult.dnfStation,
-    dnfDateTime: queryResult.dnfDateTime,
+    dropped: queryResult.dropped,
+    dropReason: queryResult.dropReason,
+    dropStation: queryResult.dropStation,
+    dropDateTime: queryResult.dropDateTime,
     note: queryResult.note,
     progress: queryResult.progress
   };
@@ -141,17 +110,17 @@ export function GetStatusFromColumn(
   return [athleteStatus, DatabaseStatus.Success, message];
 }
 
-export function GetTotalDNS(): number {
-  const count = GetStatusCount("dns", `dns == 1`);
+export function GetTotalDidNotStart(): number {
+  const count = GetStatusCount("dropReason", `dropReason == '${DropReason.DidNotStart}'`);
   return count[0] == null ? invalidResult : count[0];
 }
 
-export function GetTotalDNF(): number {
-  const count = GetStatusCount("dnf", `dnf == ${Number(true)}`);
+export function GetTotalDropped(): number {
+  const count = GetStatusCount("dropped", `dropped == ${Number(true)}`);
   return count[0] == null ? invalidResult : count[0];
 }
 
-export function GetStationDNF(): number {
+export function GetStationDropped(): number {
   let stationIdentifier: string | null = null;
   try {
     stationIdentifier = appStore.get("station.identifier") as string;
@@ -161,11 +130,11 @@ export function GetStationDNF(): number {
 
   if (!stationIdentifier) return invalidResult;
 
-  const count = GetStatusCount("dnf", `dnfStation == '${stationIdentifier}'`);
+  const count = GetStatusCount("dropped", `dropStation == '${stationIdentifier}'`);
   return count[0] == null ? invalidResult : count[0];
 }
 
-export function GetPreviousDNF(): number {
+export function GetPreviousDropped(): number {
   const db = getDatabaseConnection();
   let stationId: number | null = null;
 
@@ -180,7 +149,7 @@ export function GetPreviousDNF(): number {
   let queryResult;
 
   try {
-    queryResult = db.prepare(`SELECT * FROM Status WHERE dnf == ?`).all(Number(true));
+    queryResult = db.prepare(`SELECT * FROM Status WHERE dropped == ?`).all(Number(true));
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -190,24 +159,46 @@ export function GetPreviousDNF(): number {
 
   if (queryResult == null) return invalidResult;
 
-  const dnfList = queryResult as StatusDB[];
-  const previousDNF: StatusDB[] = [];
+  const droppedList = queryResult as StatusDB[];
+  const previousDropped: StatusDB[] = [];
 
-  for (const record of dnfList) {
-    const id = Number(record.dnfStation?.split("-", 1)[0]);
-    if (id < stationId) previousDNF.push(record);
+  for (const record of droppedList) {
+    const id = Number(record.dropStation?.split("-", 1)[0]);
+    if (id < stationId) previousDropped.push(record);
   }
 
-  return previousDNF.length == null ? invalidResult : previousDNF.length;
+  return previousDropped.length == null ? invalidResult : previousDropped.length;
 }
 
-export function SetDNS(bibId: number, dnsValue: boolean): DatabaseResponse {
+export function SetDrop(
+  bibId: number,
+  timeOut: Date | null,
+  droppedValue: boolean,
+  dropReason: DropReason
+): DatabaseResponse {
   const db = getDatabaseConnection();
   let message: string = "";
+  let stationIdentifier: string | null = appStore.get("station.identifier") as string;
+  let reason: DropReason | null = dropReason;
+  const dropDateTime = !timeOut ? new Date().toISOString() : timeOut.toISOString();
+  const timingRecord = db.prepare(`SELECT * FROM TimeRecords WHERE bibId = ?`).get(bibId) as
+    RunnerDB | undefined;
+  const previousDrop = db.prepare(`SELECT dropped FROM Status WHERE bibId = ?`).get(bibId) as
+    | {
+        dropped: number;
+      }
+    | undefined;
+
+  if (!droppedValue) {
+    stationIdentifier = null;
+    reason = null;
+  }
 
   try {
-    const query = db.prepare(`UPDATE Status SET dns = ? WHERE bibId = ?`);
-    query.run(Number(dnsValue), bibId);
+    const query = db.prepare(
+      `UPDATE Status SET dropped = ?, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = ?`
+    );
+    query.run(Number(droppedValue), reason, stationIdentifier, dropDateTime, bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -220,13 +211,43 @@ export function SetDNS(bibId: number, dnsValue: boolean): DatabaseResponse {
     null,
     null,
     null,
-    new Date().toISOString(),
-    `[Set](DNS): bib:${bibId}, value:${dnsValue}`,
+    dropDateTime,
+    `[Set](Drop): bib:${bibId}, value:${droppedValue}`,
     false,
     false
   );
 
-  message = `status:update bibId: ${bibId}, dns: ${dnsValue}`;
+  message = `status:update bibId: ${bibId}, dropped: ${droppedValue}, dropReason: ${dropReason}`;
+
+  // Did-Not-Start drops never had a timing record, so skip the OpenSplitTime push entirely.
+  if (
+    dropReason !== DropReason.DidNotStart &&
+    timingRecord &&
+    previousDrop?.dropped !== Number(droppedValue)
+  ) {
+    // Clear the prior push outcome immediately so the UI shows "Pending" even if the push
+    // below is skipped (paused/not signed in) or takes a while to resolve.
+    db.prepare(`UPDATE TimeRecords SET sent = ? WHERE "bibId" = ?`).run(
+      Number(false),
+      timingRecord.bibId
+    );
+    clearPushStatus(bibId);
+    emitRunnersTableChanged();
+
+    void pushTimeRecordUpdate(timingRecord, droppedValue)
+      .then((outcome) => {
+        if (outcome.pushed) {
+          db.prepare(`UPDATE TimeRecords SET sent = ? WHERE "bibId" = ?`).run(
+            Number(true),
+            timingRecord.bibId
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("OpenSplitTime drop update failed", error);
+      });
+  }
+
   return [DatabaseStatus.Updated, message];
 }
 
@@ -254,100 +275,27 @@ function GetStatusCount(columnName: string, whereStatement: string): DatabaseRes
   return [count, DatabaseStatus.Success, message];
 }
 
-export function SetDNF(
-  bibId: number,
-  timeOut: Date | null,
-  dnfValue: boolean,
-  dnfType: DNFType
-): DatabaseResponse {
+export function updateDropFromCSV(record: DropRecord): DatabaseResponse {
   const db = getDatabaseConnection();
-  let message: string = "";
-  let stationIdentifier: string | null = appStore.get("station.identifier") as string;
-  let dnf: DNFType | null = dnfType;
-  const dnfDateTime = !timeOut ? new Date().toISOString() : timeOut.toISOString();
-  const timingRecord = db.prepare(`SELECT * FROM TimeRecords WHERE bibId = ?`).get(bibId) as
-    RunnerDB | undefined;
-  const previousDnf = db.prepare(`SELECT dnf FROM Status WHERE bibId = ?`).get(bibId) as
-    | {
-        dnf: number;
-      }
-    | undefined;
-
-  if (!dnfValue) {
-    stationIdentifier = null;
-    dnf = null;
-  }
-
-  try {
-    const query = db.prepare(
-      `UPDATE Status SET dnf = ?, dnfType = ?, dnfStation = ?, dnfDateTime = ? WHERE bibId = ?`
-    );
-    query.run(Number(dnfValue), dnf, stationIdentifier, dnfDateTime, bibId);
-  } catch (e) {
-    if (e instanceof Error) {
-      console.error(e.message);
-      return [DatabaseStatus.Error, e.message];
-    }
-  }
-
-  logEvent(
-    bibId,
-    null,
-    null,
-    null,
-    dnfDateTime,
-    `[Set](DNF): bib:${bibId}, value:${dnfValue}`,
-    false,
-    false
-  );
-
-  message = `status:update bibId: ${bibId}, dnf: ${dnfValue}, dnfType: ${dnfType}`;
-
-  if (timingRecord && previousDnf?.dnf !== Number(dnfValue)) {
-    // Clear the prior push outcome immediately so the UI shows "Pending" even if the push
-    // below is skipped (paused/not signed in) or takes a while to resolve.
-    db.prepare(`UPDATE TimeRecords SET sent = ? WHERE "bibId" = ?`).run(
-      Number(false),
-      timingRecord.bibId
-    );
-    clearPushStatus(bibId);
-    emitRunnersTableChanged();
-
-    void pushTimeRecordUpdate(timingRecord, dnfValue)
-      .then((outcome) => {
-        if (outcome.pushed) {
-          db.prepare(`UPDATE TimeRecords SET sent = ? WHERE "bibId" = ?`).run(
-            Number(true),
-            timingRecord.bibId
-          );
-        }
-      })
-      .catch((error: unknown) => {
-        console.error("OpenSplitTime DNF update failed", error);
-      });
-  }
-
-  return [DatabaseStatus.Updated, message];
-}
-
-export function updateDNSFromCSV(record: DNSRecord): DatabaseResponse {
-  const db = getDatabaseConnection();
-  const dnsValue = true;
+  const droppedValue = Number(true);
+  const dropDateTime = parseCSVDate(record.dropDateTime).toISOString();
   const verbose = false;
 
   try {
-    const query = db.prepare(`UPDATE Status SET dns = ?, note = ? WHERE bibId = ?`);
-    query.run(Number(dnsValue), record.note.replaceAll(",", ""), record.bibId);
+    const query = db.prepare(
+      `UPDATE Status SET dropped = ?, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = ?`
+    );
+    query.run(droppedValue, record.dropReason, record.stationId, dropDateTime, record.bibId);
 
-    const dnsDateTime = parseCSVDate(record.dnsDateTime).toISOString();
+    syncNoteWithStatus(record.bibId, record.note.replaceAll(",", ";"), -1, SyncDirection.Outgoing);
 
     logEvent(
       record.bibId,
       record.stationId,
       null,
-      null,
-      dnsDateTime,
-      `[Set](DNS): bibId:${record.bibId} station:'${record.stationId}'`,
+      dropDateTime,
+      dropDateTime,
+      `[Set](Drop): bibId: ${record.bibId} reason: '${record.dropReason}' station: '${record.stationId}' note: '${record.note}'`,
       false,
       verbose
     );
@@ -358,42 +306,7 @@ export function updateDNSFromCSV(record: DNSRecord): DatabaseResponse {
     }
   }
 
-  const message = `athlete:update bibId: ${record.bibId}, dns: ${dnsValue}, note: ${record.note}`;
-  return [DatabaseStatus.Updated, message];
-}
-
-export function updateDNFFromCSV(record: DNFRecord): DatabaseResponse {
-  const db = getDatabaseConnection();
-  const dnfValue = Number(true);
-  const dnfDateTime = parseCSVDate(record.dnfDateTime).toISOString();
-  const verbose = false;
-
-  try {
-    const query = db.prepare(
-      `UPDATE Status SET dnf = ?, dnfType = ?, dnfStation = ?, dnfDateTime = ? WHERE bibId = ?`
-    );
-    query.run(dnfValue, record.dnfType, record.stationIdentifier, dnfDateTime, record.bibId);
-
-    syncNoteWithStatus(record.bibId, record.note, -1, SyncDirection.Outgoing);
-
-    logEvent(
-      record.bibId,
-      record.stationIdentifier,
-      null,
-      dnfDateTime,
-      dnfDateTime,
-      `[Set](DNF): bibId: ${record.bibId} type: '${record.dnfType}' station: '${record.stationIdentifier}' note: '${record.note}'`,
-      false,
-      verbose
-    );
-  } catch (e) {
-    if (e instanceof Error) {
-      console.error(e.message);
-      return [DatabaseStatus.Error, e.message];
-    }
-  }
-
-  const message = `athlete:update bibId: ${record.bibId}, dnf: ${dnfValue}, dnfStation: ${record.stationIdentifier}, dnfDateTime: ${dnfDateTime}, note: ${record.note}`;
+  const message = `athlete:update bibId: ${record.bibId}, dropped: ${droppedValue}, dropStation: ${record.stationId}, dropDateTime: ${dropDateTime}, note: ${record.note}`;
   return [DatabaseStatus.Updated, message];
 }
 
@@ -510,11 +423,10 @@ export function SetProgress(bibId: number): DatabaseResponse {
 export function initStatus(bibId: number) {
   const status: StatusDB = {
     bibId: bibId,
-    dns: false,
-    dnf: false,
-    dnfType: undefined,
-    dnfStation: undefined,
-    dnfDateTime: null,
+    dropped: false,
+    dropReason: undefined,
+    dropStation: undefined,
+    dropDateTime: null,
     note: undefined,
     progress: AthleteProgress.Incoming
   };
@@ -525,25 +437,24 @@ export function initStatus(bibId: number) {
 export function insertStatus(status: StatusDB): DatabaseResponse {
   const db = getDatabaseConnection();
   const bibId: number = status.bibId;
-  const dns: number = Number(status.dns);
-  const dnf: number = Number(status.dnf);
-  const dnfType = status.dnfType;
-  const dnfStation = status.dnfStation;
-  const dnfDateTime = status.dnfDateTime;
+  const dropped: number = Number(status.dropped);
+  const dropReason = status.dropReason;
+  const dropStation = status.dropStation;
+  const dropDateTime = status.dropDateTime;
   const note = status.note;
   const progress = status.progress;
 
   const statusRecord = GetStatusByBib(bibId);
   if (statusRecord[0] != null) {
-    const message = `status:duplicate ${bibId}, ${dns}, ${dnf}, '${note}', ${progress}`;
+    const message = `status:duplicate ${bibId}, ${dropped}, '${note}', ${progress}`;
     return [DatabaseStatus.Duplicate, message];
   }
 
   try {
     const query = db.prepare(
-      `INSERT INTO Status (bibId, dns, dnf, dnfType, dnfStation, dnfDateTime, note, progress) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Status (bibId, dropped, dropReason, dropStation, dropDateTime, note, progress) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    query.run(bibId, dns, dnf, dnfType, dnfStation, dnfDateTime, note, progress);
+    query.run(bibId, dropped, dropReason, dropStation, dropDateTime, note, progress);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -551,6 +462,6 @@ export function insertStatus(status: StatusDB): DatabaseResponse {
     }
   }
 
-  const message = `status:add ${bibId}, ${dns}, ${dnf}, '${note}', ${progress}`;
+  const message = `status:add ${bibId}, ${dropped}, '${note}', ${progress}`;
   return [DatabaseStatus.Created, message];
 }

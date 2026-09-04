@@ -1,21 +1,21 @@
-import { AthleteProgress, DNFType } from "$shared/enums";
+import { AthleteProgress, DropReason } from "$shared/enums";
 import { Tag, TagColor } from "./Tag";
 
 interface Props {
-  dnfType?: DNFType;
-  dns?: boolean;
+  dropReason?: DropReason;
   AthleteProgress?: AthleteProgress;
   duplicate?: boolean;
 }
 
 type TagInfo = { color: TagColor; text: string };
 
-const dnfTypeMap: Record<DNFType, TagInfo | null> = {
-  [DNFType.Withdrew]: { color: "turquoise", text: "Withdrew" },
-  [DNFType.Timeout]: { color: "purple", text: "Timeout" },
-  [DNFType.Medical]: { color: "red", text: "Medical" },
-  [DNFType.Unknown]: { color: "gray", text: "Unknown" },
-  [DNFType.None]: null
+const dropReasonMap: Record<DropReason, TagInfo | null> = {
+  [DropReason.DidNotStart]: { color: "blue", text: "DNS" },
+  [DropReason.Withdrew]: { color: "turquoise", text: "Withdrew" },
+  [DropReason.Timeout]: { color: "purple", text: "Timeout" },
+  [DropReason.Medical]: { color: "red", text: "Medical" },
+  [DropReason.Unknown]: { color: "gray", text: "Unknown" },
+  [DropReason.None]: null
 };
 
 const AthleteProgressMap: Record<AthleteProgress, TagInfo | null> = {
@@ -27,10 +27,8 @@ const AthleteProgressMap: Record<AthleteProgress, TagInfo | null> = {
 function getTagInfo(props: Props): TagInfo | null {
   if (props.duplicate) {
     return { color: "yellow", text: "Duplicate" };
-  } else if (props.dnfType && props.dnfType != DNFType.None) {
-    return dnfTypeMap[props.dnfType];
-  } else if (props.dns) {
-    return { color: "blue", text: "DNS" };
+  } else if (props.dropReason && props.dropReason != DropReason.None) {
+    return dropReasonMap[props.dropReason];
   } else if (props.AthleteProgress) {
     return AthleteProgressMap[props.AthleteProgress];
   } else {

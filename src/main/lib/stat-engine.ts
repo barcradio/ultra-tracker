@@ -37,15 +37,17 @@ export function initStatEngine() {
 
   stats.addStat("registeredAthletes", () => dbAthlete.GetTotalAthletes());
   stats.addStat("totalRunners", () => dbRunners.GetTotalRunners());
-  stats.addStat("totalDNS", () => dbStatus.GetTotalDNS());
-  stats.addStat("previousDNF", () => dbStatus.GetPreviousDNF());
+  stats.addStat("totalDidNotStart", () => dbStatus.GetTotalDidNotStart());
+  stats.addStat("previousDrops", () => dbStatus.GetPreviousDropped());
   stats.addStat("pendingArrivals", (input) => {
     if (
       input.registeredAthletes != invalidResult ||
-      input.totalDNS != invalidResult ||
+      input.totalDidNotStart != invalidResult ||
       input.totalRunners != invalidResult
     ) {
-      return input.registeredAthletes - input.totalDNS - input.previousDNF - input.totalRunners;
+      return (
+        input.registeredAthletes - input.totalDidNotStart - input.previousDrops - input.totalRunners
+      );
     } else {
       return invalidResult;
     }
@@ -53,11 +55,11 @@ export function initStatEngine() {
   stats.addStat("inStation", () => dbRunners.GetRunnersInStation());
   stats.addStat("throughStation", () => dbRunners.GetRunnersOutStation());
   stats.addStat("finishedRace", (input) => input.defaultValue);
-  stats.addStat("stationDNF", () => dbStatus.GetStationDNF());
-  stats.addStat("totalDNF", () => dbStatus.GetTotalDNF());
+  stats.addStat("stationDrops", () => dbStatus.GetStationDropped());
+  stats.addStat("totalDrops", () => dbStatus.GetTotalDropped());
 
   stats.addStat("warnings", () => invalidResult);
-  stats.addStat("inStationDNS", () => dbRunners.GetDNSRunnersInStation());
+  stats.addStat("inStationDidNotStart", () => dbRunners.GetDidNotStartRunnersInStation());
   stats.addStat("unknownAthletes", () => dbRunners.GetUnknownRunners());
 
   stats.addStat("errors", () => invalidResult);
