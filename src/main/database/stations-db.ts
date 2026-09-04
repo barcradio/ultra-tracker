@@ -61,8 +61,7 @@ export async function LoadStations() {
   // TODO: Begin transaction
   for (const index in stationData) {
     if (index == "event") {
-      const stagingEvent = stationData.event.openSplitTime?.staging;
-      appStore.set("event.name", stagingEvent?.name || stationData.event.name);
+      appStore.set("event.name", stationData.event.name);
       appStore.set("event.starttime", formatDate(stationData.event.starttime));
       appStore.set("event.endtime", formatDate(stationData.event.endtime));
       appStore.set(

@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Modal, Select, Stack, TextInput, VerticalButtonGroup } from "~/components";
 import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 
@@ -40,7 +40,7 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [expiration, setExpiration] = useState<string | null>(null);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveCredentials, setSaveCredentials] = useState(false);
   const [hasSavedCredentials, setHasSavedCredentials] = useState(false);
@@ -53,6 +53,17 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
   );
   const [pushPaused, setPushPaused] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
+
+  // Refetches on mount/remount and whenever the environment changes, and is invalidated
+  // whenever a stations file is (re)loaded so a missing OST event group is caught immediately.
+  const { data: eventGroupConfiguredResult } = useQuery({
+    queryKey: ["opensplittime-event-group-configured", environment],
+    queryFn: () =>
+      ipcRenderer.invoke("opensplittime-get-event-group-configured") as Promise<{
+        configured: boolean;
+      }>
+  });
+  const eventGroupConfigured = eventGroupConfiguredResult?.configured ?? true;
 
   useEffect(() => {
     let isMounted = true;
@@ -152,7 +163,7 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError(false);
+    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -163,13 +174,16 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
       })) as OpenSplitTimeAuthResult;
       setExpiration(result.expiration);
       setHasSavedCredentials(result.credentialsSaved);
-      setPushPaused(false);
+      const pushStatus = (await ipcRenderer.invoke("opensplittime-get-push-paused")) as {
+        paused: boolean;
+      };
+      setPushPaused(pushStatus.paused);
       setSessionExpired(false);
       setPassword("");
       await queryClient.invalidateQueries({ queryKey: ["runners-table"] });
-    } catch {
+    } catch (error) {
       setExpiration(null);
-      setError(true);
+      setError(error instanceof Error ? error.message : "Sign-in failed.");
     } finally {
       setPassword("");
       setIsSubmitting(false);
@@ -177,7 +191,7 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
   };
 
   const handleSavedLogin = async () => {
-    setError(false);
+    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -185,12 +199,15 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
         "opensplittime-authenticate-saved"
       )) as OpenSplitTimeAuthResult;
       setExpiration(result.expiration);
-      setPushPaused(false);
+      const pushStatus = (await ipcRenderer.invoke("opensplittime-get-push-paused")) as {
+        paused: boolean;
+      };
+      setPushPaused(pushStatus.paused);
       setSessionExpired(false);
       await queryClient.invalidateQueries({ queryKey: ["runners-table"] });
-    } catch {
+    } catch (error) {
       setExpiration(null);
-      setError(true);
+      setError(error instanceof Error ? error.message : "Sign-in failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -209,8 +226,13 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
     if (!expiration) return;
 
     const nextPaused = !pushPaused;
-    await ipcRenderer.invoke("opensplittime-set-push-paused", { paused: nextPaused });
-    setPushPaused(nextPaused);
+    setError(null);
+    try {
+      await ipcRenderer.invoke("opensplittime-set-push-paused", { paused: nextPaused });
+      setPushPaused(nextPaused);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to change push state.");
+    }
   };
 
   return (
@@ -238,7 +260,15 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
           <span className="text-sm font-medium text-on-component">
             Pushes to OpenSplitTime are {pushPaused ? "paused" : "active"}.
           </span>
-          <Button type="button" size="wide" onClick={handleTogglePush} disabled={!expiration}>
+          {!eventGroupConfigured && (
+            <span className="text-sm font-medium text-danger">OST event metadata not found</span>
+          )}
+          <Button
+            type="button"
+            size="wide"
+            onClick={handleTogglePush}
+            disabled={!expiration || (pushPaused && !eventGroupConfigured)}
+          >
             {pushPaused ? "Resume Pushes" : "Pause Pushes"}
           </Button>
         </Stack>
@@ -285,7 +315,7 @@ export function OpenSplitTimeLogin({ className }: OpenSplitTimeLoginProps = {}) 
             />
             <span>Save credentials</span>
           </div>
-          {error && <span className="text-sm font-medium text-danger">Sign-in failed.</span>}
+          {error && <span className="text-sm font-medium text-danger">{error}</span>}
           <Button type="submit" size="wide" disabled={isSubmitting}>
             {isSubmitting ? "Signing In..." : "Sign In"}
           </Button>

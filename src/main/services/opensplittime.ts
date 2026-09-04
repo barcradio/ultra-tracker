@@ -128,8 +128,27 @@ export function isOpenSplitTimePushPaused(): boolean {
   return pushPaused;
 }
 
+// The stations file must supply an OST event group for the active environment before pushes
+// may run; otherwise every push would fail against a nonexistent or wrong event group.
+export function isOpenSplitTimeEventGroupConfigured(): boolean {
+  const eventMetadata = appStore.get("event.openSplitTime") as
+    OpenSplitTimeEventMetadataStore | undefined;
+  const configuredEvent =
+    currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
+
+  return Boolean(configuredEvent?.name);
+}
+
 export function setOpenSplitTimePushPaused(paused: boolean): void {
   requireToken();
+
+  if (!paused && !isOpenSplitTimeEventGroupConfigured()) {
+    throw new OpenSplitTimeApiError(
+      `OpenSplitTime event group is not configured for the ${currentEnvironment} environment`,
+      500
+    );
+  }
+
   pushPaused = paused;
 }
 
@@ -312,6 +331,7 @@ export async function authenticate(
   saveCredentials = false
 ): Promise<OpenSplitTimeAuthResult> {
   apiToken = null;
+
   const response = await request<OpenSplitTimeAuthResponse>("/auth", {
     method: "POST",
     headers: {
@@ -332,7 +352,8 @@ export async function authenticate(
 
   apiToken = response.token;
   tokenExpiration = response.expiration;
-  pushPaused = false;
+  // Sign-in is always allowed, but pushes stay paused until an event group is configured.
+  pushPaused = !isOpenSplitTimeEventGroupConfigured();
 
   if (saveCredentials && safeStorage.isEncryptionAvailable()) {
     appStore.set("openSplitTime.email", email);
@@ -359,7 +380,7 @@ export async function syncEventGroupId(): Promise<void> {
     OpenSplitTimeEventMetadataStore | undefined;
   const configuredEvent =
     currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
-  const eventGroupIdOrSlug = configuredEvent?.name || (appStore.get("event.name") as string);
+  const eventGroupIdOrSlug = configuredEvent?.name;
 
   if (!eventGroupIdOrSlug) return;
 
@@ -453,14 +474,20 @@ function resolvePushConfig(): OpenSplitTimePushConfig {
     OpenSplitTimeEventMetadataStore | undefined;
   const configuredEvent =
     currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
-  const eventGroupIdOrSlug = configuredEvent?.name || (appStore.get("event.name") as string);
+  const eventGroupIdOrSlug = configuredEvent?.name;
   const stationIdentifier = appStore.get("station.identifier") as string;
   const stationName = appStore.get("station.name") as string;
   // The OST split name must match a split already configured on the event group; use the
   // stations-file override when the station name itself doesn't line up with OST's naming.
   const splitName = (appStore.get("station.openSplitTimeSplitName") as string) || stationName;
 
-  if (!eventGroupIdOrSlug || !stationIdentifier || !stationName) {
+  if (!eventGroupIdOrSlug) {
+    throw new OpenSplitTimeApiError(
+      `OpenSplitTime event group is not configured for the ${currentEnvironment} environment; reload the stations file`,
+      500
+    );
+  }
+  if (!stationIdentifier || !stationName) {
     throw new OpenSplitTimeApiError("OpenSplitTime event or station is not configured", 500);
   }
 
