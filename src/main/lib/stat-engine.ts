@@ -65,7 +65,7 @@ export function initStatEngine() {
   stats.addStat("errors", () => invalidResult);
   stats.addStat("duplicates", () => dbRunners.GetRunnersWithDuplicateStatus());
 
-  stats; // const engine: StatEngine<"defaultValue" | "inStation" | "throughStation">
+  // stats: StatEngine<"defaultValue" | "inStation" | "throughStation">
 
   stats.calculate();
 }

@@ -1,6 +1,4 @@
-// @ts-nocheck
-
-import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import { StatusTag } from "~/components/StatusTag";
 import { useAthletes } from "~/hooks/data/useAthletes";
 import { AthleteProgress, DropReason } from "$shared/enums";
@@ -14,7 +12,7 @@ export function RosterPage() {
   const { data } = useAthletes();
 
   const { firstName, lastName } = routeApi.useSearch();
-  const navigate = useNavigate();
+  const navigate = routeApi.useNavigate();
 
   const columns: ColumnDef<AthleteStatusDB> = [
     {
@@ -80,7 +78,7 @@ export function RosterPage() {
         showFooter
         onClearFilters={() => {
           // TODO: For some reason this requires two clicks to re-render
-          navigate({ search: {} }); // TODO: fix TS2322
+          navigate({ search: () => ({}) });
         }}
         initialFilter={
           firstName && lastName ? { firstName: `${firstName} ${lastName}` } : undefined
