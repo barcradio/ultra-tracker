@@ -4,7 +4,23 @@
         "starttime": "00:00:00 Jan 01 2024",
         "endtime": "00:00:00 Jan 01 2024",
         "startline": "0-start-line",
-        "finishline": "99-finish-line"
+        "finishline": "99-finish-line",
+        "openSplitTime": {
+            "production": {
+                "name": "event-name-prod",
+                "id": 9999
+            },
+            "staging": {
+                "name": "event-name-staging",
+                "id": 9999
+            },
+            "splitNames": {
+                "0-start-line": "Start",
+                "1-station-name": "Station Name",
+                "2-station-name": "Station Name",
+                "3-finish-line": "Finish"
+            }
+        }
     },
     "stations": [
         {
