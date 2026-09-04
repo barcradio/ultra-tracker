@@ -99,8 +99,7 @@ export function GetAthletes(): DatabaseResponse<AthleteStatusDB[]> {
     queryResult = db
       .prepare(
         `SELECT Athletes.*, Status.dropped, Status.dropReason, Status.note, Status.progress
-         FROM Athletes LEFT JOIN Status
-         WHERE Athletes.bibId == Status.bibId`
+         FROM Athletes LEFT JOIN Status ON Athletes.bibId == Status.bibId`
       )
       .all();
   } catch (e) {
