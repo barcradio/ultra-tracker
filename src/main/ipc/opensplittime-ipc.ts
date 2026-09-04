@@ -15,6 +15,7 @@ import {
   getEventGroup,
   getOpenSplitTimeEnvironment,
   getSavedCredentials,
+  isOpenSplitTimeEventGroupConfigured,
   isOpenSplitTimePushPaused,
   listOpenSplitTimeEnvironments,
   pushTimeRecordUpdate,
@@ -96,6 +97,10 @@ const getOpenSplitTimeEventGroup: Handler<EventGroupParams> = (_, params) => {
 
 const getOpenSplitTimePushPaused: Handler = () => ({ paused: isOpenSplitTimePushPaused() });
 
+const getOpenSplitTimeEventGroupConfigured: Handler = () => ({
+  configured: isOpenSplitTimeEventGroupConfigured()
+});
+
 const setOpenSplitTimePushPausedHandler: Handler<SetPushPausedParams> = (_, params) => {
   if (typeof params?.paused !== "boolean") {
     throw new TypeError("paused must be a boolean");
@@ -146,6 +151,7 @@ export const initOpenSplitTimeHandlers = () => {
   ipcMain.handle("opensplittime-submit-raw-times", submitOpenSplitTimeRawTimes);
   ipcMain.handle("opensplittime-clear-authentication", clearAuthentication);
   ipcMain.handle("opensplittime-get-push-paused", getOpenSplitTimePushPaused);
+  ipcMain.handle("opensplittime-get-event-group-configured", getOpenSplitTimeEventGroupConfigured);
   ipcMain.handle("opensplittime-set-push-paused", setOpenSplitTimePushPausedHandler);
   ipcMain.handle("opensplittime-push-record", pushOpenSplitTimeRecord);
 
