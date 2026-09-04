@@ -287,7 +287,7 @@ export function updateDropFromCSV(record: DropRecord): DatabaseResponse {
     );
     query.run(droppedValue, record.dropReason, record.stationId, dropDateTime, record.bibId);
 
-    syncNoteWithStatus(record.bibId, record.note, -1, SyncDirection.Outgoing);
+    syncNoteWithStatus(record.bibId, record.note.replaceAll(",", ";"), -1, SyncDirection.Outgoing);
 
     logEvent(
       record.bibId,
