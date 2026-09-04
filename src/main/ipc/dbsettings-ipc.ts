@@ -4,6 +4,7 @@ import * as dbRunners from "../database/runners-db";
 import * as dbStations from "../database/stations-db";
 import * as dbStatus from "../database/status-db";
 import * as dbTables from "../database/tables-db";
+import { appStore } from "../lib/store";
 import { Handler } from "../types";
 
 const loadStationFile: Handler<string> = () => {
@@ -33,7 +34,13 @@ const initializeDatabase: Handler<string> = () => {
 };
 
 const clearDatabase: Handler<string> = () => {
-  return dbTables.ClearTables();
+  const result = dbTables.ClearTables();
+
+  if (result === "Database tables cleared; Reinitialize or Restart!") {
+    appStore.set("incrementalFileIndex", 1);
+  }
+
+  return result;
 };
 
 export const initdbSettingsHandlers = () => {
