@@ -50,9 +50,9 @@ export function Footer() {
     <Stack
       justify="between"
       align="center"
-      className="py-6 pl-4 m-4 text-lg bg-component font-display"
+      className="py-[24px] pl-[16px] m-[16px] text-[18px] bg-component font-display"
     >
-      <Stack direction="row" align="center" className="gap-4">
+      <Stack direction="row" align="center" className="gap-[16px]">
         <Stack direction="col">
           <p className="text-on-component">
             <span className="font-bold">Aid Station</span> - {title}
@@ -64,16 +64,16 @@ export function Footer() {
 
         <Stack
           direction="col"
-          className="gap-2 px-4 py-2 text-sm border rounded-md border-component-strong bg-surface-tertiary"
+          className="gap-[8px] px-[16px] py-[8px] text-[14px] border rounded-md border-component-strong bg-surface-tertiary"
         >
-          <Stack id={internetTooltipId} direction="row" align="center" className="gap-2">
+          <Stack id={internetTooltipId} direction="row" align="center" className="gap-[8px]">
             <span className="text-on-component">Internet:</span>
             {statusIcon(connectionStatus.checking, connectionStatus.internet)}
             <Tooltip position="top" target={`#${internetTooltipId}`}>
               {statusText(connectionStatus.checking, connectionStatus.internet)}
             </Tooltip>
           </Stack>
-          <Stack id={openSplitTimeTooltipId} direction="row" align="center" className="gap-2">
+          <Stack id={openSplitTimeTooltipId} direction="row" align="center" className="gap-[8px]">
             <span className="text-on-component">OpenSplitTime:</span>
             {statusIcon(connectionStatus.checking, connectionStatus.openSplitTime)}
             <Tooltip position="top" target={`#${openSplitTimeTooltipId}`}>

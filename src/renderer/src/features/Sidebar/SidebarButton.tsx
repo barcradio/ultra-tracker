@@ -15,7 +15,7 @@ export interface SidebarButtonProps extends SidebarItemProps {
 //
 const SidebarStack = classed(
   Stack,
-  "static py-2 my-0.5 ml-4 text-lg font-bold uppercase transition-all duration-100 cursor-pointer font-display *:transition-all *:duration-100 text-on-surface group/link",
+  "static py-[8px] my-[2px] ml-[16px] text-[18px] font-bold uppercase transition-all duration-100 cursor-pointer font-display *:transition-all *:duration-100 text-on-surface group/link",
   {
     variants: {
       active: {
@@ -30,7 +30,7 @@ const SidebarStack = classed(
 // Use a separate indicator rather than border to allow a smooth transition
 // of the indicator location when expanding/collapsing the sidebar
 const Indicator = classed.div({
-  base: "absolute right-0 w-1",
+  base: "absolute right-0 w-[4px]",
   variants: {
     active: {
       true: "opacity-100 bg-primary",
@@ -56,7 +56,7 @@ export function SidebarButton(props: SidebarButtonProps) {
         {
           // TODO: fix TS2769
           props.icon({
-            className: "mr-4 ml-1",
+            className: "mr-[16px] ml-[4px]",
             title: props.children,
             height: 28,
             width: 28
