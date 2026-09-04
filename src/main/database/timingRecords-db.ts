@@ -290,19 +290,19 @@ function updateTimeRecord(
 
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
 
+  // A duplicate's fractional bib (e.g. 150.2) floors to the original bib number when pushed, so
+  // pushing here would incorrectly overwrite the original runner's time on OST.
   if (shouldPush) {
     // Clear the prior push outcome immediately so the UI shows "Pending" even if the push
     // below is skipped (paused/not signed in) or takes a while to resolve.
     clearPushStatus(record.bibId);
     emitRunnersTableChanged();
 
-    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId))
-      .then((outcome) => {
-        if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
-      })
-      .catch((error: unknown) => {
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId)).catch(
+      (error: unknown) => {
         console.error("OpenSplitTime record update failed", error);
-      });
+      }
+    );
   }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
@@ -357,13 +357,11 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   // pushing here would incorrectly overwrite the original runner's time on OST until the operator
   // resolves the duplicate to a real bib number.
   if (record.status !== RecordStatus.Duplicate) {
-    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId))
-      .then((outcome) => {
-        if (outcome.pushed) markTimeRecordAsSent(record.bibId, true);
-      })
-      .catch((error: unknown) => {
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId)).catch(
+      (error: unknown) => {
         console.error("OpenSplitTime record update failed", error);
-      });
+      }
+    );
   }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];

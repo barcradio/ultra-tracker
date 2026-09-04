@@ -17,6 +17,7 @@ export interface Runner {
 export interface RunnerEx extends Runner {
   sequence: number;
   sent: boolean;
+  openSplitTimeAuthenticated: boolean;
   dns: boolean;
   dnf: boolean;
   dnfType: DNFType;
@@ -48,8 +49,12 @@ export function useRunnerData() {
   return useQuery({
     queryKey: ["runners-table"],
     queryFn: async (): Promise<RunnerEx[]> => {
-      const response = await ipcRenderer.invoke("get-runners-table", { includeDNF: true });
+      const [response, authResult] = await Promise.all([
+        ipcRenderer.invoke("get-runners-table", { includeDNF: true }),
+        ipcRenderer.invoke("opensplittime-get-auth-status")
+      ]);
       const [data, status, message]: DatabaseResponse<RunnerAthleteDB[]> = response;
+      const { authenticated } = authResult as { authenticated: boolean };
 
       const success = handleError(status, message);
 
@@ -63,6 +68,7 @@ export function useRunnerData() {
         out: runner.timeOut,
         note: runner.note,
         sent: runner.sent,
+        openSplitTimeAuthenticated: authenticated,
         dns: runner.dns ?? false,
         dnf: runner.dnf ?? false,
         dnfType: runner.dnfType ?? DNFType.None,
