@@ -26,20 +26,20 @@ function useStats() {
       value: formatStat(statsData?.throughStation)
     },
     {
-      id: "Total DNS",
-      value: formatStat(statsData?.totalDNS)
+      id: "Not Started",
+      value: formatStat(statsData?.totalDidNotStart)
     },
     {
-      id: "Prior DNF",
-      value: formatStat(statsData?.previousDNF)
+      id: "Prior Drops",
+      value: formatStat(statsData?.previousDrops)
     },
     {
-      id: "Station DNF",
-      value: formatStat(statsData?.stationDNF)
+      id: "Station Drops",
+      value: formatStat(statsData?.stationDrops)
     },
     {
-      id: "Total DNF",
-      value: formatStat(statsData?.totalDNF)
+      id: "Total Drops",
+      value: formatStat(statsData?.totalDrops)
     },
     {
       id: " ",
@@ -50,8 +50,8 @@ function useStats() {
       value: ""
     },
     {
-      id: "- In Station DNS",
-      value: formatStat(statsData?.inStationDNS)
+      id: "- DNS In Station",
+      value: formatStat(statsData?.inStationDidNotStart)
     },
     {
       id: "- Unknown Bibs",

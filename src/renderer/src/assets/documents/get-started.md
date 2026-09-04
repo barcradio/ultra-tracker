@@ -18,9 +18,8 @@
 2. Load the Stations file
    1. Select Station location and set operator call sign
 3. Load the Athletes file
-4. Load the Did Not Start (DNS) File
-5. Load the most recent Did Not Finish (DNF) file
-6. Go to stats screen and begin logging athletes
+4. Load the Drops file (athletes known to have Not Started or Dropped from the race)
+5. Go to stats screen and begin logging athletes
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
@@ -64,7 +63,7 @@ A Filter control for any column can be opened by clicking the Filter icon (three
 
 To edit a timing record, click on the icon at the far-right side of the record row.
 
-The Edit pane allows modification or deletion of a timing record. The In and Out times, DNF and DNS status, and any notes that have been entered will be displayed. Changes to these fields must be applied to take effect, or cancelled to return to the Stats page.
+The Edit pane allows modification or deletion of a timing record. The In and Out times, Drop Reason, and any notes that have been entered will be displayed. Changes to these fields must be applied to take effect, or cancelled to return to the Stats page.
 
 If the Bib# can be matched with known athlete, the athlete's name will be displayed. The button above the name will jump to that athlete in the Roster page. A timing record for an unknown athlete is considered a warning condition, as all athletes should be known and checked in at the Start of the event, and included in the Athletes file. For a timing record not matched to athlete, limited changes can be performed, resolve the Bib# to a known athlete to modify all values.
 
@@ -126,7 +125,7 @@ _10-key entry is recommended for all stations, for laptops without, use a USB 10
 </div>
 This page provides the list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and note entries.
 
-The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS, In, Out, Medical, Timeout, Withdrew`
+The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS (Not Started), In, Out, Medical, Timeout, Withdrew`
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
@@ -187,7 +186,7 @@ Timing record indicators show the current delivery state:
 | OpenSplitTime | <img src="./img/status/upload-failed.svg" alt="Red solid circle" width="16"> | Upload failed |
 
 - **Export Incremental CSV File**
-  This function exports a `.csv` file of the station entries containing unsent or edited records, contains BibID, TimeIn, TimeOut, DNF/DNS status and any notes made by the operator. The exported file will be automatically named and incremented. e.g. `Aid05Times_04i.csv, Aid05Times_05i.csv, and Aid05Times_06i.csv`.
+  This function exports a `.csv` file of the station entries containing unsent or edited records, contains BibID, TimeIn, TimeOut, Drop Reason and any notes made by the operator. The exported file will be automatically named and incremented. e.g. `Aid05Times_04i.csv, Aid05Times_05i.csv, and Aid05Times_06i.csv`.
 
   Sending recent time records in smaller batches allows for much smaller files being routinely sent to race leadership to import to the race timing site, whether by packet radio or internet. This keeps timing data updated timely for athlete support crews and other situation in an event. Depending on the rate of athletes arriving and departing a station, sending an incremental file _every 30 minutes at a minimim_ is recommended, more often if possible.
 
@@ -196,15 +195,12 @@ Timing record indicators show the current delivery state:
   <span style="color:orange">**NOTE:** All Incremental files must be transmitted to the race leadership as each file only contains a portion of the overall station data.</span>
 
 - **Export Full CSV File**
-  This function exports a full `.csv` file of **all time records** containing TimeIn, TimeOut, DNF/DNS status and any notes made by the station operators.
+  This function exports a full `.csv` file of **all time records** containing TimeIn, TimeOut, Drop Reason and any notes made by the station operators.
 
 This file is useful as a final station report.
 
-- **Export DNS File**
-  This function exports a `.csv` file with all DNS entries that have occurred at the current station. This is unlikely to be used at any station other than the Start Line.
-
-- **Export DNF File**
-  This function exports a `.csv` file with all DNF entries that have occurred up the current station. This file is not normally needed to be sent to race organizers but can be an efficient way of sending the current station's DNF list to another station.
+- **Export Drops File**
+  This function exports a `.csv` file with all Drop entries (Not Started, Withdrew, Timeout, Medical, Unknown) that have occurred at or before the current station. This file is not normally needed to be sent to race organizers but can be an efficient way of sending the current station's Drops list to another station.
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
@@ -259,14 +255,12 @@ The following is a description of each button's function. Each of these will ope
   This loads a `JSON` file containing each of the stations and their detailed information to allow ease of selection while setting up this application. A typical filename will be `eventname-YYYY-stations.json`.
 - **Load Athletes File**
   This function loads a `.csv` file, supplied by race organizers, containing all athletes registered or checked in for the event, whether they are known to have started _or not_.
-- **Load DNS File**
-  This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not started** the race.
-- **Load DNF File**
-  This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not finished** the race.
+- **Load Drops File**
+  This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not started** or **dropped from** the race (Withdrew, Timeout, Medical, Unknown).
 
-  As an event proceeds more DNF athletes will be recorded and new DNF files will be supplied to stations.
+  As an event proceeds more Drops will be recorded and new Drops files will be supplied to stations.
 
-  Importing new DNF files will update all athletes recorded and DNF earlier in the race, DNFs past the current station are ignored. This provides insight of which athletes are still expected into the current station.
+  Importing new Drops files will update all athletes recorded as dropped at or before the current station; drops past the current station are ignored. This provides insight of which athletes are still expected into the current station.
 
 #### RFID Configuration
 
@@ -299,8 +293,7 @@ The following is a description of each button's function. Each of these will ope
 
 1. Load the Stations file.
 1. Load the Athletes file.
-1. Load the DNS file.
-1. Load the most recent DNF file.
+1. Load the Drops file.
 1. Import a Full Export file using "Recover Data From CSV File".
 
 ### Local Database

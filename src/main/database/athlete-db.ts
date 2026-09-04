@@ -25,7 +25,7 @@ export async function LoadAthletes() {
     "emergencyPhone"
   ];
 
-  // this is entirely destructive, will lose any notes and DNS/DNF tags that aren't saved to a file.
+  // this is entirely destructive, will lose any notes and Drop tags that aren't saved to a file.
   clearAthletesTable();
   createAthletesTable();
 
@@ -98,7 +98,7 @@ export function GetAthletes(): DatabaseResponse<AthleteStatusDB[]> {
   try {
     queryResult = db
       .prepare(
-        `SELECT Athletes.*, Status.dns, Status.dnf, Status.dnfType, Status.note, Status.progress
+        `SELECT Athletes.*, Status.dropped, Status.dropReason, Status.note, Status.progress
          FROM Athletes LEFT JOIN Status
          WHERE Athletes.bibId == Status.bibId`
       )

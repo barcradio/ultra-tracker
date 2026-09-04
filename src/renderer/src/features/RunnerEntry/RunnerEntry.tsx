@@ -3,7 +3,7 @@ import { StatusTag } from "~/components/StatusTag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { RowStatus } from "~/features/DataGrid/types";
 import { formatDate } from "~/lib/datetimes";
-import { DNFType, RecordStatus } from "$shared/enums";
+import { DropReason, RecordStatus } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { InTimeCell } from "./InTimeCell";
 import { RunnerFormStats } from "./RunnerFormStats";
@@ -43,15 +43,13 @@ export function RunnerEntry() {
       width: "160px"
     },
     {
-      field: "dnfType",
+      field: "dropReason",
       name: "Status",
       truncate: false,
-      render: (dnfType, { dns, status }) => (
-        <StatusTag dnfType={dnfType} dns={dns} duplicate={status === RecordStatus.Duplicate} />
+      render: (dropReason, { status }) => (
+        <StatusTag dropReason={dropReason} duplicate={status === RecordStatus.Duplicate} />
       ),
-      valueFn: (data) =>
-        `${data.dnfType! === DNFType.None ? "" : data.dnfType + "dnf"},
-         ${data.dns! ? "DNS" : ""}`,
+      valueFn: (data) => `${data.dropReason! === DropReason.None ? "" : data.dropReason}`,
       width: "118px"
     },
     {

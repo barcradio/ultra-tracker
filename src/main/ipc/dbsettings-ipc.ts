@@ -17,12 +17,8 @@ const loadAthletesFile: Handler<string> = (event, args) => {
   return dbAthlete.LoadAthletes();
 };
 
-const loadDNSFile: Handler<string> = () => {
-  return dbStatus.LoadDNS();
-};
-
-const loadDNFFile: Handler<string> = () => {
-  return dbStatus.LoadDNF();
+const loadDropsFile: Handler<string> = () => {
+  return dbStatus.LoadDrops();
 };
 
 const importRunnersFile: Handler<string> = () => {
@@ -46,8 +42,7 @@ const clearDatabase: Handler<string> = () => {
 export const initdbSettingsHandlers = () => {
   ipcMain.handle("load-athletes-file", loadAthletesFile);
   ipcMain.handle("load-stations-file", loadStationFile);
-  ipcMain.handle("load-dns-file", loadDNSFile);
-  ipcMain.handle("load-dnf-file", loadDNFFile);
+  ipcMain.handle("load-drops-file", loadDropsFile);
   ipcMain.handle("import-runners-file", importRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);
   ipcMain.handle("clear-database", clearDatabase);

@@ -14,12 +14,8 @@ export function useSettingsMutations() {
     preToast: "Loading Stations file"
   });
 
-  const importDNSFile = useBasicIpcCall("load-dns-file", {
-    preToast: "Loading DNS file"
-  });
-
-  const importDNFFile = useBasicIpcCall("load-dnf-file", {
-    preToast: "Loading DNF file"
+  const importDropsFile = useBasicIpcCall("load-drops-file", {
+    preToast: "Loading Drops file"
   });
 
   const importRunnerCSVFile = useBasicIpcCall("import-runners-file", {
@@ -61,8 +57,7 @@ export function useSettingsMutations() {
     disconnectRfid,
     importAthletesFile,
     importStationsFile,
-    importDNSFile,
-    importDNFFile,
+    importDropsFile,
     importRunnerCSVFile,
     reinitializeDatabase
   };

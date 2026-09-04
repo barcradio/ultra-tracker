@@ -23,7 +23,7 @@ import {
   usePushOpenSplitTimeRecord
 } from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
-import { DNFType, RecordStatus } from "$shared/enums";
+import { DropReason, RecordStatus } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { useToasts } from "../Toasts/useToasts";
 
@@ -71,7 +71,7 @@ export function EditRunner(props: Props) {
         bibId: updatedBibId,
         status:
           isIntegerBib && data.status === RecordStatus.Duplicate ? RecordStatus.OK : data.status,
-        dnf: (data.dnfType as DNFType) !== DNFType.None
+        dropped: (data.dropReason as DropReason) !== DropReason.None
       };
 
       form.reset({ ...formattedData });
@@ -251,24 +251,19 @@ export function EditRunner(props: Props) {
                     selectedRunner.state.status === RecordStatus.Duplicate || athlete === null
                   }
                   onChange={(value) => {
-                    form.setValue("dnfType", value ? (value as DNFType) : DNFType.None);
+                    form.setValue("dropReason", value ? (value as DropReason) : DropReason.None);
                   }}
-                  className="w-1/2"
-                  label="DNF"
-                  value={form.watch("dnfType")}
-                  options={["medical", "withdrew", "timeout", "none"]}
-                  placeholder="DNF"
-                />
-                <Select
-                  disabled={
-                    selectedRunner.state.status === RecordStatus.Duplicate || athlete === null
-                  }
-                  onChange={(value) => form.setValue("dns", value === "dns")}
-                  className="w-1/2"
-                  label="DNS"
-                  value={form.watch("dns") ? "dns" : "none"}
-                  options={["dns", "none"]}
-                  placeholder="DNF"
+                  className="w-full"
+                  label="Drop Reason"
+                  value={form.watch("dropReason")}
+                  options={[
+                    { name: "Did Not Start", value: DropReason.DidNotStart },
+                    { name: "Medical", value: DropReason.Medical },
+                    { name: "Withdrew", value: DropReason.Withdrew },
+                    { name: "Timeout", value: DropReason.Timeout },
+                    { name: "None", value: DropReason.None }
+                  ]}
+                  placeholder="Drop Reason"
                 />
               </Stack>
               <TextInput

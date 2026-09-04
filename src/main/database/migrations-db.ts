@@ -2,6 +2,7 @@ import { IMigration } from "@blackglory/better-sqlite3-migrations";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
+import * as tableDefs4 from "./schema/table-definitions-v4";
 
 export const migrations: IMigration[] = [
   {
@@ -67,6 +68,40 @@ export const migrations: IMigration[] = [
         DROP TABLE IF EXISTS RFIDInbox;
         DROP TABLE IF EXISTS RFIDPendingWrites;
         DROP TABLE IF EXISTS OpenSplitTimePushStatus;
+      `
+  },
+  {
+    version: 4,
+    up: `
+        CREATE TABLE IF NOT EXISTS Status_v4 (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs4.Status});
+        INSERT INTO Status_v4 (bibId, dropped, dropReason, dropStation, dropDateTime, note, progress)
+          SELECT bibId,
+            CASE WHEN dns = 1 OR dnf = 1 THEN 1 ELSE 0 END,
+            CASE WHEN dns = 1 THEN 'did-not-start' WHEN dnf = 1 THEN dnfType ELSE NULL END,
+            CASE WHEN dnf = 1 THEN dnfStation ELSE NULL END,
+            CASE WHEN dnf = 1 THEN dnfDateTime ELSE NULL END,
+            note, progress
+          FROM Status
+          WHERE EXISTS (SELECT 1 FROM Status LIMIT 1);
+        DROP TABLE Status;
+        ALTER TABLE Status_v4 RENAME TO Status;
+      `,
+    down: `
+        CREATE TABLE IF NOT EXISTS Status_v2 (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs2.Status});
+        INSERT INTO Status_v2 (bibId, dns, dnf, dnfType, dnfStation, dnfDateTime, note, progress)
+          SELECT bibId,
+            CASE WHEN dropReason = 'did-not-start' THEN 1 ELSE 0 END,
+            CASE WHEN dropped = 1 AND dropReason != 'did-not-start' THEN 1 ELSE 0 END,
+            CASE WHEN dropReason != 'did-not-start' THEN dropReason ELSE NULL END,
+            dropStation,
+            dropDateTime,
+            note, progress
+          FROM Status
+          WHERE EXISTS (SELECT 1 FROM Status LIMIT 1);
+        DROP TABLE Status;
+        ALTER TABLE Status_v2 RENAME TO Status;
       `
   }
 ];

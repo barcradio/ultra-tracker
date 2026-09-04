@@ -8,12 +8,12 @@ export interface Stats {
   inStation: number;
   throughStation: number;
   finishedRace: number;
-  totalDNS: number;
-  previousDNF: number;
-  stationDNF: number;
-  totalDNF: number;
+  totalDidNotStart: number;
+  previousDrops: number;
+  stationDrops: number;
+  totalDrops: number;
   warnings: number;
-  inStationDNS: number;
+  inStationDidNotStart: number;
   unknownAthletes: number;
   errors: number;
   duplicates: number;

@@ -30,9 +30,8 @@ export const DropdownPT: DropdownPassThroughOptions = {
   }),
   wrapper: (params) => {
     return {
-      style: { scrollbarWidth: "none" },
       className: classNames(
-        "overflow-auto max-h-[200px] bg-surface-secondary",
+        "overflow-y-auto max-h-[280px] bg-surface-secondary",
         "shadow-lg text-on-surface",
         { "rounded-br-lg rounded-bl-lg": params?.props.filter },
         { "rounded-lg": !params?.props.filter }

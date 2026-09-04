@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DNFType, RecordStatus } from "$shared/enums";
+import { DropReason, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { useHandleStatusToasts } from "../useHandleStatusToasts";
@@ -18,9 +18,8 @@ export interface RunnerEx extends Runner {
   sequence: number;
   sent: boolean;
   openSplitTimeAuthenticated: boolean;
-  dns: boolean;
-  dnf: boolean;
-  dnfType: DNFType;
+  dropped: boolean;
+  dropReason: DropReason;
   status: RecordStatus;
   openSplitTimePushStatus?: "success" | "pending" | "error";
   openSplitTimePushError?: string;
@@ -50,7 +49,7 @@ export function useRunnerData() {
     queryKey: ["runners-table"],
     queryFn: async (): Promise<RunnerEx[]> => {
       const [response, authResult] = await Promise.all([
-        ipcRenderer.invoke("get-runners-table", { includeDNF: true }),
+        ipcRenderer.invoke("get-runners-table", { includeDrops: true }),
         ipcRenderer.invoke("opensplittime-get-auth-status")
       ]);
       const [data, status, message]: DatabaseResponse<RunnerAthleteDB[]> = response;
@@ -69,9 +68,8 @@ export function useRunnerData() {
         note: runner.note,
         sent: runner.sent,
         openSplitTimeAuthenticated: authenticated,
-        dns: runner.dns ?? false,
-        dnf: runner.dnf ?? false,
-        dnfType: runner.dnfType ?? DNFType.None,
+        dropped: runner.dropped ?? false,
+        dropReason: runner.dropReason ?? DropReason.None,
         status: runner.status ?? RecordStatus.OK,
         openSplitTimePushStatus: runner.openSplitTimePushStatus,
         openSplitTimePushError: runner.openSplitTimePushError

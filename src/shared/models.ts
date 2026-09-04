@@ -1,4 +1,4 @@
-import { AthleteProgress, DNFType, DeviceStatus, EntryMode, RecordType } from "./enums";
+import { AthleteProgress, DeviceStatus, DropReason, EntryMode, RecordType } from "./enums";
 
 /**
  * Custom models (types) for ultra-tracker
@@ -24,9 +24,9 @@ export interface RunnerCSV {
   timeOut: string;
   note: string;
   sent: number;
-  dnfType: string;
-  dnfStation: string;
-  dnfDateTime: string;
+  dropReason: string;
+  dropStation: string;
+  dropDateTime: string;
 }
 
 export interface Runner {
@@ -53,11 +53,10 @@ export type AthleteDB = {
 
 export type StatusDB = {
   bibId: number;
-  dns: boolean | undefined;
-  dnf: boolean | undefined;
-  dnfType: DNFType | undefined;
-  dnfStation: string | undefined;
-  dnfDateTime: Date | null;
+  dropped: boolean | undefined;
+  dropReason: DropReason | undefined;
+  dropStation: string | undefined;
+  dropDateTime: Date | null;
   note: string | undefined;
   progress: AthleteProgress | undefined;
 };
@@ -114,18 +113,11 @@ export type Operator = {
   active: boolean;
 };
 
-export type DNSRecord = {
+export type DropRecord = {
   stationId: string;
   bibId: number;
-  dnsDateTime: string;
-  note: string;
-};
-
-export type DNFRecord = {
-  stationIdentifier: string;
-  bibId: number;
-  dnfType: string;
-  dnfDateTime: string;
+  dropReason: string;
+  dropDateTime: string;
   note: string;
 };
 
@@ -141,10 +133,10 @@ export type EventLogRec = {
   verbose: boolean | undefined;
 };
 
-export type RunnerAthleteDB = RunnerDB & Pick<StatusDB, "dnf" | "dnfType" | "dns">;
+export type RunnerAthleteDB = RunnerDB & Pick<StatusDB, "dropped" | "dropReason">;
 
 export type AthleteStatusDB = AthleteDB &
-  Pick<StatusDB, "dns" | "dnf" | "dnfType" | "note" | "progress">;
+  Pick<StatusDB, "dropped" | "dropReason" | "note" | "progress">;
 
 export type RfidSettings = {
   type: string;
