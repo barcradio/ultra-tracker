@@ -49,7 +49,12 @@ export function RunnerEntry() {
       render: (dropReason, { status }) => (
         <StatusTag dropReason={dropReason} duplicate={status === RecordStatus.Duplicate} />
       ),
-      valueFn: (data) => `${data.dropReason! === DropReason.None ? "" : data.dropReason}`,
+      valueFn: (data) =>
+        data.dropReason! === DropReason.None
+          ? ""
+          : data.dropReason! === DropReason.DidNotStart
+            ? "DNS"
+            : data.dropReason,
       width: "118px"
     },
     {
