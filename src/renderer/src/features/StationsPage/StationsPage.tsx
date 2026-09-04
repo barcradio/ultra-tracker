@@ -48,7 +48,7 @@ export function StationsPage() {
       field: "name",
       name: "Station",
       valueFn: (station) => `${station.identifier.split("-")[0]} ${station.name}`,
-      width: "20%",
+      width: "240px",
       sortable: false
     },
     {
@@ -58,7 +58,7 @@ export function StationsPage() {
         const loc = JSON.parse(station.location);
         return `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`;
       },
-      width: "15%",
+      width: "200px",
       sortable: false
     },
     {
@@ -131,7 +131,7 @@ export function StationsPage() {
   ];
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <Stack className="gap-4" align="center" as="form" onSubmit={identityForm.onSubmit}>
         <Select
           options={stationOptions}
@@ -153,7 +153,7 @@ export function StationsPage() {
           <p className="text-on-component">{entryModeLabel}</p>
         </Stack>
       </Stack>
-      <div style={{ height: "100vh", paddingTop: "10px" }}>
+      <div className="flex-1 overflow-hidden bg-component">
         <DataGrid data={stations ?? []} columns={columns} getKey={({ identifier }) => identifier} />
       </div>
     </div>
