@@ -413,8 +413,9 @@ export function syncNoteWithStatus(
   const statusResult = GetStatusByBib(bibId);
   let combinedNote: string = "";
 
-  if (statusResult[1] != DatabaseStatus.Success) return;
-
+  // An athlete missing from the roster has no Status row, but their timing record still needs the
+  // note, so carry on with an empty status note and skip only the Status write below.
+  const hasStatus = statusResult[1] == DatabaseStatus.Success;
   const status = statusResult[0];
   const statusNote = status?.note == undefined ? "" : status?.note;
 
@@ -439,7 +440,8 @@ export function syncNoteWithStatus(
         index
       );
     }
-    db.prepare(`UPDATE Status SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
+    if (hasStatus)
+      db.prepare(`UPDATE Status SET note = ? WHERE "bibId" = ?`).run(combinedNote, bibId);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
