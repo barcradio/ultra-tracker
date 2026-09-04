@@ -11,8 +11,10 @@ import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
 import { initStatEngine } from "./lib/stat-engine";
 
+let mainWindow: BrowserWindow | null = null;
+
 function createWindow(): BrowserWindow {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1440,
     height: 1080,
     backgroundColor: "#0D1519",
@@ -28,35 +30,35 @@ function createWindow(): BrowserWindow {
   });
   let rendererCrashDialogOpen = false;
 
-  mainWindow.once("ready-to-show", () => {
+  mainWindow!.once("ready-to-show", () => {
     uberLog(LogLevel.info, "ui", "Main window ready to show", true);
-    mainWindow.show();
-    mainWindow.focus();
-    mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
-    mainWindow.setIcon(iconLinux);
+    mainWindow!.show();
+    mainWindow!.focus();
+    mainWindow!.setTitle(`${app.name} - v${app.getVersion()}`);
+    mainWindow!.setIcon(iconLinux);
   });
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  mainWindow!.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: "deny" };
   });
 
-  mainWindow.webContents.on("will-navigate", (event, url) => {
-    if (url !== mainWindow.webContents.getURL()) {
+  mainWindow!.webContents.on("will-navigate", (event, url) => {
+    if (url !== mainWindow!.webContents.getURL()) {
       event.preventDefault();
       shell.openExternal(url);
     }
   });
 
-  mainWindow.webContents.on("render-process-gone", (_event, details) => {
-    if (rendererCrashDialogOpen || mainWindow.isDestroyed()) return;
+  mainWindow!.webContents.on("render-process-gone", (_event, details) => {
+    if (rendererCrashDialogOpen || mainWindow!.isDestroyed()) return;
 
     rendererCrashDialogOpen = true;
     const reloadShortcut = process.platform === "darwin" ? "Cmd+R" : "Ctrl+R";
     const forceReloadShortcut = process.platform === "darwin" ? "Cmd+Shift+R" : "Ctrl+Shift+R";
 
     void dialog
-      .showMessageBox(mainWindow, {
+      .showMessageBox(mainWindow!, {
         type: "error",
         title: "Ultra-Tracker renderer stopped",
         message: "The application window encountered an error and needs to be reloaded.",
@@ -67,9 +69,9 @@ function createWindow(): BrowserWindow {
         noLink: true
       })
       .then(({ response }) => {
-        if (mainWindow.isDestroyed()) return;
-        if (response === 0) mainWindow.reload();
-        if (response === 1) mainWindow.webContents.reloadIgnoringCache();
+        if (mainWindow!.isDestroyed()) return;
+        if (response === 0) mainWindow!.reload();
+        if (response === 1) mainWindow!.webContents.reloadIgnoringCache();
       })
       .finally(() => {
         rendererCrashDialogOpen = false;
@@ -79,12 +81,14 @@ function createWindow(): BrowserWindow {
   return mainWindow;
 }
 
-app.on("ready", async () => {
+async function initializeApp(): Promise<void> {
   uberLog(LogLevel.info, "startup", "Application execution path:" + app.getAppPath(), false);
 
   electronApp.setAppUserModelId("com.electron");
 
-  const mainWindow = createWindow();
+  createWindow();
+
+  if (!mainWindow) return;
 
   await installDevTools();
 
@@ -115,14 +119,36 @@ app.on("ready", async () => {
 
   // Prevent navigation in the main window
   const handleRedirect = (event: Event, url: string) => {
-    if (url !== mainWindow.webContents.getURL()) {
+    if (url !== mainWindow!.webContents.getURL()) {
       event.preventDefault();
       shell.openExternal(url);
     }
   };
 
   mainWindow.webContents.on("will-navigate", handleRedirect);
-});
+}
+
+// Single instance lock
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (_event, _commandLine, _workingDirectory) => {
+    // Focus the existing window
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+
+      mainWindow.focus();
+    }
+  });
+
+  app.whenReady().then(() => {
+    void initializeApp();
+  });
+}
 // Proper macOS Activate Handling
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
