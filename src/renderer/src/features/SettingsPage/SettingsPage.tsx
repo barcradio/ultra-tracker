@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
+import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 import { OpenSplitTimeLogin } from "./OpenSplitTimeLogin";
 import { RfidConfiguration } from "./RfidConfiguration";
 
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
+  const gridFontScale = useGridFontScale();
   const [resetOpen, setResetOpen] = useState(false);
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
@@ -35,6 +37,26 @@ export function SettingsPage() {
 
         {/* Column 3: Developer Tools + App Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
+          <VerticalButtonGroup label="Display">
+            <Stack align="center" className="gap-3">
+              <Button size="md" onClick={gridFontScale.decrease}>
+                A-
+              </Button>
+              <span className="w-16 text-center font-display text-on-surface-strong">
+                {Math.round(gridFontScale.scale * 100)}%
+              </span>
+              <Button size="md" onClick={gridFontScale.increase}>
+                A+
+              </Button>
+            </Stack>
+            <Button size="wide" onClick={gridFontScale.reset}>
+              Reset Grid Text Size
+            </Button>
+            <p className="w-80 text-on-surface-strong italic font-display text-sm mt-2">
+              Adjusts text size in data grids. You can also use Ctrl + / Ctrl - / Ctrl 0.
+            </p>
+          </VerticalButtonGroup>
+
           <VerticalButtonGroup label="Developer Tools" className="border-2 border-danger/30">
             <Stack direction="col" className="gap-2">
               <p className="w-80 text-on-surface-strong italic font-display text-sm font-bold mt-2 mb-4">
