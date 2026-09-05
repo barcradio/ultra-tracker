@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 import { DeviceStatus } from "$shared/enums";
 import { RfidSettings } from "$shared/models";
 import type EventEmitter from "events";

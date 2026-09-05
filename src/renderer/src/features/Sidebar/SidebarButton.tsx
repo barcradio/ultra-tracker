@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { FunctionComponent, SVGProps, useRef } from "react";
 import { classed } from "@tw-classed/react";
 import { Stack } from "~/components";
@@ -53,15 +52,7 @@ export function SidebarButton(props: SidebarButtonProps) {
             height: buttonRect?.height ?? 0
           }}
         />
-        {
-          // TODO: fix TS2769
-          props.icon({
-            className: "mr-4 ml-1",
-            title: props.children,
-            height: 28,
-            width: 28
-          })
-        }
+        <props.icon className="mr-4 ml-1" title={props.children} height={28} width={28} />
         {props.children}
       </SidebarStack>
     </button>
