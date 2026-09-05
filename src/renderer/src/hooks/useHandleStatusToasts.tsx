@@ -32,10 +32,10 @@ export function useHandleStatusToasts<T>(specialToasts: ToastOnStatus<T> = {}) {
         case DatabaseStatus.Success:
           return true;
         case DatabaseStatus.NotFound:
-          createToast({ message, type: "warning" });
+          if (message) createToast({ message, type: "warning" });
           return false;
         case DatabaseStatus.Duplicate:
-          createToast({ message, type: "warning" });
+          if (message) createToast({ message, type: "warning" });
           return true;
         case DatabaseStatus.Error:
           createToast({ message, type: "danger" });
