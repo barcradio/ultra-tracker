@@ -15,16 +15,13 @@ jobs:
     strategy:
       matrix:
         node-version: [24]
-        pnpm-version: [10]
         os: [windows-latest]
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Install pnpm v${{ matrix.pnpm-version }}
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ matrix.pnpm-version }}
+      - name: Enable Corepack (uses packageManager from package.json)
+        run: corepack enable
 
       - if: matrix.os == 'windows-latest'
         run: pnpm config set virtual-store-dir-max-length 80
@@ -40,6 +37,21 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
+
+      - name: Derive release version from tag
+        shell: bash
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid tag '${GITHUB_REF_NAME}'. Expected format: vX.Y.Z[-prerelease]"
+            exit 1
+          fi
+          echo "RELEASE_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Sync package version for tagged release
+        # electron-builder reads package.json version for app metadata and artifact names.
+        shell: bash
+        run: |
+          node -e "const fs=require('fs');const p='package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));j.version=process.env.RELEASE_VERSION;fs.writeFileSync(p, JSON.stringify(j, null, 2)+'\n');"
 
       - name: Install Dependencies
         run: pnpm install
@@ -59,6 +71,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.ref_name }}
           draft: true
           files: |
             dist/*.exe
