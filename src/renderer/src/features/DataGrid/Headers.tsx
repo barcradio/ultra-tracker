@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { classed } from "~/lib/classed";
-import { getColumnWidth } from "./columnWidth";
+import { getColumnWidthStyle } from "./columnWidth";
 import { Filter, Row, Section } from "./components";
 import { ResetButton } from "./components/ResetButton";
 import { SortIcon } from "./components/SortIcon";
@@ -9,7 +9,7 @@ import { SortState } from "./hooks/useSortState";
 import { Column } from "./types";
 
 const HeaderContainer = classed.div(
-  "flex gap-1 sm:gap-2 md:gap-3 justify-end items-center py-2.5 px-2 sm:px-3 md:px-4 w-full text-xl font-bold text-left uppercase group/header min-w-0 truncate",
+  "flex gap-1 sm:gap-1.5 md:gap-2 justify-end items-center py-2.5 px-2 sm:px-2.5 md:px-3 w-full text-xl font-bold text-left uppercase group/header min-w-0 truncate",
   {
     variants: {
       disabled: {
@@ -52,7 +52,7 @@ export function Headers<T extends object>(props: Props<T>) {
         {props.columns.map((column) => (
           <th
             key={column.name ?? String(column.field)}
-            style={{ width: getColumnWidth(column) }}
+            style={getColumnWidthStyle(column)}
             className="relative rounded-s bg-component-strong"
           >
             <HeaderContainer

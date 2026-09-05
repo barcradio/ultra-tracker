@@ -81,7 +81,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
   return (
     <div
       ref={parentRef}
-      className={`overflow-y-auto overflow-x-hidden below-default:overflow-x-auto ${props.classNames?.root}`}
+      className={`overflow-y-auto overflow-x-auto ${props.classNames?.root}`}
       style={{ height }}
     >
       <div className="w-full">

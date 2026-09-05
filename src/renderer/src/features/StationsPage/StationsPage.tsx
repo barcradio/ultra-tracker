@@ -48,7 +48,8 @@ export function StationsPage() {
       field: "name",
       name: "Station",
       valueFn: (station) => `${station.identifier.split("-")[0]} ${station.name}`,
-      width: "240px",
+      flexible: true,
+      sample: "12 Apple Meadow Junction",
       sortable: false
     },
     {
@@ -58,7 +59,7 @@ export function StationsPage() {
         const loc = JSON.parse(station.location);
         return `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`;
       },
-      width: "200px",
+      sample: "41.7283, -111.7995",
       sortable: false
     },
     {
@@ -68,64 +69,64 @@ export function StationsPage() {
         const loc = JSON.parse(station.location);
         return loc.elevation;
       },
-      width: "80px",
+      sample: "9999",
       sortable: false
     },
     {
       field: "distance",
       name: "Dist",
-      width: "80px",
       align: "right",
       render: (value) => value.toFixed(1),
+      sample: "100.0",
       sortable: false
     },
     {
       field: "dropbags",
       name: "Bags",
       render: (value) => (value ? "Yes" : "No"),
-      width: "80px",
+      sample: "Yes",
       sortable: false
     },
     {
       field: "crewaccess",
       name: "Crew",
       render: (value) => (value ? "Yes" : "No"),
-      width: "80px",
+      sample: "Yes",
       sortable: false
     },
     {
       field: "paceraccess",
       name: "Pacer",
       render: (value) => (value ? "Yes" : "No"),
-      width: "80px",
+      sample: "Yes",
       sortable: false
     },
     {
       field: "shiftBegin",
       name: "Open",
       render: (value) => formatShortDate(new Date(value)),
-      width: "135px",
+      sample: "05:00 25 Sep",
       sortable: false
     },
     {
       field: "cutofftime",
       name: "Cutoff",
       render: (value) => formatShortDate(new Date(value)),
-      width: "135px",
+      sample: "05:00 25 Sep",
       sortable: false
     },
     {
       field: "shiftEnd",
       name: "Close",
       render: (value) => formatShortDate(new Date(value)),
-      width: "135px",
+      sample: "05:00 25 Sep",
       sortable: false
     },
     {
       field: "entrymode",
       name: "Mode",
       render: (value) => EntryMode[value].toString(),
-      width: "90px",
+      sample: "OutOnly",
       sortable: false
     }
   ];

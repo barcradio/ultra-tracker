@@ -22,27 +22,25 @@ export function RunnerEntry() {
       field: "sequence",
       name: "Seq",
       align: "right",
-      width: "64px",
-      minWidth: "64px"
+      sample: "9999"
     },
     {
       field: "bibId",
       name: "Bib",
       align: "right",
-      width: "64px",
-      minWidth: "64px"
+      sample: "9999"
     },
     {
       field: "in",
       name: "In Time",
       render: (value) => <InTimeCell value={value} />,
-      width: "160px"
+      sample: "10:56:50 04 Sep"
     },
     {
       field: "out",
       name: "Out Time",
       render: formatDate,
-      width: "160px"
+      sample: "10:56:50 04 Sep"
     },
     {
       field: "dropReason",
@@ -57,12 +55,14 @@ export function RunnerEntry() {
           : data.dropReason! === DropReason.DidNotStart
             ? "DNS"
             : data.dropReason,
-      width: "118px"
+      sample: "Duplicate"
     },
     {
       field: "note",
       name: "Notes",
       sortable: false,
+      flexible: true,
+      sample: "Reported wrong bib number",
       render: (note) => note || ""
     }
   ];
