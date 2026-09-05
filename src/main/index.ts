@@ -1,6 +1,6 @@
 import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { BrowserWindow, Event, app, dialog, powerMonitor, shell } from "electron";
+import { BrowserWindow, Event, Menu, app, dialog, powerMonitor, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
 import { DisconnectRFIDReader, RecoverRFIDReader } from "./api/rfid-processor";
 import { createDatabaseConnection } from "./database/connect-db";
@@ -12,6 +12,30 @@ import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
 import { initStatEngine } from "./lib/stat-engine";
 
 let mainWindow: BrowserWindow | null = null;
+
+// Drop the default zoom accelerators (they conflict with the app's own grid font scale shortcuts)
+// while keeping reload/devtools/fullscreen available.
+function setApplicationMenu(): void {
+  const isMac = process.platform === "darwin";
+
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate([
+      ...(isMac ? [{ role: "appMenu" as const }] : []),
+      { role: "editMenu" },
+      {
+        label: "View",
+        submenu: [
+          { role: "reload" },
+          { role: "forceReload" },
+          { role: "toggleDevTools" },
+          { type: "separator" },
+          { role: "togglefullscreen" }
+        ]
+      },
+      { role: "windowMenu" }
+    ])
+  );
+}
 
 function createWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
@@ -87,6 +111,8 @@ async function initializeApp(): Promise<void> {
   uberLog(LogLevel.info, "startup", "Application execution path:" + app.getAppPath(), false);
 
   electronApp.setAppUserModelId("com.electron");
+
+  setApplicationMenu();
 
   createWindow();
 

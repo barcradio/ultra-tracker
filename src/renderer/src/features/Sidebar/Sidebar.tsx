@@ -14,11 +14,11 @@ import { SidebarLink } from "./SidebarLink";
 import { ThemeToggle } from "./ThemeToggle";
 
 const SidebarElement = classed.div({
-  base: "overflow-hidden fixed z-50 pt-8 pb-2 h-full duration-100 ease-in-out bg-surface-secondary transition-width group",
+  base: "overflow-hidden fixed z-50 pt-[32px] pb-[8px] h-full duration-100 ease-in-out bg-surface-secondary transition-width group",
   variants: {
     open: {
-      true: "w-56",
-      false: "w-16"
+      true: "w-[224px]",
+      false: "w-[64px]"
     }
   }
 });

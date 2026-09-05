@@ -43,6 +43,9 @@ const defaults = {
   openSplitTime: {
     email: "",
     encryptedPassword: ""
+  },
+  display: {
+    gridFontScale: 1
   }
 };
 
@@ -116,6 +119,12 @@ export const appStore = new Store({
       properties: {
         email: { type: "string", default: "" },
         encryptedPassword: { type: "string", default: "" }
+      }
+    },
+    display: {
+      type: "object",
+      properties: {
+        gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 }
       }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]
