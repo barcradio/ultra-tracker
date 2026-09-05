@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Virtualizer } from "@tanstack/react-virtual";
+import { getColumnWidthStyle } from "./columnWidth";
 import { Cell, CellWrapper, Row } from "./components";
 import { useKeyFn } from "./hooks/useKeyFn";
 import { useVirtualPadding } from "./hooks/useVirtualPadding";
@@ -77,6 +78,7 @@ export function TableContent<T extends object>(props: Props<T>) {
             <Cell
               key={column.name ?? String(column.field)}
               align={column.align ?? "left"}
+              style={getColumnWidthStyle(column)}
               truncate={column.truncate !== false}
             >
               {renderCell(column, props.data[row.index])}

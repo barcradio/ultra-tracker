@@ -9,9 +9,6 @@ module.exports = {
       current: "currentColor"
     },
     extend: {
-      screens: {
-        "below-default": { max: "1295px" } // Enable scrolling at 90% of default window width (1296px)
-      },
       fontFamily: {
         display: ["IBM Plex Mono", "sans-serif"]
       },
