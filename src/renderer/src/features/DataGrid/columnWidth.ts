@@ -1,13 +1,11 @@
 import { CSSProperties } from "react";
 import { Column } from "./types";
 
-// table-layout:fixed sizes columns strictly from the first row. When every
-// column has an explicit `width`, Chromium proportionally inflates them all
-// to fill the table's own width (breaking any tight sizing below). So only
-// columns with a sizing hint (`width`/`minWidth`/`sample`) get a literal
-// `width`; a column with none of those is the intentional "flex" column that
-// absorbs leftover space via `min-width` instead, exactly like a normal auto
-// table column, while still keeping a readable floor.
+// Column sizing: when `table-layout: fixed` is used, giving every column an explicit `width` can cause
+// Chromium to proportionally inflate them all to fill the table width (defeating tight sizing).
+// To avoid that, only columns with a sizing hint (`width`/`minWidth`/`sample`) get a literal `width`;
+// a column with none of those is the intentional "flex" column that absorbs leftover space via
+// `min-width` instead, while still keeping a readable floor.
 const MIN_CHAR_WIDTH = 11;
 const MIN_HEADER_PADDING = 52;
 const DEFAULT_MIN_WIDTH = 80;
