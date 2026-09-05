@@ -13,9 +13,9 @@ function Root() {
     <BackdropProvider>
       <ToastProvider>
         <Sidebar />
-        <div className="flex overflow-hidden flex-col ml-[64px] w-screen">
+        <div className="flex overflow-hidden flex-col ml-[64px] w-screen h-screen">
           <Header />
-          <div className="mx-4 grow max-h-[calc(100vh-260px)]">
+          <div className="overflow-hidden mx-4 min-h-0 grow">
             <Outlet />
           </div>
           <Footer />

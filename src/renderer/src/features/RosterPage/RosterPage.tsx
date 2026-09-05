@@ -1,6 +1,4 @@
-// @ts-nocheck
-
-import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import { StatusTag } from "~/components/StatusTag";
 import { useAthletes } from "~/hooks/data/useAthletes";
 import { AthleteProgress, DropReason } from "$shared/enums";
@@ -14,14 +12,14 @@ export function RosterPage() {
   const { data } = useAthletes();
 
   const { firstName, lastName } = routeApi.useSearch();
-  const navigate = useNavigate();
+  const navigate = routeApi.useNavigate();
 
   const columns: ColumnDef<AthleteStatusDB> = [
     {
       field: "bibId",
       name: "Bib",
-      width: "6%",
-      align: "right"
+      align: "right",
+      sample: "9999"
     },
     {
       field: "dropReason",
@@ -35,38 +33,39 @@ export function RosterPage() {
          ${athlete.progress! === AthleteProgress.Present ? "In" : ""}
          ${athlete.progress! === AthleteProgress.Outgoing && athlete.dropReason! !== DropReason.DidNotStart ? "Out" : ""}
          ${athlete.dropReason! === DropReason.DidNotStart ? "Not Started" : ""}`,
-      width: "9%"
+      sample: "Not Started"
     },
     {
       field: "firstName",
       name: "Name",
       valueFn: (athlete) => `${athlete.firstName} ${athlete.lastName}`,
-      width: "18%"
+      sample: "Watermelon Chandelier"
     },
     {
       field: "age",
-      width: "6%"
+      sample: "100"
     },
     {
       field: "gender",
-      width: "6%"
+      sample: "M"
     },
     {
       field: "state",
       name: "Location",
-      width: "20%",
       render: (state, { city }) => `${city}, ${state}`,
-      valueFn: (athlete) => `${athlete.state}, ${athlete.city}`
+      valueFn: (athlete) => `${athlete.state}, ${athlete.city}`,
+      sample: "Waterfall Meadow, XX"
     },
     {
       field: "emergencyName",
       name: "Emergency Contact",
-      width: "20%",
-      render: (value, row) => <EmergencyContact name={value} athlete={row} />
+      render: (value, row) => <EmergencyContact name={value} athlete={row} />,
+      sample: "Pineapple Chandelier"
     },
     {
       field: "note",
-      width: "6%",
+      flexible: true,
+      sample: "Reported wrong bib number",
       valueFn: ({ note }) => (note == null ? "" : note)
     }
   ];
@@ -77,10 +76,9 @@ export function RosterPage() {
         data={data ?? []}
         columns={columns}
         getKey={({ bibId }) => bibId}
-        showFooter
         onClearFilters={() => {
           // TODO: For some reason this requires two clicks to re-render
-          navigate({ search: {} }); // TODO: fix TS2322
+          navigate({ search: () => ({}) });
         }}
         initialFilter={
           firstName && lastName ? { firstName: `${firstName} ${lastName}` } : undefined

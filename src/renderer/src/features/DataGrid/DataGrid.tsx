@@ -29,7 +29,7 @@ interface Props<T extends object> {
   rowStatus?: (row: T) => RowStatus;
 }
 
-const Table = classed.table("overflow-auto w-full table-fixed font-display text-on-component");
+const Table = classed.table("overflow-auto w-full font-display text-on-component");
 
 export function DataGrid<T extends object>(props: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
@@ -81,10 +81,10 @@ export function DataGrid<T extends object>(props: Props<T>) {
   return (
     <div
       ref={parentRef}
-      className={`overflow-y-auto overflow-x-hidden ${props.classNames?.root}`}
+      className={`overflow-y-auto overflow-x-auto ${props.classNames?.root ?? ""}`}
       style={{ height }}
     >
-      <div>
+      <div className="w-full">
         <Table className={props.classNames?.table}>
           {getSection("header")}
           <TableContent<T>

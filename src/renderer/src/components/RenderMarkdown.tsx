@@ -5,6 +5,7 @@ import remarkToc from "remark-toc";
 
 type Props = Options & {
   trusted?: boolean;
+  className?: string;
 };
 
 export function RenderMarkdown(props: Props) {
@@ -18,7 +19,7 @@ export function RenderMarkdown(props: Props) {
     : [];
 
   return (
-    <div className={`markdown ${(props as any).className}`}>
+    <div className={`markdown ${props.className}`}>
       <Markdown
         {...props}
         // @ts-expect-error some odd quirk with remark plugins and typescript and declaring their options objects

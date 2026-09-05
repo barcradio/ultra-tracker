@@ -22,25 +22,25 @@ export function RunnerEntry() {
       field: "sequence",
       name: "Seq",
       align: "right",
-      width: "80px"
+      sample: "9999"
     },
     {
       field: "bibId",
       name: "Bib",
       align: "right",
-      width: "80px"
+      sample: "9999"
     },
     {
       field: "in",
       name: "In Time",
       render: (value) => <InTimeCell value={value} />,
-      width: "160px"
+      sample: "10:56:50 04 Sep"
     },
     {
       field: "out",
       name: "Out Time",
       render: formatDate,
-      width: "160px"
+      sample: "10:56:50 04 Sep"
     },
     {
       field: "dropReason",
@@ -55,20 +55,22 @@ export function RunnerEntry() {
           : data.dropReason! === DropReason.DidNotStart
             ? "DNS"
             : data.dropReason,
-      width: "118px"
+      sample: "Duplicate"
     },
     {
       field: "note",
       name: "Notes",
       sortable: false,
+      flexible: true,
+      sample: "Reported wrong bib number",
       render: (note) => note || ""
     }
   ];
 
   return (
-    <Stack className="gap-4 mt-0 h-full" justify="stretch" align="stretch">
+    <Stack className="gap-4 mt-0 h-full min-h-0" justify="stretch" align="stretch">
       <RunnerFormStats />
-      <div className="h-full bg-component grow">
+      <div className="h-full min-h-0 min-w-0 bg-component grow">
         <DataGrid
           data={runnerData ?? []}
           columns={columns}

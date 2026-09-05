@@ -80,7 +80,7 @@ export function RunnerFormStats() {
   };
 
   return (
-    <Stack direction="col" align="stretch" className="gap-2 w-1/5">
+    <Stack direction="col" align="stretch" className="gap-2 w-1/5 shrink-0 min-h-0">
       <TextInput
         ref={inputRef}
         onKeyDown={handleKeyboardShortcuts}
@@ -113,7 +113,7 @@ export function RunnerFormStats() {
           Out
         </Button>
       </Stack>
-      <div className="w-full grow bg-component">
+      <div className="w-full grow min-h-0 bg-component">
         <Stats />
       </div>
 

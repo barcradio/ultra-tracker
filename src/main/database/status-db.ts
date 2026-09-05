@@ -366,13 +366,9 @@ export function syncNoteWithStatus(
   return [DatabaseStatus.Updated, message];
 }
 
-// SyncDirection members are only referenced via property access (here and cross-file), which
-// this lint rule can't trace, so it misreports them as unused.
 export enum SyncDirection {
-  /* eslint-disable no-unused-vars */
   Incoming,
   Outgoing
-  /* eslint-enable no-unused-vars */
 }
 
 export function SetProgress(bibId: number): DatabaseResponse {

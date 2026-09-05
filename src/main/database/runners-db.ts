@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { format } from "date-fns";
@@ -323,7 +324,6 @@ function parseCSVDate(timingDate: string): Date {
 
 export function exportUnsentRunnersAsCSV() {
   let queryResult;
-  const path = require("path");
   const stationId = appStore.get("station.id") as number;
   let fileIndex = appStore.get("incrementalFileIndex") as number;
 
@@ -444,7 +444,6 @@ export async function exportDropsAsCSV() {
 }
 
 function writeToCSV(filename: string, queryResult, incremental: boolean) {
-  const fs = require("fs");
   const eventName = appStore.get("event.name") as string;
   const stationIdentifier = appStore.get("station.identifier") as string;
 
@@ -502,7 +501,6 @@ function sanitizeNoteForExport(note: string | null | undefined): string {
 }
 
 function writeDropsToCSV(filename: string, queryResult) {
-  const fs = require("fs");
   const eventName = appStore.get("event.name") as string;
   const stationIdentifier = appStore.get("station.identifier") as string;
 

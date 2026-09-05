@@ -11,32 +11,34 @@ export function LogsPage() {
       field: "timeModified",
       name: "Timestamp",
       render: formatDate,
-      width: "13%"
+      sample: "10:56:47 04 Sep"
     },
     {
       field: "stationId",
       name: "Station",
-      width: "15%"
+      sample: "9-station-longlongname"
     },
     {
       field: "bibId",
       name: "Bib",
-      width: "7%"
+      sample: "9999"
     },
     {
       field: "timeIn",
       name: "Time In",
       render: formatDate,
-      width: "13%"
+      sample: "10:56:47 04 Sep"
     },
     {
       field: "timeOut",
       name: "Time Out",
       render: formatDate,
-      width: "13%"
+      sample: "10:56:47 04 Sep"
     },
     {
       field: "comments",
+      flexible: true,
+      sample: "[Update](Time): bibId: (999)->(999), OK",
       sortable: false
     }
   ];

@@ -86,6 +86,8 @@ export function Stats() {
     {
       field: "id",
       name: "Stats",
+      flexible: true,
+      sample: "Registered Athletes",
       sortable: false
     },
     {
@@ -93,6 +95,7 @@ export function Stats() {
       name: "",
       sortable: false,
       align: "right",
+      sample: "9999",
       render: (value) => <span className="font-medium text-primary">{value}</span>
     }
   ];
