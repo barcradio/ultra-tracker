@@ -4,6 +4,7 @@ import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearPushStatus } from "./opensplittimeStatus-db";
+import { alertForWatchlistedAthlete } from "./watchlist-db";
 import { AthleteProgress, DatabaseStatus, DropReason } from "../../shared/enums";
 import { DropRecord, RunnerDB, StatusDB } from "../../shared/models";
 import { DatabaseResponse } from "../../shared/types";
@@ -299,6 +300,7 @@ export function updateDropFromCSV(record: DropRecord): DatabaseResponse {
       false,
       verbose
     );
+    alertForWatchlistedAthlete(record.bibId, "drop");
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);

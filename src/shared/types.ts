@@ -14,6 +14,10 @@ export interface Toast {
   type: "info" | "success" | "danger" | "warning";
   timeoutMs?: number;
   noIcon?: boolean;
+  action?: {
+    type: "remove-watchlist";
+    bibId: number;
+  };
 }
 
 export interface RfidTagRead {

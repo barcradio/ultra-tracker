@@ -98,8 +98,11 @@ export function GetAthletes(): DatabaseResponse<AthleteStatusDB[]> {
   try {
     queryResult = db
       .prepare(
-        `SELECT Athletes.*, Status.dropped, Status.dropReason, Status.note, Status.progress
-         FROM Athletes LEFT JOIN Status ON Athletes.bibId == Status.bibId`
+        `SELECT Athletes.*, Status.dropped, Status.dropReason, Status.note, Status.progress,
+          Watchlist.bibId IS NOT NULL AS watchlisted
+         FROM Athletes
+         LEFT JOIN Status ON Athletes.bibId == Status.bibId
+         LEFT JOIN Watchlist ON Athletes.bibId == Watchlist.bibId`
       )
       .all();
   } catch (e) {

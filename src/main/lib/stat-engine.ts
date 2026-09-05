@@ -1,6 +1,7 @@
 import * as dbAthlete from "../database/athlete-db";
 import * as dbRunners from "../database/runners-db";
 import * as dbStatus from "../database/status-db";
+import * as dbWatchlist from "../database/watchlist-db";
 
 type StatFn = (value: Record<string, number>) => number;
 
@@ -57,6 +58,7 @@ export function initStatEngine() {
   stats.addStat("finishedRace", (input) => input.defaultValue);
   stats.addStat("stationDrops", () => dbStatus.GetStationDropped());
   stats.addStat("totalDrops", () => dbStatus.GetTotalDropped());
+  stats.addStat("watchlistCount", () => dbWatchlist.GetWatchlistCount());
 
   stats.addStat("warnings", () => invalidResult);
   stats.addStat("inStationDidNotStart", () => dbRunners.GetDidNotStartRunnersInStation());
