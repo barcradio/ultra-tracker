@@ -78,7 +78,6 @@ export function RosterPage() {
         data={data ?? []}
         columns={columns}
         getKey={({ bibId }) => bibId}
-        showFooter
         onClearFilters={() => {
           // TODO: For some reason this requires two clicks to re-render
           navigate({ search: {} }); // TODO: fix TS2322
