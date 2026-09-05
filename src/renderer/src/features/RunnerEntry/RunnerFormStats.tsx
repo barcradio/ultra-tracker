@@ -99,6 +99,7 @@ export function RunnerFormStats() {
             color="success"
             className="w-full h-full"
             onClick={() => createRecord(RecordType.In)}
+            disabled={isFastMode}
           >
             In
           </Button>
