@@ -1,12 +1,21 @@
+import { useAthletes } from "~/hooks/data/useAthletes";
+import { useId } from "~/hooks/useId";
+import { AthleteStatusDB } from "$shared/models";
+import { WatchlistStat } from "./WatchlistStat";
 import { type Stats, useStatsData } from "../../hooks/data/useStatsData";
 import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 function useStats() {
   const { data: statsData } = useStatsData();
+  const { data: athletes } = useAthletes();
   useInvalidateRunnersOnRFID();
 
   if (!statsData) return [];
+
+  const watchlistAthletes = (athletes ?? [])
+    .filter((athlete) => athlete.watchlisted)
+    .sort((first, second) => first.bibId - second.bibId);
 
   return [
     {
@@ -40,6 +49,11 @@ function useStats() {
     {
       id: "Total Drops",
       value: formatStat(statsData?.totalDrops)
+    },
+    {
+      id: "Watchlist",
+      value: formatStat(statsData?.watchlistCount),
+      watchlistAthletes
     },
     {
       id: " ",
@@ -77,10 +91,12 @@ function formatStat(stat: number): number | string {
 interface Stat {
   id: string;
   value: number | string;
+  watchlistAthletes?: AthleteStatusDB[];
 }
 
 export function Stats() {
   const stats = useStats();
+  const watchlistTooltipId = useId("watchlist-stat");
 
   const Columns: ColumnDef<Stat> = [
     {
@@ -96,7 +112,16 @@ export function Stats() {
       sortable: false,
       align: "right",
       sample: "9999",
-      render: (value) => <span className="font-medium text-primary">{value}</span>
+      render: (value, stat) =>
+        stat.id === "Watchlist" && stat.watchlistAthletes ? (
+          <WatchlistStat
+            athletes={stat.watchlistAthletes}
+            value={value}
+            tooltipId={watchlistTooltipId}
+          />
+        ) : (
+          <span className="font-medium text-primary">{value}</span>
+        )
     }
   ];
 
@@ -105,6 +130,9 @@ export function Stats() {
       data={stats}
       columns={Columns}
       classNames={{ header: "text-primary", table: "table-auto" }}
+      rowClassName={(stat) =>
+        stat.id === "Watchlist" ? `${watchlistTooltipId} cursor-help` : undefined
+      }
     />
   );
 }

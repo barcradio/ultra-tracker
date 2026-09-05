@@ -3,6 +3,7 @@ import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearPushStatus } from "./opensplittimeStatus-db";
 import * as dbStatus from "./status-db";
+import { alertForWatchlistedAthlete } from "./watchlist-db";
 import { DatabaseStatus, EntryMode, RecordStatus, RecordType } from "../../shared/enums";
 import { RunnerDB } from "../../shared/models";
 import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
@@ -291,6 +292,10 @@ function updateTimeRecord(
     verbose
   );
 
+  if (record.status !== RecordStatus.Duplicate && !existingRecord.timeIn && record.timeIn) {
+    alertForWatchlistedAthlete(record.bibId, "arrival");
+  }
+
   const message = `timing-record:update ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
 
   // A duplicate's fractional bib (e.g. 150.2) floors to the original bib number when pushed, so
@@ -364,6 +369,10 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
     record.sent,
     verbose
   );
+
+  if (record.status !== RecordStatus.Duplicate && record.timeIn) {
+    alertForWatchlistedAthlete(record.bibId, "arrival");
+  }
 
   const message = `timing-record:add ${record.bibId}, ${timeInISO}, ${timeOutISO}, ${modifiedISO}, '${record.note}'`;
 

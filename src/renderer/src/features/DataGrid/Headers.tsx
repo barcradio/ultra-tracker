@@ -33,6 +33,7 @@ interface Props<T extends object> {
   sortState: SortState<T>;
   setSortField: (field: keyof T) => void;
   actionButtons?: (row: T) => ReactNode;
+  leadingAction?: (row: T) => ReactNode;
   className?: string;
   type: "header" | "footer";
   hasRowStatus?: boolean;
@@ -49,6 +50,7 @@ export function Headers<T extends object>(props: Props<T>) {
             ↑
           </th>
         )}
+        {props.leadingAction && <th className="w-8 bg-component-strong" />}
         {props.columns.map((column) => (
           <th
             key={column.name ?? String(column.field)}

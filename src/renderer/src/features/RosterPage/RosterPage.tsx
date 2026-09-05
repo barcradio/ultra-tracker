@@ -4,6 +4,7 @@ import { useAthletes } from "~/hooks/data/useAthletes";
 import { AthleteProgress, DropReason } from "$shared/enums";
 import { AthleteStatusDB } from "$shared/models";
 import { EmergencyContact } from "./EmergencyContact";
+import { WatchlistToggle } from "./WatchlistToggle";
 import { ColumnDef, DataGrid } from "../DataGrid";
 
 const routeApi = getRouteApi(`/roster`);
@@ -76,6 +77,8 @@ export function RosterPage() {
         data={data ?? []}
         columns={columns}
         getKey={({ bibId }) => bibId}
+        leadingAction={(athlete) => <WatchlistToggle athlete={athlete} />}
+        leadingActionAlwaysVisible={({ watchlisted }) => watchlisted}
         onClearFilters={() => {
           // TODO: For some reason this requires two clicks to re-render
           navigate({ search: () => ({}) });

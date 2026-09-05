@@ -22,11 +22,14 @@ interface Props<T extends object> {
   initialFilter?: FilterState<T>;
   onClearFilters?: () => void;
   actionButtons?: (row: T) => ReactNode;
+  leadingAction?: (row: T) => ReactNode;
+  leadingActionAlwaysVisible?: (row: T) => boolean;
   classNames?: Partial<GridClassNames>;
   getKey?: (row: T) => string | number;
   overscan?: number;
   showFooter?: boolean;
   rowStatus?: (row: T) => RowStatus;
+  rowClassName?: (row: T) => string | undefined;
 }
 
 const Table = classed.table("overflow-auto w-full font-display text-on-component");
@@ -71,6 +74,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
         setSortField={handleSetSortField}
         sortState={sortState}
         actionButtons={props.actionButtons}
+        leadingAction={props.leadingAction}
         className={props.classNames?.header}
         onClearFilters={props.onClearFilters}
         hasRowStatus={Boolean(props.rowStatus)}
@@ -92,7 +96,10 @@ export function DataGrid<T extends object>(props: Props<T>) {
             data={filteredData}
             columns={props.columns}
             actionButtons={props.actionButtons}
+            leadingAction={props.leadingAction}
+            leadingActionAlwaysVisible={props.leadingActionAlwaysVisible}
             rowStatus={props.rowStatus}
+            rowClassName={props.rowClassName}
             getKey={props.getKey}
           />
           {props.showFooter && getSection("footer")}

@@ -136,7 +136,9 @@ export type EventLogRec = {
 export type RunnerAthleteDB = RunnerDB & Pick<StatusDB, "dropped" | "dropReason">;
 
 export type AthleteStatusDB = AthleteDB &
-  Pick<StatusDB, "dropped" | "dropReason" | "note" | "progress">;
+  Pick<StatusDB, "dropped" | "dropReason" | "note" | "progress"> & {
+    watchlisted: boolean;
+  };
 
 export type RfidSettings = {
   type: string;

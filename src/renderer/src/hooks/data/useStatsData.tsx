@@ -12,6 +12,7 @@ export interface Stats {
   previousDrops: number;
   stationDrops: number;
   totalDrops: number;
+  watchlistCount: number;
   warnings: number;
   inStationDidNotStart: number;
   unknownAthletes: number;
