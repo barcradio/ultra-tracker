@@ -117,7 +117,7 @@ export function RunnerFormStats() {
           <Button
             name="button_InOut"
             variant="solid"
-            color="warning"
+            
             className="w-1/3"
             onClick={() => createRecord(RecordType.InOut)}
           >
