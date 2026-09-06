@@ -11,6 +11,7 @@ import {
   switchToDatabase
 } from "../database/connect-db";
 import { listEventDatabasesWithMetadata } from "../database/event-databases-db";
+import { loadStationsFromFile } from "../database/stations-db";
 import * as dialogs from "../lib/file-dialogs";
 import { reloadMainWindow } from "../lib/webContents";
 import { Handler } from "../types";
@@ -57,7 +58,7 @@ const createEventDatabase: Handler<void, Promise<DatabaseResponse<string>>> = as
     const slug = resolveUniqueSlug(slugify(eventName) || "event");
 
     createDatabaseFile(slug);
-    reloadMainWindow();
+    await loadStationsFromFile(filePath);
 
     const response: DatabaseResponse<string> = [
       slug,
