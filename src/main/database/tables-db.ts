@@ -1,4 +1,6 @@
 import { migrate } from "@blackglory/better-sqlite3-migrations";
+// The connection module calls table helpers after establishing the active database.
+// eslint-disable-next-line import/no-cycle
 import { getDatabaseConnection } from "./connect-db";
 import { migrations } from "./migrations-db";
 import * as tableDefs0 from "./schema/table-definitions-v0";
@@ -131,6 +133,7 @@ function* toColumnNames(stmt) {
 
 /* Recreate the database tables, will be the current schema version */
 export function CreateTables() {
+  tableDefs = tableDefs5;
   const result =
     createAthletesTable() &&
     createEventLogTable() &&
