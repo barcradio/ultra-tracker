@@ -4,6 +4,7 @@ import { Button, Stack, TextInput } from "~/components";
 import { useCreateTiming } from "~/hooks/data/useTiming";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { useId } from "~/hooks/useId";
+import { useInOutButton } from "~/hooks/useInOutButton";
 import { EntryMode, RecordType } from "$shared/enums";
 import { useEntryMode } from "./hooks/useEntryMode";
 import { Stats } from "./Stats";
@@ -16,6 +17,8 @@ export function RunnerFormStats() {
   const createTiming = useCreateTiming();
   const portalRoot = usePortalRoot();
   const buttonInId = useId();
+  const isFastMode = entryMode === EntryMode.Fast;
+  const { enabled: showInOutButton } = useInOutButton();
 
   useInvalidateRunnersOnRFID();
 
@@ -91,14 +94,14 @@ export function RunnerFormStats() {
         type="number"
       />
       <Stack direction="row" align="stretch" className="mb-2 w-full h-12 gap-2" justify="stretch">
-        <div className="w-1/2" id={buttonInId}>
+        <div className={isFastMode ? "w-1/3" : "w-1/2"} id={buttonInId}>
           <Button
             name="button_In"
             variant="solid"
             color="success"
             className="w-full h-full"
             onClick={() => createRecord(RecordType.In)}
-            disabled={entryMode === EntryMode.Fast}
+            disabled={isFastMode}
           >
             In
           </Button>
@@ -107,17 +110,28 @@ export function RunnerFormStats() {
           name="button_Out"
           variant="solid"
           color="danger"
-          className="w-1/2"
+          className={isFastMode ? "w-1/3" : "w-1/2"}
           onClick={() => createRecord(RecordType.Out)}
         >
           Out
         </Button>
+        {showInOutButton && (
+          <Button
+            name="button_InOut"
+            variant="solid"
+            color="primary"
+            className="w-1/3"
+            onClick={() => createRecord(RecordType.InOut)}
+          >
+            +/-
+          </Button>
+        )}
       </Stack>
       <div className="w-full grow min-h-0 bg-component">
         <Stats />
       </div>
 
-      {entryMode === EntryMode.Fast && (
+      {isFastMode && (
         <Tooltip target={`#${buttonInId}`} appendTo={portalRoot?.current}>
           Station is in fast mode
         </Tooltip>

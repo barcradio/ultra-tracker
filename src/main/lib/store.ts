@@ -45,7 +45,8 @@ const defaults = {
     encryptedPassword: ""
   },
   display: {
-    gridFontScale: 1
+    gridFontScale: 1,
+    showInOutButton: false
   }
 };
 
@@ -124,7 +125,8 @@ export const appStore = new Store({
     display: {
       type: "object",
       properties: {
-        gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 }
+        gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 },
+        showInOutButton: { type: "boolean", default: false }
       }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]

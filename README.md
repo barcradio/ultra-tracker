@@ -4,7 +4,7 @@ An app for tracking athletes during ultra marathons.
 
 An Electron application with React and TypeScript for Windows, Linux, and MacOS.
 
-For a guide on how to set up an event using Ultra-Tracker, visit the project [Wiki](https://github.com/barcradio/ultra-tracker/wiki).
+For a guide on how to set up an event using Ultra-Tracker, and advanced RFID configuration, visit the project [Wiki](https://github.com/barcradio/ultra-tracker/wiki).
 
 ---
 
@@ -31,6 +31,11 @@ The left side bar is used to select different pages. Select from Stats, Roster, 
 The **BIB#** box is the main starting point for using this page. This input control will accept numerical input, either from the 10-key pad or top-row keys of all standard keyboards. See useful keyboard shortcuts below.
 
 Clicking the In button and Out button will record the corresponding time entry.
+
+When a station is configured for **Fast mode**, an optional **+/-** button can record both the In
+and Out times together. This control is hidden by default and can be enabled in Settings under
+**User Settings**. It is only available on Fast mode stations; the standard In and Out buttons and
+keyboard shortcuts remain unchanged.
 
 The datagrid columns can be Sorted by clicking on the column header. Click again to toggle Ascending or Descending Sort.
 
@@ -169,6 +174,15 @@ This page allows the operator to manage event input files and the database neede
 OpenSplitTime is an optional integration for sending timing records directly to the selected event group. Configure the event group in the Stations file, then sign in on the Settings page with an OpenSplitTime steward account. Credentials may be saved using the operating system's secure credential storage. If both staging and production event groups are configured, select the environment before signing in. Production sends times to the live event and requires confirmation when switching from staging.
 
 While signed in, OpenSplitTime status takes precedence over CSV export status in the timing-record indicator. Use **Pause Pushes** to temporarily stop automatic uploads without signing out; **Resume Pushes** restarts them. **Sign Out** returns the indicator to the CSV export state and does not change whether a record has been exported.
+
+### User Settings
+
+- **Grid Text Size**
+  Use the A-/A+ controls to adjust the size of text in data grids, buttons, and text inputs. The
+  setting is saved and restored when Ultra-Tracker is restarted. The keyboard shortcuts are
+  Ctrl/Cmd + `=` to increase, Ctrl/Cmd + `-` to decrease, and Ctrl/Cmd + `0` to reset.
+- **Show +/- Button**
+  Enables the optional +/- action button on the Stats page. This button is useful for touchscreens and is off by default.
 
 > [!CAUTION]
 > The functions marked in RED on the Settings page are completely destructive to the local database and **MUST NOT be performed during normal operation!** These are provided only for recovery of the database or data and should only be used at the direction of the software team.

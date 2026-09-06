@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
 import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
+import { useInOutButton } from "~/hooks/useInOutButton";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 import { OpenSplitTimeLogin } from "./OpenSplitTimeLogin";
 import { RfidConfiguration } from "./RfidConfiguration";
@@ -8,6 +9,7 @@ import { RfidConfiguration } from "./RfidConfiguration";
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
   const gridFontScale = useGridFontScale();
+  const inOutButton = useInOutButton();
   const [resetOpen, setResetOpen] = useState(false);
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
@@ -15,9 +17,9 @@ export function SettingsPage() {
   return (
     <div className="w-full h-full overflow-y-auto bg-component p-6">
       <Stack justify="center" align="start" className="gap-6 flex-wrap xl:flex-nowrap min-w-full">
-        {/* Column 1: Station Setup + RFID Configuration */}
+        {/* Event Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
-          <VerticalButtonGroup label="Station Setup">
+          <VerticalButtonGroup label="Event Settings">
             <Button size="wide" onClick={() => settingsMutations.importStationsFile.mutate()}>
               Load Stations File
             </Button>
@@ -28,16 +30,19 @@ export function SettingsPage() {
               Load Drops File
             </Button>
           </VerticalButtonGroup>
-
-          <RfidConfiguration />
+          <div className="border-t border-component-strong pt-4">
+            <RfidConfiguration />
+          </div>
         </Stack>
 
-        {/* Column 2: OpenSplitTime Steward Login */}
-        <OpenSplitTimeLogin className="w-[22rem]" />
-
-        {/* Column 3: Developer Tools + App Settings */}
+        {/* Integration Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
-          <VerticalButtonGroup label="Display">
+          <OpenSplitTimeLogin className="w-full" />
+        </Stack>
+
+        {/* User Settings + Developer Tools */}
+        <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
+          <VerticalButtonGroup label="User Settings">
             <Stack align="center" className="gap-3">
               <Button size="md" onClick={gridFontScale.decrease}>
                 A-
@@ -55,6 +60,17 @@ export function SettingsPage() {
             <p className="w-80 text-on-surface-strong italic font-display text-sm mt-2">
               Adjusts text size in data grids. You can also use Ctrl/Cmd + = / - / 0.
             </p>
+            <div className="w-80 mt-4 border-t border-component-strong pt-4">
+              <Button
+                size="wide"
+                variant={inOutButton.enabled ? "solid" : "outlined"}
+                className={inOutButton.enabled ? "" : "opacity-50"}
+                aria-pressed={inOutButton.enabled}
+                onClick={() => inOutButton.setEnabled(!inOutButton.enabled)}
+              >
+                {inOutButton.enabled ? "Hide +/- Button" : "Show +/- Button"}
+              </Button>
+            </div>
           </VerticalButtonGroup>
 
           <VerticalButtonGroup label="Developer Tools" className="border-2 border-danger/30">
