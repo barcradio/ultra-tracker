@@ -240,6 +240,14 @@ OpenSplitTime is an optional integration for sending timing records directly to 
 
 While signed in, OpenSplitTime status takes precedence over CSV export status in the timing-record indicator. Use **Pause Pushes** to temporarily stop automatic uploads without signing out; **Resume Pushes** restarts them. **Sign Out** returns the indicator to the CSV export state and does not change whether a record has been exported.
 
+### User Settings
+
+- **Grid Text Size**
+  Use the A-/A+ controls to adjust the size of text in data grids, buttons, and text inputs. The
+  setting is saved and restored when Ultra-Tracker is restarted. The keyboard shortcuts are
+  Ctrl/Cmd + `=` to increase, Ctrl/Cmd + `-` to decrease, and Ctrl/Cmd + `0` to reset.
+- **Show +/- Button**
+  Enables the optional +/- action button on the Stats page. This button is useful for touchscreens and is off by default.
 
 
 
