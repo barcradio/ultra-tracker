@@ -50,7 +50,6 @@ The datagrid columns can be Sorted by clicking on the column header. Click again
 
 A Filter control for any column can be opened by clicking the Filter icon (three vertical dots).
 
-<span style="color:orange">**WARNING:** If the horizontal width of the Ultra-Tracker window is too small, the column filter buttons can overlap the column headers and cause the Sort and Filter features difficult to use. The default layout has been carefully adjusted for modern HD resolutions but display scaling or screen resolution settings in the operating system can make the display too small to fit the default size of Ultra-Tracker. Adjusting these settings will resolve this on most computers.</span>
 
 <a id="markdown-athlete-edit-function" name="editing-a-record"></a>
 <br clear="right"/>
@@ -84,6 +83,8 @@ Validation Rules:
 ### Athlete and Station stats
 
 Each of the different statistics available are updated in real-time.
+
+The Watchlist count shows athletes marked for follow-up. Hover over the Watchlist row to view their bib numbers and names.
 
 <span style="color:orange">Warnings should be of interest to the station.</span>
 
@@ -127,6 +128,8 @@ This page provides the list of all athletes and enable the operator to search fo
 
 The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS (Not Started), In, Out, Medical, Timeout, Withdrew`
 
+Use the bookmark button at the left edge of an athlete row to add or remove that athlete from the **Watchlist**. The button appears when the row is hovered; an enabled watchlist button remains visible in red. When a watchlisted athlete arrives at the current station or is included in an imported Drops file, Ultra-Tracker displays an alert. Select **Remove from Watchlist** in the alert to remove the athlete from the Watchlist.
+
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
@@ -160,6 +163,8 @@ This page displays the station log file that is auto-generated during station op
 - The normal station log contains entries that occur during regular use and typical data gathering operations. This view may be used by operators to get a detailed understanding of where data errors may have been introduced, such as duplicate timing records.
 - The verbose station log is a saved file that contains all events that occurred as well as debug messages designed to assist Ultra-Tracker developers to locate problems that occur during an event. This can be large and should be sent to the developers only upon request.
 
+Watchlist additions, removals, and alerts are recorded in the normal station log with timestamps.
+
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
@@ -178,12 +183,12 @@ This page provides Export utilities for sending station data to another station 
 Timing record indicators show the current delivery state:
 
 | <div style="width:150px;fontSize:larger">**State**</div> | <div style="width:150px;fontSize:larger">**Indicator**</div> | <div style="width:340px;fontSize:larger">**Meaning**</div> |
-| :--- | :--- | :--- |
-| CSV export | <img src="./img/status/not-exported.svg" alt="Gray hollow circle" width="16"> | Not exported |
-| CSV export | <img src="./img/status/exported.svg" alt="Green hollow circle" width="16"> | Exported by a successful incremental or full CSV export |
-| OpenSplitTime | <img src="./img/status/upload-pending.svg" alt="Yellow solid circle" width="16"> | Pending upload |
-| OpenSplitTime | <img src="./img/status/uploaded.svg" alt="Green solid circle" width="16"> | Uploaded |
-| OpenSplitTime | <img src="./img/status/upload-failed.svg" alt="Red solid circle" width="16"> | Upload failed |
+| :------------- | :------------------------------------------------------------------------------- | :-------------------------------------------------------|
+| CSV export     | <img src="./img/status/not-exported.svg" alt="Gray hollow circle" width="16">    | Not exported                                            |
+| CSV export     | <img src="./img/status/exported.svg" alt="Green hollow circle" width="16">       | Exported by a successful incremental or full CSV export |
+| OpenSplitTime  | <img src="./img/status/upload-pending.svg" alt="Yellow solid circle" width="16"> | Pending upload                                          |
+| OpenSplitTime  | <img src="./img/status/uploaded.svg" alt="Green solid circle" width="16">        | Uploaded                                                |
+| OpenSplitTime  | <img src="./img/status/upload-failed.svg" alt="Red solid circle" width="16">     | Upload failed                                           |
 
 - **Export Incremental CSV File**
   This function exports a `.csv` file of the station entries containing unsent or edited records, contains BibID, TimeIn, TimeOut, Drop Reason and any notes made by the operator. The exported file will be automatically named and incremented. e.g. `Aid05Times_04i.csv, Aid05Times_05i.csv, and Aid05Times_06i.csv`.
@@ -228,7 +233,7 @@ This is a global selection that allows two different color/shading options for u
 
 ![settings-page.png](./img/settings-page.png)
 </div>
-The purpose of this page is to allow the operator to import the various input files and manage the database needed for proper program operation. By default, system initialization files should be copied into user documents directory and file reading/writing selection dialogs will open here.
+This page allows the operator to manage event input files and the database needed for proper station operation. Event files are loaded and saved from the user's Documents directory (per operating system). File Load/Export dialogs will open here and this directory can be opened quickly via the button provided on the Export page. By default, system initialization files should be copied into user documents directory and file reading/writing selection dialogs will open here.
 
 - **Windows:** `%userprofile%\Documents\ultra-tracker\`
 - **Linux:** `$HOME/Documents/ultra-tracker`
@@ -248,9 +253,6 @@ While signed in, OpenSplitTime status takes precedence over CSV export status in
   Ctrl/Cmd + `=` to increase, Ctrl/Cmd + `-` to decrease, and Ctrl/Cmd + `0` to reset.
 - **Show +/- Button**
   Enables the optional +/- action button on the Stats page. This button is useful for touchscreens and is off by default.
-
-
-
 <span style="color:red">**Warning:** The functions marked in RED on the Settings page are completely destructive to the local database and **MUST NOT be performed during normal operation!** These are provided only for recovery of the database or data and should only be used at the direction of the software team.</span>
 
 <span style="color:orange">**NOTE:** The functions in ORANGE are provided as a means to completely recover after a major database error and other methods have not corrected the issue.</span>
@@ -306,7 +308,7 @@ The following is a description of each button's function. Each of these will ope
 
 ### Local Database
 
-Ultra-Tracker runs a modern database on the local machine. All transactions are preserved immediately and the operator can close and re-open the app without loss of data. A background task backs up the database to a secondary file, every 5 minutes. This backup is used for emergency use only and may not restore all data in a data-loss event. _Do not modify the local database files using external tools!_
+Ultra-Tracker runs a SQLite database on the local machine. All transactions are preserved immediately and the operator can close and re-open the app without loss of data. A background task backs up the database to a secondary file, every 5 minutes. This backup is used for emergency use only and may not restore all data in a data-loss event. _Do not modify the local database files using external tools!_
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
@@ -317,7 +319,7 @@ Ultra-Tracker runs a modern database on the local machine. All transactions are 
 ## About Ultra-Tracker
 
 A cross-platform desktop application for tracking athletes during ultra marathons.
-This project is supported on Windows, Linux, and MacOS.
+This project is supported on Windows and future support for Linux and MacOS.
 
 Built as an Electron application using TypeScript + React + Tailwind CSS.
 
@@ -343,6 +345,6 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 
 ## License
 
-[MIT](https://opensource.org/license/mit) ©2025 [Bridgerland Amateur Radio Club](https://barconline.org/)
+[MIT](https://opensource.org/license/mit) ©2024 [Bridgerland Amateur Radio Club](https://barconline.org/)
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>

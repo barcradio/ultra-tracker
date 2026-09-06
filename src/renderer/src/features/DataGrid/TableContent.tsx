@@ -11,8 +11,11 @@ interface Props<T extends object> {
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   columns: Column<T>[];
   actionButtons?: (row: T) => ReactNode;
+  leadingAction?: (row: T) => ReactNode;
+  leadingActionAlwaysVisible?: (row: T) => boolean;
   getKey?: (row: T) => string | number;
   rowStatus?: (row: T) => RowStatus;
+  rowClassName?: (row: T) => string | undefined;
 }
 
 export function TableContent<T extends object>(props: Props<T>) {
@@ -59,6 +62,7 @@ export function TableContent<T extends object>(props: Props<T>) {
           even={isEven(row.index)}
           last={isLast(row.index)}
           ref={props.rowVirtualizer.measureElement}
+          className={props.rowClassName?.(props.data[row.index])}
         >
           {props.rowStatus &&
             (() => {
@@ -74,6 +78,15 @@ export function TableContent<T extends object>(props: Props<T>) {
                 </td>
               );
             })()}
+          {props.leadingAction && (
+            <CellWrapper
+              truncate={false}
+              align="left"
+              className={`p-0 pl-2 h-inherit ${props.leadingActionAlwaysVisible?.(props.data[row.index]) ? "opacity-100" : "opacity-0 group-hover/row:opacity-100"}`}
+            >
+              {props.leadingAction(props.data[row.index])}
+            </CellWrapper>
+          )}
           {props.columns.map((column) => (
             <Cell
               key={column.name ?? String(column.field)}

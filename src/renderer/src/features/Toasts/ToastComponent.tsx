@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { differenceInMilliseconds } from "date-fns";
 import CheckIcon from "~/assets/icons/check-circle.svg?react";
 import DangerIcon from "~/assets/icons/error-octagon.svg?react";
@@ -7,6 +8,7 @@ import WarningIcon from "~/assets/icons/warning-circle.svg?react";
 import CloseIcon from "~/assets/icons/xmark.svg?react";
 import { Stack } from "~/components";
 import { useCurrentTime } from "~/hooks/useCurrentTime";
+import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 import { classed } from "~/lib/classed";
 import { type InternalToast } from "./ToastsContext";
 
@@ -53,9 +55,20 @@ function getToastIcon(type: InternalToast["type"]) {
 
 export function ToastComponent({ toast, removeToast }: Props) {
   const [open, setOpen] = useState(true);
+  const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
   const progress = useProgress(toast);
 
   const animationEvent = progress === 1 || !open ? () => removeToast(toast.id) : undefined;
+
+  const handleAction = async () => {
+    if (toast.action?.type !== "remove-watchlist") return;
+
+    await ipcRenderer.invoke("remove-from-watchlist", toast.action.bibId);
+    await queryClient.invalidateQueries({ queryKey: ["athletes-table"] });
+    await queryClient.invalidateQueries({ queryKey: ["stats-table"] });
+    setOpen(false);
+  };
 
   return (
     <ToastWrapper
@@ -67,6 +80,18 @@ export function ToastComponent({ toast, removeToast }: Props) {
       <Stack direction="row" align="center" className="p-4 pr-10">
         {!toast.noIcon && <div className="mr-4">{getToastIcon(toast.type)}</div>}
         <div className="font-bold">{toast.message}</div>
+        {toast.action && (
+          <button
+            type="button"
+            className="ml-4 shrink-0 rounded border border-on-component px-2 py-1 text-sm"
+            onClick={(event) => {
+              event.stopPropagation();
+              void handleAction();
+            }}
+          >
+            Remove from Watchlist
+          </button>
+        )}
       </Stack>
       <span
         className="block bottom-0 left-0 h-1.5 rounded-bl-md transition-all origin-left"
