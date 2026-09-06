@@ -30,14 +30,15 @@ export function SettingsPage() {
               Load Drops File
             </Button>
           </VerticalButtonGroup>
+           <div className="border-t border-component-strong pt-4">
+            <RfidConfiguration />
+          </div>
         </Stack>
 
         {/* Integration Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <OpenSplitTimeLogin className="w-full" />
-          <div className="border-t border-component-strong pt-4">
-            <RfidConfiguration />
-          </div>
+
         </Stack>
 
         {/* User Settings + Developer Tools */}

@@ -115,7 +115,7 @@ export function RunnerFormStats() {
         >
           Out
         </Button>
-        {isFastMode && showFastModeInOutButton && (
+        { showFastModeInOutButton && (
           <Button
             name="button_InOut"
             variant="solid"
