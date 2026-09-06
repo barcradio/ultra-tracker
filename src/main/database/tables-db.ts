@@ -9,8 +9,9 @@ import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
 import * as tableDefs4 from "./schema/table-definitions-v4";
 import * as tableDefs5 from "./schema/table-definitions-v5";
+import * as tableDefs6 from "./schema/table-definitions-v6";
 
-const userVersion: number = 5;
+const userVersion: number = 6;
 let tableDefs;
 
 interface Table {
@@ -78,6 +79,10 @@ export function validateDatabaseTables() {
     case 5:
       tableDefs = tableDefs5;
       break;
+
+    case 6:
+      tableDefs = tableDefs6;
+      break;
   }
 
   for (const key in tableDefs.expectedTableNames) {
@@ -133,7 +138,7 @@ function* toColumnNames(stmt) {
 
 /* Recreate the database tables, will be the current schema version */
 export function CreateTables() {
-  tableDefs = tableDefs5;
+  tableDefs = tableDefs6;
   const result =
     createAthletesTable() &&
     createEventLogTable() &&
@@ -144,7 +149,8 @@ export function CreateTables() {
     createOpenSplitTimePushStatusTable() &&
     createRFIDInboxTable() &&
     createRFIDPendingWritesTable() &&
-    createWatchlistTable();
+    createWatchlistTable() &&
+    createEventMetaTable();
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
@@ -191,6 +197,8 @@ export const createRFIDPendingWritesTable = () =>
   createTable(tableDefs.expectedTableNames.RFIDPendingWrites, tableDefs.RFIDPendingWrites);
 export const createWatchlistTable = () =>
   createTable(tableDefs.expectedTableNames.Watchlist, tableDefs.Watchlist);
+export const createEventMetaTable = () =>
+  createTable(tableDefs.expectedTableNames.EventMeta, tableDefs.EventMeta);
 
 export function ClearTables() {
   const result =
@@ -201,7 +209,8 @@ export function ClearTables() {
     clearOutputTable() &&
     clearStatusTable() &&
     clearOpenSplitTimePushStatusTable() &&
-    clearWatchlistTable();
+    clearWatchlistTable() &&
+    clearEventMetaTable();
 
   return result ? `Database tables cleared; Reinitialize or Restart!` : `Database Clear Failed`;
 }
@@ -231,3 +240,4 @@ export const clearStatusTable = () => clearTable(tableDefs.expectedTableNames.St
 export const clearOpenSplitTimePushStatusTable = () =>
   clearTable(tableDefs.expectedTableNames.OpenSplitTimePushStatus);
 export const clearWatchlistTable = () => clearTable(tableDefs.expectedTableNames.Watchlist);
+export const clearEventMetaTable = () => clearTable(tableDefs.expectedTableNames.EventMeta);

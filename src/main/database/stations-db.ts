@@ -91,6 +91,19 @@ export async function LoadStations() {
       }
     }
   }
+
+  const db = getDatabaseConnection();
+  db.prepare(`DELETE FROM EventMeta`).run();
+  db.prepare(
+    `INSERT INTO EventMeta (name, startline, finishline, starttime, endtime) VALUES (?, ?, ?, ?, ?)`
+  ).run(
+    stationData.event.name,
+    appStore.get("event.startline"),
+    appStore.get("event.finishline"),
+    stationData.event.starttime,
+    stationData.event.endtime
+  );
+
   // TODO: Commit transaction
   const stationIdentifier = appStore.get("station.identifier") as string;
   setStation(stationIdentifier);

@@ -21,7 +21,7 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-function getDbPaths(slug: string) {
+export function getDbPaths(slug: string) {
   const dbFolder = getDbFolder();
   return {
     dbFolder,
@@ -91,7 +91,7 @@ export function createDatabaseFile(slug: string): void {
   db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
   CreateTables();
-  db.pragma("user_version = 5");
+  db.pragma("user_version = 6");
   closeActiveConnection();
   switchToDatabase(slug);
 }
