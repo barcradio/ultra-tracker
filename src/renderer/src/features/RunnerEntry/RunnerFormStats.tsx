@@ -3,8 +3,8 @@ import { Tooltip } from "primereact/tooltip";
 import { Button, Stack, TextInput } from "~/components";
 import { useCreateTiming } from "~/hooks/data/useTiming";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
-import { useFastModeInOutButton } from "~/hooks/useFastModeInOutButton";
 import { useId } from "~/hooks/useId";
+import { useInOutButton } from "~/hooks/useInOutButton";
 import { EntryMode, RecordType } from "$shared/enums";
 import { useEntryMode } from "./hooks/useEntryMode";
 import { Stats } from "./Stats";
@@ -18,7 +18,7 @@ export function RunnerFormStats() {
   const portalRoot = usePortalRoot();
   const buttonInId = useId();
   const isFastMode = entryMode === EntryMode.Fast;
-  const { enabled: showFastModeInOutButton } = useFastModeInOutButton();
+  const { enabled: showInOutButton } = useInOutButton();
 
   useInvalidateRunnersOnRFID();
 
@@ -115,7 +115,7 @@ export function RunnerFormStats() {
         >
           Out
         </Button>
-        { showFastModeInOutButton && (
+        {showInOutButton && (
           <Button
             name="button_InOut"
             variant="solid"

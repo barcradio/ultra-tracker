@@ -177,9 +177,8 @@ While signed in, OpenSplitTime status takes precedence over CSV export status in
   Use the A-/A+ controls to adjust the size of text in data grids, buttons, and text inputs. The
   setting is saved and restored when Ultra-Tracker is restarted. The keyboard shortcuts are
   Ctrl/Cmd + `=` to increase, Ctrl/Cmd + `-` to decrease, and Ctrl/Cmd + `0` to reset.
-- **Show +/- Button in Fast mode**
-  Enables the optional +/- action button on the Stats page. The setting is off by default and only
-  displays the button when the current station is configured for Fast mode.
+- **Show +/- Button**
+  Enables the optional +/- action button on the Stats page. This button is useful for touchscreens and is off by default.
 
 > [!CAUTION]
 > The functions marked in RED on the Settings page are completely destructive to the local database and **MUST NOT be performed during normal operation!** These are provided only for recovery of the database or data and should only be used at the direction of the software team.

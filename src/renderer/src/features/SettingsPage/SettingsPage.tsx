@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
 import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
-import { useFastModeInOutButton } from "~/hooks/useFastModeInOutButton";
+import { useInOutButton } from "~/hooks/useInOutButton";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 import { OpenSplitTimeLogin } from "./OpenSplitTimeLogin";
 import { RfidConfiguration } from "./RfidConfiguration";
@@ -9,7 +9,7 @@ import { RfidConfiguration } from "./RfidConfiguration";
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
   const gridFontScale = useGridFontScale();
-  const fastModeInOutButton = useFastModeInOutButton();
+  const inOutButton = useInOutButton();
   const [resetOpen, setResetOpen] = useState(false);
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
@@ -30,7 +30,7 @@ export function SettingsPage() {
               Load Drops File
             </Button>
           </VerticalButtonGroup>
-           <div className="border-t border-component-strong pt-4">
+          <div className="border-t border-component-strong pt-4">
             <RfidConfiguration />
           </div>
         </Stack>
@@ -38,7 +38,6 @@ export function SettingsPage() {
         {/* Integration Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <OpenSplitTimeLogin className="w-full" />
-
         </Stack>
 
         {/* User Settings + Developer Tools */}
@@ -61,15 +60,17 @@ export function SettingsPage() {
             <p className="w-80 text-on-surface-strong italic font-display text-sm mt-2">
               Adjusts text size in data grids. You can also use Ctrl/Cmd + = / - / 0.
             </p>
-            <label className="flex items-center gap-2 w-80 text-on-surface-strong font-display">
-              <input
-                type="checkbox"
-                checked={fastModeInOutButton.enabled}
-                onChange={(event) => fastModeInOutButton.setEnabled(event.target.checked)}
-                className="w-5 h-5 accent-primary"
-              />
-              Show +/- button in Fast mode
-            </label>
+            <div className="w-80 mt-4 border-t border-component-strong pt-4">
+              <Button
+                size="wide"
+                variant={inOutButton.enabled ? "solid" : "outlined"}
+                className={inOutButton.enabled ? "" : "opacity-50"}
+                aria-pressed={inOutButton.enabled}
+                onClick={() => inOutButton.setEnabled(!inOutButton.enabled)}
+              >
+                {inOutButton.enabled ? "Hide +/- Button" : "Show +/- Button"}
+              </Button>
+            </div>
           </VerticalButtonGroup>
 
           <VerticalButtonGroup label="Developer Tools" className="border-2 border-danger/30">

@@ -46,7 +46,7 @@ const defaults = {
   },
   display: {
     gridFontScale: 1,
-    showFastModeInOutButton: false
+    showInOutButton: false
   }
 };
 
@@ -126,7 +126,7 @@ export const appStore = new Store({
       type: "object",
       properties: {
         gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 },
-        showFastModeInOutButton: { type: "boolean", default: false }
+        showInOutButton: { type: "boolean", default: false }
       }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]
