@@ -42,11 +42,7 @@ function ProgressRow({ label, status }: { label: string; status: ImportStatus })
       <span>{label}</span>
       <span
         className={
-          status === "success"
-            ? "text-success"
-            : status === "error"
-              ? "text-danger"
-              : "opacity-70"
+          status === "success" ? "text-success" : status === "error" ? "text-danger" : "opacity-70"
         }
       >
         {status === "working" ? "..." : statusText}
@@ -96,7 +92,11 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
 
     try {
       if (progress.stations !== "success") {
-        const result = (await createDatabase.mutateAsync()) as [string | null, DatabaseStatus, string];
+        const result = (await createDatabase.mutateAsync()) as [
+          string | null,
+          DatabaseStatus,
+          string
+        ];
         if (result[1] !== DatabaseStatus.Created) {
           throw new Error(result[2] || "Unable to create the event database");
         }
@@ -170,7 +170,13 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
         ))}
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="ghost" color="neutral" onClick={() => handleClose(false)} disabled={running}>
+          <Button
+            type="button"
+            variant="ghost"
+            color="neutral"
+            onClick={() => handleClose(false)}
+            disabled={running}
+          >
             Cancel
           </Button>
           <Button type="submit" disabled={running}>
