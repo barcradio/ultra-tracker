@@ -8,9 +8,13 @@ For a guide on how to set up an event using Ultra-Tracker, and advanced RFID con
 
 ---
 
+<img width="1000" alt="image" src="https://github.com/user-attachments/assets/371cc7fe-8e23-4766-b332-2a79f4e30c70" />
+
+---
+
 ## Initial Setup
 
-<img width="224" height="48" alt="image" src="https://github.com/user-attachments/assets/edb8ef37-8053-40b0-abf4-f2e8859d86be" />
+<img height="48" alt="image" src="src/renderer/public/img/settings-page.png" />
 
 1. Copy the event files into the event-configs folder:
    1. `\Documents\Ultra-Tracker\.event-config\`
@@ -26,7 +30,7 @@ The left side bar is used to select different pages. Select from Stats, Roster, 
 
 ## Stats Page
 
-<img alt="image" src="https://github.com/user-attachments/assets/c4eb6caf-7fbf-42e5-a8b2-bc8f34986fd3" />
+<img alt="image" src="src/renderer/public/img/stats-page.png" />
 
 The **BIB#** box is the main starting point for using this page. This input control will accept numerical input, either from the 10-key pad or top-row keys of all standard keyboards. See useful keyboard shortcuts below.
 
@@ -44,7 +48,7 @@ A Filter control for any column can be opened by clicking the Filter icon (three
 
 ### Editing a record
 
-<img width="350" alt="image" src="https://github.com/user-attachments/assets/d81b847b-f2f5-4c99-98e0-0b84d1112be2" />
+<img width="350" alt="image" src="src/renderer/public/img/athlete-edit.png" />
 
 To edit a timing record, click on the icon at the far-right side of the record row.
 
@@ -63,7 +67,7 @@ Validation Rules:
 
 ### Athlete and Station stats
 
-<img width="266" height="431" alt="image" src="https://github.com/user-attachments/assets/df03ef51-32fd-4e44-9e74-363c35a71318" />
+<img width="300" alt="image" src="src/renderer/public/img/stats.png" />
 
 Each of the different statistics available are updated in real-time.
 
@@ -88,21 +92,23 @@ _10-key entry is recommended for all stations, for laptops without, use a USB 10
 > | [Numpad-Add]   |                   | [Numpad-Divide] |
 > | [Numpad-Enter] |                   |                 |
 
-<img alt="image" src="https://github.com/user-attachments/assets/7a1fee59-e37a-47c4-b3ff-12fd2315c35e" />
+<img alt="image" src="src/renderer/public/img/keyboard-layout.png" />
 
 ## Roster Page
 
-<img width="224" height="48" alt="image" src="https://github.com/user-attachments/assets/e9a99652-e365-43c4-8b86-b025ba020ecb" />
+<img height="48" alt="image" src="src/renderer/public/img/roster-page.png" />
 
 This page provides the list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and note entries.
 
 The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS, In, Out, Medical, Timeout, Withdrew`
 
+<img alt="image" src="src/renderer/public/img/roster-watchlist.png" />     <img alt="image" src="src/renderer/public/img/stats-watchlist.png" />
+
 Use the bookmark button at the left edge of an athlete row to add or remove that athlete from the **Watchlist**. The button appears when the row is hovered; an enabled watchlist button remains visible in red. When a watchlisted athlete arrives at the current station or is included in an imported Drops file, Ultra-Tracker displays an alert. Select **Remove from Watchlist** in the alert to remove the athlete from the Watchlist.
 
 ## Stations Page
 
-<img width="210" height="46" alt="image" src="https://github.com/user-attachments/assets/0ad0ad0c-40a8-47c4-97f5-ace3e1178685" />
+<img height="48" alt="image" src="src/renderer/public/img/stations.png" />
 
 This page is used to select the Station name and operator callsign. The callsign selection is currently superficial, and is populated by the metadata in the Stations file and cannot be modified during an event.
 
@@ -110,7 +116,7 @@ This page also shows the details about the aid stations throughout the race, loc
 
 ## Logs Page
 
-<img width="231" height="51" alt="image" src="https://github.com/user-attachments/assets/956162cf-1195-40ff-9124-37b872e25c85" />
+<img height="48" alt="image" src="src/renderer/public/img/logs-page.png" />
 
 This page displays the station log file that is auto-generated during station operation. There are two versions of the log that can be viewed and/or exported for the use of operators or developers to aid in fixing errors that may occur due to programming mistakes or unforeseen situations.
 
@@ -121,7 +127,7 @@ Watchlist additions, removals, and alerts are recorded in the normal station log
 
 ## Export Page
 
-<img width="218" height="50" alt="image" src="https://github.com/user-attachments/assets/b939c800-1a9f-4b81-9e2a-f44c87111278" />
+<img height="48" alt="image" src="src/renderer/public/img/export-page.png" />
 
 This page provides Export utilities for sending station data to another station or race organizers. These file formats are optimized for human and machine readability.
 
@@ -155,13 +161,16 @@ This file is useful as a final station report.
 
 ## Theme Page
 
-<img width="224" height="48" alt="image" src="https://github.com/user-attachments/assets/37b36db6-84dd-468c-8b0d-baa48a44e133" />
+<img height="48" alt="image" src="src/renderer/public/img/theme-page.png" />
 
 This is a global selection that allows two different color/shading options for use during daylight or nighttime station operation.
 
 ## Settings Page
 
-<img width="224" height="48" alt="image" src="https://github.com/user-attachments/assets/e0ec7fdb-b0aa-4218-8acd-8b7daf12a637" />
+<img height="48" alt="image" src="src/renderer/public/img/settings-page.png" />
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/538bcb74-5df4-416a-b458-43b9f04fdbf7" />
+
 
 This page allows the operator to manage event input files and the database needed for proper station operation. Event files are loaded and saved from the user's Documents directory (per operating system). File Load/Export dialogs will open here and this directory can be opened quickly via the button provided on the Export page.
 
