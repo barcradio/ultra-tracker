@@ -10,38 +10,19 @@ import {
   isDatabaseConnected,
   listEventDatabaseBackupSlugs,
   listEventDatabaseSlugs,
+  resolveUniqueSlug,
   slugify,
   switchToDatabase
 } from "../database/connect-db";
+import { importEventArchiveFile } from "../database/event-archive-db";
 import {
   listEventDatabaseBackupsWithMetadata,
   listEventDatabasesWithMetadata
 } from "../database/event-databases-db";
-import { loadStationsFromFile } from "../database/stations-db";
+import { loadStationsFromFile, readEventNameFromStationsFile } from "../database/stations-db";
 import * as dialogs from "../lib/file-dialogs";
 import { reloadMainWindow } from "../lib/webContents";
 import { Handler } from "../types";
-
-function readEventNameFromStationsFile(filePath: string): string {
-  const fileContent = fs.readFileSync(filePath, "utf-8");
-  const parsed = JSON.parse(fileContent) as { event?: { name?: string } };
-  const name = parsed.event?.name;
-
-  if (!name || typeof name !== "string") {
-    throw new Error("Stations file is missing an event name");
-  }
-
-  return name;
-}
-
-function resolveUniqueSlug(baseSlug: string): string {
-  const existingSlugs = new Set(listEventDatabaseSlugs());
-  if (!existingSlugs.has(baseSlug)) return baseSlug;
-
-  let suffix = 2;
-  while (existingSlugs.has(`${baseSlug}-${suffix}`)) suffix++;
-  return `${baseSlug}-${suffix}`;
-}
 
 const listEventDatabases: Handler<void, Promise<EventDatabaseMetadata[]>> = () => {
   return listEventDatabasesWithMetadata();
@@ -83,6 +64,24 @@ const createEventDatabase: Handler<void, Promise<DatabaseResponse<string>>> = as
     const response: DatabaseResponse<string> = [null, DatabaseStatus.Error, message];
     return response;
   }
+};
+
+const createEventDatabaseFromArchive: Handler<
+  void,
+  Promise<DatabaseResponse<string>>
+> = async () => {
+  const filePaths = await dialogs.selectEventArchiveFile();
+  const filePath = filePaths?.[0];
+  if (!filePath) {
+    const response: DatabaseResponse<string> = [
+      null,
+      DatabaseStatus.Error,
+      "No event file selected"
+    ];
+    return response;
+  }
+
+  return importEventArchiveFile(filePath);
 };
 
 // Only slugs enumerated from disk are trusted; a renderer-provided slug is never used directly as a path.
@@ -160,6 +159,7 @@ export function initEventDatabaseHandlers() {
   ipcMain.handle("list-event-database-backups", listEventDatabaseBackups);
   ipcMain.handle("is-event-database-loaded", isEventDatabaseLoaded);
   ipcMain.handle("create-event-database", createEventDatabase);
+  ipcMain.handle("create-event-database-from-archive", createEventDatabaseFromArchive);
   ipcMain.handle("finish-event-setup", finishEventSetup);
   ipcMain.handle("load-event-database", loadEventDatabase);
   ipcMain.handle("delete-event-database", deleteEventDatabase);

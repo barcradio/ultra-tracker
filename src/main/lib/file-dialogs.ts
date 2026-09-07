@@ -26,6 +26,29 @@ export const selectStationsFile = async (): Promise<string[]> => {
   return result.filePaths as string[];
 };
 
+export const selectEventArchiveFile = async (): Promise<string[]> => {
+  const dialogConfig = {
+    title: "Select an event file",
+    defaultPath: AppPaths.eventConfig,
+    filters: [
+      { name: "Event File", extensions: ["zip"] },
+      { name: "All Files", extensions: ["*"] }
+    ],
+    properties: ["openFile"]
+  };
+
+  const result = await openFileDialog("showOpenDialog", dialogConfig)
+    .then((result) => {
+      result.canceled ? console.log(result.canceled) : console.log(result.filePaths);
+      return result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
+  return result.filePaths as string[];
+};
+
 export const loadAthleteFile = async (): Promise<string[]> => {
   const dialogConfig = {
     title: "Select a starting athletes file",

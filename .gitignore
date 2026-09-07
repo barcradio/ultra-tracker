@@ -8,3 +8,4 @@ opensplittime.env
 rfid.env
 resources/ost-api-responses/
 resources/dns-dnf-files/
+resources/config/mock-event-archive.zip
