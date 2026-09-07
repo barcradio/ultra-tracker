@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import fs from "fs";
 import path from "path";
 import Database from "better-sqlite3";
@@ -69,7 +68,7 @@ export function switchToDatabase(slug: string): void {
     db = new Database(dbPath);
     db.pragma("journal_mode = WAL");
     startBackupLoop(dbBackupPath);
-    applyMigrations();
+    applyMigrations(db);
     const eventMeta = db.prepare(`SELECT name FROM EventMeta LIMIT 1`).get() as
       | {
           name: string | null;
@@ -97,7 +96,7 @@ export function createDatabaseFile(slug: string): void {
   closeActiveConnection();
   db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
-  CreateTables();
+  CreateTables(db);
   db.pragma("user_version = 6");
   closeActiveConnection();
   switchToDatabase(slug);

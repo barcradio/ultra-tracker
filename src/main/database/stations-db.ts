@@ -53,6 +53,7 @@ function importJsonFile(filePath: string): stationsJSON {
 
 export async function loadStationsFromFile(filePath: string) {
   const stationData = importJsonFile(filePath);
+  const db = getDatabaseConnection();
 
   if (!stationData) return "Invalid JSON file.";
 
@@ -73,11 +74,11 @@ export async function loadStationsFromFile(filePath: string) {
 
     if (index == "stations") {
       const [stations] = GetStations();
-      if (stations == null) createStationsTable();
+      if (stations == null) createStationsTable(db);
 
       if (GetStations().length > 0) {
-        clearStationsTable();
-        createStationsTable();
+        clearStationsTable(db);
+        createStationsTable(db);
       }
 
       for (const key in stationData.stations) {
@@ -90,7 +91,6 @@ export async function loadStationsFromFile(filePath: string) {
     }
   }
 
-  const db = getDatabaseConnection();
   db.prepare(`DELETE FROM EventMeta`).run();
   db.prepare(
     `INSERT INTO EventMeta (name, startline, finishline, starttime, endtime) VALUES (?, ?, ?, ?, ?)`

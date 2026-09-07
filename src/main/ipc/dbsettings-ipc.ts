@@ -1,6 +1,7 @@
 import path from "path";
 import { ipcMain } from "electron";
 import * as dbAthlete from "../database/athlete-db";
+import { getDatabaseConnection } from "../database/connect-db";
 import * as dbRunners from "../database/runners-db";
 import * as dbStations from "../database/stations-db";
 import * as dbStatus from "../database/status-db";
@@ -72,11 +73,11 @@ const importRunnersFile: Handler<string> = () => {
 };
 
 const initializeDatabase: Handler<string> = () => {
-  return dbTables.CreateTables();
+  return dbTables.CreateTables(getDatabaseConnection());
 };
 
 const clearDatabase: Handler<string> = () => {
-  const result = dbTables.ClearTables();
+  const result = dbTables.ClearTables(getDatabaseConnection());
 
   if (result === "Database tables cleared; Reinitialize or Restart!") {
     appStore.set("incrementalFileIndex", 1);

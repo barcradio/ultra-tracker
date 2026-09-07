@@ -34,8 +34,9 @@ export async function LoadAthletesFromFile(athleteFilePath: string) {
   ];
 
   // this is entirely destructive, will lose any notes and Drop tags that aren't saved to a file.
-  clearAthletesTable();
-  createAthletesTable();
+  const db = getDatabaseConnection();
+  clearAthletesTable(db);
+  createAthletesTable(db);
 
   const fileContent = fs.createReadStream(athleteFilePath, { encoding: "utf-8" });
   const message: string[] = [];

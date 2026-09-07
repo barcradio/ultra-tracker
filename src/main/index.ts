@@ -5,17 +5,18 @@ import iconLinux from "$resources/iconLinux.png?asset";
 import { DisconnectRFIDReader, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
+  getDatabaseConnection,
   isDatabaseConnected,
   listEventDatabaseSlugs,
   switchToDatabase
 } from "./database/connect-db";
-import { appStore } from "./lib/store";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
 import { initStatEngine } from "./lib/stat-engine";
+import { appStore } from "./lib/store";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -133,7 +134,7 @@ async function initializeApp(): Promise<void> {
   if (activeDatabaseSlug && listEventDatabaseSlugs().includes(activeDatabaseSlug)) {
     switchToDatabase(activeDatabaseSlug);
   }
-  if (isDatabaseConnected()) validateDatabaseTables();
+  if (isDatabaseConnected()) validateDatabaseTables(getDatabaseConnection());
   initializeIpcHandlers();
   if (isDatabaseConnected()) initStatEngine();
 
