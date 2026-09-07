@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import Database from "better-sqlite3";
 import { app } from "electron";
+import { formatEventDatabaseName } from "$shared/formatters";
 import { CreateTables, applyMigrations } from "./tables-db";
 import { appStore } from "../lib/store";
 
@@ -69,6 +70,13 @@ export function switchToDatabase(slug: string): void {
     db.pragma("journal_mode = WAL");
     startBackupLoop(dbBackupPath);
     applyMigrations();
+    const eventMeta = db.prepare(`SELECT name FROM EventMeta LIMIT 1`).get() as
+      | {
+          name: string | null;
+        }
+      | undefined;
+    appStore.set("event.name", eventMeta?.name || slug);
+    appStore.set("event.prettyName", formatEventDatabaseName(slug));
     appStore.set("event.activeDatabaseSlug", slug);
     console.log("Connected to SQLite Database:" + dbPath);
   } catch (e: unknown) {

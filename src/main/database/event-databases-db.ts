@@ -31,6 +31,14 @@ export async function getEventDatabaseMetadata(
     );
     const metadataFilePath = path.join(temporaryDirectory, path.basename(filePath));
     fs.copyFileSync(filePath, metadataFilePath);
+
+    for (const suffix of ["-wal", "-shm"]) {
+      const sidecarPath = `${filePath}${suffix}`;
+      if (fs.existsSync(sidecarPath)) {
+        fs.copyFileSync(sidecarPath, `${metadataFilePath}${suffix}`);
+      }
+    }
+
     const db = new Database(metadataFilePath, { readonly: true, fileMustExist: true });
     try {
       const eventMeta = db.prepare(`SELECT * FROM EventMeta LIMIT 1`).get() as

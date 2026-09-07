@@ -7,6 +7,7 @@ const defaults = {
   legacyDbMigrated: false,
   event: {
     name: "ultra-marathon-2024",
+    prettyName: "Ultra Marathon 2024",
     activeDatabaseSlug: null as string | null,
     startline: "0-start-line",
     starttime: "00:00:00 Jan 01 2024",
@@ -62,6 +63,7 @@ export const appStore = new Store({
       type: "object",
       properties: {
         name: { type: "string", default: "" },
+        prettyName: { type: "string", default: "" },
         activeDatabaseSlug: { type: ["string", "null"] as const, default: null },
         startline: { type: "string", default: "" },
         starttime: { type: "string", default: "" },

@@ -7,6 +7,7 @@ import {
   createDatabaseFile,
   deleteDatabaseFiles,
   getDbPaths,
+  isDatabaseConnected,
   listEventDatabaseBackupSlugs,
   listEventDatabaseSlugs,
   slugify,
@@ -45,6 +46,8 @@ function resolveUniqueSlug(baseSlug: string): string {
 const listEventDatabases: Handler<void, Promise<EventDatabaseMetadata[]>> = () => {
   return listEventDatabasesWithMetadata();
 };
+
+const isEventDatabaseLoaded: Handler<void, boolean> = () => isDatabaseConnected();
 
 const listEventDatabaseBackups: Handler<void, Promise<EventDatabaseMetadata[]>> = () => {
   return listEventDatabaseBackupsWithMetadata();
@@ -155,6 +158,7 @@ const finishEventSetup: Handler<void, void> = () => {
 export function initEventDatabaseHandlers() {
   ipcMain.handle("list-event-databases", listEventDatabases);
   ipcMain.handle("list-event-database-backups", listEventDatabaseBackups);
+  ipcMain.handle("is-event-database-loaded", isEventDatabaseLoaded);
   ipcMain.handle("create-event-database", createEventDatabase);
   ipcMain.handle("finish-event-setup", finishEventSetup);
   ipcMain.handle("load-event-database", loadEventDatabase);
