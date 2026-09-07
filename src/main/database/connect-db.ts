@@ -75,7 +75,7 @@ export function switchToDatabase(slug: string): void {
         }
       | undefined;
     appStore.set("event.name", eventMeta?.name || slug);
-    appStore.set("event.prettyName", formatEventDatabaseName(slug));
+    appStore.set("event.prettyName", formatEventDatabaseName(slug, eventMeta?.name || undefined));
     appStore.set("event.activeDatabaseSlug", slug);
     console.log("Connected to SQLite Database:" + dbPath);
   } catch (e: unknown) {
@@ -132,6 +132,15 @@ export function listEventDatabaseBackupSlugs(): string[] {
     .readdirSync(dbFolder)
     .filter((fileName) => fileName.endsWith("-backup.db"))
     .map((fileName) => fileName.slice(0, -"-backup.db".length));
+}
+
+export function resolveUniqueSlug(baseSlug: string): string {
+  const existingSlugs = new Set(listEventDatabaseSlugs());
+  if (!existingSlugs.has(baseSlug)) return baseSlug;
+
+  let suffix = 2;
+  while (existingSlugs.has(`${baseSlug}-${suffix}`)) suffix++;
+  return `${baseSlug}-${suffix}`;
 }
 
 export function adoptLegacyDatabaseIfPresent(): void {
