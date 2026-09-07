@@ -52,6 +52,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
   useEffect(() => {
     if (!open) {
       setSelectedSlug(null);
+      setView("databases");
       return;
     }
 
