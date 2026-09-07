@@ -62,7 +62,10 @@ export function Modal(props: ModalProps | ModalAffirmProps) {
           </div>
           <div className="py-4 px-4 bg-component">{props.children}</div>
           {(affirmativeButton || props.showNegativeButton) && (
-            <Stack justify="between" className="gap-2 p-3 rounded-b-lg bg-component">
+            <Stack
+              justify={props.footerLeading ? "between" : "center"}
+              className="gap-2 p-3 rounded-b-lg bg-component"
+            >
               {props.footerLeading}
               <Stack justify="end" className="gap-2">
                 <Button variant="ghost" color="neutral" onClick={handleClose}>
