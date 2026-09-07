@@ -1,4 +1,4 @@
-import { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Tooltip } from "primereact/tooltip";
 import { Button, Stack, TextInput } from "~/components";
 import { useCreateTiming } from "~/hooks/data/useTiming";
@@ -25,6 +25,11 @@ export function RunnerFormStats() {
   const { enabled: showInOutButton } = useInOutButton();
 
   useInvalidateRunnersOnRFID();
+
+  // Focus the bib field once the input is enabled, e.g. when this page first mounts.
+  useEffect(() => {
+    if (hasActiveDatabase) inputRef.current?.focus();
+  }, [hasActiveDatabase]);
 
   const createRecord = (type: RecordType) => {
     if (!hasActiveDatabase || bibNumber.length === 0) return;

@@ -157,12 +157,14 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
       }
 
       await setStationIdentity.mutateAsync(identity);
+      sessionStorage.setItem("skip-event-manager-auto-open", "true");
       await ipcRenderer.invoke("finish-event-setup");
       createToast({ message: "Event created and initial files imported", type: "success" });
       setRunning(false);
       setOpen(false);
       await navigate({ to: "/" });
     } catch (error) {
+      sessionStorage.removeItem("skip-event-manager-auto-open");
       const message = error instanceof Error ? error.message : "Unable to create the event";
       createToast({ message, type: "danger" });
       setProgress((current) => ({
