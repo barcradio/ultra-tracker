@@ -63,6 +63,7 @@
 ## Token And Context Optimization
 
 - Start from the named file, symbol, error, test, or command. Search narrowly and read only the surrounding code needed to identify the owner of the behavior.
+- For repository searches, use the available workspace tools: `grep_search` for text and `file_search` for file patterns. `rg` and `rg --files` are shell executables, not standalone tools; use them through a terminal only after verifying that `rg` is available on `PATH`.
 - Form one concrete hypothesis and one cheap falsifying check before editing. Stop exploring once the controlling path is known.
 - Prefer symbol/reference search and targeted snippets over reading whole directories or large generated files. Do not reload unchanged files or repeat repository explanations.
 - Make the smallest coherent patch. Avoid speculative refactors, duplicate helpers, verbose comments, and broad documentation changes.
