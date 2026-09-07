@@ -1,7 +1,7 @@
 import fs from "fs";
 import Database from "better-sqlite3";
 import { EventDatabaseMetadata } from "$shared/models";
-import { getDbPaths, listEventDatabaseSlugs } from "./connect-db";
+import { getDbPaths, listEventDatabaseBackupSlugs, listEventDatabaseSlugs } from "./connect-db";
 
 interface EventMetaRow {
   name: string | null;
@@ -15,11 +15,15 @@ interface CountRow {
   count: number;
 }
 
-export async function getEventDatabaseMetadata(slug: string): Promise<EventDatabaseMetadata> {
+export async function getEventDatabaseMetadata(
+  slug: string,
+  type: EventDatabaseMetadata["type"]
+): Promise<EventDatabaseMetadata> {
   const { dbPath, dbBackupPath } = getDbPaths(slug);
+  const filePath = type === "database" ? dbPath : dbBackupPath;
 
   try {
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    const db = new Database(filePath, { readonly: true, fileMustExist: true });
     try {
       const eventMeta = db.prepare(`SELECT * FROM EventMeta LIMIT 1`).get() as
         EventMetaRow | undefined;
@@ -38,17 +42,25 @@ export async function getEventDatabaseMetadata(slug: string): Promise<EventDatab
         endtime: eventMeta?.endtime ? new Date(eventMeta.endtime) : undefined,
         timingRecordCount,
         athleteCount,
-        lastModified: fs.statSync(dbPath).mtime,
-        hasBackup: fs.existsSync(dbBackupPath)
+        lastModified: fs.statSync(filePath).mtime,
+        type
       };
     } finally {
       db.close();
     }
   } catch {
-    return { slug, error: "unreadable" };
+    return { slug, type, error: "unreadable" };
   }
 }
 
 export function listEventDatabasesWithMetadata(): Promise<EventDatabaseMetadata[]> {
-  return Promise.all(listEventDatabaseSlugs().map((slug) => getEventDatabaseMetadata(slug)));
+  return Promise.all(
+    listEventDatabaseSlugs().map((slug) => getEventDatabaseMetadata(slug, "database"))
+  );
+}
+
+export function listEventDatabaseBackupsWithMetadata(): Promise<EventDatabaseMetadata[]> {
+  return Promise.all(
+    listEventDatabaseBackupSlugs().map((slug) => getEventDatabaseMetadata(slug, "backup"))
+  );
 }

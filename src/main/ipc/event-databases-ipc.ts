@@ -6,11 +6,15 @@ import { DatabaseResponse } from "$shared/types";
 import {
   createDatabaseFile,
   deleteDatabaseFiles,
+  getDbPaths,
   listEventDatabaseSlugs,
   slugify,
   switchToDatabase
 } from "../database/connect-db";
-import { listEventDatabasesWithMetadata } from "../database/event-databases-db";
+import {
+  listEventDatabaseBackupsWithMetadata,
+  listEventDatabasesWithMetadata
+} from "../database/event-databases-db";
 import { loadStationsFromFile } from "../database/stations-db";
 import * as dialogs from "../lib/file-dialogs";
 import { reloadMainWindow } from "../lib/webContents";
@@ -39,6 +43,10 @@ function resolveUniqueSlug(baseSlug: string): string {
 
 const listEventDatabases: Handler<void, Promise<EventDatabaseMetadata[]>> = () => {
   return listEventDatabasesWithMetadata();
+};
+
+const listEventDatabaseBackups: Handler<void, Promise<EventDatabaseMetadata[]>> = () => {
+  return listEventDatabaseBackupsWithMetadata();
 };
 
 const createEventDatabase: Handler<void, Promise<DatabaseResponse<string>>> = async () => {
@@ -99,9 +107,42 @@ const deleteEventDatabase: Handler<string, DatabaseResponse> = (_event, slug) =>
   }
 };
 
+const restoreEventDatabaseBackup: Handler<
+  { slug: string; allowRename: boolean },
+  DatabaseResponse<string>
+> = (_event, params) => {
+  if (typeof params?.slug !== "string") return [null, DatabaseStatus.NotFound, "Unknown backup"];
+
+  const { dbPath, dbBackupPath } = getDbPaths(params.slug);
+  if (!fs.existsSync(dbBackupPath)) return [null, DatabaseStatus.NotFound, "Unknown backup"];
+
+  const exists = fs.existsSync(dbPath);
+  if (exists && !params.allowRename) {
+    return [null, DatabaseStatus.Duplicate, "An event database with this name already exists"];
+  }
+
+  const slug = exists ? resolveUniqueSlug(params.slug) : params.slug;
+  const targetPath = getDbPaths(slug).dbPath;
+
+  try {
+    fs.copyFileSync(dbBackupPath, targetPath, fs.constants.COPYFILE_EXCL);
+    switchToDatabase(slug);
+    reloadMainWindow();
+    return [slug, DatabaseStatus.Created, `Restored backup as event database "${slug}"`];
+  } catch (e: unknown) {
+    return [
+      null,
+      DatabaseStatus.Error,
+      e instanceof Error ? e.message : "Unable to restore backup"
+    ];
+  }
+};
+
 export function initEventDatabaseHandlers() {
   ipcMain.handle("list-event-databases", listEventDatabases);
+  ipcMain.handle("list-event-database-backups", listEventDatabaseBackups);
   ipcMain.handle("create-event-database", createEventDatabase);
   ipcMain.handle("load-event-database", loadEventDatabase);
   ipcMain.handle("delete-event-database", deleteEventDatabase);
+  ipcMain.handle("restore-event-database-backup", restoreEventDatabaseBackup);
 }

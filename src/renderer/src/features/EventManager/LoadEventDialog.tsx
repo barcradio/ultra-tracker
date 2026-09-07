@@ -1,52 +1,93 @@
 import { MouseEvent, useEffect, useState } from "react";
 import DatabaseIcon from "~/assets/icons/database.svg?react";
 import XMarkIcon from "~/assets/icons/xmark.svg?react";
+import { Button } from "~/components/Button";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { Modal } from "~/components/Modal";
 import { Stack } from "~/components/Stack";
 import { Tag } from "~/components/Tag";
 import { formatDate, formatShortDate } from "~/lib/datetimes";
+import { DatabaseStatus } from "$shared/enums";
 import { EventDatabaseMetadata } from "$shared/models";
-import { useDeleteEventDatabase, useLoadEventDatabase } from "./hooks/useEventDatabaseMutations";
-import { useActiveDatabaseSlug, useEventDatabases } from "./hooks/useEventDatabases";
+import {
+  useDeleteEventDatabase,
+  useLoadEventDatabase,
+  useRestoreEventDatabaseBackup
+} from "./hooks/useEventDatabaseMutations";
+import {
+  useActiveDatabaseSlug,
+  useEventDatabaseBackups,
+  useEventDatabases
+} from "./hooks/useEventDatabases";
 
 export interface LoadEventDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
+  onStartNew: () => void;
+}
+
+function formatEventTitle(slug: string): string {
+  const duplicateMatch = slug.match(/^(.*)-(\d+)$/);
+  const duplicateNumber = duplicateMatch?.[2];
+  const isYear = duplicateNumber != null && /^(19|20)\d{2}$/.test(duplicateNumber);
+  const eventSlug = duplicateMatch && !isYear ? duplicateMatch[1] : slug;
+  const duplicateLabel = duplicateMatch && !isYear ? ` #${duplicateNumber}` : "";
+
+  return (
+    eventSlug
+      .split("-")
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ") + duplicateLabel
+  );
 }
 
 export function LoadEventDialog(props: LoadEventDialogProps) {
-  const { open, setOpen } = props;
+  const { open, setOpen, onStartNew } = props;
   const { data: eventDatabases, isLoading } = useEventDatabases();
+  const { data: eventBackups, isLoading: areBackupsLoading } = useEventDatabaseBackups();
   const { data: activeSlug } = useActiveDatabaseSlug();
 
   const loadMutation = useLoadEventDatabase();
   const deleteMutation = useDeleteEventDatabase();
+  const restoreMutation = useRestoreEventDatabaseBackup();
 
+  const [view, setView] = useState<"databases" | "backups">("databases");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [eventToDelete, setEventToDelete] = useState<EventDatabaseMetadata | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [backupToRestore, setBackupToRestore] = useState<EventDatabaseMetadata | null>(null);
+  const [restoreModalOpen, setRestoreModalOpen] = useState(false);
+  const visibleEvents = view === "databases" ? eventDatabases : eventBackups;
+  const isLoadingVisibleEvents = view === "databases" ? isLoading : areBackupsLoading;
 
-  // Auto-select active database or first database when opened / data loaded
+  // Default to the active database or first database without replacing a user selection.
   useEffect(() => {
     if (!open) {
       setSelectedSlug(null);
       return;
     }
 
-    if (eventDatabases && eventDatabases.length > 0) {
-      if (activeSlug && eventDatabases.some((db) => db.slug === activeSlug)) {
-        setSelectedSlug(activeSlug);
-      } else if (!selectedSlug || !eventDatabases.some((db) => db.slug === selectedSlug)) {
-        setSelectedSlug(eventDatabases[0].slug);
-      }
+    if (visibleEvents && visibleEvents.length > 0) {
+      setSelectedSlug((currentSlug) => {
+        if (currentSlug && visibleEvents.some((db) => db.slug === currentSlug)) return currentSlug;
+        if (
+          view === "databases" &&
+          activeSlug &&
+          visibleEvents.some((db) => db.slug === activeSlug)
+        ) {
+          return activeSlug;
+        }
+        return visibleEvents[0].slug;
+      });
     }
-  }, [open, eventDatabases, activeSlug, selectedSlug]);
+  }, [open, visibleEvents, activeSlug, view]);
 
-  const selectedEvent = eventDatabases?.find((db) => db.slug === selectedSlug) ?? null;
+  const selectedEvent = visibleEvents?.find((db) => db.slug === selectedSlug) ?? null;
 
   const handleLoad = () => {
     if (!selectedSlug) return;
+    sessionStorage.setItem("skip-event-manager-auto-open", "true");
     loadMutation.mutate(selectedSlug);
   };
 
@@ -68,8 +109,38 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
     });
   };
 
+  const restoreBackup = (backup: EventDatabaseMetadata, allowRename: boolean) => {
+    sessionStorage.setItem("skip-event-manager-auto-open", "true");
+    restoreMutation.mutate(
+      { slug: backup.slug, allowRename },
+      {
+        onSuccess: ([, status]) => {
+          if (status === DatabaseStatus.Duplicate) {
+            sessionStorage.removeItem("skip-event-manager-auto-open");
+            setBackupToRestore(backup);
+            setRestoreModalOpen(true);
+          } else if (status !== DatabaseStatus.Created) {
+            sessionStorage.removeItem("skip-event-manager-auto-open");
+          }
+        },
+        onError: () => sessionStorage.removeItem("skip-event-manager-auto-open")
+      }
+    );
+  };
+
+  const handleRestore = () => {
+    if (selectedEvent) restoreBackup(selectedEvent, false);
+  };
+
+  const handleConfirmRestore = () => {
+    if (backupToRestore) restoreBackup(backupToRestore, true);
+  };
+
   const isAffirmativeDisabled =
-    !selectedSlug || selectedSlug === activeSlug || loadMutation.isPending;
+    !selectedSlug ||
+    (view === "databases" && selectedSlug === activeSlug) ||
+    loadMutation.isPending ||
+    restoreMutation.isPending;
 
   return (
     <>
@@ -78,33 +149,65 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
         setOpen={setOpen}
         title="Load Event"
         size="lg"
+        footerLeading={
+          view === "databases" ? (
+            <Button type="button" variant="outlined" color="neutral" onClick={onStartNew}>
+              Create New Event
+            </Button>
+          ) : undefined
+        }
         showNegativeButton
         negativeText="Cancel"
-        affirmativeText={loadMutation.isPending ? "Loading..." : "Load Event"}
-        onAffirmative={handleLoad}
+        affirmativeText={
+          view === "backups"
+            ? restoreMutation.isPending
+              ? "Restoring..."
+              : "Restore Backup"
+            : loadMutation.isPending
+              ? "Loading..."
+              : "Load Event"
+        }
+        onAffirmative={view === "backups" ? handleRestore : handleLoad}
         affirmativeDisabled={isAffirmativeDisabled}
       >
         <div className="flex gap-4 h-[22rem]">
           {/* Left pane: Event Tiles */}
           <div className="flex flex-col flex-1 min-w-0">
-            <div className="text-sm font-semibold mb-2 text-on-surface">
-              Select an Event Database
+            <div className="mb-2 flex text-sm font-semibold text-on-surface">
+              <button
+                type="button"
+                aria-pressed={view === "databases"}
+                onClick={() => setView("databases")}
+                className={`border-b-2 px-2 py-1 ${view === "databases" ? "border-primary text-on-surface-hover" : "border-transparent opacity-70"}`}
+              >
+                Events
+              </button>
+              <button
+                type="button"
+                aria-pressed={view === "backups"}
+                onClick={() => setView("backups")}
+                className={`border-b-2 px-2 py-1 ${view === "backups" ? "border-primary text-on-surface-hover" : "border-transparent opacity-70"}`}
+              >
+                Backups
+              </button>
             </div>
             <div className="flex-1 pr-1 overflow-y-auto space-y-2">
-              {isLoading && (
+              {isLoadingVisibleEvents && (
                 <div className="p-4 text-center text-on-surface opacity-70">
                   Loading event databases...
                 </div>
               )}
 
-              {!isLoading && (!eventDatabases || eventDatabases.length === 0) && (
+              {!isLoadingVisibleEvents && (!visibleEvents || visibleEvents.length === 0) && (
                 <div className="p-4 text-center text-on-surface opacity-70">
-                  No saved event databases found.
+                  {view === "databases"
+                    ? "No saved event databases found."
+                    : "No event backups found."}
                 </div>
               )}
 
-              {!isLoading &&
-                eventDatabases?.map((item) => {
+              {!isLoadingVisibleEvents &&
+                visibleEvents?.map((item) => {
                   const isSelected = item.slug === selectedSlug;
                   const isActive = item.slug === activeSlug;
                   const formattedDate = item.lastModified
@@ -134,7 +237,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
                           <div className="flex items-center gap-2">
                             <DatabaseIcon className="w-4 h-4 shrink-0 fill-current" />
                             <span className="font-bold truncate text-base">
-                              {item.name || item.slug}
+                              {formatEventTitle(item.slug)}
                             </span>
                           </div>
                           <div className="text-xs opacity-75 mt-1">Modified: {formattedDate}</div>
@@ -153,8 +256,10 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
                       </div>
 
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {isActive && <Tag color="turquoise">Active</Tag>}
-                        {item.hasBackup && <Tag color="purple">Backup</Tag>}
+                        {item.type === "database" && isActive && (
+                          <Tag color="turquoise">Active</Tag>
+                        )}
+                        {item.type === "backup" && <Tag color="purple">Backup</Tag>}
                         {item.error === "unreadable" && <Tag color="red">Unreadable</Tag>}
                       </div>
                     </div>
@@ -172,7 +277,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
                     Event Details
                   </div>
                   <div className="text-lg font-bold text-on-surface-hover truncate">
-                    {selectedEvent.name || selectedEvent.slug}
+                    {formatEventTitle(selectedEvent.slug)}
                   </div>
                   <div className="text-xs font-mono opacity-75">{selectedEvent.slug}</div>
                 </div>
@@ -219,13 +324,6 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
                           : "N/A"}
                       </span>
                     </div>
-
-                    <div className="flex justify-between">
-                      <span className="opacity-75">Backup File:</span>
-                      <span className="font-semibold">
-                        {selectedEvent.hasBackup ? "Yes" : "No"}
-                      </span>
-                    </div>
                   </Stack>
                 )}
               </div>
@@ -253,6 +351,21 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
           {eventToDelete.name || eventToDelete.slug}&quot;? All timing records and athlete data for
           this event will be permanently deleted.
         </ConfirmationModal>
+      )}
+
+      {backupToRestore && (
+        <Modal
+          open={restoreModalOpen}
+          setOpen={setRestoreModalOpen}
+          title="Restore Backup"
+          showNegativeButton
+          negativeText="Cancel"
+          affirmativeText="Restore as New Event"
+          onAffirmative={handleConfirmRestore}
+        >
+          An event database named &quot;{backupToRestore.name || backupToRestore.slug}&quot; already
+          exists. The backup will be restored as a new event using the next available name.
+        </Modal>
       )}
     </>
   );

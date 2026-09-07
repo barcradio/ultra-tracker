@@ -160,6 +160,7 @@ export type RfidConnectionSettings = Pick<
 
 export interface EventDatabaseMetadata {
   slug: string;
+  type: "database" | "backup";
   name?: string;
   startline?: string;
   finishline?: string;
@@ -168,6 +169,5 @@ export interface EventDatabaseMetadata {
   timingRecordCount?: number;
   athleteCount?: number;
   lastModified?: Date;
-  hasBackup?: boolean;
   error?: "unreadable";
 }

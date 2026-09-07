@@ -13,6 +13,7 @@ export interface ModalProps {
   title: ReactNode;
   showNegativeButton?: boolean;
   negativeText?: ReactNode;
+  footerLeading?: ReactNode;
   size?: "sm" | "md" | "lg" | "auto";
   affirmativeDisabled?: boolean;
 }
@@ -61,20 +62,23 @@ export function Modal(props: ModalProps | ModalAffirmProps) {
           </div>
           <div className="py-4 px-4 bg-component">{props.children}</div>
           {(affirmativeButton || props.showNegativeButton) && (
-            <Stack justify="end" className="gap-2 p-3 rounded-b-lg bg-component">
-              <Button variant="ghost" color="neutral" onClick={handleClose}>
-                {props.negativeText ?? "Close"}
-              </Button>
-              {affirmativeButton && (
-                <Button
-                  variant="solid"
-                  color={props["dangerous"] ? "danger" : "primary"}
-                  onClick={props["onAffirmative"]}
-                  disabled={props["affirmativeDisabled"]}
-                >
-                  {props["affirmativeText"]}
+            <Stack justify="between" className="gap-2 p-3 rounded-b-lg bg-component">
+              {props.footerLeading}
+              <Stack justify="end" className="gap-2">
+                <Button variant="ghost" color="neutral" onClick={handleClose}>
+                  {props.negativeText ?? "Close"}
                 </Button>
-              )}
+                {affirmativeButton && (
+                  <Button
+                    variant="solid"
+                    color={props["dangerous"] ? "danger" : "primary"}
+                    onClick={props["onAffirmative"]}
+                    disabled={props["affirmativeDisabled"]}
+                  >
+                    {props["affirmativeText"]}
+                  </Button>
+                )}
+              </Stack>
             </Stack>
           )}
         </ModalElement>

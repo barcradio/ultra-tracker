@@ -16,7 +16,7 @@ export function useStation() {
   });
 }
 
-export function useSetStationIdentity() {
+export function useSetStationIdentity(suppressToasts = false) {
   const ipcRenderer = useIpcRenderer();
   const { createToast } = useToasts();
   const queryClient = useQueryClient();
@@ -26,11 +26,15 @@ export function useSetStationIdentity() {
       const newStation: Station = await ipcRenderer.invoke("set-station-identity", params);
 
       if (!newStation) {
-        createToast({ message: "Failed to update Station Identity", type: "danger" });
-        return;
+        if (!suppressToasts) {
+          createToast({ message: "Failed to update Station Identity", type: "danger" });
+        }
+        throw new Error("Failed to update Station Identity");
       }
 
-      createToast({ message: "Station Identity Updated", type: "success" });
+      if (!suppressToasts) {
+        createToast({ message: "Station Identity Updated", type: "success" });
+      }
       queryClient.invalidateQueries({ queryKey: ["station"] });
     }
   });

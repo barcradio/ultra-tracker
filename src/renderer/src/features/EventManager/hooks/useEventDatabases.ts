@@ -26,3 +26,17 @@ export function useActiveDatabaseSlug() {
     }
   });
 }
+
+export function useEventDatabaseBackups() {
+  const ipcRenderer = useIpcRenderer();
+
+  return useQuery({
+    queryKey: ["event-database-backups"],
+    queryFn: async (): Promise<EventDatabaseMetadata[]> => {
+      const result = (await ipcRenderer.invoke(
+        "list-event-database-backups"
+      )) as EventDatabaseMetadata[];
+      return result || [];
+    }
+  });
+}

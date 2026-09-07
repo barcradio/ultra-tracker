@@ -47,3 +47,19 @@ export function useDeleteEventDatabase() {
     }
   });
 }
+
+export function useRestoreEventDatabaseBackup() {
+  const ipcRenderer = useIpcRenderer();
+
+  return useMutation({
+    mutationFn: async (params: {
+      slug: string;
+      allowRename: boolean;
+    }): Promise<DatabaseResponse<string>> => {
+      return (await ipcRenderer.invoke(
+        "restore-event-database-backup",
+        params
+      )) as DatabaseResponse<string>;
+    }
+  });
+}

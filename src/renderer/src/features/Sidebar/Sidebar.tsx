@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
+import DatabaseIcon from "~/assets/icons/database.svg?react";
 import ExportIcon from "~/assets/icons/export.svg?react";
 import HelpIcon from "~/assets/icons/help.svg?react";
 import LogsIcon from "~/assets/icons/logs.svg?react";
@@ -9,7 +10,9 @@ import SettingsIcon from "~/assets/icons/settings.svg?react";
 import StationIcon from "~/assets/icons/station.svg?react";
 import { Stack } from "~/components";
 import { useAttachBackdrop } from "~/features/Backdrop";
+import { EventManagerDialog } from "~/features/EventManager";
 import { classed } from "~/lib/classed";
+import { SidebarButton } from "./SidebarButton";
 import { SidebarLink } from "./SidebarLink";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -32,6 +35,7 @@ enum SidebarMode {
 export function Sidebar() {
   const mode = SidebarMode.Auto;
   const [expand, setExpand] = useState(false);
+  const [eventManagerOpen, setEventManagerOpen] = useState(false);
   const expanded = expand;
 
   const location = useLocation();
@@ -65,6 +69,9 @@ export function Sidebar() {
           </SidebarLink>
         </div>
         <div>
+          <SidebarButton icon={DatabaseIcon} onClick={() => setEventManagerOpen(true)}>
+            Event Manager
+          </SidebarButton>
           <ThemeToggle />
           <SidebarLink to="/settings" icon={SettingsIcon}>
             Settings
@@ -74,6 +81,7 @@ export function Sidebar() {
           </SidebarLink>
         </div>
       </Stack>
+      <EventManagerDialog open={eventManagerOpen} setOpen={setEventManagerOpen} />
     </SidebarElement>
   );
 }

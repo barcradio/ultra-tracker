@@ -1,11 +1,10 @@
+/* eslint-disable import/no-cycle */
 import fs from "fs";
 import path from "path";
 import Database from "better-sqlite3";
 import { app } from "electron";
-import { appStore } from "../lib/store";
-// The table helpers resolve the active connection at call time.
-// eslint-disable-next-line import/no-cycle
 import { CreateTables, applyMigrations } from "./tables-db";
+import { appStore } from "../lib/store";
 
 let db: Database.Database | null = null;
 let backupInterval: NodeJS.Timeout | null = null;
@@ -101,9 +100,8 @@ export function deleteDatabaseFiles(slug: string): void {
     throw new Error("Cannot delete the active database");
   }
 
-  const { dbPath, dbBackupPath } = getDbPaths(slug);
+  const { dbPath } = getDbPaths(slug);
   fs.rmSync(dbPath, { force: true });
-  fs.rmSync(dbBackupPath, { force: true });
 }
 
 export function listEventDatabaseSlugs(): string[] {
@@ -114,6 +112,16 @@ export function listEventDatabaseSlugs(): string[] {
     .readdirSync(dbFolder)
     .filter((fileName) => fileName.endsWith(".db") && !fileName.endsWith("-backup.db"))
     .map((fileName) => fileName.slice(0, -3));
+}
+
+export function listEventDatabaseBackupSlugs(): string[] {
+  const dbFolder = getDbFolder();
+  if (!fs.existsSync(dbFolder)) return [];
+
+  return fs
+    .readdirSync(dbFolder)
+    .filter((fileName) => fileName.endsWith("-backup.db"))
+    .map((fileName) => fileName.slice(0, -"-backup.db".length));
 }
 
 export function adoptLegacyDatabaseIfPresent(): void {
