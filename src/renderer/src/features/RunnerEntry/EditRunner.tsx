@@ -40,7 +40,7 @@ const getErrorMessage = (error: FieldError): string => {
 };
 
 const getUploadStatusText = (runner: RunnerEx): string => {
-  const status = runner.openSplitTimePushStatus ?? (runner.sent ? "success" : "pending");
+  const status = runner.openSplitTimePushStatus ?? "pending";
   const statusText = status === "success" ? "Uploaded" : status === "error" ? "Error" : "Pending";
 
   return runner.openSplitTimePushError

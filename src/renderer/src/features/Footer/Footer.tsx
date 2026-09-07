@@ -64,17 +64,17 @@ export function Footer() {
 
         <Stack
           direction="col"
-          className="gap-[8px] px-[16px] py-[8px] text-[14px] border rounded-md border-component-strong bg-surface-tertiary"
+          className="gap-[8px] px-[16px] py-[8px] text-[14px] border rounded-md border-component-strong bg-surface-low"
         >
           <Stack id={internetTooltipId} direction="row" align="center" className="gap-[8px]">
-            <span className="text-on-component">Internet:</span>
+            <span className="text-on-surface">Internet:</span>
             {statusIcon(connectionStatus.checking, connectionStatus.internet)}
             <Tooltip position="top" target={`#${internetTooltipId}`}>
               {statusText(connectionStatus.checking, connectionStatus.internet)}
             </Tooltip>
           </Stack>
           <Stack id={openSplitTimeTooltipId} direction="row" align="center" className="gap-[8px]">
-            <span className="text-on-component">OpenSplitTime:</span>
+            <span className="text-on-surface">OpenSplitTime:</span>
             {statusIcon(connectionStatus.checking, connectionStatus.openSplitTime)}
             <Tooltip position="top" target={`#${openSplitTimeTooltipId}`}>
               {statusText(connectionStatus.checking, connectionStatus.openSplitTime)}
