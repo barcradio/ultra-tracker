@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useCountdown } from "~/hooks/useCountdown";
 import { Modal, ModalAffirmProps } from "./Modal";
 import { TextInput } from "./TextInput";
@@ -15,6 +15,7 @@ interface Props extends Omit<ModalAffirmProps, "affirmativeText"> {
 export function ConfirmationModal(props: Props) {
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmation, setConfirmation] = useState("");
+  const confirmationInputRef = useRef<HTMLInputElement | null>(null);
 
   const confirmed = confirmation === String(props.title).toLowerCase();
 
@@ -22,6 +23,19 @@ export function ConfirmationModal(props: Props) {
   const { countdown, resetCountdown } = useCountdown(count, {
     enable: props.open && props.superDangerous && !isConfirming && !confirmed
   });
+
+  useEffect(() => {
+    if (props.open && isConfirming) {
+      confirmationInputRef.current?.focus();
+      confirmationInputRef.current?.select();
+    }
+  }, [props.open, isConfirming]);
+
+  const handleConfirmTextSubmit = () => {
+    if (!confirmed) return;
+    props.onAffirmative();
+    handleClose();
+  };
 
   const handleAffirmClick = () => {
     if (!props.superDangerous || confirmed) {
@@ -75,7 +89,15 @@ export function ConfirmationModal(props: Props) {
             confirm.
           </p>
           <TextInput
+            ref={confirmationInputRef}
+            value={confirmation}
             onChange={(e) => setConfirmation(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleConfirmTextSubmit();
+              }
+            }}
             className="border-2 border-danger/50"
           />
         </div>
