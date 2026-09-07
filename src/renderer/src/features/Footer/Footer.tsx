@@ -6,23 +6,25 @@ import DangerIcon from "~/assets/icons/error-octagon.svg?react";
 import InfoIcon from "~/assets/icons/info-circle.svg?react";
 import { Stack } from "~/components";
 import { useTheme } from "~/hooks/dom/useTheme";
+import { useStoreValue } from "~/hooks/ipc/useStoreValue";
 import { useId } from "~/hooks/useId";
 import { ConnectionStatus, useConnectionStatus } from "./hooks/useConnectionStatus";
 import { useStation } from "../../hooks/data/useStation";
 
 function useFooterInfo() {
   const { data: station } = useStation();
+  const { data: eventName } = useStoreValue<string>("event.prettyName");
 
   const title = `${station?.identifier.split("-", 1)[0]} ${station?.name}`;
   const operator = Object.values(station?.operators ?? {}).find((operator) => operator.active);
   const callsign = operator ? operator.callsign : "No Active Operator";
 
-  return { title, callsign };
+  return { title, callsign, eventName };
 }
 
 export function Footer() {
   const { theme } = useTheme();
-  const { title, callsign } = useFooterInfo();
+  const { title, callsign, eventName } = useFooterInfo();
   const connectionStatus = useConnectionStatus();
   const internetTooltipId = useId("internet-status");
   const openSplitTimeTooltipId = useId("opensplittime-status");
@@ -54,6 +56,11 @@ export function Footer() {
     >
       <Stack direction="row" align="center" className="gap-[16px]">
         <Stack direction="col">
+          {eventName && (
+            <p className="text-on-component">
+              <span className="font-bold">Event</span> - {eventName}
+            </p>
+          )}
           <p className="text-on-component">
             <span className="font-bold">Aid Station</span> - {title}
           </p>

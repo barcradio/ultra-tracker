@@ -157,3 +157,17 @@ export type RfidConnectionSettings = Pick<
   RfidSettings,
   "type" | "restApiUrl" | "webSocketUrl" | "userName" | "password" | "sslCert"
 >;
+
+export interface EventDatabaseMetadata {
+  slug: string;
+  type: "database" | "backup";
+  name?: string;
+  startline?: string;
+  finishline?: string;
+  starttime?: Date;
+  endtime?: Date;
+  timingRecordCount?: number;
+  athleteCount?: number;
+  lastModified?: Date;
+  error?: "unreadable";
+}

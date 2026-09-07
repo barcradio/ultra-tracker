@@ -13,6 +13,14 @@ import * as dialogs from "../lib/file-dialogs";
 const invalidResult = -999;
 
 export async function LoadAthletes() {
+  const athleteFilePath = await dialogs.loadAthleteFile();
+  const filePath = athleteFilePath?.[0];
+  if (!filePath) throw new Error("No athletes file selected");
+
+  return LoadAthletesFromFile(filePath);
+}
+
+export async function LoadAthletesFromFile(athleteFilePath: string) {
   const headers = [
     "bibId",
     "firstName",
@@ -26,11 +34,11 @@ export async function LoadAthletes() {
   ];
 
   // this is entirely destructive, will lose any notes and Drop tags that aren't saved to a file.
-  clearAthletesTable();
-  createAthletesTable();
+  const db = getDatabaseConnection();
+  clearAthletesTable(db);
+  createAthletesTable(db);
 
-  const athleteFilePath = await dialogs.loadAthleteFile();
-  const fileContent = fs.createReadStream(athleteFilePath[0], { encoding: "utf-8" });
+  const fileContent = fs.createReadStream(athleteFilePath, { encoding: "utf-8" });
   const message: string[] = [];
 
   // TODO: Begin transaction

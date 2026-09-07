@@ -3,6 +3,7 @@ import path from "path";
 import { format } from "date-fns";
 import { app } from "electron";
 import log from "electron-log/main";
+import { isDatabaseConnected } from "../database/connect-db";
 import { logEvent } from "../database/eventLogger-db";
 
 export enum LogLevel {
@@ -86,7 +87,7 @@ export function uberLog(level: LogLevel, scope: string, message: string, sendToE
   const scopedLog = !scope ? log : log.scope(scope);
   const logMessage = `${message}`;
 
-  if (sendToEventLog)
+  if (sendToEventLog && isDatabaseConnected())
     logEvent(-1, null, null, null, new Date().toISOString(), logMessage, false, false);
 
   switch (level) {

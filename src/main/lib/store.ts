@@ -4,8 +4,11 @@ const defaults = {
   initialized: false,
   targetLanguage: "eng",
   incrementalFileIndex: 1,
+  legacyDbMigrated: false,
   event: {
     name: "ultra-marathon-2024",
+    prettyName: "Ultra Marathon 2024",
+    activeDatabaseSlug: null as string | null,
     startline: "0-start-line",
     starttime: "00:00:00 Jan 01 2024",
     finishline: "99-finish-line",
@@ -46,7 +49,8 @@ const defaults = {
   },
   display: {
     gridFontScale: 1,
-    showInOutButton: false
+    showInOutButton: false,
+    openEventManagerOnStartup: true
   }
 };
 
@@ -59,6 +63,8 @@ export const appStore = new Store({
       type: "object",
       properties: {
         name: { type: "string", default: "" },
+        prettyName: { type: "string", default: "" },
+        activeDatabaseSlug: { type: ["string", "null"] as const, default: null },
         startline: { type: "string", default: "" },
         starttime: { type: "string", default: "" },
         finishline: { type: "string", default: "" },
@@ -86,6 +92,7 @@ export const appStore = new Store({
       }
       //required: ["name", "startline, "finishline"]
     },
+    legacyDbMigrated: { type: "boolean", default: false },
     station: {
       type: "object",
       properties: {
@@ -126,7 +133,8 @@ export const appStore = new Store({
       type: "object",
       properties: {
         gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 },
-        showInOutButton: { type: "boolean", default: false }
+        showInOutButton: { type: "boolean", default: false },
+        openEventManagerOnStartup: { type: "boolean", default: true }
       }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]

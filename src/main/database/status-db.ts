@@ -17,9 +17,16 @@ import { pushTimeRecordUpdate } from "../services/opensplittime";
 const invalidResult = -999;
 
 export async function LoadDrops() {
-  const headers = ["stationId", "bibId", "dropReason", "dropDateTime", "note"];
   const dropsFilePath = await dialogs.loadDropsFromCSV();
-  const fileContent = fs.createReadStream(dropsFilePath[0], { encoding: "utf-8" });
+  const filePath = dropsFilePath?.[0];
+  if (!filePath) throw new Error("No drops file selected");
+
+  return LoadDropsFromFile(filePath);
+}
+
+export async function LoadDropsFromFile(dropsFilePath: string) {
+  const headers = ["stationId", "bibId", "dropReason", "dropDateTime", "note"];
+  const fileContent = fs.createReadStream(dropsFilePath, { encoding: "utf-8" });
   let message: string = "";
   let dropCount: number = 0;
 

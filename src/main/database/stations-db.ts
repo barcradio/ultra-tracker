@@ -51,10 +51,9 @@ function importJsonFile(filePath: string): stationsJSON {
   return jsonData;
 }
 
-export async function LoadStations() {
-  //const devStationData = require("$resources/config/stations.json");
-  const stationFilePath = await dialogs.selectStationsFile();
-  const stationData = importJsonFile(stationFilePath[0]);
+export async function loadStationsFromFile(filePath: string) {
+  const stationData = importJsonFile(filePath);
+  const db = getDatabaseConnection();
 
   if (!stationData) return "Invalid JSON file.";
 
@@ -75,11 +74,11 @@ export async function LoadStations() {
 
     if (index == "stations") {
       const [stations] = GetStations();
-      if (stations == null) createStationsTable();
+      if (stations == null) createStationsTable(db);
 
       if (GetStations().length > 0) {
-        clearStationsTable();
-        createStationsTable();
+        clearStationsTable(db);
+        createStationsTable(db);
       }
 
       for (const key in stationData.stations) {
@@ -91,11 +90,29 @@ export async function LoadStations() {
       }
     }
   }
+
+  db.prepare(`DELETE FROM EventMeta`).run();
+  db.prepare(
+    `INSERT INTO EventMeta (name, startline, finishline, starttime, endtime) VALUES (?, ?, ?, ?, ?)`
+  ).run(
+    stationData.event.name,
+    appStore.get("event.startline"),
+    appStore.get("event.finishline"),
+    stationData.event.starttime,
+    stationData.event.endtime
+  );
+
   // TODO: Commit transaction
   const stationIdentifier = appStore.get("station.identifier") as string;
   setStation(stationIdentifier);
 
-  return `${stationFilePath}\r\n${stationData.stations.length} stations imported`;
+  return `${filePath}\r\n${stationData.stations.length} stations imported`;
+}
+
+export async function LoadStations() {
+  //const devStationData = require("$resources/config/stations.json");
+  const stationFilePath = await dialogs.selectStationsFile();
+  return loadStationsFromFile(stationFilePath[0]);
 }
 
 export async function setStation(stationIdentifier: string) {

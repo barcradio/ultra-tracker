@@ -1,5 +1,5 @@
 import { migrate } from "@blackglory/better-sqlite3-migrations";
-import { getDatabaseConnection } from "./connect-db";
+import Database from "better-sqlite3";
 import { migrations } from "./migrations-db";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs1 from "./schema/table-definitions-v1";
@@ -7,8 +7,9 @@ import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
 import * as tableDefs4 from "./schema/table-definitions-v4";
 import * as tableDefs5 from "./schema/table-definitions-v5";
+import * as tableDefs6 from "./schema/table-definitions-v6";
 
-const userVersion: number = 5;
+const userVersion: number = 6;
 let tableDefs;
 
 interface Table {
@@ -19,9 +20,7 @@ interface Table {
   sql: string;
 }
 
-export function applyMigrations() {
-  const db = getDatabaseConnection();
-
+export function applyMigrations(db: Database.Database) {
   try {
     console.log(`Applying database migrations`);
     for (let index = 0; index <= userVersion; index++) {
@@ -47,10 +46,10 @@ export function applyMigrations() {
   }
 }
 
-export function validateDatabaseTables() {
+export function validateDatabaseTables(db: Database.Database) {
   console.log("validateDatabaseTables");
 
-  const tableNames = getTableNames();
+  const tableNames = getTableNames(db);
 
   switch (userVersion) {
     case 0:
@@ -76,6 +75,10 @@ export function validateDatabaseTables() {
     case 5:
       tableDefs = tableDefs5;
       break;
+
+    case 6:
+      tableDefs = tableDefs6;
+      break;
   }
 
   for (const key in tableDefs.expectedTableNames) {
@@ -84,15 +87,14 @@ export function validateDatabaseTables() {
 
     if (!tableNames.find((element) => element == name)) {
       console.log(`Table not found: ${tableDefs.expectedTableNames[key]}`);
-      createTable(tableDefs.expectedTableNames[key], tableDefs[name]);
+      createTable(db, tableDefs.expectedTableNames[key], tableDefs[name]);
     }
   }
 
-  if (tableDefs.Version < userVersion) applyMigrations();
+  if (tableDefs.Version < userVersion) applyMigrations(db);
 }
 
-export function getTableNames(): string[] {
-  const db = getDatabaseConnection();
+export function getTableNames(db: Database.Database): string[] {
   const tableNames: string[] = [];
 
   try {
@@ -113,8 +115,7 @@ export function getTableNames(): string[] {
   return tableNames;
 }
 
-export function getColumnNamesFromTable(tableName: string): string[] {
-  const db = getDatabaseConnection();
+export function getColumnNamesFromTable(db: Database.Database, tableName: string): string[] {
   let columnNames: string[] = [];
   const stmt = db.prepare(`SELECT * FROM ${tableName}`);
 
@@ -130,25 +131,25 @@ function* toColumnNames(stmt) {
 }
 
 /* Recreate the database tables, will be the current schema version */
-export function CreateTables() {
+export function CreateTables(db: Database.Database) {
+  tableDefs = tableDefs6;
   const result =
-    createAthletesTable() &&
-    createEventLogTable() &&
-    createTimeRecordsTable() &&
-    createStationsTable() &&
-    createOutputTable() &&
-    createStatusTable() &&
-    createOpenSplitTimePushStatusTable() &&
-    createRFIDInboxTable() &&
-    createRFIDPendingWritesTable() &&
-    createWatchlistTable();
+    createAthletesTable(db) &&
+    createEventLogTable(db) &&
+    createTimeRecordsTable(db) &&
+    createStationsTable(db) &&
+    createOutputTable(db) &&
+    createStatusTable(db) &&
+    createOpenSplitTimePushStatusTable(db) &&
+    createRFIDInboxTable(db) &&
+    createRFIDPendingWritesTable(db) &&
+    createWatchlistTable(db) &&
+    createEventMetaTable(db);
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
 
-function createTable(tableName: string, tabledefinition: string): boolean {
-  const db = getDatabaseConnection();
-
+function createTable(db: Database.Database, tableName: string, tabledefinition: string): boolean {
   try {
     db.prepare(
       `CREATE TABLE IF NOT EXISTS ${tableName} (
@@ -165,46 +166,49 @@ function createTable(tableName: string, tabledefinition: string): boolean {
   }
 }
 
-export const createAthletesTable = () =>
-  createTable(tableDefs.expectedTableNames.Athletes, tableDefs.Athletes);
-export const createEventLogTable = () =>
-  createTable(tableDefs.expectedTableNames.EventLog, tableDefs.EventLog);
-export const createTimeRecordsTable = () =>
-  createTable(tableDefs.expectedTableNames.TimeRecords, tableDefs.TimeRecords);
-export const createStationsTable = () =>
-  createTable(tableDefs.expectedTableNames.Stations, tableDefs.Stations);
-export const createOutputTable = () =>
-  createTable(tableDefs.expectedTableNames.Output, tableDefs.Output);
-export const createStatusTable = () =>
-  createTable(tableDefs.expectedTableNames.Status, tableDefs.Status);
-export const createRFIDInboxTable = () =>
-  createTable(tableDefs.expectedTableNames.RFIDInbox, tableDefs.RFIDInbox);
-export const createOpenSplitTimePushStatusTable = () =>
+export const createAthletesTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.Athletes, tableDefs.Athletes);
+export const createEventLogTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.EventLog, tableDefs.EventLog);
+export const createTimeRecordsTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.TimeRecords, tableDefs.TimeRecords);
+export const createStationsTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.Stations, tableDefs.Stations);
+export const createOutputTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.Output, tableDefs.Output);
+export const createStatusTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.Status, tableDefs.Status);
+export const createRFIDInboxTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.RFIDInbox, tableDefs.RFIDInbox);
+export const createOpenSplitTimePushStatusTable = (db: Database.Database) =>
   createTable(
+    db,
     tableDefs.expectedTableNames.OpenSplitTimePushStatus,
     tableDefs.OpenSplitTimePushStatus
   );
-export const createRFIDPendingWritesTable = () =>
-  createTable(tableDefs.expectedTableNames.RFIDPendingWrites, tableDefs.RFIDPendingWrites);
-export const createWatchlistTable = () =>
-  createTable(tableDefs.expectedTableNames.Watchlist, tableDefs.Watchlist);
+export const createRFIDPendingWritesTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.RFIDPendingWrites, tableDefs.RFIDPendingWrites);
+export const createWatchlistTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.Watchlist, tableDefs.Watchlist);
+export const createEventMetaTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.EventMeta, tableDefs.EventMeta);
 
-export function ClearTables() {
+export function ClearTables(db: Database.Database) {
   const result =
-    clearAthletesTable() &&
-    clearEventsTable() &&
-    clearRunnersTable() &&
-    clearStationsTable() &&
-    clearOutputTable() &&
-    clearStatusTable() &&
-    clearOpenSplitTimePushStatusTable() &&
-    clearWatchlistTable();
+    clearAthletesTable(db) &&
+    clearEventsTable(db) &&
+    clearRunnersTable(db) &&
+    clearStationsTable(db) &&
+    clearOutputTable(db) &&
+    clearStatusTable(db) &&
+    clearOpenSplitTimePushStatusTable(db) &&
+    clearWatchlistTable(db) &&
+    clearEventMetaTable(db);
 
   return result ? `Database tables cleared; Reinitialize or Restart!` : `Database Clear Failed`;
 }
 
-function clearTable(tableName: string): boolean {
-  const db = getDatabaseConnection();
+function clearTable(db: Database.Database, tableName: string): boolean {
   try {
     db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
 
@@ -219,12 +223,21 @@ function clearTable(tableName: string): boolean {
   }
 }
 
-export const clearAthletesTable = () => clearTable(tableDefs.expectedTableNames.Athletes);
-export const clearEventsTable = () => clearTable(tableDefs.expectedTableNames.EventLog);
-export const clearRunnersTable = () => clearTable(tableDefs.expectedTableNames.TimeRecords);
-export const clearStationsTable = () => clearTable(tableDefs.expectedTableNames.Stations);
-export const clearOutputTable = () => clearTable(tableDefs.expectedTableNames.Output);
-export const clearStatusTable = () => clearTable(tableDefs.expectedTableNames.Status);
-export const clearOpenSplitTimePushStatusTable = () =>
-  clearTable(tableDefs.expectedTableNames.OpenSplitTimePushStatus);
-export const clearWatchlistTable = () => clearTable(tableDefs.expectedTableNames.Watchlist);
+export const clearAthletesTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.Athletes);
+export const clearEventsTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.EventLog);
+export const clearRunnersTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.TimeRecords);
+export const clearStationsTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.Stations);
+export const clearOutputTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.Output);
+export const clearStatusTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.Status);
+export const clearOpenSplitTimePushStatusTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.OpenSplitTimePushStatus);
+export const clearWatchlistTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.Watchlist);
+export const clearEventMetaTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.EventMeta);
