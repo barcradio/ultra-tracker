@@ -34,6 +34,7 @@
     "build:win": "pnpm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux",
+    "mock:event-archive": "node scripts/build-mock-event-archive.mjs",
     "prepare": "husky"
   },
   "dependencies": {
