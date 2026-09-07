@@ -11,11 +11,15 @@ export interface EventManagerDialogProps {
 
 export function EventManagerDialog({ open, setOpen }: EventManagerDialogProps) {
   const { data: eventDatabases, isSuccess } = useEventDatabases(open);
-  const { enabled: openOnStartup } = useOpenEventManagerOnStartup();
+  const { enabled: openOnStartup, isLoading: isOpenOnStartupLoading } =
+    useOpenEventManagerOnStartup();
   const didAutoOpen = useRef(false);
   const [showGetStarted, setShowGetStarted] = useState(false);
 
   useEffect(() => {
+    // Wait for the persisted setting to load so a stale default doesn't force the dialog open.
+    if (isOpenOnStartupLoading || didAutoOpen.current) return;
+
     const skipAutoOpen = sessionStorage.getItem("skip-event-manager-auto-open") === "true";
     if (skipAutoOpen) {
       sessionStorage.removeItem("skip-event-manager-auto-open");
@@ -23,11 +27,11 @@ export function EventManagerDialog({ open, setOpen }: EventManagerDialogProps) {
       return;
     }
 
-    if (openOnStartup && !didAutoOpen.current) {
+    if (openOnStartup) {
       didAutoOpen.current = true;
       setOpen(true);
     }
-  }, [setOpen, openOnStartup]);
+  }, [setOpen, openOnStartup, isOpenOnStartupLoading]);
 
   useEffect(() => {
     if (open && isSuccess) {

@@ -8,7 +8,7 @@ const QUERY_KEY = ["store", "get", "station", OPEN_EVENT_MANAGER_ON_STARTUP_STOR
 export function useOpenEventManagerOnStartup() {
   const ipcRenderer = useIpcRenderer();
   const queryClient = useQueryClient();
-  const { data } = useStoreValue<boolean>(OPEN_EVENT_MANAGER_ON_STARTUP_STORE_KEY);
+  const { data, isLoading } = useStoreValue<boolean>(OPEN_EVENT_MANAGER_ON_STARTUP_STORE_KEY);
   const enabled = data ?? true;
 
   const setEnabled = (value: boolean) => {
@@ -19,5 +19,5 @@ export function useOpenEventManagerOnStartup() {
     });
   };
 
-  return { enabled, setEnabled };
+  return { enabled, isLoading, setEnabled };
 }
