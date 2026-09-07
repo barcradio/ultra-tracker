@@ -57,7 +57,7 @@ function createWindow(): BrowserWindow {
   let rendererCrashDialogOpen = false;
 
   mainWindow!.once("ready-to-show", () => {
-    uberLog(LogLevel.info, "ui", "Main window ready to show", true);
+    uberLog(LogLevel.info, "ui", "Main window ready to show", false);
     mainWindow!.show();
     mainWindow!.focus();
     mainWindow!.setTitle(`${app.name} - v${app.getVersion()}`);
