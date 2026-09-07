@@ -9,21 +9,25 @@ import { EntryMode, RecordType } from "$shared/enums";
 import { useEntryMode } from "./hooks/useEntryMode";
 import { Stats } from "./Stats";
 import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";
+import { useIsEventDatabaseLoaded } from "../EventManager/hooks/useEventDatabases";
 
 export function RunnerFormStats() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [bibNumber, setBibNumber] = useState("");
   const { data: entryMode } = useEntryMode();
+  const { data: isEventDatabaseLoaded } = useIsEventDatabaseLoaded();
   const createTiming = useCreateTiming();
   const portalRoot = usePortalRoot();
   const buttonInId = useId();
+  const bibEntryTooltipId = useId();
   const isFastMode = entryMode === EntryMode.Fast;
+  const hasActiveDatabase = isEventDatabaseLoaded === true;
   const { enabled: showInOutButton } = useInOutButton();
 
   useInvalidateRunnersOnRFID();
 
   const createRecord = (type: RecordType) => {
-    if (bibNumber.length === 0) return;
+    if (!hasActiveDatabase || bibNumber.length === 0) return;
 
     createTiming.mutate({
       id: -1,
@@ -84,15 +88,23 @@ export function RunnerFormStats() {
 
   return (
     <Stack direction="col" align="stretch" className="gap-2 w-1/5 shrink-0 min-h-0">
-      <TextInput
-        ref={inputRef}
-        onKeyDown={handleKeyboardShortcuts}
-        onChange={handleChange}
-        onWheel={(event) => event.currentTarget.blur()}
-        className="h-32 text-8xl text-center border-component"
-        placeholder="BIB#"
-        type="number"
-      />
+      <div id={bibEntryTooltipId}>
+        <TextInput
+          ref={inputRef}
+          onKeyDown={handleKeyboardShortcuts}
+          onChange={handleChange}
+          onWheel={(event) => event.currentTarget.blur()}
+          className="h-32 text-8xl text-center border-component"
+          placeholder="BIB#"
+          type="number"
+          disabled={!hasActiveDatabase}
+        />
+      </div>
+      {!hasActiveDatabase && (
+        <Tooltip target={`#${bibEntryTooltipId}`} appendTo={portalRoot?.current}>
+          Create or load an event to enter a bib number
+        </Tooltip>
+      )}
       <Stack direction="row" align="stretch" className="mb-2 w-full h-12 gap-2" justify="stretch">
         <div className={isFastMode ? "w-1/3" : "w-1/2"} id={buttonInId}>
           <Button
@@ -101,7 +113,7 @@ export function RunnerFormStats() {
             color="success"
             className="w-full h-full"
             onClick={() => createRecord(RecordType.In)}
-            disabled={isFastMode}
+            disabled={isFastMode || !hasActiveDatabase}
           >
             In
           </Button>
@@ -112,6 +124,7 @@ export function RunnerFormStats() {
           color="danger"
           className={isFastMode ? "w-1/3" : "w-1/2"}
           onClick={() => createRecord(RecordType.Out)}
+          disabled={!hasActiveDatabase}
         >
           Out
         </Button>
@@ -122,6 +135,7 @@ export function RunnerFormStats() {
             color="primary"
             className="w-1/3"
             onClick={() => createRecord(RecordType.InOut)}
+            disabled={!hasActiveDatabase}
           >
             +/-
           </Button>
