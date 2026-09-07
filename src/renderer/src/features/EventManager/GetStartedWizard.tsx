@@ -157,6 +157,7 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
       }
 
       await setStationIdentity.mutateAsync(identity);
+      await ipcRenderer.invoke("finish-event-setup");
       createToast({ message: "Event created and initial files imported", type: "success" });
       setRunning(false);
       setOpen(false);

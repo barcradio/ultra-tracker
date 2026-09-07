@@ -68,7 +68,6 @@ const createEventDatabase: Handler<void, Promise<DatabaseResponse<string>>> = as
 
     createDatabaseFile(slug);
     await loadStationsFromFile(filePath);
-    reloadMainWindow();
 
     const response: DatabaseResponse<string> = [
       slug,
@@ -149,10 +148,15 @@ const restoreEventDatabaseBackup: Handler<
   }
 };
 
+const finishEventSetup: Handler<void, void> = () => {
+  reloadMainWindow();
+};
+
 export function initEventDatabaseHandlers() {
   ipcMain.handle("list-event-databases", listEventDatabases);
   ipcMain.handle("list-event-database-backups", listEventDatabaseBackups);
   ipcMain.handle("create-event-database", createEventDatabase);
+  ipcMain.handle("finish-event-setup", finishEventSetup);
   ipcMain.handle("load-event-database", loadEventDatabase);
   ipcMain.handle("delete-event-database", deleteEventDatabase);
   ipcMain.handle("restore-event-database-backup", restoreEventDatabaseBackup);
