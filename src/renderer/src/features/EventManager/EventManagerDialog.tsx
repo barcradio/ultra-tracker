@@ -10,7 +10,7 @@ export interface EventManagerDialogProps {
 }
 
 export function EventManagerDialog({ open, setOpen }: EventManagerDialogProps) {
-  const { data: eventDatabases, isSuccess } = useEventDatabases();
+  const { data: eventDatabases, isSuccess } = useEventDatabases(open);
   const { enabled: openOnStartup } = useOpenEventManagerOnStartup();
   const didAutoOpen = useRef(false);
   const [showGetStarted, setShowGetStarted] = useState(false);
@@ -23,20 +23,17 @@ export function EventManagerDialog({ open, setOpen }: EventManagerDialogProps) {
       return;
     }
 
-    if (isSuccess && !didAutoOpen.current) {
+    if (openOnStartup && !didAutoOpen.current) {
       didAutoOpen.current = true;
-      // Always open when there are no events yet, since the Get Started wizard is required.
-      if (openOnStartup || eventDatabases?.length === 0) setOpen(true);
+      setOpen(true);
     }
-  }, [isSuccess, setOpen, openOnStartup, eventDatabases]);
+  }, [setOpen, openOnStartup]);
 
   useEffect(() => {
-    if (open) {
+    if (open && isSuccess) {
       setShowGetStarted(eventDatabases?.length === 0);
     }
-  }, [open, eventDatabases]);
-
-  if (!eventDatabases) return null;
+  }, [open, isSuccess, eventDatabases]);
 
   return showGetStarted ? (
     <GetStartedWizard open={open} setOpen={setOpen} />

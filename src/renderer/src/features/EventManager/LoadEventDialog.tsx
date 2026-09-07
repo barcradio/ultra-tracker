@@ -9,6 +9,7 @@ import { Tag } from "~/components/Tag";
 import { useOpenEventManagerOnStartup } from "~/hooks/useOpenEventManagerOnStartup";
 import { formatDate, formatShortDate } from "~/lib/datetimes";
 import { DatabaseStatus } from "$shared/enums";
+import { formatEventDatabaseName } from "$shared/formatters";
 import { EventDatabaseMetadata } from "$shared/models";
 import {
   useDeleteEventDatabase,
@@ -27,26 +28,10 @@ export interface LoadEventDialogProps {
   onStartNew: () => void;
 }
 
-function formatEventTitle(slug: string): string {
-  const duplicateMatch = slug.match(/^(.*)-(\d+)$/);
-  const duplicateNumber = duplicateMatch?.[2];
-  const isYear = duplicateNumber != null && /^(19|20)\d{2}$/.test(duplicateNumber);
-  const eventSlug = duplicateMatch && !isYear ? duplicateMatch[1] : slug;
-  const duplicateLabel = duplicateMatch && !isYear ? ` #${duplicateNumber}` : "";
-
-  return (
-    eventSlug
-      .split("-")
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ") + duplicateLabel
-  );
-}
-
 export function LoadEventDialog(props: LoadEventDialogProps) {
   const { open, setOpen, onStartNew } = props;
-  const { data: eventDatabases, isLoading } = useEventDatabases();
-  const { data: eventBackups, isLoading: areBackupsLoading } = useEventDatabaseBackups();
+  const { data: eventDatabases, isLoading } = useEventDatabases(open);
+  const { data: eventBackups, isLoading: areBackupsLoading } = useEventDatabaseBackups(open);
   const { data: activeSlug } = useActiveDatabaseSlug();
   const { enabled: openOnStartup, setEnabled: setOpenOnStartup } = useOpenEventManagerOnStartup();
 
@@ -253,7 +238,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
                           <div className="flex items-center gap-2">
                             <DatabaseIcon className="w-4 h-4 shrink-0 fill-current" />
                             <span className="font-bold truncate text-base">
-                              {formatEventTitle(item.slug)}
+                              {formatEventDatabaseName(item.slug)}
                             </span>
                           </div>
                           <div className="text-xs opacity-75 mt-1">Modified: {formattedDate}</div>
@@ -293,7 +278,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
                     Event Details
                   </div>
                   <div className="text-lg font-bold text-on-surface-hover truncate">
-                    {formatEventTitle(selectedEvent.slug)}
+                    {formatEventDatabaseName(selectedEvent.slug)}
                   </div>
                   <div className="text-xs font-mono opacity-75">{selectedEvent.slug}</div>
                 </div>
