@@ -8,20 +8,28 @@
 
 ---
 
-## Initial Setup
+## Getting Started
 
-<a id="markdown-initial-setup" name="initial-setup"></a>
-![settings-page.png](./img/settings-page.png)
+<a id="markdown-getting-started" name="getting-started"></a>
 
-1. Copy the event files into the event-configs folder:
-   1. `\Documents\Ultra-Tracker\.event-config\`
-2. Load the Stations file
-   1. Select Station location and set operator call sign
-3. Load the Athletes file
-4. Load the Drops file (athletes known to have Not Started or Dropped from the race)
-5. Go to stats screen and begin logging athletes
+On first launch, Ultra-Tracker opens **Getting Started** to guide the user through starting an event for timing data collection.
+
+1. Select **Load Stations File** and choose the stations JSON file supplied for the event. This
+   creates the local event database.
+2. Select the station identifier for this computer.
+3. Select the operator callsign.
+4. Select the **Athletes** file supplied by the race organizers.
+5. Select the **Initial Drops** file, containing athletes known to have not started or dropped.
+6. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
+
+The event files can be selected from their existing location; they do not need to be copied into a
+special folder first. The default event-config folder is `\Documents\Ultra-Tracker\.event-config\`.
+Additional Drops files can be imported later from the Settings page.
+
+The **Event Manager** can be launched in the sidebar to manage current and previous events.  Selecting **Create New Event** launches the **Getting Started** wizard.
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
+
 
 ---
 
@@ -211,9 +219,34 @@ This file is useful as a final station report.
 
 ---
 
+<a id="markdown-event-manager" name="event-manager"></a>
+
+## Event Manager
+
+<div style="float:left;margin:0 10px 10px 0" markdown="1">
+
+![event-manager-page.png](./img/event-manager-page.png)
+</div>
+The Event Manager is used to switch between events and recover from local event backups.
+
+- **Events** tab lists saved event databases. Select an event and choose **Load Event** to make it the
+  active event. The active event is marked with an **Active** tag and cannot be deleted while it is
+  active.
+- **Backups** tab lists automatic event database backups. Select a backup and choose **Restore Backup**
+  to restore it. If an event with the same name already exists, confirm **Restore as New Event** to
+  keep both Events.
+- **Create New Event** opens the Getting Started workflow for new event.
+- **Delete** an inactive event or backup with its delete button. Deleting an event is permanent.
+- Enable **Open Event Manager on Startup** to choose an event whenever Ultra-Tracker starts. This
+  is useful when the computer is used for more than one event.
+
+<a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
+
+---
+
 <a id="markdown-theme-page" name="theme-page"></a>
 
-## Theme Page
+## Theme
 
 <div style="float:left;margin:0 10px 10px 0" markdown="1">
 

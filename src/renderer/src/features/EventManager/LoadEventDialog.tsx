@@ -138,7 +138,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
       <Modal
         open={open}
         setOpen={setOpen}
-        title="Load Event"
+        title="Event Manager"
         size="lg"
         footerLeading={
           <Stack align="center" className="gap-4">
