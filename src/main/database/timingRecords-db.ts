@@ -73,7 +73,6 @@ export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
     }
   }
 
-  console.log(message);
   return [status, message];
 }
 
@@ -141,7 +140,6 @@ export function getTimeRecordbyIndex(record: RunnerDB): DatabaseResponse<RunnerD
 
   queryResult = queryResult as RunnerDB;
   message = `timing-record:Found timeRecord with index: ${queryResult.index}`;
-  console.log(message);
   return [queryResult, DatabaseStatus.Success, message];
 }
 
