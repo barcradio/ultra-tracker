@@ -123,7 +123,6 @@ export function GetAthletes(): DatabaseResponse<AthleteStatusDB[]> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `table Read Athletes - records:${queryResult.length}`;
-  console.log(message);
   return [queryResult as AthleteStatusDB[], DatabaseStatus.Success, message];
 }
 
@@ -172,7 +171,6 @@ export function GetAthleteFromColumn(
   };
 
   message = `athletes:Found athlete with bibId: ${runner.bibId}`;
-  console.log(message);
   return [runner, DatabaseStatus.Success, message];
 }
 

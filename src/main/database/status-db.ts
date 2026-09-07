@@ -114,7 +114,6 @@ export function GetStatusFromColumn(
   };
 
   message = `athletes:Found status with bibId: ${athleteStatus.bibId}`;
-  console.log(message);
   return [athleteStatus, DatabaseStatus.Success, message];
 }
 
