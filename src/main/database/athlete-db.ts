@@ -1,4 +1,5 @@
 import fs from "fs";
+import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
@@ -21,6 +22,11 @@ export async function LoadAthletes() {
 }
 
 export async function LoadAthletesFromFile(athleteFilePath: string) {
+  const fileContent = fs.createReadStream(athleteFilePath, { encoding: "utf-8" });
+  return parseAthletesContent(fileContent, athleteFilePath);
+}
+
+export async function parseAthletesContent(source: Readable, sourceLabel: string) {
   const headers = [
     "bibId",
     "firstName",
@@ -38,11 +44,10 @@ export async function LoadAthletesFromFile(athleteFilePath: string) {
   clearAthletesTable(db);
   createAthletesTable(db);
 
-  const fileContent = fs.createReadStream(athleteFilePath, { encoding: "utf-8" });
   const message: string[] = [];
 
   // TODO: Begin transaction
-  const parser = fileContent
+  const parser = source
     .pipe(
       parse({
         delimiter: ",",
@@ -64,7 +69,7 @@ export async function LoadAthletesFromFile(athleteFilePath: string) {
     })
     .on("end", () => {
       const { records } = parser.info;
-      message.push(`${athleteFilePath}\r\n${records} athletes imported`);
+      message.push(`${sourceLabel}\r\n${records} athletes imported`);
     });
   // TODO: Commit transaction
   await finished(parser, { error: false });

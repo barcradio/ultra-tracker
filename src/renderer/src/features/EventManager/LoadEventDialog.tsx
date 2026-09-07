@@ -239,7 +239,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
                           <div className="flex items-center gap-2">
                             <DatabaseIcon className="w-4 h-4 shrink-0 fill-current" />
                             <span className="font-bold truncate text-base">
-                              {formatEventDatabaseName(item.slug)}
+                              {formatEventDatabaseName(item.slug, item.name)}
                             </span>
                           </div>
                           <div className="text-xs opacity-75 mt-1">Modified: {formattedDate}</div>
@@ -279,7 +279,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
                     Event Details
                   </div>
                   <div className="text-lg font-bold text-on-surface-hover truncate">
-                    {formatEventDatabaseName(selectedEvent.slug)}
+                    {formatEventDatabaseName(selectedEvent.slug, selectedEvent.name)}
                   </div>
                   <div className="text-xs font-mono opacity-75">{selectedEvent.slug}</div>
                 </div>

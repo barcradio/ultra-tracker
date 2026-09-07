@@ -38,21 +38,35 @@ interface OpenSplitTimeEventMetadata {
   id: number;
 }
 
-function importJsonFile(filePath: string): stationsJSON {
-  const fileContent = fs.readFileSync(filePath, "utf-8");
-  let jsonData;
+function parseStationsJson(jsonContent: string): stationsJSON {
   try {
-    jsonData = JSON.parse(fileContent);
+    return JSON.parse(jsonContent);
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`Error parsing JSON file: ${error.message}`);
     }
+    throw error;
   }
-  return jsonData;
 }
 
-export async function loadStationsFromFile(filePath: string) {
-  const stationData = importJsonFile(filePath);
+// Reads the event name out of a stations JSON string without touching the database.
+export function readEventNameFromStationsContent(jsonContent: string): string {
+  const parsed = JSON.parse(jsonContent) as { event?: { name?: string } };
+  const name = parsed.event?.name;
+
+  if (!name || typeof name !== "string") {
+    throw new Error("Stations file is missing an event name");
+  }
+
+  return name;
+}
+
+export function readEventNameFromStationsFile(filePath: string): string {
+  return readEventNameFromStationsContent(fs.readFileSync(filePath, "utf-8"));
+}
+
+export async function parseStationsContent(jsonContent: string, sourceLabel: string) {
+  const stationData = parseStationsJson(jsonContent);
   const db = getDatabaseConnection();
 
   if (!stationData) return "Invalid JSON file.";
@@ -106,7 +120,12 @@ export async function loadStationsFromFile(filePath: string) {
   const stationIdentifier = appStore.get("station.identifier") as string;
   setStation(stationIdentifier);
 
-  return `${filePath}\r\n${stationData.stations.length} stations imported`;
+  return `${sourceLabel}\r\n${stationData.stations.length} stations imported`;
+}
+
+export async function loadStationsFromFile(filePath: string) {
+  const fileContent = fs.readFileSync(filePath, "utf-8");
+  return parseStationsContent(fileContent, filePath);
 }
 
 export async function LoadStations() {
