@@ -52,7 +52,7 @@ export function SidebarButton(props: SidebarButtonProps) {
             height: buttonRect?.height ?? 0
           }}
         />
-  <props.icon className="mr-[16px] ml-[4px]" title={props.children} height={28} width={28} />
+        <props.icon className="mr-[16px] ml-[4px]" title={props.children} height={28} width={28} />
         {props.children}
       </SidebarStack>
     </button>

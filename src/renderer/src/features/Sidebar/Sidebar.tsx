@@ -44,44 +44,48 @@ export function Sidebar() {
   useAttachBackdrop(expanded);
 
   return (
-    <SidebarElement
-      open={expanded}
-      onMouseEnter={() => mode === SidebarMode.Auto && setExpand(true)}
-      onMouseLeave={() => mode === SidebarMode.Auto && setExpand(false)}
-      onMouseMove={() => mode === SidebarMode.Auto && setExpand(true)}
-    >
-      <Stack direction="col" justify="between" className="h-full">
-        <div>
-          <SidebarLink to="/" icon={RunnerIcon}>
-            Stats
-          </SidebarLink>
-          <SidebarLink to="/roster" icon={RosterIcon}>
-            Roster
-          </SidebarLink>
-          <SidebarLink to="/stations" icon={StationIcon}>
-            Stations
-          </SidebarLink>
-          <SidebarLink to="/logs" icon={LogsIcon}>
-            Logs
-          </SidebarLink>
-          <SidebarLink to="/export" icon={ExportIcon}>
-            Export
-          </SidebarLink>
-        </div>
-        <div>
-          <SidebarButton icon={DatabaseIcon} onClick={() => setEventManagerOpen(true)}>
-            Event Manager
-          </SidebarButton>
-          <ThemeToggle />
-          <SidebarLink to="/settings" icon={SettingsIcon}>
-            Settings
-          </SidebarLink>
-          <SidebarLink to="/help" icon={HelpIcon}>
-            Help
-          </SidebarLink>
-        </div>
-      </Stack>
+    <>
+      <SidebarElement
+        open={expanded}
+        onMouseEnter={() => mode === SidebarMode.Auto && setExpand(true)}
+        onMouseLeave={() => mode === SidebarMode.Auto && setExpand(false)}
+        onMouseMove={() => mode === SidebarMode.Auto && setExpand(true)}
+      >
+        <Stack direction="col" justify="between" className="h-full">
+          <div>
+            <SidebarLink to="/" icon={RunnerIcon}>
+              Stats
+            </SidebarLink>
+            <SidebarLink to="/roster" icon={RosterIcon}>
+              Roster
+            </SidebarLink>
+            <SidebarLink to="/stations" icon={StationIcon}>
+              Stations
+            </SidebarLink>
+            <SidebarLink to="/logs" icon={LogsIcon}>
+              Logs
+            </SidebarLink>
+            <SidebarLink to="/export" icon={ExportIcon}>
+              Export
+            </SidebarLink>
+          </div>
+          <div>
+            <SidebarButton icon={DatabaseIcon} onClick={() => setEventManagerOpen(true)}>
+              Event Manager
+            </SidebarButton>
+            <ThemeToggle />
+            <SidebarLink to="/settings" icon={SettingsIcon}>
+              Settings
+            </SidebarLink>
+            <SidebarLink to="/help" icon={HelpIcon}>
+              Help
+            </SidebarLink>
+          </div>
+        </Stack>
+      </SidebarElement>
+      {/* Rendered outside SidebarElement: React's portaled events still bubble through the
+          component tree, so nesting this inside the sidebar re-triggers its hover handlers. */}
       <EventManagerDialog open={eventManagerOpen} setOpen={setEventManagerOpen} />
-    </SidebarElement>
+    </>
   );
 }

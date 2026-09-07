@@ -48,7 +48,8 @@ const defaults = {
   },
   display: {
     gridFontScale: 1,
-    showInOutButton: false
+    showInOutButton: false,
+    openEventManagerOnStartup: true
   }
 };
 
@@ -130,7 +131,8 @@ export const appStore = new Store({
       type: "object",
       properties: {
         gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 },
-        showInOutButton: { type: "boolean", default: false }
+        showInOutButton: { type: "boolean", default: false },
+        openEventManagerOnStartup: { type: "boolean", default: true }
       }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]

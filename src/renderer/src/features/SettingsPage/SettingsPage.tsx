@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
 import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
 import { useInOutButton } from "~/hooks/useInOutButton";
+import { useOpenEventManagerOnStartup } from "~/hooks/useOpenEventManagerOnStartup";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 import { OpenSplitTimeLogin } from "./OpenSplitTimeLogin";
 import { RfidConfiguration } from "./RfidConfiguration";
@@ -10,6 +11,7 @@ export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
   const gridFontScale = useGridFontScale();
   const inOutButton = useInOutButton();
+  const eventManagerOnStartup = useOpenEventManagerOnStartup();
   const [resetOpen, setResetOpen] = useState(false);
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
@@ -69,6 +71,19 @@ export function SettingsPage() {
                 onClick={() => inOutButton.setEnabled(!inOutButton.enabled)}
               >
                 {inOutButton.enabled ? "Hide +/- Button" : "Show +/- Button"}
+              </Button>
+            </div>
+            <div className="w-80 mt-4 border-t border-component-strong pt-4">
+              <Button
+                size="wide"
+                variant={eventManagerOnStartup.enabled ? "solid" : "outlined"}
+                className={eventManagerOnStartup.enabled ? "" : "opacity-50"}
+                aria-pressed={eventManagerOnStartup.enabled}
+                onClick={() => eventManagerOnStartup.setEnabled(!eventManagerOnStartup.enabled)}
+              >
+                {eventManagerOnStartup.enabled
+                  ? "Disable Open Event Manager on Startup"
+                  : "Enable Open Event Manager on Startup"}
               </Button>
             </div>
           </VerticalButtonGroup>

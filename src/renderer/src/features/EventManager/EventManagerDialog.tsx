@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useOpenEventManagerOnStartup } from "~/hooks/useOpenEventManagerOnStartup";
 import { GetStartedWizard } from "./GetStartedWizard";
 import { useEventDatabases } from "./hooks/useEventDatabases";
 import { LoadEventDialog } from "./LoadEventDialog";
@@ -10,6 +11,7 @@ export interface EventManagerDialogProps {
 
 export function EventManagerDialog({ open, setOpen }: EventManagerDialogProps) {
   const { data: eventDatabases, isSuccess } = useEventDatabases();
+  const { enabled: openOnStartup } = useOpenEventManagerOnStartup();
   const didAutoOpen = useRef(false);
   const [showGetStarted, setShowGetStarted] = useState(false);
 
@@ -23,9 +25,10 @@ export function EventManagerDialog({ open, setOpen }: EventManagerDialogProps) {
 
     if (isSuccess && !didAutoOpen.current) {
       didAutoOpen.current = true;
-      setOpen(true);
+      // Always open when there are no events yet, since the Get Started wizard is required.
+      if (openOnStartup || eventDatabases?.length === 0) setOpen(true);
     }
-  }, [isSuccess, setOpen]);
+  }, [isSuccess, setOpen, openOnStartup, eventDatabases]);
 
   useEffect(() => {
     if (open) {
