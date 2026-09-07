@@ -14,8 +14,8 @@ const defaults = {
     finishline: "99-finish-line",
     endtime: "00:00:00 Jan 01 2024",
     openSplitTime: {
-      production: { name: "", id: 0 },
-      staging: { name: "", id: 0 },
+      production: { name: "", id: 0, splitEntryKinds: {} as Record<string, string[]> },
+      staging: { name: "", id: 0, splitEntryKinds: {} as Record<string, string[]> },
       splitNames: {} as Record<string, string>
     }
   },
@@ -76,14 +76,16 @@ export const appStore = new Store({
               type: "object",
               properties: {
                 name: { type: "string", default: "" },
-                id: { type: "number", default: 0 }
+                id: { type: "number", default: 0 },
+                splitEntryKinds: { type: "object", default: {} }
               }
             },
             staging: {
               type: "object",
               properties: {
                 name: { type: "string", default: "" },
-                id: { type: "number", default: 0 }
+                id: { type: "number", default: 0 },
+                splitEntryKinds: { type: "object", default: {} }
               }
             },
             splitNames: { type: "object", default: {} }

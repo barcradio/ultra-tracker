@@ -70,18 +70,39 @@ interface OpenSplitTimeAuthResponse {
   expiration?: string;
 }
 
+type OpenSplitTimeSubSplitKind = "in" | "out";
+
 interface OpenSplitTimeEventMetadata {
   name: string;
   id: number;
+  splitEntryKinds?: Record<string, OpenSplitTimeSubSplitKind[]>;
 }
 
 interface OpenSplitTimeEventMetadataStore {
   production?: OpenSplitTimeEventMetadata;
   staging?: OpenSplitTimeEventMetadata;
+  splitNames?: Record<string, string>;
 }
 
 interface OpenSplitTimeEventGroupResponse {
-  data?: { id?: string | number };
+  data?: {
+    id?: string | number;
+    attributes?: {
+      id?: string | number;
+      dataEntryGroups?: Array<{
+        entries?: Array<{
+          splitName?: string;
+          subSplitKind?: string;
+        }>;
+      }>;
+      unpairedDataEntryGroups?: Array<{
+        entries?: Array<{
+          splitName?: string;
+          subSplitKind?: string;
+        }>;
+      }>;
+    };
+  };
 }
 
 export interface OpenSplitTimeEnvironmentOption {
@@ -208,8 +229,6 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
   const url = `${apiHosts[currentEnvironment]}/api/v1${path}`;
 
   try {
-    console.debug(`OpenSplitTime request: ${init.method ?? "GET"} ${url}`);
-
     const response = await fetch(url, {
       ...init,
       headers: {
@@ -373,6 +392,45 @@ export async function authenticate(
   };
 }
 
+function normalizeSplitEntryKinds(rawValue: unknown): OpenSplitTimeSubSplitKind[] {
+  if (typeof rawValue !== "string") return [];
+
+  const normalized = rawValue.trim().toLowerCase();
+  if (normalized === "in") return ["in"];
+  if (normalized === "out") return ["out"];
+  if (normalized === "inout") return ["in", "out"];
+
+  return [];
+}
+
+function deriveSplitEntryKindsFromResponse(
+  response: OpenSplitTimeEventGroupResponse | unknown
+): Record<string, OpenSplitTimeSubSplitKind[]> {
+  const groups =
+    (response as OpenSplitTimeEventGroupResponse | undefined)?.data?.attributes?.dataEntryGroups ??
+    (response as OpenSplitTimeEventGroupResponse | undefined)?.data?.attributes
+      ?.unpairedDataEntryGroups ??
+    [];
+  const splitEntryKinds: Record<string, OpenSplitTimeSubSplitKind[]> = {};
+
+  for (const group of groups) {
+    const entries = group?.entries ?? [];
+
+    for (const entry of entries) {
+      const splitName = entry?.splitName?.trim();
+      const subSplitKind = normalizeSplitEntryKinds(entry?.subSplitKind);
+
+      if (!splitName || subSplitKind.length === 0) continue;
+
+      const existingKinds = splitEntryKinds[splitName] ?? [];
+      const mergedKinds = [...new Set([...existingKinds, ...subSplitKind])];
+      splitEntryKinds[splitName] = mergedKinds;
+    }
+  }
+
+  return splitEntryKinds;
+}
+
 // The stations JSON file records the OpenSplitTime event group id manually, so
 // verify it against the live event group and correct it if OpenSplitTime disagrees.
 export async function syncEventGroupId(): Promise<void> {
@@ -386,17 +444,59 @@ export async function syncEventGroupId(): Promise<void> {
 
   try {
     const response = (await getEventGroup(eventGroupIdOrSlug)) as OpenSplitTimeEventGroupResponse;
-    const remoteId = Number(response?.data?.id);
+    const remoteId = Number(response?.data?.id ?? response?.data?.attributes?.id);
+    const splitEntryKinds = deriveSplitEntryKindsFromResponse(response);
 
-    if (!Number.isFinite(remoteId) || remoteId <= 0 || remoteId === configuredEvent?.id) return;
-
-    appStore.set("event.openSplitTime", {
+    const nextEventMetadata = {
       ...eventMetadata,
-      [currentEnvironment]: { name: eventGroupIdOrSlug, id: remoteId }
-    });
-    console.info(`OpenSplitTime event group id for "${eventGroupIdOrSlug}" updated to ${remoteId}`);
+      [currentEnvironment]: {
+        name: eventGroupIdOrSlug,
+        id: Number.isFinite(remoteId) && remoteId > 0 ? remoteId : (configuredEvent?.id ?? 0),
+        splitEntryKinds: Object.keys(splitEntryKinds).length > 0 ? splitEntryKinds : undefined
+      }
+    };
+
+    appStore.set("event.openSplitTime", nextEventMetadata);
+
+    if (Number.isFinite(remoteId) && remoteId > 0 && remoteId !== configuredEvent?.id) {
+      console.info(
+        `OpenSplitTime event group id for "${eventGroupIdOrSlug}" updated to ${remoteId}`
+      );
+    }
   } catch (error) {
     console.warn("Unable to verify OpenSplitTime event group id", error);
+  }
+}
+
+export async function syncSplitEntryKinds(): Promise<void> {
+  const eventMetadata = appStore.get("event.openSplitTime") as
+    OpenSplitTimeEventMetadataStore | undefined;
+  const configuredEvent =
+    currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
+  const eventGroupIdOrSlug = configuredEvent?.name;
+
+  if (!eventGroupIdOrSlug) return;
+
+  try {
+    const response = (await getEventGroup(eventGroupIdOrSlug)) as OpenSplitTimeEventGroupResponse;
+    const splitEntryKinds = deriveSplitEntryKindsFromResponse(response);
+    const currentEventMetadata = appStore.get("event.openSplitTime") as
+      OpenSplitTimeEventMetadataStore | undefined;
+    const nextEvent = {
+      ...currentEventMetadata,
+      [currentEnvironment]: {
+        ...(currentEnvironment === "production"
+          ? currentEventMetadata?.production
+          : currentEventMetadata?.staging),
+        name: eventGroupIdOrSlug,
+        id: configuredEvent?.id ?? 0,
+        splitEntryKinds: Object.keys(splitEntryKinds).length > 0 ? splitEntryKinds : {}
+      }
+    };
+
+    appStore.set("event.openSplitTime", nextEvent);
+  } catch (error) {
+    console.warn("Unable to sync OpenSplitTime split entry kinds", error);
   }
 }
 
@@ -467,6 +567,25 @@ interface OpenSplitTimePushConfig {
   eventGroupIdOrSlug: string;
   stationIdentifier: string;
   splitName: string;
+  allowedKinds: OpenSplitTimeSubSplitKind[];
+}
+
+function resolveAllowedKindsForSplit(splitName: string): OpenSplitTimeSubSplitKind[] {
+  const eventMetadata = appStore.get("event.openSplitTime") as
+    OpenSplitTimeEventMetadataStore | undefined;
+  const configuredEvent =
+    currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
+  const liveKinds = configuredEvent?.splitEntryKinds?.[splitName];
+
+  if (Array.isArray(liveKinds) && liveKinds.length > 0) {
+    return [...new Set(liveKinds)];
+  }
+
+  const entryMode = Number(appStore.get("station.entrymode") ?? 0);
+  if (entryMode === 2) return ["in"];
+  if (entryMode === 3) return ["out"];
+
+  return ["in", "out"];
 }
 
 function resolvePushConfig(): OpenSplitTimePushConfig {
@@ -491,7 +610,9 @@ function resolvePushConfig(): OpenSplitTimePushConfig {
     throw new OpenSplitTimeApiError("OpenSplitTime event or station is not configured", 500);
   }
 
-  return { eventGroupIdOrSlug, stationIdentifier, splitName };
+  const allowedKinds = resolveAllowedKindsForSplit(splitName);
+
+  return { eventGroupIdOrSlug, stationIdentifier, splitName, allowedKinds };
 }
 
 function buildRawTimeRecords(
@@ -502,9 +623,10 @@ function buildRawTimeRecords(
   const records: OpenSplitTimeRawTime[] = [];
   const stoppedHereValue =
     stoppedHere == null ? undefined : (String(stoppedHere) as "true" | "false");
+  const allowedKinds = new Set(config.allowedKinds);
 
-  const addRecord = (time: Date | null, kind: "in" | "out") => {
-    if (!time) return;
+  const addRecord = (time: Date | null, kind: OpenSplitTimeSubSplitKind) => {
+    if (!time || !allowedKinds.has(kind)) return;
 
     records.push({
       source: config.stationIdentifier,
@@ -563,7 +685,6 @@ export async function pushTimeRecordUpdate(
   options: { force?: boolean } = {}
 ): Promise<OpenSplitTimePushOutcome> {
   if (pushPaused && !options.force) {
-    console.info(`OpenSplitTime push skipped for bib ${record.bibId}: pushes are paused`);
     return { pushed: false };
   }
 
@@ -573,7 +694,7 @@ export async function pushTimeRecordUpdate(
   if (records.length === 0) return { pushed: false };
 
   console.info(
-    `OpenSplitTime push starting for bib ${record.bibId}: ${records.length} raw time(s) to ${currentEnvironment}`
+    `OpenSplitTime push session: env=${currentEnvironment} split=${config.splitName} bib=${record.bibId} kinds=${config.allowedKinds.join(",") || "none"} records=${records.length}`
   );
 
   try {
