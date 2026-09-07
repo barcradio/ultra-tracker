@@ -1,5 +1,7 @@
 import fs from "fs";
+import path from "path";
 import Database from "better-sqlite3";
+import { app } from "electron";
 import { EventDatabaseMetadata } from "$shared/models";
 import { getDbPaths, listEventDatabaseBackupSlugs, listEventDatabaseSlugs } from "./connect-db";
 
@@ -21,9 +23,15 @@ export async function getEventDatabaseMetadata(
 ): Promise<EventDatabaseMetadata> {
   const { dbPath, dbBackupPath } = getDbPaths(slug);
   const filePath = type === "database" ? dbPath : dbBackupPath;
+  let temporaryDirectory: string | undefined;
 
   try {
-    const db = new Database(filePath, { readonly: true, fileMustExist: true });
+    temporaryDirectory = fs.mkdtempSync(
+      path.join(app.getPath("temp"), "ultra-tracker-event-metadata-")
+    );
+    const metadataFilePath = path.join(temporaryDirectory, path.basename(filePath));
+    fs.copyFileSync(filePath, metadataFilePath);
+    const db = new Database(metadataFilePath, { readonly: true, fileMustExist: true });
     try {
       const eventMeta = db.prepare(`SELECT * FROM EventMeta LIMIT 1`).get() as
         EventMetaRow | undefined;
@@ -50,6 +58,8 @@ export async function getEventDatabaseMetadata(
     }
   } catch {
     return { slug, type, error: "unreadable" };
+  } finally {
+    if (temporaryDirectory) fs.rmSync(temporaryDirectory, { recursive: true, force: true });
   }
 }
 

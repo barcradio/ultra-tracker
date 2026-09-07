@@ -27,14 +27,19 @@ export function useDeleteEventDatabase() {
   const { createToast } = useToasts();
 
   return useMutation({
-    mutationFn: async (slug: string): Promise<DatabaseResponse> => {
-      return (await ipcRenderer.invoke("delete-event-database", slug)) as DatabaseResponse;
+    mutationFn: async (params: {
+      slug: string;
+      type: "database" | "backup";
+    }): Promise<DatabaseResponse> => {
+      return (await ipcRenderer.invoke("delete-event-database", params)) as DatabaseResponse;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, params) => {
       const [status, message] = data;
       if (status === DatabaseStatus.Deleted) {
         createToast({ message: message || "Event database deleted", type: "success" });
-        queryClient.invalidateQueries({ queryKey: ["event-databases"] });
+        queryClient.invalidateQueries({
+          queryKey: [params.type === "database" ? "event-databases" : "event-database-backups"]
+        });
       } else {
         createToast({ message: message || "Failed to delete event database", type: "danger" });
       }

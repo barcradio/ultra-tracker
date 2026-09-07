@@ -6,6 +6,7 @@ import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { Modal } from "~/components/Modal";
 import { Stack } from "~/components/Stack";
 import { Tag } from "~/components/Tag";
+import { useOpenEventManagerOnStartup } from "~/hooks/useOpenEventManagerOnStartup";
 import { formatDate, formatShortDate } from "~/lib/datetimes";
 import { DatabaseStatus } from "$shared/enums";
 import { EventDatabaseMetadata } from "$shared/models";
@@ -47,6 +48,7 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
   const { data: eventDatabases, isLoading } = useEventDatabases();
   const { data: eventBackups, isLoading: areBackupsLoading } = useEventDatabaseBackups();
   const { data: activeSlug } = useActiveDatabaseSlug();
+  const { enabled: openOnStartup, setEnabled: setOpenOnStartup } = useOpenEventManagerOnStartup();
 
   const loadMutation = useLoadEventDatabase();
   const deleteMutation = useDeleteEventDatabase();
@@ -99,14 +101,17 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
 
   const handleConfirmDelete = () => {
     if (!eventToDelete) return;
-    deleteMutation.mutate(eventToDelete.slug, {
-      onSuccess: () => {
-        if (selectedSlug === eventToDelete.slug) {
-          setSelectedSlug(null);
+    deleteMutation.mutate(
+      { slug: eventToDelete.slug, type: eventToDelete.type },
+      {
+        onSuccess: () => {
+          if (selectedSlug === eventToDelete.slug) {
+            setSelectedSlug(null);
+          }
+          setEventToDelete(null);
         }
-        setEventToDelete(null);
       }
-    });
+    );
   };
 
   const restoreBackup = (backup: EventDatabaseMetadata, allowRename: boolean) => {
@@ -150,11 +155,22 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
         title="Load Event"
         size="lg"
         footerLeading={
-          view === "databases" ? (
-            <Button type="button" variant="outlined" color="neutral" onClick={onStartNew}>
-              Create New Event
-            </Button>
-          ) : undefined
+          <Stack align="center" className="gap-4">
+            {view === "databases" && (
+              <Button type="button" variant="outlined" color="neutral" onClick={onStartNew}>
+                Create New Event
+              </Button>
+            )}
+            <div className="flex items-center gap-2 text-sm font-medium text-on-component">
+              <input
+                type="checkbox"
+                aria-label="Open Event Manager on Startup"
+                checked={openOnStartup}
+                onChange={(e) => setOpenOnStartup(e.target.checked)}
+              />
+              <span>Open Event Manager on Startup</span>
+            </div>
+          </Stack>
         }
         showNegativeButton
         negativeText="Cancel"
@@ -342,14 +358,16 @@ export function LoadEventDialog(props: LoadEventDialogProps) {
           superDangerous
           open={deleteModalOpen}
           setOpen={setDeleteModalOpen}
-          title="Delete Event"
+          title={eventToDelete.type === "backup" ? "Delete Backup" : "Delete Event"}
           negativeText="Cancel"
           affirmativeText="Delete"
           onAffirmative={handleConfirmDelete}
         >
-          Are you sure you want to delete the event database &quot;
-          {eventToDelete.name || eventToDelete.slug}&quot;? All timing records and athlete data for
-          this event will be permanently deleted.
+          Are you sure you want to delete the{" "}
+          {eventToDelete.type === "backup" ? "backup" : "event database"} &quot;
+          {eventToDelete.slug}&quot;?
+          {eventToDelete.type === "database" &&
+            " All timing records and athlete data for this event will be permanently deleted."}
         </ConfirmationModal>
       )}
 

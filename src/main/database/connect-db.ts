@@ -95,13 +95,16 @@ export function createDatabaseFile(slug: string): void {
   switchToDatabase(slug);
 }
 
-export function deleteDatabaseFiles(slug: string): void {
-  if (slug === appStore.get("event.activeDatabaseSlug")) {
+export function deleteDatabaseFiles(slug: string, type: "database" | "backup"): void {
+  if (type === "database" && slug === appStore.get("event.activeDatabaseSlug")) {
     throw new Error("Cannot delete the active database");
   }
 
-  const { dbPath } = getDbPaths(slug);
-  fs.rmSync(dbPath, { force: true });
+  const { dbPath, dbBackupPath } = getDbPaths(slug);
+  const targetPath = type === "database" ? dbPath : dbBackupPath;
+  fs.rmSync(targetPath, { force: true });
+  fs.rmSync(`${targetPath}-wal`, { force: true });
+  fs.rmSync(`${targetPath}-shm`, { force: true });
 }
 
 export function listEventDatabaseSlugs(): string[] {

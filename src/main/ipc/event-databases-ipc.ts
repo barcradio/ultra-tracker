@@ -7,6 +7,7 @@ import {
   createDatabaseFile,
   deleteDatabaseFiles,
   getDbPaths,
+  listEventDatabaseBackupSlugs,
   listEventDatabaseSlugs,
   slugify,
   switchToDatabase
@@ -67,6 +68,7 @@ const createEventDatabase: Handler<void, Promise<DatabaseResponse<string>>> = as
 
     createDatabaseFile(slug);
     await loadStationsFromFile(filePath);
+    reloadMainWindow();
 
     const response: DatabaseResponse<string> = [
       slug,
@@ -93,16 +95,25 @@ const loadEventDatabase: Handler<string, DatabaseResponse> = (_event, slug) => {
   return [DatabaseStatus.Success, `Loaded event database "${slug}"`];
 };
 
-const deleteEventDatabase: Handler<string, DatabaseResponse> = (_event, slug) => {
-  if (typeof slug !== "string" || !listEventDatabaseSlugs().includes(slug)) {
+const deleteEventDatabase: Handler<
+  { slug: string; type: "database" | "backup" },
+  DatabaseResponse
+> = (_event, params) => {
+  if (
+    typeof params?.slug !== "string" ||
+    (params.type !== "database" && params.type !== "backup") ||
+    !(
+      params.type === "database" ? listEventDatabaseSlugs() : listEventDatabaseBackupSlugs()
+    ).includes(params.slug)
+  ) {
     return [DatabaseStatus.NotFound, "Unknown event database"];
   }
 
   try {
-    deleteDatabaseFiles(slug);
-    return [DatabaseStatus.Deleted, `Deleted event database "${slug}"`];
+    deleteDatabaseFiles(params.slug, params.type);
+    return [DatabaseStatus.Deleted, `Deleted event ${params.type} "${params.slug}"`];
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : "Unable to delete event database";
+    const message = e instanceof Error ? e.message : `Unable to delete event ${params.type}`;
     return [DatabaseStatus.Error, message];
   }
 };
