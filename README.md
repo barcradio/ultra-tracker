@@ -16,12 +16,11 @@ For a guide on how to set up an event using Ultra-Tracker, and advanced RFID con
 
 On first launch, Ultra-Tracker opens **Getting Started** to guide the user through starting an event for timing data collection.
 
-1. Select **Load Stations File** and choose the stations JSON file supplied for the event. This
+1. Select **Load Event File** and choose the event zip file supplied for the event. This
    creates the local event database.
 2. Select the station identifier for this computer.
 3. Select the operator callsign.
-4. Select the **Athletes** file supplied by the race organizers.
-5. Select the **Initial Drops** file, containing athletes known to have not started or dropped.
+5. Select the **Initial Drops** file, containing athletes known to have not started or dropped before the current station.
 6. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
 
 The event files can be selected from their existing location; they do not need to be copied into a
