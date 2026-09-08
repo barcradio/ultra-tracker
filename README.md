@@ -40,6 +40,8 @@ the names.
 
 <img alt="image" src="src/renderer/public/img/stats-page.png" />
 
+<img alt="image" src="src/renderer/public/img/bib.png" />
+
 The **BIB#** box is the main starting point for using this page. This input control will accept numerical input, either from the 10-key pad or top-row keys of all standard keyboards. See useful keyboard shortcuts below.
 
 Clicking the In button and Out button will record the corresponding time entry.
