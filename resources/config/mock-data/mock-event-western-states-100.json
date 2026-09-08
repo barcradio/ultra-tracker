@@ -1,0 +1,501 @@
+{
+  "event": {
+    "name": "Western States 100",
+    "starttime": "05:00:00 Jun 27 2026",
+    "endtime": "11:00:00 Jun 28 2026",
+    "startline": "Start Line",
+    "finishline": "Finish Line"
+  },
+  "stations": [
+    {
+      "name": "Start Line",
+      "identifier": "00-start-line-6033",
+      "description": "Randomized event start line",
+      "location": {
+        "latitude": 39.1881,
+        "longitude": -120.2701,
+        "elevation": 6419
+      },
+      "distance": 0,
+      "dropbags": false,
+      "crewaccess": true,
+      "paceraccess": false,
+      "shiftBegin": "04:00:00 27 Jun 2026",
+      "cutofftime": "05:30:00 27 Jun 2026",
+      "shiftEnd": "06:00:00 27 Jun 2026",
+      "entrymode": 1,
+      "operators": {
+        "primary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAP",
+          "phone": "555-0101"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAV",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAD",
+          "phone": "555-0101"
+        }
+      }
+    },
+    {
+      "name": "Summit Gulch",
+      "identifier": "01-summit-gulch-8827",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 39.1541,
+        "longitude": -120.3207,
+        "elevation": 5757
+      },
+      "distance": 3.1,
+      "dropbags": false,
+      "crewaccess": false,
+      "paceraccess": false,
+      "shiftBegin": "06:13:50 27 Jun 2026",
+      "cutofftime": "07:48:27 27 Jun 2026",
+      "shiftEnd": "08:18:27 27 Jun 2026",
+      "entrymode": 0,
+      "operators": {
+        "primary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6ABD",
+          "phone": "555-0101"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAF",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAY",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Juniper Shelter",
+      "identifier": "02-juniper-shelter-5524",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 39.1284,
+        "longitude": -120.3247,
+        "elevation": 5165
+      },
+      "distance": 12.5,
+      "dropbags": false,
+      "crewaccess": false,
+      "paceraccess": true,
+      "shiftBegin": "08:27:41 27 Jun 2026",
+      "cutofftime": "10:06:55 27 Jun 2026",
+      "shiftEnd": "10:36:55 27 Jun 2026",
+      "entrymode": 1,
+      "operators": {
+        "primary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAS",
+          "phone": "555-0100"
+        },
+        "secondary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAE",
+          "phone": "555-0100"
+        },
+        "tertiary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6ABH",
+          "phone": "555-0101"
+        }
+      }
+    },
+    {
+      "name": "Meadow Point",
+      "identifier": "03-meadow-point-5030",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 39.1159,
+        "longitude": -120.4654,
+        "elevation": 5186
+      },
+      "distance": 18.5,
+      "dropbags": false,
+      "crewaccess": true,
+      "paceraccess": false,
+      "shiftBegin": "10:41:32 27 Jun 2026",
+      "cutofftime": "12:25:23 27 Jun 2026",
+      "shiftEnd": "12:55:23 27 Jun 2026",
+      "entrymode": 1,
+      "operators": {
+        "primary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAZ",
+          "phone": "555-0101"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAT",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAA",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Aspen Basin",
+      "identifier": "04-aspen-basin-6594",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 39.1095,
+        "longitude": -120.522,
+        "elevation": 4417
+      },
+      "distance": 24,
+      "dropbags": false,
+      "crewaccess": true,
+      "paceraccess": true,
+      "shiftBegin": "12:55:23 27 Jun 2026",
+      "cutofftime": "14:43:50 27 Jun 2026",
+      "shiftEnd": "15:13:50 27 Jun 2026",
+      "entrymode": 1,
+      "operators": {
+        "primary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAJ",
+          "phone": "555-0101"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAR",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAK",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Cedar Point",
+      "identifier": "05-cedar-point-2538",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 39.1162,
+        "longitude": -120.5865,
+        "elevation": 4470
+      },
+      "distance": 29.7,
+      "dropbags": true,
+      "crewaccess": true,
+      "paceraccess": true,
+      "shiftBegin": "15:09:13 27 Jun 2026",
+      "cutofftime": "17:02:18 27 Jun 2026",
+      "shiftEnd": "17:32:18 27 Jun 2026",
+      "entrymode": 0,
+      "operators": {
+        "primary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAC",
+          "phone": "555-0100"
+        },
+        "secondary": {
+          "fullname": "Station Captain",
+          "callsign": "W6ABO",
+          "phone": "555-0100"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6ABI",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Silver Crossing",
+      "identifier": "06-silver-crossing-7673",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 39.0449,
+        "longitude": -120.6009,
+        "elevation": 4316
+      },
+      "distance": 39.4,
+      "dropbags": true,
+      "crewaccess": false,
+      "paceraccess": true,
+      "shiftBegin": "17:23:04 27 Jun 2026",
+      "cutofftime": "19:20:46 27 Jun 2026",
+      "shiftEnd": "19:50:46 27 Jun 2026",
+      "entrymode": 1,
+      "operators": {
+        "primary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAW",
+          "phone": "555-0100"
+        },
+        "secondary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAI",
+          "phone": "555-0100"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAM",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Copper Ridge",
+      "identifier": "07-copper-ridge-6252",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 38.9969,
+        "longitude": -120.7246,
+        "elevation": 3961
+      },
+      "distance": 47.4,
+      "dropbags": true,
+      "crewaccess": true,
+      "paceraccess": false,
+      "shiftBegin": "19:36:55 27 Jun 2026",
+      "cutofftime": "21:39:13 27 Jun 2026",
+      "shiftEnd": "22:09:13 27 Jun 2026",
+      "entrymode": 0,
+      "operators": {
+        "primary": {
+          "fullname": "Station Captain",
+          "callsign": "W6ABM",
+          "phone": "555-0100"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAX",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6ABE",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Pine Camp",
+      "identifier": "08-pine-camp-7401",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 39.0506,
+        "longitude": -120.7622,
+        "elevation": 3218
+      },
+      "distance": 52.5,
+      "dropbags": false,
+      "crewaccess": true,
+      "paceraccess": false,
+      "shiftBegin": "21:50:46 27 Jun 2026",
+      "cutofftime": "23:57:41 27 Jun 2026",
+      "shiftEnd": "00:27:41 28 Jun 2026",
+      "entrymode": 0,
+      "operators": {
+        "primary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6ABL",
+          "phone": "555-0101"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAB",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6ABP",
+          "phone": "555-0101"
+        }
+      }
+    },
+    {
+      "name": "Pine Point",
+      "identifier": "09-pine-point-4291",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 39.0285,
+        "longitude": -120.855,
+        "elevation": 2600
+      },
+      "distance": 61.6,
+      "dropbags": true,
+      "crewaccess": true,
+      "paceraccess": false,
+      "shiftBegin": "00:04:36 28 Jun 2026",
+      "cutofftime": "02:16:09 28 Jun 2026",
+      "shiftEnd": "02:46:09 28 Jun 2026",
+      "entrymode": 0,
+      "operators": {
+        "primary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAU",
+          "phone": "555-0100"
+        },
+        "secondary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAG",
+          "phone": "555-0100"
+        },
+        "tertiary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6ABB",
+          "phone": "555-0101"
+        }
+      }
+    },
+    {
+      "name": "Meadow Gulch",
+      "identifier": "10-meadow-gulch-7126",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 38.9517,
+        "longitude": -120.8656,
+        "elevation": 2349
+      },
+      "distance": 70.2,
+      "dropbags": false,
+      "crewaccess": false,
+      "paceraccess": false,
+      "shiftBegin": "02:18:27 28 Jun 2026",
+      "cutofftime": "04:34:36 28 Jun 2026",
+      "shiftEnd": "05:04:36 28 Jun 2026",
+      "entrymode": 0,
+      "operators": {
+        "primary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAL",
+          "phone": "555-0101"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6ABF",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAQ",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Copper Shelter",
+      "identifier": "11-copper-shelter-2047",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 38.9062,
+        "longitude": -120.9315,
+        "elevation": 2268
+      },
+      "distance": 80.2,
+      "dropbags": false,
+      "crewaccess": true,
+      "paceraccess": true,
+      "shiftBegin": "04:32:18 28 Jun 2026",
+      "cutofftime": "06:53:04 28 Jun 2026",
+      "shiftEnd": "07:23:04 28 Jun 2026",
+      "entrymode": 0,
+      "operators": {
+        "primary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6ABJ",
+          "phone": "555-0101"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6ABN",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6ABK",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Copper Camp",
+      "identifier": "12-copper-camp-2674",
+      "description": "Randomized aid station",
+      "location": {
+        "latitude": 38.9052,
+        "longitude": -120.9878,
+        "elevation": 1775
+      },
+      "distance": 90.2,
+      "dropbags": false,
+      "crewaccess": true,
+      "paceraccess": false,
+      "shiftBegin": "06:46:09 28 Jun 2026",
+      "cutofftime": "09:11:32 28 Jun 2026",
+      "shiftEnd": "09:41:32 28 Jun 2026",
+      "entrymode": 0,
+      "operators": {
+        "primary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAH",
+          "phone": "555-0101"
+        },
+        "secondary": {
+          "fullname": "Station Captain",
+          "callsign": "W6ABC",
+          "phone": "555-0100"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6AAO",
+          "phone": "555-0100"
+        }
+      }
+    },
+    {
+      "name": "Finish Line",
+      "identifier": "13-finish-line-6878",
+      "description": "Randomized event finish line",
+      "location": {
+        "latitude": 38.8746,
+        "longitude": -121.0735,
+        "elevation": 1197
+      },
+      "distance": 100.2,
+      "dropbags": false,
+      "crewaccess": true,
+      "paceraccess": false,
+      "shiftBegin": "09:00:00 28 Jun 2026",
+      "cutofftime": "11:30:00 28 Jun 2026",
+      "shiftEnd": "12:00:00 28 Jun 2026",
+      "entrymode": 1,
+      "operators": {
+        "primary": {
+          "fullname": "Station Captain",
+          "callsign": "W6ABA",
+          "phone": "555-0100"
+        },
+        "secondary": {
+          "fullname": "Comms Operator",
+          "callsign": "W6AAN",
+          "phone": "555-0101"
+        },
+        "tertiary": {
+          "fullname": "Station Captain",
+          "callsign": "W6ABG",
+          "phone": "555-0100"
+        }
+      }
+    }
+  ]
+}

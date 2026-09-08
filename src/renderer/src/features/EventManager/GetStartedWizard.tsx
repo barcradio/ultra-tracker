@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { Button } from "~/components/Button";
 import { Modal } from "~/components/Modal";
@@ -17,24 +16,11 @@ import { EventImportProgressRow } from "./EventImportProgressRow";
 const routeApi = getRouteApi("/");
 
 type ImportStatus = "pending" | "working" | "success" | "error";
-type EventSetupFileType = "athletes" | "drops";
-
-interface ProgressState {
-  stations: ImportStatus;
-  athletes: ImportStatus;
-  drops: ImportStatus;
-}
 
 export interface GetStartedWizardProps {
   open: boolean;
   setOpen: (open: boolean) => void;
 }
-
-const initialProgress: ProgressState = {
-  stations: "pending",
-  athletes: "pending",
-  drops: "pending"
-};
 
 export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
   const navigate = routeApi.useNavigate();
@@ -42,30 +28,14 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
   const ipcRenderer = useIpcRenderer();
   const identityForm = useIdentityForm();
   const setStationIdentity = useSetStationIdentity(true);
-  const createDatabase = useBasicIpcCall("create-event-database", {
-    preToast: "Select a Stations file to create the event",
+  const createDatabase = useBasicIpcCall("create-event-database-from-archive", {
+    preToast: "Select an event file to create the event",
     suppressToasts: true
   });
-  const importAthletes = useBasicIpcCall("import-selected-event-athletes-file", {
-    preToast: "Importing selected Athletes file",
-    suppressToasts: true
-  });
-  const importDrops = useBasicIpcCall("import-selected-event-drops-file", {
-    preToast: "Importing selected Drops file",
-    suppressToasts: true
-  });
-  const [progress, setProgress] = useState(initialProgress);
+  const [progress, setProgress] = useState<ImportStatus>("pending");
   const [running, setRunning] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<Partial<Record<EventSetupFileType, string>>>(
-    {}
-  );
-  const selectEventFile = useMutation({
-    mutationFn: async (type: EventSetupFileType): Promise<string | null> => {
-      return (await ipcRenderer.invoke(`select-event-${type}-file`)) as string | null;
-    }
-  });
-  const stationsLoaded = progress.stations === "success";
-  const { data: stations, refetch: refetchStations } = useStations(stationsLoaded);
+  const archiveLoaded = progress === "success";
+  const { data: stations, refetch: refetchStations } = useStations(archiveLoaded);
   const selectedStationId = identityForm.watch("identifier");
   const selectedCallsign = identityForm.watch("callsign");
   const { data: currentOperators } = useStationOperators(selectedStationId);
@@ -77,9 +47,8 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
   }, [currentOperators, identityForm]);
 
   const reset = () => {
-    setProgress(initialProgress);
+    setProgress("pending");
     setRunning(false);
-    setSelectedFiles({});
     identityForm.reset();
   };
 
@@ -90,9 +59,9 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
     }
   };
 
-  const handleLoadStations = async () => {
+  const handleLoadArchive = async () => {
     setRunning(true);
-    setProgress((current) => ({ ...current, stations: "working" }));
+    setProgress("working");
 
     try {
       const result = (await createDatabase.mutateAsync()) as [
@@ -103,21 +72,14 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
       if (result[1] !== DatabaseStatus.Created) {
         throw new Error(result[2] || "Unable to create the event database");
       }
-      setProgress((current) => ({ ...current, stations: "success" }));
+      setProgress("success");
       await refetchStations();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to load the Stations file";
+      const message = error instanceof Error ? error.message : "Unable to load the event file";
       createToast({ message, type: "danger" });
-      setProgress((current) => ({ ...current, stations: "error" }));
+      setProgress("error");
     } finally {
       setRunning(false);
-    }
-  };
-
-  const handleSelectEventFile = async (type: EventSetupFileType) => {
-    const fileName = await selectEventFile.mutateAsync(type);
-    if (fileName) {
-      setSelectedFiles((current) => ({ ...current, [type]: fileName }));
     }
   };
 
@@ -127,35 +89,9 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
       return;
     }
 
-    if (!selectedFiles.athletes || !selectedFiles.drops) {
-      createToast({
-        message: "Select the athletes and drops files before importing",
-        type: "danger"
-      });
-      return;
-    }
-
     setRunning(true);
-    setProgress((current) => ({
-      ...current,
-      stations: current.stations === "success" ? "success" : "working",
-      athletes: current.athletes === "success" ? "success" : "pending",
-      drops: current.drops === "success" ? "success" : "pending"
-    }));
 
     try {
-      if (progress.athletes !== "success") {
-        setProgress((current) => ({ ...current, athletes: "working" }));
-        await importAthletes.mutateAsync();
-        setProgress((current) => ({ ...current, athletes: "success" }));
-      }
-
-      if (progress.drops !== "success") {
-        setProgress((current) => ({ ...current, drops: "working" }));
-        await importDrops.mutateAsync();
-        setProgress((current) => ({ ...current, drops: "success" }));
-      }
-
       await setStationIdentity.mutateAsync(identity);
       sessionStorage.setItem("skip-event-manager-auto-open", "true");
       await ipcRenderer.invoke("finish-event-setup");
@@ -167,12 +103,6 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
       sessionStorage.removeItem("skip-event-manager-auto-open");
       const message = error instanceof Error ? error.message : "Unable to create the event";
       createToast({ message, type: "danger" });
-      setProgress((current) => ({
-        ...current,
-        stations: current.stations === "working" ? "error" : current.stations,
-        athletes: current.athletes === "working" ? "error" : current.athletes,
-        drops: current.drops === "working" ? "error" : current.drops
-      }));
       setRunning(false);
     }
   });
@@ -180,9 +110,9 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
   return (
     <Modal open={open} setOpen={handleClose} title="Get Started" size="md">
       <form onSubmit={handleStart} className="space-y-4 text-on-component">
-        <p className="text-sm opacity-80">Load event files and select the station identity.</p>
+        <p className="text-sm opacity-80">Load an event file and select the station identity.</p>
 
-        {stationsLoaded ? (
+        {archiveLoaded ? (
           <>
             <Select
               label="Station identifier"
@@ -209,35 +139,15 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
               placeholder="Select an operator"
               disabled={running || !selectedStationId}
             />
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => handleSelectEventFile("athletes")}
-                disabled={running || selectEventFile.isPending}
-              >
-                {selectedFiles.athletes ?? "Select Athletes File"}
-              </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => handleSelectEventFile("drops")}
-                disabled={running || selectEventFile.isPending}
-              >
-                {selectedFiles.drops ?? "Select Initial Drops File"}
-              </Button>
-            </div>
           </>
         ) : (
-          <Button type="button" onClick={handleLoadStations} disabled={running}>
-            {running ? "Loading..." : "Load Stations File"}
+          <Button type="button" onClick={handleLoadArchive} disabled={running}>
+            {running ? "Loading..." : "Load Event File"}
           </Button>
         )}
 
         <div className="rounded border border-component-strong px-3">
-          <EventImportProgressRow label="Stations" status={progress.stations} />
-          <EventImportProgressRow label="Athletes" status={progress.athletes} />
-          <EventImportProgressRow label="Drops" status={progress.drops} />
+          <EventImportProgressRow label="Event File" status={progress} />
         </div>
 
         {Object.values(identityForm.formState.errors).map((error) => (
@@ -256,16 +166,7 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={
-              running ||
-              !stationsLoaded ||
-              !selectedCallsign ||
-              !selectedFiles.athletes ||
-              !selectedFiles.drops
-            }
-          >
+          <Button type="submit" disabled={running || !archiveLoaded || !selectedCallsign}>
             {running ? "Importing..." : "Import Event"}
           </Button>
         </div>

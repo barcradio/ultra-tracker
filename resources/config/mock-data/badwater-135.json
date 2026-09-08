@@ -1,0 +1,291 @@
+{
+    "event": {
+        "name": "Badwater 135",
+        "starttime": "20:00:00 Jul 20 2026",
+        "endtime": "10:00:00 Jul 22 2026",
+        "startline": "Badwater Basin",
+        "finishline": "Whitney Portal"
+    },
+    "stations": [
+        {
+            "name": "Badwater Basin (Start)",
+            "identifier": "00-start",
+            "description": "Lowest point in North America",
+            "location": {
+                "latitude": 36.2299,
+                "longitude": -116.7672,
+                "elevation": -282
+            },
+            "distance": 0.0,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": false,
+            "shiftBegin": "20:00:00 Jul 20 2026",
+            "cutofftime": "20:00:00 Jul 20 2026",
+            "shiftEnd": "20:15:00 Jul 20 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Station Captain",
+                    "callsign": "W6AAA",
+                    "phone": "555-0100"
+                },
+                "secondary": {
+                    "fullname": "Comms Operator",
+                    "callsign": "W6BBB",
+                    "phone": "555-0101"
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Furnace Creek",
+            "identifier": "01-furnace-creek",
+            "description": "Timing checkpoint only; crew support required",
+            "location": {
+                "latitude": 36.4581,
+                "longitude": -116.8709,
+                "elevation": -190
+            },
+            "distance": 17.4,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": false,
+            "shiftBegin": "21:30:00 Jul 20 2026",
+            "cutofftime": "02:00:00 Jul 21 2026",
+            "shiftEnd": "02:30:00 Jul 21 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Station Captain",
+                    "callsign": "W6AAA",
+                    "phone": "555-0100"
+                },
+                "secondary": {
+                    "fullname": "Comms Operator",
+                    "callsign": "W6BBB",
+                    "phone": "555-0101"
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Stovepipe Wells",
+            "identifier": "02-stovepipe",
+            "description": "Timing checkpoint before the long road climb",
+            "location": {
+                "latitude": 36.6061,
+                "longitude": -117.1464,
+                "elevation": 10
+            },
+            "distance": 41.9,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "01:00:00 Jul 21 2026",
+            "cutofftime": "10:00:00 Jul 21 2026",
+            "shiftEnd": "10:30:00 Jul 21 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Station Captain",
+                    "callsign": "W6AAA",
+                    "phone": "555-0100"
+                },
+                "secondary": {
+                    "fullname": "Comms Operator",
+                    "callsign": "W6BBB",
+                    "phone": "555-0101"
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Townes Pass",
+            "identifier": "03-townes-pass",
+            "description": "Highest highway road summit checkpoint",
+            "location": {
+                "latitude": 36.5611,
+                "longitude": -117.2644,
+                "elevation": 4956
+            },
+            "distance": 58.7,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "04:30:00 Jul 21 2026",
+            "cutofftime": "16:00:00 Jul 21 2026",
+            "shiftEnd": "16:30:00 Jul 21 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Station Captain",
+                    "callsign": "W6AAA",
+                    "phone": "555-0100"
+                },
+                "secondary": {
+                    "fullname": "Comms Operator",
+                    "callsign": "W6BBB",
+                    "phone": "555-0101"
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Panamint Springs",
+            "identifier": "04-panamint",
+            "description": "Timing station in the valley clearing",
+            "location": {
+                "latitude": 36.3397,
+                "longitude": -117.4678,
+                "elevation": 1920
+            },
+            "distance": 72.3,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "07:00:00 Jul 21 2026",
+            "cutofftime": "22:00:00 Jul 21 2026",
+            "shiftEnd": "22:30:00 Jul 21 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Station Captain",
+                    "callsign": "W6AAA",
+                    "phone": "555-0100"
+                },
+                "secondary": {
+                    "fullname": "Comms Operator",
+                    "callsign": "W6BBB",
+                    "phone": "555-0101"
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Darwin",
+            "identifier": "05-darwin",
+            "description": "Turn-off road timing station point",
+            "location": {
+                "latitude": 36.2681,
+                "longitude": -117.5912,
+                "elevation": 4050
+            },
+            "distance": 90.1,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "11:00:00 Jul 21 2026",
+            "cutofftime": "04:00:00 Jul 22 2026",
+            "shiftEnd": "04:30:00 Jul 22 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Station Captain",
+                    "callsign": "W6AAA",
+                    "phone": "555-0100"
+                },
+                "secondary": {
+                    "fullname": "Comms Operator",
+                    "callsign": "W6BBB",
+                    "phone": "555-0101"
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Lone Pine",
+            "identifier": "06-lone-pine",
+            "description": "Major town staging timing checkpoint before climb",
+            "location": {
+                "latitude": 36.6061,
+                "longitude": -118.0628,
+                "elevation": 3727
+            },
+            "distance": 122.2,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "18:00:00 Jul 21 2026",
+            "cutofftime": "08:00:00 Jul 22 2026",
+            "shiftEnd": "08:30:00 Jul 22 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Station Captain",
+                    "callsign": "W6AAA",
+                    "phone": "555-0100"
+                },
+                "secondary": {
+                    "fullname": "Comms Operator",
+                    "callsign": "W6BBB",
+                    "phone": "555-0101"
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        },
+        {
+            "name": "Whitney Portal (Finish)",
+            "identifier": "07-finish",
+            "description": "The finish line on Mount Whitney trail road",
+            "location": {
+                "latitude": 36.5869,
+                "longitude": -118.2394,
+                "elevation": 8374
+            },
+            "distance": 135.0,
+            "dropbags": false,
+            "crewaccess": true,
+            "paceraccess": true,
+            "shiftBegin": "21:00:00 Jul 21 2026",
+            "cutofftime": "10:00:00 Jul 22 2026",
+            "shiftEnd": "10:30:00 Jul 22 2026",
+            "entrymode": 1,
+            "operators": {
+                "primary": {
+                    "fullname": "Station Captain",
+                    "callsign": "W6AAA",
+                    "phone": "555-0100"
+                },
+                "secondary": {
+                    "fullname": "Comms Operator",
+                    "callsign": "W6BBB",
+                    "phone": "555-0101"
+                },
+                "tertiary": {
+                    "fullname": "",
+                    "callsign": "",
+                    "phone": ""
+                }
+            }
+        }
+    ]
+}

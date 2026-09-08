@@ -21,7 +21,7 @@ export function SettingsPage() {
       <Stack justify="center" align="start" className="gap-6 flex-wrap xl:flex-nowrap min-w-full">
         {/* Event Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
-          <VerticalButtonGroup label="Event Settings">
+          <VerticalButtonGroup label="Event File Import">
             <Button size="wide" onClick={() => settingsMutations.importStationsFile.mutate()}>
               Load Stations File
             </Button>
@@ -91,7 +91,7 @@ export function SettingsPage() {
           <VerticalButtonGroup label="Developer Tools" className="border-2 border-danger/30">
             <Stack direction="col" className="gap-2">
               <p className="w-80 text-on-surface-strong italic font-display text-sm font-bold mt-2 mb-4">
-                This is a destructive operation! Under most circumstances you should not do this
+                These are destructive operations! Under most circumstances you should not do this
                 unless instructed to.
               </p>
               <Button color="danger" size="wide" onClick={() => setRecreateOpen(true)}>

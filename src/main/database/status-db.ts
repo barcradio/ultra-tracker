@@ -1,4 +1,5 @@
 import fs from "fs";
+import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
@@ -25,12 +26,16 @@ export async function LoadDrops() {
 }
 
 export async function LoadDropsFromFile(dropsFilePath: string) {
-  const headers = ["stationId", "bibId", "dropReason", "dropDateTime", "note"];
   const fileContent = fs.createReadStream(dropsFilePath, { encoding: "utf-8" });
+  return parseDropsContent(fileContent, dropsFilePath);
+}
+
+export async function parseDropsContent(source: Readable, sourceLabel: string) {
+  const headers = ["stationId", "bibId", "dropReason", "dropDateTime", "note"];
   let message: string = "";
   let dropCount: number = 0;
 
-  const parser = fileContent
+  const parser = source
     .pipe(
       parse({
         delimiter: ",",
@@ -56,7 +61,7 @@ export async function LoadDropsFromFile(dropsFilePath: string) {
     })
     .on("end", () => {
       const { records } = parser.info;
-      message = `${dropsFilePath}\r\n${records} dropRecords processed, ${dropCount} imported`;
+      message = `${sourceLabel}\r\n${records} dropRecords processed, ${dropCount} imported`;
     });
   await finished(parser);
 
