@@ -34,6 +34,7 @@ interface ZebraFxr90Message {
   type: string;
 }
 
+// Race bib numbers are decimal only; reject ids with hex digits (A-F) after the leading zeros.
 const zebraBibIdPattern = /^0{20}\d+$/;
 
 function isRFIDMessage(value: unknown): value is ZebraFxr90Message {
@@ -50,7 +51,6 @@ function isRFIDMessage(value: unknown): value is ZebraFxr90Message {
     Number.isFinite(data.eventNum) &&
     data.format === "epc" &&
     typeof data.idHex === "string" &&
-    zebraBibIdPattern.test(data.idHex) &&
     typeof message.timestamp === "string" &&
     !Number.isNaN(Date.parse(message.timestamp)) &&
     message.type === "CUSTOM"
@@ -307,6 +307,13 @@ export class ZebraWebSocketProcessor {
         if (!isRFIDMessage(obj)) {
           logRFID(LogLevel.error, "Invalid RFID message structure:", frame.payload);
           this.eventEmitter.emit("error", new Error("Invalid RFID message structure"));
+          processedLength = frame.end;
+          continue;
+        }
+
+        if (!zebraBibIdPattern.test(obj.data.idHex)) {
+          // Test/junk tags can report hex ids; ignore quietly instead of surfacing a reader error.
+          logRFID(LogLevel.warn, `Ignoring non-decimal RFID tag id "${obj.data.idHex}"`);
           processedLength = frame.end;
           continue;
         }
