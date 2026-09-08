@@ -97,7 +97,7 @@ export function createDatabaseFile(slug: string): void {
   db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
   CreateTables(db);
-  db.pragma("user_version = 6");
+  db.pragma("user_version = 3");
   closeActiveConnection();
   switchToDatabase(slug);
 }

@@ -7,7 +7,9 @@ export const expectedTableNames = {
   Status: "Status",
   TimeRecords: "TimeRecords",
   RFIDInbox: "RFIDInbox",
-  RFIDPendingWrites: "RFIDPendingWrites"
+  RFIDPendingWrites: "RFIDPendingWrites",
+  Watchlist: "Watchlist",
+  EventMeta: "EventMeta"
 };
 
 export const Version = 3;
@@ -16,11 +18,19 @@ export {
   Athletes,
   EventLog,
   Output,
-  OpenSplitTimePushStatus,
   Stations,
-  Status,
-  TimeRecords
+  TimeRecords,
+  OpenSplitTimePushStatus
 } from "./table-definitions-v2";
+
+export const Status: string = `
+      bibId INTEGER DEFAULT (0), -- TODO: Index,
+      dropped INTEGER, -- TODO: Index
+      dropReason TEXT,
+      dropStation TEXT, -- TODO: Index
+      dropDateTime DATETIME,
+      note TEXT,
+      progress INTEGER`;
 
 export const RFIDInbox: string = `
       payload TEXT NOT NULL,
@@ -34,3 +44,13 @@ export const RFIDPendingWrites: string = `
   attempts INTEGER NOT NULL DEFAULT (0),
   lastError TEXT,
   processed BOOLEAN DEFAULT (FALSE)`;
+
+export const Watchlist = `
+      bibId INTEGER NOT NULL UNIQUE`;
+
+export const EventMeta = `
+      name TEXT,
+      startline TEXT,
+      finishline TEXT,
+      starttime DATETIME,
+      endtime DATETIME`;
