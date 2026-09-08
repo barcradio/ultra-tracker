@@ -1,4 +1,5 @@
 import { DatabaseStatus } from "./enums";
+import { Station } from "./models";
 
 export type DatabaseResponse<T = undefined> = T extends undefined
   ? [DatabaseStatus, string]
@@ -7,6 +8,12 @@ export type DatabaseResponse<T = undefined> = T extends undefined
 export interface SetStationIdentityParams {
   callsign: string;
   identifier: string;
+}
+
+export interface EventArchivePreview {
+  archiveFilePath: string;
+  eventName: string;
+  stations: Station[];
 }
 
 export interface Toast {
