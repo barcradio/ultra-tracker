@@ -1,8 +1,9 @@
 import fs from "fs";
+import path from "path";
 import { ipcMain } from "electron";
 import { DatabaseStatus } from "$shared/enums";
 import { EventDatabaseMetadata } from "$shared/models";
-import { DatabaseResponse } from "$shared/types";
+import { DatabaseResponse, EventArchivePreview } from "$shared/types";
 import {
   createDatabaseFile,
   deleteDatabaseFiles,
@@ -14,7 +15,7 @@ import {
   slugify,
   switchToDatabase
 } from "../database/connect-db";
-import { importEventArchiveFile } from "../database/event-archive-db";
+import { importEventArchiveFile, previewEventArchiveFile } from "../database/event-archive-db";
 import {
   listEventDatabaseBackupsWithMetadata,
   listEventDatabasesWithMetadata
@@ -66,14 +67,25 @@ const createEventDatabase: Handler<void, Promise<DatabaseResponse<string>>> = as
   }
 };
 
-const createEventDatabaseFromArchive: Handler<
+const createEventDatabaseFromArchive: Handler<string, Promise<DatabaseResponse<string>>> = async (
+  _event,
+  filePath
+) => {
+  if (!isValidEventArchivePath(filePath)) {
+    return [null, DatabaseStatus.Error, "Invalid event file selected"];
+  }
+
+  return importEventArchiveFile(filePath);
+};
+
+const selectEventArchivePreview: Handler<
   void,
-  Promise<DatabaseResponse<string>>
+  Promise<DatabaseResponse<EventArchivePreview>>
 > = async () => {
   const filePaths = await dialogs.selectEventArchiveFile();
   const filePath = filePaths?.[0];
   if (!filePath) {
-    const response: DatabaseResponse<string> = [
+    const response: DatabaseResponse<EventArchivePreview> = [
       null,
       DatabaseStatus.Error,
       "No event file selected"
@@ -81,8 +93,25 @@ const createEventDatabaseFromArchive: Handler<
     return response;
   }
 
-  return importEventArchiveFile(filePath);
+  if (!isValidEventArchivePath(filePath)) {
+    const response: DatabaseResponse<EventArchivePreview> = [
+      null,
+      DatabaseStatus.Error,
+      "Invalid event file selected"
+    ];
+    return response;
+  }
+
+  return previewEventArchiveFile(filePath);
 };
+
+function isValidEventArchivePath(filePath: unknown): filePath is string {
+  return (
+    typeof filePath === "string" &&
+    path.extname(filePath).toLowerCase() === ".zip" &&
+    fs.existsSync(filePath)
+  );
+}
 
 // Only slugs enumerated from disk are trusted; a renderer-provided slug is never used directly as a path.
 const loadEventDatabase: Handler<string, DatabaseResponse> = (_event, slug) => {
@@ -160,6 +189,7 @@ export function initEventDatabaseHandlers() {
   ipcMain.handle("is-event-database-loaded", isEventDatabaseLoaded);
   ipcMain.handle("create-event-database", createEventDatabase);
   ipcMain.handle("create-event-database-from-archive", createEventDatabaseFromArchive);
+  ipcMain.handle("select-event-archive-preview", selectEventArchivePreview);
   ipcMain.handle("finish-event-setup", finishEventSetup);
   ipcMain.handle("load-event-database", loadEventDatabase);
   ipcMain.handle("delete-event-database", deleteEventDatabase);

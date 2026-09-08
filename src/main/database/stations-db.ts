@@ -67,6 +67,16 @@ export function readEventNameFromStationsFile(filePath: string): string {
   return readEventNameFromStationsContent(fs.readFileSync(filePath, "utf-8"));
 }
 
+export function previewStationsContent(jsonContent: string): Station[] {
+  const stationData = parseStationsJson(jsonContent);
+
+  if (!Array.isArray(stationData.stations)) {
+    throw new Error("Stations file is missing stations");
+  }
+
+  return stationData.stations;
+}
+
 export async function parseStationsContent(jsonContent: string, sourceLabel: string) {
   const stationData = parseStationsJson(jsonContent);
   const db = getDatabaseConnection();

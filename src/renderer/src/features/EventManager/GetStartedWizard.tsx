@@ -4,13 +4,11 @@ import { Button } from "~/components/Button";
 import { Modal } from "~/components/Modal";
 import { Select } from "~/components/Select";
 import { useIdentityForm } from "~/features/StationsPage/hooks/useIdentityForm";
-import { useStationOperators } from "~/features/StationsPage/hooks/useStationOperators";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { useSetStationIdentity } from "~/hooks/data/useStation";
-import { useStations } from "~/hooks/data/useStations";
-import { useBasicIpcCall } from "~/hooks/ipc/useBasicIpcCall";
 import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 import { DatabaseStatus } from "$shared/enums";
+import { DatabaseResponse, EventArchivePreview } from "$shared/types";
 import { EventImportProgressRow } from "./EventImportProgressRow";
 
 const routeApi = getRouteApi("/");
@@ -27,26 +25,27 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
   const { createToast } = useToasts();
   const ipcRenderer = useIpcRenderer();
   const identityForm = useIdentityForm();
+  const { setValue } = identityForm;
   const setStationIdentity = useSetStationIdentity(true);
-  const createDatabase = useBasicIpcCall("create-event-database-from-archive", {
-    preToast: "Select an event file to create the event",
-    suppressToasts: true
-  });
+  const [archivePreview, setArchivePreview] = useState<EventArchivePreview | null>(null);
   const [progress, setProgress] = useState<ImportStatus>("pending");
   const [running, setRunning] = useState(false);
-  const archiveLoaded = progress === "success";
-  const { data: stations, refetch: refetchStations } = useStations(archiveLoaded);
+  const archiveLoaded = progress === "success" && archivePreview !== null;
+  const stations = archivePreview?.stations ?? [];
   const selectedStationId = identityForm.watch("identifier");
   const selectedCallsign = identityForm.watch("callsign");
-  const { data: currentOperators } = useStationOperators(selectedStationId);
+  const currentOperators = stations.find(
+    (station) => station.identifier === selectedStationId
+  )?.operators;
 
   useEffect(() => {
     if (currentOperators) {
-      identityForm.setValue("callsign", currentOperators["primary"]?.callsign);
+      setValue("callsign", currentOperators["primary"]?.callsign);
     }
-  }, [currentOperators, identityForm]);
+  }, [currentOperators, setValue]);
 
   const reset = () => {
+    setArchivePreview(null);
     setProgress("pending");
     setRunning(false);
     identityForm.reset();
@@ -64,20 +63,23 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
     setProgress("working");
 
     try {
-      const result = (await createDatabase.mutateAsync()) as [
-        string | null,
-        DatabaseStatus,
-        string
-      ];
-      if (result[1] !== DatabaseStatus.Created) {
-        throw new Error(result[2] || "Unable to create the event database");
+      const [preview, status, message] = (await ipcRenderer.invoke(
+        "select-event-archive-preview"
+      )) as DatabaseResponse<EventArchivePreview>;
+      if (status !== DatabaseStatus.Success || !preview) {
+        throw new Error(message || "Unable to load the event file");
       }
+
+      setArchivePreview(preview);
       setProgress("success");
-      await refetchStations();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load the event file";
-      createToast({ message, type: "danger" });
-      setProgress("error");
+      if (message === "No event file selected") {
+        setProgress("pending");
+      } else {
+        createToast({ message, type: "danger" });
+        setProgress("error");
+      }
     } finally {
       setRunning(false);
     }
@@ -89,13 +91,28 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
       return;
     }
 
+    if (!archivePreview) {
+      createToast({ message: "Load an event file before importing", type: "danger" });
+      return;
+    }
+
     setRunning(true);
+    setProgress("working");
 
     try {
+      const [, status, message] = (await ipcRenderer.invoke(
+        "create-event-database-from-archive",
+        archivePreview.archiveFilePath
+      )) as DatabaseResponse<string>;
+      if (status !== DatabaseStatus.Created) {
+        throw new Error(message || "Unable to create the event database");
+      }
+
       await setStationIdentity.mutateAsync(identity);
       sessionStorage.setItem("skip-event-manager-auto-open", "true");
       await ipcRenderer.invoke("finish-event-setup");
       createToast({ message: "Event created and initial files imported", type: "success" });
+      setProgress("success");
       setRunning(false);
       setOpen(false);
       await navigate({ to: "/" });
@@ -103,6 +120,7 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
       sessionStorage.removeItem("skip-event-manager-auto-open");
       const message = error instanceof Error ? error.message : "Unable to create the event";
       createToast({ message, type: "danger" });
+      setProgress("error");
       setRunning(false);
     }
   });
@@ -122,8 +140,8 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
               }))}
               value={selectedStationId}
               onChange={(value) => {
-                identityForm.setValue("identifier", String(value));
-                identityForm.setValue("callsign", "");
+                setValue("identifier", String(value));
+                setValue("callsign", "");
               }}
               placeholder="Select a station"
               disabled={running}
@@ -135,7 +153,7 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
                 name: operator.callsign
               }))}
               value={selectedCallsign}
-              onChange={(value) => identityForm.setValue("callsign", String(value))}
+              onChange={(value) => setValue("callsign", String(value))}
               placeholder="Select an operator"
               disabled={running || !selectedStationId}
             />

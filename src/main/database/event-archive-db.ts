@@ -1,19 +1,27 @@
 import { Readable } from "stream";
 import AdmZip from "adm-zip";
 import { DatabaseStatus } from "$shared/enums";
-import { DatabaseResponse } from "$shared/types";
+import { DatabaseResponse, EventArchivePreview } from "$shared/types";
 import { parseAthletesContent } from "./athlete-db";
 import { createDatabaseFile, resolveUniqueSlug, slugify } from "./connect-db";
-import { parseStationsContent, readEventNameFromStationsContent } from "./stations-db";
+import {
+  parseStationsContent,
+  previewStationsContent,
+  readEventNameFromStationsContent
+} from "./stations-db";
 import { parseDropsContent } from "./status-db";
 
 const STATIONS_ENTRY = "stations.json";
 const ATHLETES_ENTRY = "athletes.csv";
 const DROPS_ENTRY = "drops.csv";
 
-export async function importEventArchiveFile(
-  archiveFilePath: string
-): Promise<DatabaseResponse<string>> {
+interface EventArchiveEntries {
+  stationsEntry: AdmZip.IZipEntry;
+  athletesEntry: AdmZip.IZipEntry;
+  dropsEntry: AdmZip.IZipEntry | null;
+}
+
+function readEventArchiveEntries(archiveFilePath: string): DatabaseResponse<EventArchiveEntries> {
   let zip: AdmZip;
   try {
     zip = new AdmZip(archiveFilePath);
@@ -33,17 +41,48 @@ export async function importEventArchiveFile(
     return [null, DatabaseStatus.Error, `Event file is missing required file(s): ${missing}`];
   }
 
+  return [{ stationsEntry, athletesEntry, dropsEntry }, DatabaseStatus.Success, ""];
+}
+
+export function previewEventArchiveFile(
+  archiveFilePath: string
+): DatabaseResponse<EventArchivePreview> {
+  const [entries, status, message] = readEventArchiveEntries(archiveFilePath);
+  if (!entries) return [null, status, message];
+
   try {
-    const stationsJson = stationsEntry.getData().toString("utf-8");
+    const stationsJson = entries.stationsEntry.getData().toString("utf-8");
+    const eventName = readEventNameFromStationsContent(stationsJson);
+    const stations = previewStationsContent(stationsJson);
+
+    return [
+      { archiveFilePath, eventName, stations },
+      DatabaseStatus.Success,
+      `Loaded event file "${eventName}"`
+    ];
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unable to preview event file";
+    return [null, DatabaseStatus.Error, message];
+  }
+}
+
+export async function importEventArchiveFile(
+  archiveFilePath: string
+): Promise<DatabaseResponse<string>> {
+  const [entries, status, message] = readEventArchiveEntries(archiveFilePath);
+  if (!entries) return [null, status, message];
+
+  try {
+    const stationsJson = entries.stationsEntry.getData().toString("utf-8");
     const eventName = readEventNameFromStationsContent(stationsJson);
     const slug = resolveUniqueSlug(slugify(eventName) || "event");
 
     createDatabaseFile(slug);
     await parseStationsContent(stationsJson, STATIONS_ENTRY);
-    await parseAthletesContent(Readable.from(athletesEntry.getData()), ATHLETES_ENTRY);
+    await parseAthletesContent(Readable.from(entries.athletesEntry.getData()), ATHLETES_ENTRY);
 
-    if (dropsEntry) {
-      await parseDropsContent(Readable.from(dropsEntry.getData()), DROPS_ENTRY);
+    if (entries.dropsEntry) {
+      await parseDropsContent(Readable.from(entries.dropsEntry.getData()), DROPS_ENTRY);
     }
 
     return [slug, DatabaseStatus.Created, `Created event database "${slug}"`];
