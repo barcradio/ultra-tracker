@@ -2,9 +2,6 @@ import { IMigration } from "@blackglory/better-sqlite3-migrations";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
-import * as tableDefs4 from "./schema/table-definitions-v4";
-import * as tableDefs5 from "./schema/table-definitions-v5";
-import * as tableDefs6 from "./schema/table-definitions-v6";
 
 export const migrations: IMigration[] = [
   {
@@ -65,19 +62,9 @@ export const migrations: IMigration[] = [
           "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
           ${tableDefs3.OpenSplitTimePushStatus}
         );
-      `,
-    down: `
-        DROP TABLE IF EXISTS RFIDInbox;
-        DROP TABLE IF EXISTS RFIDPendingWrites;
-        DROP TABLE IF EXISTS OpenSplitTimePushStatus;
-      `
-  },
-  {
-    version: 4,
-    up: `
-        CREATE TABLE IF NOT EXISTS Status_v4 (
-          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs4.Status});
-        INSERT INTO Status_v4 (bibId, dropped, dropReason, dropStation, dropDateTime, note, progress)
+        CREATE TABLE IF NOT EXISTS Status_v3 (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs3.Status});
+        INSERT INTO Status_v3 (bibId, dropped, dropReason, dropStation, dropDateTime, note, progress)
           SELECT bibId,
             CASE WHEN dns = 1 OR dnf = 1 THEN 1 ELSE 0 END,
             CASE WHEN dns = 1 THEN 'did-not-start' WHEN dnf = 1 THEN dnfType ELSE NULL END,
@@ -87,9 +74,15 @@ export const migrations: IMigration[] = [
           FROM Status
           WHERE EXISTS (SELECT 1 FROM Status LIMIT 1);
         DROP TABLE Status;
-        ALTER TABLE Status_v4 RENAME TO Status;
+        ALTER TABLE Status_v3 RENAME TO Status;
+        CREATE TABLE IF NOT EXISTS Watchlist (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs3.Watchlist});
+        CREATE TABLE IF NOT EXISTS EventMeta (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs3.EventMeta});
       `,
     down: `
+        DROP TABLE IF EXISTS EventMeta;
+        DROP TABLE IF EXISTS Watchlist;
         CREATE TABLE IF NOT EXISTS Status_v2 (
           "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs2.Status});
         INSERT INTO Status_v2 (bibId, dns, dnf, dnfType, dnfStation, dnfDateTime, note, progress)
@@ -104,26 +97,9 @@ export const migrations: IMigration[] = [
           WHERE EXISTS (SELECT 1 FROM Status LIMIT 1);
         DROP TABLE Status;
         ALTER TABLE Status_v2 RENAME TO Status;
-      `
-  },
-  {
-    version: 5,
-    up: `
-        CREATE TABLE IF NOT EXISTS Watchlist (
-          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs5.Watchlist});
-      `,
-    down: `
-        DROP TABLE IF EXISTS Watchlist;
-      `
-  },
-  {
-    version: 6,
-    up: `
-        CREATE TABLE IF NOT EXISTS EventMeta (
-          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs6.EventMeta});
-      `,
-    down: `
-        DROP TABLE IF EXISTS EventMeta;
+        DROP TABLE IF EXISTS RFIDInbox;
+        DROP TABLE IF EXISTS RFIDPendingWrites;
+        DROP TABLE IF EXISTS OpenSplitTimePushStatus;
       `
   }
 ];

@@ -5,11 +5,8 @@ import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
-import * as tableDefs4 from "./schema/table-definitions-v4";
-import * as tableDefs5 from "./schema/table-definitions-v5";
-import * as tableDefs6 from "./schema/table-definitions-v6";
 
-const userVersion: number = 6;
+const userVersion: number = 3;
 let tableDefs;
 
 interface Table {
@@ -67,18 +64,6 @@ export function validateDatabaseTables(db: Database.Database) {
     case 3:
       tableDefs = tableDefs3;
       break;
-
-    case 4:
-      tableDefs = tableDefs4;
-      break;
-
-    case 5:
-      tableDefs = tableDefs5;
-      break;
-
-    case 6:
-      tableDefs = tableDefs6;
-      break;
   }
 
   for (const key in tableDefs.expectedTableNames) {
@@ -132,7 +117,7 @@ function* toColumnNames(stmt) {
 
 /* Recreate the database tables, will be the current schema version */
 export function CreateTables(db: Database.Database) {
-  tableDefs = tableDefs6;
+  tableDefs = tableDefs3;
   const result =
     createAthletesTable(db) &&
     createEventLogTable(db) &&
