@@ -7,6 +7,7 @@ import { clearStationsTable, createStationsTable } from "./tables-db";
 import { Station, StationDB } from "../../shared/models";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
+import { syncSplitEntryKinds } from "../services/opensplittime";
 
 export function formatDate(date: Date | null): string {
   if (date == null) return "";
@@ -36,6 +37,7 @@ interface OpenSplitTimeEventJSON {
 interface OpenSplitTimeEventMetadata {
   name: string;
   id: number;
+  splitEntryKinds?: Record<string, Array<"in" | "out">>;
 }
 
 function parseStationsJson(jsonContent: string): stationsJSON {
@@ -84,6 +86,15 @@ export async function parseStationsContent(jsonContent: string, sourceLabel: str
           staging: { name: "", id: 0 }
         }
       );
+
+      try {
+        await syncSplitEntryKinds();
+      } catch (error) {
+        console.warn(
+          "Unable to hydrate OpenSplitTime split entry kinds from the loaded stations file",
+          error
+        );
+      }
     }
 
     if (index == "stations") {

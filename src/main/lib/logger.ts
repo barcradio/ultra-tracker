@@ -23,36 +23,26 @@ export function initialize() {
     path.join(app.getPath("documents"), app.name, `.logs/${now}-main.log`);
   log.errorHandler.startCatching();
   log.transports.console.format = "[{iso}] [{level}] [{processType}] {text}";
-  // Override console methods to log both to console and electron-log
-  const originalLog = console.log;
-  const originalError = console.error;
-  const originalWarn = console.warn;
-  const originalInfo = console.info;
-  const originalDebug = console.debug;
-
+  // Keep the app on a single console transport and let electron-log handle file output.
+  // This avoids duplicates like the same message being emitted twice to the terminal.
   console.log = (...args: unknown[]) => {
-    log.log(...args); // Log to electron-log
-    originalLog(...args); // Log to console
+    log.log(...args);
   };
 
   console.error = (...args: unknown[]) => {
-    log.error(...args); // Log to electron-log
-    originalError(...args); // Log to console
+    log.error(...args);
   };
 
   console.warn = (...args: unknown[]) => {
-    log.warn(...args); // Log to electron-log
-    originalWarn(...args); // Log to console
+    log.warn(...args);
   };
 
   console.info = (...args: unknown[]) => {
-    log.info(...args); // Log to electron-log
-    originalInfo(...args); // Log to console
+    log.info(...args);
   };
 
   console.debug = (...args: unknown[]) => {
-    log.debug(...args); // Log to electron-log
-    originalDebug(...args); // Log to console
+    log.debug(...args);
   };
 
   const freeMem = Number(os.freemem) / Math.pow(1024, 3);
