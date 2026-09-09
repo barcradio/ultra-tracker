@@ -13,9 +13,12 @@ jobs:
   release:
     runs-on: ${{ matrix.os }}
     strategy:
+      # Serialized: the Release step below runs once per matrix leg, and
+      # concurrent calls against the same tag can create duplicate drafts.
+      max-parallel: 1
       matrix:
         node-version: [24]
-        os: [windows-latest]
+        os: [windows-latest, macos-latest]
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
