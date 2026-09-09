@@ -20,6 +20,10 @@ nsis:
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist
+  # better-sqlite3 ships every platform's prebuilt .node, so these files are
+  # byte-identical in the x64 and arm64 passes and @electron/universal refuses
+  # to merge them unless they are declared here.
+  x64ArchFiles: "**/better-sqlite3/prebuilds/**"
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
