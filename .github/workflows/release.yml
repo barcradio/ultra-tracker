@@ -13,9 +13,12 @@ jobs:
   release:
     runs-on: ${{ matrix.os }}
     strategy:
+      # Serialized: the Release step below runs once per matrix leg, and
+      # concurrent calls against the same tag can create duplicate drafts.
+      max-parallel: 1
       matrix:
         node-version: [24]
-        os: [windows-latest]
+        os: [windows-latest, ubuntu-latest]
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -26,9 +29,12 @@ jobs:
       - if: matrix.os == 'windows-latest'
         run: pnpm config set virtual-store-dir-max-length 80
 
+      # electron-builder fetches its own fpm for the deb target, so ruby is not
+      # needed. If that download ever proves unreliable, install fpm here and
+      # set USE_SYSTEM_FPM=true on the Build Linux step (not on Release, where
+      # it has no effect on the build):
       # - if: matrix.os == 'ubuntu-latest'
       #   run: sudo apt install ruby ruby-dev
-
       # - if: matrix.os == 'ubuntu-latest'
       #   run: sudo gem install fpm
 
@@ -85,4 +91,3 @@ jobs:
             dist/*.yml
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          USE_SYSTEM_FPM: true
