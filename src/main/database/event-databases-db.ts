@@ -22,20 +22,31 @@ interface CountRow {
   count: number;
 }
 
+// Databases from older, unmigrated schema versions (e.g. legacy v2 event archives) may not
+// have these tables yet; migrations only run when the database is actually switched to.
+function tableExists(connection: Database.Database, tableName: string): boolean {
+  return (
+    connection
+      .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?`)
+      .get(tableName) !== undefined
+  );
+}
+
 function readEventDatabaseMetadata(
   connection: Database.Database,
   slug: string,
   type: EventDatabaseMetadata["type"],
   filePath: string
 ): EventDatabaseMetadata {
-  const eventMeta = connection.prepare(`SELECT * FROM EventMeta LIMIT 1`).get() as
-    EventMetaRow | undefined;
-  const timingRecordCount = (
-    connection.prepare(`SELECT COUNT(*) AS count FROM TimeRecords`).get() as CountRow
-  ).count;
-  const athleteCount = (
-    connection.prepare(`SELECT COUNT(*) AS count FROM Athletes`).get() as CountRow
-  ).count;
+  const eventMeta = tableExists(connection, "EventMeta")
+    ? (connection.prepare(`SELECT * FROM EventMeta LIMIT 1`).get() as EventMetaRow | undefined)
+    : undefined;
+  const timingRecordCount = tableExists(connection, "TimeRecords")
+    ? (connection.prepare(`SELECT COUNT(*) AS count FROM TimeRecords`).get() as CountRow).count
+    : 0;
+  const athleteCount = tableExists(connection, "Athletes")
+    ? (connection.prepare(`SELECT COUNT(*) AS count FROM Athletes`).get() as CountRow).count
+    : 0;
 
   return {
     slug,
