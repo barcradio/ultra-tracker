@@ -10,6 +10,7 @@
   },
   "homepage": "https://github.com/barcradio/ultra-tracker",
   "appId": "barcradio.ultra-tracker",
+  "desktopName": "ultra-tracker.desktop",
   "license": "MIT",
   "repository": {
     "repository": {

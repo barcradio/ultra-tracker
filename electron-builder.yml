@@ -44,6 +44,14 @@ linux:
         - arm64
   maintainer: BARC <no-reply@barconline.org>
   category: Utility
+  # Debian's Description field is "synopsis\n description". Without a synopsis
+  # the whole field renders empty, which is a lintian error and shows as a
+  # blank description in package managers.
+  synopsis: Track athlete times in ultra marathons
+  # Derive the .desktop filename from executableName so it matches
+  # StartupWMClass and Electron's app_id, which is how desktop environments
+  # associate a running window with its icon. Becomes the default in v27.
+  syncDesktopName: true
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
