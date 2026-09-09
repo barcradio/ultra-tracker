@@ -18,12 +18,16 @@ interface Table {
 }
 
 export function applyMigrations(db: Database.Database) {
+  // tracked outside the try so a failure can revert to the version the database
+  // was actually on, rather than assuming it was one step below the target
+  let currentVersion = db.pragma("user_version", { simple: true }) as number;
+
   try {
     console.log(`Applying database migrations`);
     for (let index = 0; index <= userVersion; index++) {
       if (index == 0) continue; // skip schema base revision
 
-      const currentVersion = db.pragma("user_version", { simple: true }) as number;
+      currentVersion = db.pragma("user_version", { simple: true }) as number;
       if (currentVersion == userVersion) return;
 
       const migrationVersion = currentVersion + 1;
@@ -35,8 +39,9 @@ export function applyMigrations(db: Database.Database) {
       db.pragma(`user_version = ${migrationVersion}`);
       console.log(`[success] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
     }
-  } catch {
-    db.pragma(`user_version = ${Math.max(0, userVersion - 1)}`);
+  } catch (e: unknown) {
+    if (e instanceof Error) console.log(`Migration failed: ${e.message}`);
+    db.pragma(`user_version = ${currentVersion}`);
     console.log(
       `[error] pragma user_version: ${db.pragma("user_version", { simple: true })} reverted`
     );
