@@ -81,11 +81,49 @@ function rewriteDesktopEntry(source: string, appImagePath: string): string {
     .join("\n");
 }
 
+/**
+ * Describe the icon directories we just populated as a hicolor theme.
+ *
+ * Without an index.theme, Qt does not treat ~/.local/share/icons/hicolor as
+ * part of the hicolor theme and menus fall back to a generic icon, even though
+ * the files are present and correctly named. GTK is more forgiving and finds
+ * them either way, which is why this only shows up on Qt desktops such as
+ * LXQt and KDE. Only written when absent, so a richer index installed by the
+ * distribution or another application is left alone.
+ */
+async function writeIconThemeIndex(iconRoot: string, sizeDirs: string[]): Promise<void> {
+  const indexPath = join(iconRoot, "index.theme");
+  if (sizeDirs.length === 0 || (await exists(indexPath))) return;
+
+  const directories = sizeDirs.map((size) => `${size}/apps`);
+  const sections = sizeDirs.map((size) =>
+    [
+      `[${size}/apps]`,
+      `Size=${size.split("x")[0]}`,
+      "Context=Applications",
+      "Type=Threshold",
+      ""
+    ].join("\n")
+  );
+
+  const index = [
+    "[Icon Theme]",
+    "Name=Hicolor",
+    "Comment=Fallback icon theme",
+    `Directories=${directories.join(",")}`,
+    "",
+    ...sections
+  ].join("\n");
+
+  await writeFile(indexPath, index, { mode: 0o644 });
+}
+
 async function copyIcons(appDir: string, iconTargetRoot: string): Promise<number> {
   const iconSourceRoot = join(appDir, ICON_RELATIVE_ROOT);
   if (!(await exists(iconSourceRoot))) return 0;
 
   let copied = 0;
+  const populatedSizes: string[] = [];
   for (const sizeDir of await readdir(iconSourceRoot)) {
     const sourceDir = join(iconSourceRoot, sizeDir, "apps");
     if (!(await exists(sourceDir))) continue;
@@ -96,7 +134,10 @@ async function copyIcons(appDir: string, iconTargetRoot: string): Promise<number
       await copyFile(join(sourceDir, iconFile), join(targetDir, iconFile));
       copied += 1;
     }
+    populatedSizes.push(sizeDir);
   }
+
+  await writeIconThemeIndex(iconTargetRoot, populatedSizes);
   return copied;
 }
 
