@@ -147,14 +147,19 @@ async function copyIcons(appDir: string, iconTargetRoot: string): Promise<number
  * Menus read the icon theme cache in preference to scanning, so a stale
  * icon-theme.cache left by any earlier tool hides icons we just wrote and the
  * launcher falls back to a generic one. Package installs run these through
- * dpkg triggers; an AppImage has to do it itself. Both are best-effort: they
- * are frequently absent, and nothing here is worth delaying startup for.
+ * dpkg triggers; an AppImage has to do it itself.
+ *
+ * Deliberately not awaited by callers. The files on disk are what the window
+ * manager needs when it maps the window; these only affect menus, which are
+ * read later, so there is no reason to hold up startup for them. Both tools
+ * are also frequently absent, and allSettled means a missing one is a no-op
+ * rather than a rejection.
  */
-async function refreshDesktopCaches(applicationsDir: string, iconRoot: string): Promise<void> {
-  await Promise.allSettled([
-    run("update-desktop-database", [applicationsDir], { timeout: 10_000 }),
+function refreshDesktopCaches(applicationsDir: string, iconRoot: string): void {
+  void Promise.allSettled([
+    run("update-desktop-database", [applicationsDir], { timeout: 5_000 }),
     run("gtk-update-icon-cache", ["--quiet", "--force", "--ignore-theme-index", iconRoot], {
-      timeout: 10_000
+      timeout: 5_000
     })
   ]);
 }
@@ -188,7 +193,7 @@ async function removeSupersededEntry(): Promise<void> {
       );
     }
 
-    await refreshDesktopCaches(join(dataHome, "applications"), iconRoot);
+    refreshDesktopCaches(join(dataHome, "applications"), iconRoot);
 
     uberLog(
       LogLevel.info,
@@ -249,7 +254,7 @@ export async function integrateAppImageDesktopEntry(): Promise<void> {
     await writeFile(targetDesktopEntry, entry, { mode: 0o644 });
     const iconRoot = join(dataHome, "icons", "hicolor");
     const icons = await copyIcons(appDir, iconRoot);
-    await refreshDesktopCaches(applicationsDir, iconRoot);
+    refreshDesktopCaches(applicationsDir, iconRoot);
 
     uberLog(
       LogLevel.info,
