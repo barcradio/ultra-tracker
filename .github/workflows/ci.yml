@@ -50,6 +50,3 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 14
-
-      - name: Test
-        run: pnpm test
