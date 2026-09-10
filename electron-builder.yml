@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: barcradio.ultra-tracker
 productName: ultra-tracker
 directories:
   buildResources: build
