@@ -12,6 +12,7 @@ import {
 } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
+import { integrateAppImageDesktopEntry } from "./lib/appimage-desktop-integration";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
@@ -142,6 +143,9 @@ async function initializeApp(): Promise<void> {
 
   initialize();
   initUserDirectories();
+  // No-op unless running as an AppImage; gives that build a desktop entry so
+  // its window resolves to the real icon instead of a generic placeholder.
+  void integrateAppImageDesktopEntry();
   adoptLegacyDatabaseIfPresent();
   const activeDatabaseSlug = appStore.get("event.activeDatabaseSlug") as string | null;
   if (activeDatabaseSlug && listEventDatabaseSlugs().includes(activeDatabaseSlug)) {
