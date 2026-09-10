@@ -278,7 +278,7 @@ Ultra-Tracker runs a SQLite database on the local machine. All transactions are 
 ## About Ultra-Tracker
 
 A cross-platform desktop application for tracking athletes during ultra marathons.
-This project is supported on Windows and future support for Linux and MacOS.
+This project is supported on Windows and MacOS, with future support for Linux. The MacOS build is a universal DMG and is not notarized, so clear quarantine on first launch.
 
 Built as an Electron application using TypeScript + React + Tailwind CSS.
 

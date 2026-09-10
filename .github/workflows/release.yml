@@ -13,8 +13,7 @@ jobs:
   release:
     runs-on: ${{ matrix.os }}
     strategy:
-      # Serialized: the Release step below runs once per matrix leg, and
-      # concurrent calls against the same tag can create duplicate drafts.
+      # The Release step runs per leg; concurrent legs duplicate the draft.
       max-parallel: 1
       matrix:
         node-version: [24]

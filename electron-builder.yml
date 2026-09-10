@@ -20,18 +20,15 @@ nsis:
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist
-  # better-sqlite3 ships every platform's prebuilt .node, so these files are
-  # byte-identical in the x64 and arm64 passes and @electron/universal refuses
-  # to merge them unless they are declared here.
+  # These prebuilds are byte-identical across the x64 and arm64 passes, and
+  # @electron/universal refuses to merge such files unless declared.
   x64ArchFiles: "**/better-sqlite3/prebuilds/**"
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
-  # No Apple Developer ID available. Ad-hoc signing is still required: macOS
-  # refuses to load an unsealed bundle on Apple Silicon. Hardened runtime is
-  # off because it enforces library validation, which rejects ad-hoc-signed
-  # frameworks for having no Team ID. Users clear quarantine on first launch.
+  # No Developer ID, but Apple Silicon still refuses an unsealed bundle, so
+  # sign ad-hoc. Library validation rejects that, so hardened runtime is off.
   identity: "-"
   hardenedRuntime: false
   target:
