@@ -70,21 +70,16 @@ function createWindow(): BrowserWindow {
     mainWindow.show();
     mainWindow.focus();
     mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
-    // Linux only. Windows and macOS take their icon from the packaged bundle,
-    // and calling this there replaces it with the Linux PNG. On Wayland it is
-    // a no-op regardless, since the protocol has no client-set window icon;
-    // it still helps under X11, where the window carries its own icon.
+    // Linux only: Windows and macOS take their icon from the packaged bundle,
+    // and this would replace it with the Linux PNG.
     if (process.platform === "linux") mainWindow.setIcon(iconLinux);
   };
 
   mainWindow!.once("ready-to-show", () => revealMainWindow("ready-to-show"));
 
-  // On Wayland, ready-to-show fires late or not at all (electron/electron#48859,
-  // regressed in Electron 38). The window is created hidden, so when the event
-  // is missed it stays hidden forever and the app looks like it failed to open.
-  // GNOME launches Electron apps with the Wayland ozone hint, so this is the
-  // default path on current Ubuntu. Reveal the window anyway after a grace
-  // period; the guard above keeps this a no-op wherever the event does fire.
+  // On Wayland, ready-to-show can never fire (electron/electron#48859), leaving
+  // the hidden window hidden forever. Reveal it anyway; the guard in
+  // revealMainWindow makes this a no-op wherever the event does arrive.
   const readyToShowFallback = setTimeout(() => revealMainWindow("fallback timer"), 5000);
   mainWindow!.once("show", () => clearTimeout(readyToShowFallback));
   mainWindow!.once("closed", () => clearTimeout(readyToShowFallback));
@@ -139,10 +134,8 @@ async function initializeApp(): Promise<void> {
 
   setApplicationMenu();
 
-  // Must complete before the first window exists. Desktop environments bind a
-  // window to its .desktop entry when the window is mapped, so an entry
-  // written afterwards is not picked up until the next launch, leaving this
-  // run with a generic icon. No-op unless running as an AppImage.
+  // Must finish before the first window: the desktop binds a window to its
+  // .desktop entry when it is mapped. No-op unless running as an AppImage.
   await integrateAppImageDesktopEntry();
 
   createWindow();

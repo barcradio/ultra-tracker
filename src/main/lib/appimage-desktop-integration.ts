@@ -8,16 +8,11 @@ import { LogLevel, uberLog } from "./logger";
 
 const run = promisify(execFile);
 
-// An AppImage installs nothing, so nothing on disk describes the app. Desktop
-// environments resolve a window's icon by matching its app_id against a
-// .desktop entry in the XDG data directories, and on Wayland that is the only
-// mechanism available: the protocol has no way for a client to set its own
-// window icon, so BrowserWindow.setIcon is a no-op there. Without an entry the
-// app shows a generic placeholder icon.
-//
-// Copy the .desktop file and icons that ship inside the image into the user's
-// own XDG directories on first run, rewriting Exec to point at the AppImage.
-// The .deb does this through dpkg; this is the AppImage equivalent.
+// An AppImage installs nothing, so no .desktop entry exists for desktop
+// environments to match the window against - and on Wayland that entry is the
+// only way to give a window an icon. This copies the entry and icons out of the
+// image into the user's XDG directories, doing for the AppImage what dpkg does
+// for the .deb.
 
 const DESKTOP_FILE_NAME = "ultra-tracker.desktop";
 const ICON_RELATIVE_ROOT = join("usr", "share", "icons", "hicolor");
@@ -25,10 +20,8 @@ const ICON_RELATIVE_ROOT = join("usr", "share", "icons", "hicolor");
 /**
  * Absolute path of the running AppImage, or null when not running as one.
  *
- * The legacy FUSE2 runtime set APPIMAGE directly. The static type2 runtime we
- * build with does not always, but it does set ARGV0 (the path used to invoke
- * the image) and OWD (the directory it was invoked from), which together
- * reconstruct the same thing.
+ * The static runtime does not always set APPIMAGE the way the legacy one did,
+ * but ARGV0 and OWD together reconstruct it.
  */
 function resolveAppImagePath(): string | null {
   const direct = process.env.APPIMAGE;
@@ -48,8 +41,8 @@ function resolveAppDir(): string | null {
   const appDir = process.env.APPDIR;
   if (appDir) return appDir;
 
-  // Fall back to the directory holding the executable, which is the mount root
-  // for an AppImage. Only trust it when it looks like one.
+  // The executable's directory is the mount root; only trust it when it looks
+  // like one.
   const candidate = dirname(process.execPath);
   return candidate.includes("/.mount_") ? candidate : null;
 }
@@ -70,8 +63,7 @@ function rewriteDesktopEntry(source: string, appImagePath: string): string {
     .split("\n")
     .map((line) => {
       if (line.startsWith("Exec=")) {
-        // Preserve the field codes and flags the packaged entry already carries
-        // (--no-sandbox, %U), replacing only the AppRun placeholder.
+        // Replace only the AppRun placeholder, keeping flags and field codes.
         const args = line.slice("Exec=".length).trim().split(/\s+/).slice(1);
         return `Exec=${[quoted, ...args].join(" ")}`;
       }
@@ -84,12 +76,9 @@ function rewriteDesktopEntry(source: string, appImagePath: string): string {
 /**
  * Describe the icon directories we just populated as a hicolor theme.
  *
- * Without an index.theme, Qt does not treat ~/.local/share/icons/hicolor as
- * part of the hicolor theme and menus fall back to a generic icon, even though
- * the files are present and correctly named. GTK is more forgiving and finds
- * them either way, which is why this only shows up on Qt desktops such as
- * LXQt and KDE. Only written when absent, so a richer index installed by the
- * distribution or another application is left alone.
+ * Qt ignores a hicolor directory with no index.theme, so icons are present but
+ * unused on LXQt and KDE; GTK finds them either way. Left alone when a richer
+ * index already exists.
  */
 async function writeIconThemeIndex(iconRoot: string, sizeDirs: string[]): Promise<void> {
   const indexPath = join(iconRoot, "index.theme");
@@ -142,18 +131,11 @@ async function copyIcons(appDir: string, iconTargetRoot: string): Promise<number
 }
 
 /**
- * Tell the desktop that entries and icons changed.
+ * Tell the desktop that entries and icons changed - a stale icon cache hides
+ * what we just wrote.
  *
- * Menus read the icon theme cache in preference to scanning, so a stale
- * icon-theme.cache left by any earlier tool hides icons we just wrote and the
- * launcher falls back to a generic one. Package installs run these through
- * dpkg triggers; an AppImage has to do it itself.
- *
- * Deliberately not awaited by callers. The files on disk are what the window
- * manager needs when it maps the window; these only affect menus, which are
- * read later, so there is no reason to hold up startup for them. Both tools
- * are also frequently absent, and allSettled means a missing one is a no-op
- * rather than a rejection.
+ * Intentionally not awaited: these only affect menus, read long after startup,
+ * and both tools are often absent.
  */
 function refreshDesktopCaches(applicationsDir: string, iconRoot: string): void {
   void Promise.allSettled([
@@ -167,12 +149,9 @@ function refreshDesktopCaches(applicationsDir: string, iconRoot: string): void {
 /**
  * Drop the entry this module wrote once a packaged install owns the launcher.
  *
- * Both entries use the same basename, and a user-level one takes precedence
- * over /usr/share, so an AppImage entry left behind keeps shadowing the
- * installed app: the launcher goes on starting the AppImage, or breaks
- * outright once that file is deleted. Only remove an entry we recognise as
- * ours, and only when a system entry exists to take over. Running the
- * AppImage again simply recreates it.
+ * Both share a basename and the user-level one wins, so a leftover AppImage
+ * entry keeps shadowing the installed app. Only ours, only when a system entry
+ * exists to take over; running the AppImage again recreates it.
  */
 async function removeSupersededEntry(): Promise<void> {
   try {
@@ -186,8 +165,7 @@ async function removeSupersededEntry(): Promise<void> {
     await rm(userEntry, { force: true });
     const iconRoot = join(dataHome, "icons", "hicolor");
     for (const sizeDir of await readdir(iconRoot).catch(() => [])) {
-      // hicolor also holds plain files such as icon-theme.cache, where this
-      // path is not a directory at all; skip whatever does not remove cleanly.
+      // hicolor also holds plain files such as icon-theme.cache; skip those.
       await rm(join(iconRoot, sizeDir, "apps", "ultra-tracker.png"), { force: true }).catch(
         () => undefined
       );
@@ -208,12 +186,10 @@ async function removeSupersededEntry(): Promise<void> {
 
 /**
  * Install the AppImage's desktop entry and icons into the user's XDG
- * directories so desktop environments can associate the running window with
- * its icon.
+ * directories so the running window resolves to its icon.
  *
- * Safe to call unconditionally: it returns immediately unless running as an
- * AppImage on Linux, and it never throws or blocks startup. Re-runs on every
- * launch so the entry keeps pointing at the image after it is moved or renamed.
+ * Safe to call unconditionally: a no-op unless running as an AppImage on Linux,
+ * and it never throws. Re-runs each launch so the entry follows a moved image.
  */
 export async function integrateAppImageDesktopEntry(): Promise<void> {
   if (process.platform !== "linux") return;
@@ -246,8 +222,7 @@ export async function integrateAppImageDesktopEntry(): Promise<void> {
     const entry = rewriteDesktopEntry(await readFile(sourceDesktopEntry, "utf8"), appImagePath);
     const targetDesktopEntry = join(applicationsDir, DESKTOP_FILE_NAME);
 
-    // Avoid rewriting an identical file so we do not touch its mtime and
-    // trigger desktop database rescans on every launch.
+    // Skip identical writes; touching mtime triggers a desktop rescan.
     const current = await readFile(targetDesktopEntry, "utf8").catch(() => null);
     if (current === entry) return;
 
