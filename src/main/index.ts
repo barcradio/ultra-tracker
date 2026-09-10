@@ -135,6 +135,12 @@ async function initializeApp(): Promise<void> {
 
   setApplicationMenu();
 
+  // Must complete before the first window exists. Desktop environments bind a
+  // window to its .desktop entry when the window is mapped, so an entry
+  // written afterwards is not picked up until the next launch, leaving this
+  // run with a generic icon. No-op unless running as an AppImage.
+  await integrateAppImageDesktopEntry();
+
   createWindow();
 
   if (!mainWindow) return;
@@ -143,9 +149,6 @@ async function initializeApp(): Promise<void> {
 
   initialize();
   initUserDirectories();
-  // No-op unless running as an AppImage; gives that build a desktop entry so
-  // its window resolves to the real icon instead of a generic placeholder.
-  void integrateAppImageDesktopEntry();
   adoptLegacyDatabaseIfPresent();
   const activeDatabaseSlug = appStore.get("event.activeDatabaseSlug") as string | null;
   if (activeDatabaseSlug && listEventDatabaseSlugs().includes(activeDatabaseSlug)) {
