@@ -18,12 +18,10 @@ For a guide on how to set up an event using Ultra-Tracker, and advanced RFID con
 
 On first launch, Ultra-Tracker opens **Getting Started** to guide the user through starting an event for timing data collection.
 
-1. Select **Load Event File** and choose the event zip file supplied for the event. This
-   creates the local event database.
+1. Select **Load Event File** and choose the event file (`.zip`) supplied for the event.
 2. Select the station identifier for this computer.
 3. Select the operator callsign.
-5. Select the **Initial Drops** file, containing athletes known to have not started or dropped before the current station.
-6. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
+4. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
 
 The event files can be selected from their existing location; they do not need to be copied into a
 special folder first. The default event-config folder is `\Documents\Ultra-Tracker\.event-config\`.
@@ -208,7 +206,7 @@ This page allows the operator to manage event input files and the database neede
 
 ### OpenSplitTime
 
-OpenSplitTime is an optional integration for sending timing records directly to the selected event group. Configure the event group in the Stations file, then sign in on the Settings page with an OpenSplitTime steward account. Credentials may be saved using the operating system's secure credential storage. If both staging and production event groups are configured, select the environment before signing in. Production sends times to the live event and requires confirmation when switching from staging.
+OpenSplitTime is an optional integration for sending timing records directly to the configured event group. The configuration is done per event file, then sign in with an OpenSplitTime steward account that is a member of that event. Credentials can be saved between sessions. If both staging and production event groups are configured, select the environment before signing in. Production events send times to a live event and requires confirmation when switching from staging.
 
 While signed in, OpenSplitTime status takes precedence over CSV export status in the timing-record indicator. Use **Pause Pushes** to temporarily stop automatic uploads without signing out; **Resume Pushes** restarts them. **Sign Out** returns the indicator to the CSV export state and does not change whether a record has been exported.
 
@@ -229,12 +227,8 @@ While signed in, OpenSplitTime status takes precedence over CSV export status in
 
 The following is a description of each button's function. Each of these will open a file open dialog to the `\Documents\Ultra-Tracker\.event-config\` directory.
 
-#### Station Setup
+#### Drops File Import
 
-- **Load Stations File**
-  This loads a `JSON` file containing each of the stations and their detailed information to allow ease of selection while setting up this application. A typical filename will be `eventname-YYYY-stations.json`.
-- **Load Athletes File**
-  This function loads a `.csv` file, supplied by race organizers, containing all athletes registered or checked in for the event, whether they are known to have started _or not_.
 - **Load Drops File**
   This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not started** or **dropped from** the race (Withdrew, Timeout, Medical, Unknown).
 
@@ -258,6 +252,8 @@ The following is a description of each button's function. Each of these will ope
 
 #### Developer Tools
 
+- **Reload Events File**
+  This function reloads an event archive file (`.zip`), updating station data, athlete rosters, and initial drop records in the currently loaded event database.
 - **Recreate Database**
   This function is the means where _ALL_ **database entries and tables are removed** resulting in the loss of _ALL_ setup data and entry history! The intent is to allow recovery of a major database corruption event and the rapid rebuild and subsequent return to normal operation by the operator.
 - **Recover Data From CSV File**
@@ -268,9 +264,9 @@ The following is a description of each button's function. Each of these will ope
 > [!WARNING]
 > If instructed to do so, after the "Recreate Database" has been performed, perform the following steps:
 >
-> 1. Load the Stations file.
-> 1. Load the Athletes file.
-> 1. Load the Drops file.
+> 1. Create a new event using the Event Manager.
+> 1. Reload the event database file.
+> 1. Load the Drops file if applicable.
 > 1. Import a Full Export file using "Recover Data From CSV File".
 
 ### Local Database
@@ -292,6 +288,7 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 
 > | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Call Sign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
 > | :------------------- | :----------- | :----------------------------------------------------- |
+> | **Paul Carter**      | KG7OKR       | [**cartpaul**](https://github.com/cartpauj)            |
 > | **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)           |
 > | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)             |
 > | **Russ Leikis**      | KE7VFI       | [**@rleikis**](https://github.com/rleikis)             |
