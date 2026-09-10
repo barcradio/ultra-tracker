@@ -1,8 +1,12 @@
+import { execFile } from "child_process";
 import { constants } from "fs";
 import { access, copyFile, mkdir, readFile, readdir, rm, writeFile } from "fs/promises";
 import { homedir } from "os";
 import { dirname, isAbsolute, join, resolve } from "path";
+import { promisify } from "util";
 import { LogLevel, uberLog } from "./logger";
+
+const run = promisify(execFile);
 
 // An AppImage installs nothing, so nothing on disk describes the app. Desktop
 // environments resolve a window's icon by matching its app_id against a
@@ -97,6 +101,24 @@ async function copyIcons(appDir: string, iconTargetRoot: string): Promise<number
 }
 
 /**
+ * Tell the desktop that entries and icons changed.
+ *
+ * Menus read the icon theme cache in preference to scanning, so a stale
+ * icon-theme.cache left by any earlier tool hides icons we just wrote and the
+ * launcher falls back to a generic one. Package installs run these through
+ * dpkg triggers; an AppImage has to do it itself. Both are best-effort: they
+ * are frequently absent, and nothing here is worth delaying startup for.
+ */
+async function refreshDesktopCaches(applicationsDir: string, iconRoot: string): Promise<void> {
+  await Promise.allSettled([
+    run("update-desktop-database", [applicationsDir], { timeout: 10_000 }),
+    run("gtk-update-icon-cache", ["--quiet", "--force", "--ignore-theme-index", iconRoot], {
+      timeout: 10_000
+    })
+  ]);
+}
+
+/**
  * Drop the entry this module wrote once a packaged install owns the launcher.
  *
  * Both entries use the same basename, and a user-level one takes precedence
@@ -124,6 +146,8 @@ async function removeSupersededEntry(): Promise<void> {
         () => undefined
       );
     }
+
+    await refreshDesktopCaches(join(dataHome, "applications"), iconRoot);
 
     uberLog(
       LogLevel.info,
@@ -182,7 +206,9 @@ export async function integrateAppImageDesktopEntry(): Promise<void> {
     if (current === entry) return;
 
     await writeFile(targetDesktopEntry, entry, { mode: 0o644 });
-    const icons = await copyIcons(appDir, join(dataHome, "icons", "hicolor"));
+    const iconRoot = join(dataHome, "icons", "hicolor");
+    const icons = await copyIcons(appDir, iconRoot);
+    await refreshDesktopCaches(applicationsDir, iconRoot);
 
     uberLog(
       LogLevel.info,
