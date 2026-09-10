@@ -6,8 +6,12 @@ on:
     branches:
       - develop
 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
-  quality:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -35,125 +39,65 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-  test-main-database:
-    name: Test (main / database)
-    needs: quality
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Enable Corepack (uses packageManager from package.json)
-        run: corepack enable
-
-      - name: Install Node.js v24
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Run test suite
+      - name: Test Main Database
+        id: test_main_database
+        continue-on-error: true
         run: pnpm test:main:database
 
-  test-main-ipc:
-    name: Test (main / ipc)
-    needs: quality
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Enable Corepack (uses packageManager from package.json)
-        run: corepack enable
-
-      - name: Install Node.js v24
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Run test suite
+      - name: Test Main IPC
+        id: test_main_ipc
+        continue-on-error: true
         run: pnpm test:main:ipc
 
-  test-preload:
-    name: Test (preload)
-    needs: [test-main-database, test-main-ipc]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Enable Corepack (uses packageManager from package.json)
-        run: corepack enable
-
-      - name: Install Node.js v24
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Run test suite
+      - name: Test Preload
+        id: test_preload
+        continue-on-error: true
         run: pnpm test:preload
 
-  test-renderer:
-    name: Test (renderer)
-    needs: test-preload
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Enable Corepack (uses packageManager from package.json)
-        run: corepack enable
-
-      - name: Install Node.js v24
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Run test suite
+      - name: Test Renderer
+        id: test_renderer
+        continue-on-error: true
         run: pnpm test:renderer
 
-  coverage:
-    name: Coverage (non-blocking)
-    needs: test-renderer
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Enable Corepack (uses packageManager from package.json)
-        run: corepack enable
-
-      - name: Install Node.js v24
-        uses: actions/setup-node@v4
+      - name: Publish test checks
+        if: always()
+        uses: actions/github-script@v8
         with:
-          node-version: 24
-          cache: pnpm
+          script: |
+            const suites = [
+              ["Test (main / database)", "${{ steps.test_main_database.outcome }}"],
+              ["Test (main / ipc)", "${{ steps.test_main_ipc.outcome }}"],
+              ["Test (preload)", "${{ steps.test_preload.outcome }}"],
+              ["Test (renderer)", "${{ steps.test_renderer.outcome }}"]
+            ];
 
-      - name: Install Dependencies
-        run: pnpm install
+            for (const [name, outcome] of suites) {
+              await github.rest.checks.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name,
+                head_sha: context.sha,
+                status: "completed",
+                conclusion: outcome === "success" ? "success" : "failure",
+                details_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                output: {
+                  title: name,
+                  summary: `Vitest suite ${outcome}.`
+                }
+              });
+            }
+
+      - name: Verify test suites
+        if: always()
+        run: |
+          test "${{ steps.test_main_database.outcome }}" = "success"
+          test "${{ steps.test_main_ipc.outcome }}" = "success"
+          test "${{ steps.test_preload.outcome }}" = "success"
+          test "${{ steps.test_renderer.outcome }}" = "success"
 
       # Informational only: coverage % is a weak signal on its own and isn't a merge gate.
-      - name: Run coverage
+      - name: Coverage (non-blocking)
+        if: always()
         continue-on-error: true
         run: pnpm test:coverage
 
