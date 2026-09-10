@@ -61,6 +61,21 @@ linux:
   syncDesktopName: true
 appImage:
   artifactName: ${name}-${version}.${ext}
+  # The static runtime does not add --no-sandbox the way the FUSE2 one did.
+  # Set it explicitly so switching toolsets does not silently change how the
+  # app runs: an AppImage is a read-only mount, so it cannot ship a setuid
+  # sandbox helper, and Ubuntu 24.04+ blocks the unprivileged user namespace
+  # fallback by default.
+  executableArgs:
+    - --no-sandbox
+# Use the static, FUSE3-compatible AppImage runtime instead of the legacy
+# FUSE2 one. The legacy arm64 runtime links against the unversioned libz.so,
+# which only exists with zlib1g-dev, so it fails to start on a stock Ubuntu
+# with "error while loading shared libraries: libz.so". The static runtime
+# bundles what it needs and also drops the libfuse2 requirement. Becomes the
+# default in electron-builder v27.
+toolsets:
+  appimage: "1.0.2"
 npmRebuild: false
 publish:
   provider: generic
