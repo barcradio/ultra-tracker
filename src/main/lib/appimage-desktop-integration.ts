@@ -1,5 +1,5 @@
 import { constants } from "fs";
-import { access, copyFile, mkdir, readFile, readdir, writeFile } from "fs/promises";
+import { access, copyFile, mkdir, readFile, readdir, rm, writeFile } from "fs/promises";
 import { homedir } from "os";
 import { dirname, isAbsolute, join, resolve } from "path";
 import { LogLevel, uberLog } from "./logger";
@@ -97,6 +97,46 @@ async function copyIcons(appDir: string, iconTargetRoot: string): Promise<number
 }
 
 /**
+ * Drop the entry this module wrote once a packaged install owns the launcher.
+ *
+ * Both entries use the same basename, and a user-level one takes precedence
+ * over /usr/share, so an AppImage entry left behind keeps shadowing the
+ * installed app: the launcher goes on starting the AppImage, or breaks
+ * outright once that file is deleted. Only remove an entry we recognise as
+ * ours, and only when a system entry exists to take over. Running the
+ * AppImage again simply recreates it.
+ */
+async function removeSupersededEntry(): Promise<void> {
+  try {
+    const dataHome = process.env.XDG_DATA_HOME || join(homedir(), ".local", "share");
+    const userEntry = join(dataHome, "applications", DESKTOP_FILE_NAME);
+
+    const contents = await readFile(userEntry, "utf8").catch(() => null);
+    if (contents == null || !contents.includes("X-AppImage-Version")) return;
+    if (!(await exists(join("/usr/share/applications", DESKTOP_FILE_NAME)))) return;
+
+    await rm(userEntry, { force: true });
+    const iconRoot = join(dataHome, "icons", "hicolor");
+    for (const sizeDir of await readdir(iconRoot).catch(() => [])) {
+      // hicolor also holds plain files such as icon-theme.cache, where this
+      // path is not a directory at all; skip whatever does not remove cleanly.
+      await rm(join(iconRoot, sizeDir, "apps", "ultra-tracker.png"), { force: true }).catch(
+        () => undefined
+      );
+    }
+
+    uberLog(
+      LogLevel.info,
+      "startup",
+      "Removed the AppImage desktop entry now that an installed package provides one",
+      false
+    );
+  } catch {
+    // Cosmetic cleanup; never let it affect startup.
+  }
+}
+
+/**
  * Install the AppImage's desktop entry and icons into the user's XDG
  * directories so desktop environments can associate the running window with
  * its icon.
@@ -109,7 +149,10 @@ export async function integrateAppImageDesktopEntry(): Promise<void> {
   if (process.platform !== "linux") return;
 
   const appDir = resolveAppDir();
-  if (appDir == null) return;
+  if (appDir == null) {
+    await removeSupersededEntry();
+    return;
+  }
 
   const appImagePath = resolveAppImagePath();
   if (appImagePath == null) {
