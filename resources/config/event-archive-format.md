@@ -25,7 +25,7 @@ so it must be present.
 
 ## `athletes.csv`
 
-Same schema accepted by the Settings page "Load Athletes File" import — header row:
+Same schema accepted by athlete roster imports — header row:
 
 ```
 Bib,First Name,Last Name,gender,age,city,state,emergency_name,emergency_phone

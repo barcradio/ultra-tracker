@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import * as dbAthlete from "../database/athlete-db";
 import { getDatabaseConnection } from "../database/connect-db";
+import { reloadEventArchiveFile } from "../database/event-archive-db";
 import * as dbRunners from "../database/runners-db";
 import * as dbStations from "../database/stations-db";
 import * as dbStatus from "../database/status-db";
@@ -40,6 +41,10 @@ const clearDatabase: Handler<string> = () => {
   return result;
 };
 
+const reloadEventsFile: Handler<string> = () => {
+  return reloadEventArchiveFile();
+};
+
 export const initdbSettingsHandlers = () => {
   ipcMain.handle("load-athletes-file", loadAthletesFile);
   ipcMain.handle("load-stations-file", loadStationFile);
@@ -47,4 +52,5 @@ export const initdbSettingsHandlers = () => {
   ipcMain.handle("import-runners-file", importRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);
   ipcMain.handle("clear-database", clearDatabase);
+  ipcMain.handle("reload-events-file", reloadEventsFile);
 };
