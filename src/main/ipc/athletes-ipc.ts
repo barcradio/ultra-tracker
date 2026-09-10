@@ -1,7 +1,7 @@
 import { ipcMain } from "electron";
+import { DatabaseStatus } from "$shared/enums";
 import { AthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
-import { DatabaseStatus } from "$shared/enums";
 import * as dbAthletes from "../database/athlete-db";
 import * as dbWatchlist from "../database/watchlist-db";
 import * as stats from "../lib/stat-engine";

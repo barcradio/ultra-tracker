@@ -1,5 +1,7 @@
 ![image](https://github.com/user-attachments/assets/f1d4e7a5-e90b-471c-9137-1f1022d9e1f9)
 
+[![CI](https://github.com/barcradio/ultra-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/barcradio/ultra-tracker/actions/workflows/ci.yml)
+
 An app for tracking athletes during ultra marathons.
 
 An Electron application with React and TypeScript for Windows, Linux, and MacOS.

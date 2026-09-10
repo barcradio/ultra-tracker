@@ -35,6 +35,10 @@
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux",
     "mock:event-archive": "node scripts/build-mock-event-archive.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:mutation": "stryker run",
     "prepare": "husky"
   },
   "dependencies": {
@@ -76,6 +80,8 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@stryker-mutator/core": "^10.0.0",
+    "@stryker-mutator/vitest-runner": "^10.0.0",
     "@tanstack/router-devtools": "^1.167.1",
     "@tanstack/router-vite-plugin": "^1.167.35",
     "@types/adm-zip": "^0.5.8",
@@ -87,6 +93,7 @@
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.2.0",
+    "@vitest/coverage-v8": "4.1.11",
     "autoprefixer": "^10.5.4",
     "electron": "^43.4.1",
     "electron-builder": "^26.15.3",
@@ -111,6 +118,7 @@
     "typescript": "^5.9.3",
     "uuid": "^14.0.2",
     "vite": "^7.3.6",
-    "vite-plugin-svgr": "^4.5.0"
+    "vite-plugin-svgr": "^4.5.0",
+    "vitest": "4.1.11"
   }
 }
