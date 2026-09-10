@@ -70,7 +70,11 @@ function createWindow(): BrowserWindow {
     mainWindow.show();
     mainWindow.focus();
     mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
-    mainWindow.setIcon(iconLinux);
+    // Linux only. Windows and macOS take their icon from the packaged bundle,
+    // and calling this there replaces it with the Linux PNG. On Wayland it is
+    // a no-op regardless, since the protocol has no client-set window icon;
+    // it still helps under X11, where the window carries its own icon.
+    if (process.platform === "linux") mainWindow.setIcon(iconLinux);
   };
 
   mainWindow!.once("ready-to-show", () => revealMainWindow("ready-to-show"));
