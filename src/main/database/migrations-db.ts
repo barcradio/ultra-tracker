@@ -148,5 +148,16 @@ export const migrations: IMigration[] = [
         DROP TABLE IF EXISTS RFIDPendingWrites;
         DROP TABLE IF EXISTS OpenSplitTimePushStatus;
       `
+  },
+  {
+    version: 4,
+    up: (db: Database.Database) => {
+      if (!columnExists(db, "EventMeta", "openSplitTime")) {
+        db.exec(`ALTER TABLE EventMeta ADD COLUMN openSplitTime TEXT;`);
+      }
+    },
+    down: `
+        ALTER TABLE EventMeta DROP COLUMN openSplitTime;
+      `
   }
 ];

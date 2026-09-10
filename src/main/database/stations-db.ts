@@ -128,13 +128,14 @@ export async function parseStationsContent(jsonContent: string, sourceLabel: str
 
   db.prepare(`DELETE FROM EventMeta`).run();
   db.prepare(
-    `INSERT INTO EventMeta (name, startline, finishline, starttime, endtime) VALUES (?, ?, ?, ?, ?)`
+    `INSERT INTO EventMeta (name, startline, finishline, starttime, endtime, openSplitTime) VALUES (?, ?, ?, ?, ?, ?)`
   ).run(
     stationData.event.name,
     appStore.get("event.startline"),
     appStore.get("event.finishline"),
     stationData.event.starttime,
-    stationData.event.endtime
+    stationData.event.endtime,
+    JSON.stringify(appStore.get("event.openSplitTime"))
   );
 
   // TODO: Commit transaction
