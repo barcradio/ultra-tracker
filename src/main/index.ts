@@ -63,13 +63,26 @@ function createWindow(): BrowserWindow {
   });
   let rendererCrashDialogOpen = false;
 
-  mainWindow!.once("ready-to-show", () => {
-    uberLog(LogLevel.info, "ui", "Main window ready to show", false);
-    mainWindow!.show();
-    mainWindow!.focus();
-    mainWindow!.setTitle(`${app.name} - v${app.getVersion()}`);
-    mainWindow!.setIcon(iconLinux);
-  });
+  const revealMainWindow = (trigger: string): void => {
+    if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isVisible()) return;
+    uberLog(LogLevel.info, "ui", `Main window ready to show (${trigger})`, false);
+    mainWindow.show();
+    mainWindow.focus();
+    mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
+    mainWindow.setIcon(iconLinux);
+  };
+
+  mainWindow!.once("ready-to-show", () => revealMainWindow("ready-to-show"));
+
+  // On Wayland, ready-to-show fires late or not at all (electron/electron#48859,
+  // regressed in Electron 38). The window is created hidden, so when the event
+  // is missed it stays hidden forever and the app looks like it failed to open.
+  // GNOME launches Electron apps with the Wayland ozone hint, so this is the
+  // default path on current Ubuntu. Reveal the window anyway after a grace
+  // period; the guard above keeps this a no-op wherever the event does fire.
+  const readyToShowFallback = setTimeout(() => revealMainWindow("fallback timer"), 5000);
+  mainWindow!.once("show", () => clearTimeout(readyToShowFallback));
+  mainWindow!.once("closed", () => clearTimeout(readyToShowFallback));
 
   mainWindow!.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);

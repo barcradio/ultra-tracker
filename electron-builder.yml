@@ -30,6 +30,13 @@ mac:
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
+  # A single PNG installs only that one size into hicolor, which leaves panels
+  # and menus scaling one oversized bitmap. Point at a directory of NxN.png so
+  # every size is installed and each desktop can pick the right one.
+  # Resolved relative to directories.buildResources (build/), so this is
+  # build/icons. Getting the prefix wrong here fails silently: electron-builder
+  # falls back to generating a partial set from icon.icns instead.
+  icon: icons
   # 64-bit only, matching the Windows (x64) and macOS (universal) builds.
   # armv7l is dropped deliberately: a 32-bit Pi cannot usefully run this app,
   # and Pi 4/5 run 64-bit Raspberry Pi OS, which is arm64.
