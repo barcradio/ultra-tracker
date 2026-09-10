@@ -60,7 +60,11 @@ linux:
   # associate a running window with its icon. Becomes the default in v27.
   syncDesktopName: true
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  # ${arch} is required: both AppImage legs run in the same job, so without it
+  # x64 and arm64 resolve to one filename and the second build silently
+  # overwrites the first, publishing one arch under an arch-neutral name.
+  # The deb target derives its own arch suffix, so only AppImage needs this.
+  artifactName: ${name}-${version}-${arch}.${ext}
   # The static runtime does not add --no-sandbox the way the FUSE2 one did.
   # Set it explicitly so switching toolsets does not silently change how the
   # app runs: an AppImage is a read-only mount, so it cannot ship a setuid
