@@ -7,7 +7,7 @@ on:
       - develop
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -35,11 +35,125 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
-        run: pnpm test
+  test-main-database:
+    name: Test (main / database)
+    needs: quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack (uses packageManager from package.json)
+        run: corepack enable
+
+      - name: Install Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run test suite
+        run: pnpm test:main:database
+
+  test-main-ipc:
+    name: Test (main / ipc)
+    needs: quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack (uses packageManager from package.json)
+        run: corepack enable
+
+      - name: Install Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run test suite
+        run: pnpm test:main:ipc
+
+  test-preload:
+    name: Test (preload)
+    needs: [test-main-database, test-main-ipc]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack (uses packageManager from package.json)
+        run: corepack enable
+
+      - name: Install Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run test suite
+        run: pnpm test:preload
+
+  test-renderer:
+    name: Test (renderer)
+    needs: test-preload
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack (uses packageManager from package.json)
+        run: corepack enable
+
+      - name: Install Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run test suite
+        run: pnpm test:renderer
+
+  coverage:
+    name: Coverage (non-blocking)
+    needs: test-renderer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack (uses packageManager from package.json)
+        run: corepack enable
+
+      - name: Install Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
 
       # Informational only: coverage % is a weak signal on its own and isn't a merge gate.
-      - name: Coverage (non-blocking)
+      - name: Run coverage
         continue-on-error: true
         run: pnpm test:coverage
 
