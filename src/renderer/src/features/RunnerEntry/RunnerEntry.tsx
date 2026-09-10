@@ -27,7 +27,7 @@ export function RunnerEntry() {
     {
       field: "bibId",
       name: "Bib",
-      align: "left",
+      align: "right",
       sample: "9999"
     },
     {
