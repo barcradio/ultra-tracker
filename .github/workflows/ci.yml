@@ -49,6 +49,26 @@ jobs:
         continue-on-error: true
         run: pnpm test:main:ipc
 
+      - name: Test Main API
+        id: test_main_api
+        continue-on-error: true
+        run: pnpm test:main:api
+
+      - name: Test Main Lib
+        id: test_main_lib
+        continue-on-error: true
+        run: pnpm test:main:lib
+
+      - name: Test Main Services
+        id: test_main_services
+        continue-on-error: true
+        run: pnpm test:main:services
+
+      - name: Test Main Bootstrap
+        id: test_main_bootstrap
+        continue-on-error: true
+        run: pnpm test:main:bootstrap
+
       - name: Test Preload
         id: test_preload
         continue-on-error: true
@@ -67,6 +87,10 @@ jobs:
             const suites = [
               ["Test (main / database)", "${{ steps.test_main_database.outcome }}"],
               ["Test (main / ipc)", "${{ steps.test_main_ipc.outcome }}"],
+              ["Test (main / api)", "${{ steps.test_main_api.outcome }}"],
+              ["Test (main / lib)", "${{ steps.test_main_lib.outcome }}"],
+              ["Test (main / services)", "${{ steps.test_main_services.outcome }}"],
+              ["Test (main / bootstrap)", "${{ steps.test_main_bootstrap.outcome }}"],
               ["Test (preload)", "${{ steps.test_preload.outcome }}"],
               ["Test (renderer)", "${{ steps.test_renderer.outcome }}"]
             ];
@@ -92,8 +116,32 @@ jobs:
         run: |
           test "${{ steps.test_main_database.outcome }}" = "success"
           test "${{ steps.test_main_ipc.outcome }}" = "success"
+          test "${{ steps.test_main_api.outcome }}" = "success"
+          test "${{ steps.test_main_lib.outcome }}" = "success"
+          test "${{ steps.test_main_services.outcome }}" = "success"
+          test "${{ steps.test_main_bootstrap.outcome }}" = "success"
           test "${{ steps.test_preload.outcome }}" = "success"
           test "${{ steps.test_renderer.outcome }}" = "success"
+
+      # The suites above are path-scoped, so a test file added outside them would never run in
+      # CI and its failures would go unnoticed. Fail loudly instead.
+      - name: Check every test file belongs to a suite
+        if: always()
+        run: |
+          unclaimed=$(find src -name '*.test.ts' \
+            ! -path 'src/main/database/*' \
+            ! -path 'src/main/ipc/*' \
+            ! -path 'src/main/api/*' \
+            ! -path 'src/main/lib/*' \
+            ! -path 'src/main/services/*' \
+            ! -path 'src/main/tests/*' \
+            ! -path 'src/preload/*' \
+            ! -path 'src/renderer/*')
+          if [ -n "$unclaimed" ]; then
+            echo "These test files are not covered by any CI suite:"
+            echo "$unclaimed"
+            exit 1
+          fi
 
       # Informational only: coverage % is a weak signal on its own and isn't a merge gate.
       - name: Coverage (non-blocking)
