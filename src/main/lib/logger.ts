@@ -21,8 +21,18 @@ export function initialize() {
   log.initialize();
   log.transports.file.resolvePathFn = () =>
     path.join(app.getPath("documents"), app.name, `.logs/${now}-main.log`);
-  log.errorHandler.startCatching();
+  // showDialog defaults to true; an operator mid-event should not have to
+  // dismiss a stack trace.
+  log.errorHandler.startCatching({ showDialog: false });
   log.transports.console.format = "[{iso}] [{level}] [{processType}] {text}";
+
+  // A closed stdout raises EPIPE, which the handler above logs, which writes
+  // again, which raises EPIPE again. Swallow it so logging cannot kill the app.
+  for (const stream of [process.stdout, process.stderr]) {
+    stream.on("error", (err: NodeJS.ErrnoException) => {
+      if (err.code !== "EPIPE") throw err;
+    });
+  }
   // Keep the app on a single console transport and let electron-log handle file output.
   // This avoids duplicates like the same message being emitted twice to the terminal.
   console.log = (...args: unknown[]) => {
