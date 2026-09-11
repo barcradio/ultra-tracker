@@ -13,22 +13,14 @@
         "clear-text",
         "progress"
     ],
-    "coverageAnalysis": "off",
+    "coverageAnalysis": "perTest",
+    "concurrency": 4,
+    "ignoreStatic": true,
     "mutate": [
-        "src/main/database/connect-db.ts",
-        "src/main/database/tables-db.ts",
-        "src/main/database/rfidInbox-db.ts",
-        "src/main/database/rfidPendingWrites-db.ts",
-        "src/main/database/opensplittimeStatus-db.ts",
-        "src/main/database/eventLogger-db.ts",
-        "src/main/database/watchlist-db.ts",
-        "src/main/database/event-databases-db.ts",
-        "src/main/ipc/status-ipc.ts",
-        "src/main/ipc/athletes-ipc.ts",
-        "src/main/ipc/stations-ipc.ts",
-        "src/main/ipc/store-ipc.ts",
-        "src/main/ipc/settings-ipc.ts",
-        "src/main/ipc/eventLogs-ipc.ts",
-        "src/main/ipc/stats-ipc.ts"
+        "src/main/**/*.ts",
+        "!src/main/**/tests/**",
+        "!src/main/database/schema/**",
+        "!src/main/types.ts",
+        "!src/main/api/rfid/interfaces/**"
     ]
 }
