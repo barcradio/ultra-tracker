@@ -13,9 +13,11 @@ jobs:
   release:
     runs-on: ${{ matrix.os }}
     strategy:
+      # The Release step runs per leg; concurrent legs duplicate the draft.
+      max-parallel: 1
       matrix:
         node-version: [24]
-        os: [windows-latest]
+        os: [windows-latest, ubuntu-latest]
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -26,9 +28,10 @@ jobs:
       - if: matrix.os == 'windows-latest'
         run: pnpm config set virtual-store-dir-max-length 80
 
+      # electron-builder fetches its own fpm. If that ever proves unreliable,
+      # install it here and set USE_SYSTEM_FPM=true on the Build Linux step:
       # - if: matrix.os == 'ubuntu-latest'
       #   run: sudo apt install ruby ruby-dev
-
       # - if: matrix.os == 'ubuntu-latest'
       #   run: sudo gem install fpm
 
@@ -85,4 +88,3 @@ jobs:
             dist/*.yml
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          USE_SYSTEM_FPM: true
