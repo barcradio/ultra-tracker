@@ -1,0 +1,26 @@
+{
+    "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+    "packageManager": "pnpm",
+    "plugins": [
+        "@stryker-mutator/vitest-runner"
+    ],
+    "testRunner": "vitest",
+    "vitest": {
+        "configFile": "vitest.stryker.config.ts"
+    },
+    "reporters": [
+        "html",
+        "clear-text",
+        "progress"
+    ],
+    "coverageAnalysis": "perTest",
+    "concurrency": 4,
+    "ignoreStatic": true,
+    "mutate": [
+        "src/main/**/*.ts",
+        "!src/main/**/tests/**",
+        "!src/main/database/schema/**",
+        "!src/main/types.ts",
+        "!src/main/api/rfid/interfaces/**"
+    ]
+}
