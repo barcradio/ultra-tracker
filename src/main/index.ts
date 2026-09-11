@@ -5,6 +5,7 @@ import iconLinux from "$resources/iconLinux.png?asset";
 import { DisconnectRFIDReader, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
+  closeActiveConnection,
   getDatabaseConnection,
   isDatabaseConnected,
   listEventDatabaseSlugs,
@@ -144,16 +145,6 @@ async function initializeApp(): Promise<void> {
     await mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
 
-  app.on("activate", function () {
-    app.on("window-all-closed", () => {
-      if (process.platform !== "darwin") {
-        DisconnectRFIDReader();
-        app.quit();
-      }
-      shutdown();
-    });
-  });
-
   openDevToolsOnDomReady(mainWindow);
 
   // Prevent navigation in the main window
@@ -195,11 +186,36 @@ app.on("activate", () => {
   }
 });
 //Window Close Handler
+// Quit on every platform, macOS included: a docked instance with no window
+// only strands the RFID reader and holds the event database open.
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    DisconnectRFIDReader();
-    app.quit();
-  }
+  app.quit();
+});
+
+// Stopping the reader is a network round trip, and will-quit cannot await one.
+// Hold the quit open for it, then let the quit proceed. The timeout is the
+// safety net: a reader that is unplugged or unreachable must not strand the
+// operator in an app that will not close.
+const RFID_STOP_TIMEOUT_MS = 3000;
+let teardownStarted = false;
+
+app.on("before-quit", (event) => {
+  if (teardownStarted) return;
+  teardownStarted = true;
+  event.preventDefault();
+
+  const stopped = DisconnectRFIDReader().catch((error: unknown) => {
+    console.error("RFID disconnect failed during shutdown", error);
+  });
+  const timeout = new Promise((resolve) => setTimeout(resolve, RFID_STOP_TIMEOUT_MS));
+
+  void Promise.race([stopped, timeout]).then(() => app.quit());
+});
+
+// Tear down once, however the quit was triggered. Closing the connection
+// checkpoints the WAL.
+app.on("will-quit", () => {
+  closeActiveConnection();
   shutdown();
 });
 
