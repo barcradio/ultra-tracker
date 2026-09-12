@@ -8,6 +8,7 @@ export interface IRfidController {
   initialize(settings: RfidSettings): Promise<void>;
   connect(): void;
   disconnect(): Promise<void>;
+  closeWebSocket(): void;
   recover(): void;
   startRFID(): Promise<void>;
   stopRFID(): Promise<void>;
