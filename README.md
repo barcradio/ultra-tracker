@@ -1,5 +1,7 @@
 ![image](https://github.com/user-attachments/assets/f1d4e7a5-e90b-471c-9137-1f1022d9e1f9)
 
+[![CI](https://github.com/barcradio/ultra-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/barcradio/ultra-tracker/actions/workflows/ci.yml)
+
 An app for tracking athletes during ultra marathons.
 
 An Electron application with React and TypeScript for Windows, Linux, and MacOS.
@@ -270,6 +272,23 @@ The following is a description of each button's function. Each of these will ope
 ### Local Database
 
 Ultra-Tracker runs a SQLite database on the local machine. All transactions are preserved immediately and the operator can close and re-open the app without loss of data. A background task backs up the database to a secondary file, every 5 minutes. This backup is used for emergency use only and may not restore all data in a data-loss event. _Do not modify the local database files using external tools!_
+
+## Development
+
+Ultra-Tracker requires Node 22 or newer. Running `pnpm install` downloads and uses a matching version of Node automatically, so no manual version switching is needed.
+
+- **`pnpm dev`**
+  Runs the application in development mode.
+- **`pnpm test`**
+  Runs the test suite once and reports the result.
+- **`pnpm test:watch`**
+  Runs the test suite and re-runs it as files change.
+- **`pnpm test:coverage`**
+  Runs the test suite and produces a coverage report.
+- **`pnpm lint`** and **`pnpm typecheck`**
+  Check formatting, lint rules, and TypeScript types.
+
+Tests are written with Vitest and live in a `tests/` folder beside the code they cover, such as `src/main/database/tests/`. Every pull request runs the test suite, lint, and typecheck.
 
 ## About Ultra-Tracker
 
