@@ -93,6 +93,7 @@ vi.mock("@electron-toolkit/utils", () => utils);
 vi.mock("$resources/iconLinux.png?asset", () => ({ default: "iconLinux.png" }));
 
 const rfid = vi.hoisted(() => ({
+  CloseRFIDWebSocket: vi.fn(),
   DisconnectRFIDReader: vi.fn(),
   RecoverRFIDReader: vi.fn()
 }));
@@ -389,7 +390,7 @@ describe("main process", () => {
 
       emitApp("window-all-closed");
 
-      expect(rfid.DisconnectRFIDReader).toHaveBeenCalled();
+      expect(rfid.CloseRFIDWebSocket).toHaveBeenCalled();
       expect(app.quit).toHaveBeenCalled();
       expect(logger.shutdown).toHaveBeenCalled();
     });
