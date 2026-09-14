@@ -9,6 +9,16 @@ import { appStore } from "../lib/store";
 let db: Database.Database | null = null;
 let backupInterval: NodeJS.Timeout | null = null;
 
+// The app wires these at startup. Handlers rather than a direct import because the database
+// layer cannot depend on anything that reads from it without creating an import cycle.
+let eventOpened: (() => void) | null = null;
+let eventClosed: (() => void) | null = null;
+
+export function setEventLifecycleHandlers(opened: () => void, closed: () => void): void {
+  eventOpened = opened;
+  eventClosed = closed;
+}
+
 function getDbFolder(): string {
   return path.join(app.getPath("userData"), `event-databases`);
 }
@@ -53,6 +63,8 @@ export function closeActiveConnection(): void {
     backupInterval = null;
   }
 
+  if (db) eventClosed?.();
+
   db?.close();
   db = null;
 }
@@ -77,6 +89,7 @@ export function switchToDatabase(slug: string): void {
     appStore.set("event.name", eventMeta?.name || slug);
     appStore.set("event.prettyName", formatEventDatabaseName(slug, eventMeta?.name || undefined));
     appStore.set("event.activeDatabaseSlug", slug);
+    eventOpened?.();
     console.log("Connected to SQLite Database:" + dbPath);
   } catch (e: unknown) {
     closeActiveConnection();

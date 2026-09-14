@@ -9,6 +9,7 @@ import {
   getDatabaseConnection,
   getDbPaths,
   isDatabaseConnected,
+  setEventLifecycleHandlers,
   switchToDatabase
 } from "../connect-db";
 
@@ -62,6 +63,41 @@ describe("connect-db lifecycle", () => {
       createDatabaseFile("bear-100");
 
       expect(fs.existsSync(dbFolder)).toBe(true);
+    });
+  });
+
+  describe("event lifecycle handlers", () => {
+    const opened = vi.fn();
+    const closed = vi.fn();
+
+    beforeEach(() => {
+      opened.mockClear();
+      closed.mockClear();
+      setEventLifecycleHandlers(opened, closed);
+    });
+
+    it("reports an event being opened", () => {
+      createDatabaseFile("bear-100");
+
+      expect(opened).toHaveBeenCalled();
+    });
+
+    it("reports the event being closed", () => {
+      createDatabaseFile("bear-100");
+      closed.mockClear();
+
+      closeActiveConnection();
+
+      expect(closed).toHaveBeenCalled();
+    });
+
+    it("says nothing when there was no event open to close", () => {
+      closeActiveConnection();
+      closed.mockClear();
+
+      closeActiveConnection();
+
+      expect(closed).not.toHaveBeenCalled();
     });
   });
 
