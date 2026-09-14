@@ -51,6 +51,7 @@
 
 ## Validation
 
+- Practice test-driven development for non-trivial logic (validation, IPC handlers, database operations, formatters, bug fixes): write or extend a failing Vitest test first, confirm it fails for the expected reason, then implement the minimal fix. See `.github/instructions/testing-tdd.instructions.md` for details.
 - After a code change, run the narrowest relevant check first, then broaden only when needed:
   - `pnpm exec eslint <changed-files>`
   - `pnpm run typecheck:node` for main/preload changes
