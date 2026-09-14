@@ -175,6 +175,32 @@ describe("connect-db lifecycle", () => {
       });
       expect(healed.prepare(`SELECT bibId FROM TimeRecords`).all()).toEqual([{ bibId: 101 }]);
     });
+
+    it("heals a restored copy of a current-shape database file stamped as version 0", () => {
+      createDatabaseFile("original");
+      const db = getDatabaseConnection();
+      db.prepare(`INSERT INTO Status (bibId, dropped, progress) VALUES (?, ?, ?)`).run(202, 0, 7);
+      db.prepare(`INSERT INTO TimeRecords (bibId, stationId) VALUES (?, ?)`).run(202, 9);
+
+      closeActiveConnection();
+
+      const originalPath = getDbPaths("original").dbPath;
+      const restoredPath = getDbPaths("restored").dbPath;
+      const resetVersion = new Database(originalPath);
+      resetVersion.pragma("user_version = 0");
+      resetVersion.close();
+      fs.copyFileSync(originalPath, restoredPath);
+
+      switchToDatabase("restored");
+
+      const healed = getDatabaseConnection();
+      expect(healed.pragma("user_version", { simple: true })).toBe(3);
+      expect(healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 202`).get()).toEqual({
+        dropped: 0,
+        progress: 7
+      });
+      expect(healed.prepare(`SELECT bibId FROM TimeRecords`).all()).toEqual([{ bibId: 202 }]);
+    });
   });
 
   describe("closeActiveConnection", () => {
