@@ -48,6 +48,14 @@ describe("tables-db", () => {
       expect(CreateTables(db)).toBe("Default tables were successfully created.");
     });
 
+    it("records the current schema version", () => {
+      db.pragma("user_version = 0");
+
+      CreateTables(db);
+
+      expect(db.pragma("user_version", { simple: true })).toBe(3);
+    });
+
     it("reports a failure when the tables cannot be created", () => {
       const closed = new Database(":memory:");
       closed.close();
@@ -57,7 +65,7 @@ describe("tables-db", () => {
   });
 
   describe("ClearTables", () => {
-    it("drops the event tables and resets the schema version", () => {
+    it("drops the event tables", () => {
       db.close();
       db = createTestDatabase();
 
@@ -67,7 +75,18 @@ describe("tables-db", () => {
       expect(getTableNames(db)).not.toEqual(
         expect.arrayContaining(["Athletes", "TimeRecords", "Status", "Stations", "EventMeta"])
       );
-      expect(db.pragma("user_version", { simple: true })).toBe(0);
+    });
+
+    // Clearing used to rewind the version to 0 while the rebuild produced current tables, which
+    // left the next launch migrating a database that was already current.
+    it("leaves a rebuilt database at the current schema version", () => {
+      db.close();
+      db = createTestDatabase();
+
+      ClearTables(db);
+      CreateTables(db);
+
+      expect(db.pragma("user_version", { simple: true })).toBe(3);
     });
 
     // KNOWN DEFECT - intended behaviour asserted below, currently failing.
