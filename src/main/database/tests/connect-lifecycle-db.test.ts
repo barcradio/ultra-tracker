@@ -169,7 +169,9 @@ describe("connect-db lifecycle", () => {
 
       const healed = getDatabaseConnection();
       expect(healed.pragma("user_version", { simple: true })).toBe(3);
-      expect(healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 101`).get()).toEqual({
+      expect(
+        healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 101`).get()
+      ).toEqual({
         dropped: 1,
         progress: 4
       });
@@ -195,7 +197,9 @@ describe("connect-db lifecycle", () => {
 
       const healed = getDatabaseConnection();
       expect(healed.pragma("user_version", { simple: true })).toBe(3);
-      expect(healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 202`).get()).toEqual({
+      expect(
+        healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 202`).get()
+      ).toEqual({
         dropped: 0,
         progress: 7
       });
