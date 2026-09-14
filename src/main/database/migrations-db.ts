@@ -20,6 +20,34 @@ function columnExists(db: Database.Database, tableName: string, columnName: stri
   );
 }
 
+// Migration 2's work, factored out so migration 3 can re-run it on databases that were stamped
+// past version 2 without it ever succeeding. Every step is guarded, so it is a no-op when done.
+function ensureStatusSplit(db: Database.Database): void {
+  if (!tableExists(db, "Status")) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS Status (
+        "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs2.Status});
+    `);
+    if (columnExists(db, "Athletes", "dns")) {
+      db.exec(`
+        INSERT INTO Status (bibId, dns, dnf, dnfType, dnfStation, dnfDateTime, note, progress)
+          SELECT bibId, dns, dnf, dnfType, dnfStation, dnfDateTime, note, status FROM Athletes
+          WHERE EXISTS (SELECT 1 FROM Athletes LIMIT 1);
+      `);
+    }
+  }
+
+  for (const column of ["dns", "dnf", "dnfType", "dnfStation", "dnfDateTime", "note", "status"]) {
+    if (columnExists(db, "Athletes", column)) {
+      db.exec(`ALTER TABLE Athletes DROP COLUMN ${column};`);
+    }
+  }
+
+  if (tableExists(db, "StationEvents") && !tableExists(db, "TimeRecords")) {
+    db.exec(`ALTER TABLE StationEvents RENAME TO TimeRecords;`);
+  }
+}
+
 export const migrations: IMigration[] = [
   {
     version: 1,
@@ -88,6 +116,10 @@ export const migrations: IMigration[] = [
   {
     version: 3,
     up: (db: Database.Database) => {
+      // A database stamped 2 without migration 2 succeeding still holds its timing rows in
+      // StationEvents and its drop flags on Athletes; move them across before touching anything.
+      ensureStatusSplit(db);
+
       db.exec(`
         CREATE TABLE IF NOT EXISTS RFIDInbox (
           "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -105,7 +137,6 @@ export const migrations: IMigration[] = [
           "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs3.Watchlist});
         CREATE TABLE IF NOT EXISTS EventMeta (
           "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs3.EventMeta});
-        DROP TABLE IF EXISTS StationEvents;
       `);
 
       // Only convert Status if it's still on the old dns/dnf shape; already-v3 databases skip this.
@@ -126,6 +157,10 @@ export const migrations: IMigration[] = [
           ALTER TABLE Status_v3 RENAME TO Status;
         `);
       }
+
+      // Safe now: ensureStatusSplit has renamed any real StationEvents rows into TimeRecords,
+      // so anything still here is a leftover copy.
+      if (tableExists(db, "TimeRecords")) db.exec(`DROP TABLE IF EXISTS StationEvents;`);
     },
     down: `
         DROP TABLE IF EXISTS EventMeta;
