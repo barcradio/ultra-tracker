@@ -136,6 +136,8 @@ export function CreateTables(db: Database.Database) {
     createWatchlistTable(db) &&
     createEventMetaTable(db);
 
+  if (result) db.pragma(`user_version = ${userVersion}`);
+
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
 
