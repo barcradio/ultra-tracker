@@ -1,6 +1,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
+import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   adoptLegacyDatabaseIfPresent,
@@ -11,6 +12,7 @@ import {
   isDatabaseConnected,
   switchToDatabase
 } from "../connect-db";
+import * as tableDefs0 from "../schema/table-definitions-v0";
 
 const storeMock = vi.hoisted(() => {
   const data = new Map<string, unknown>();
@@ -40,6 +42,22 @@ describe("connect-db lifecycle", () => {
     vi.useRealTimers();
     fs.rmSync(userDataDir, { recursive: true, force: true });
   });
+
+  function writeLegacyV0Database(slug: string) {
+    const { dbFolder, dbPath } = getDbPaths(slug);
+    fs.mkdirSync(dbFolder, { recursive: true });
+    const legacy = new Database(dbPath);
+    legacy.exec(`
+      CREATE TABLE IF NOT EXISTS Athletes (
+        "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs0.Athletes});
+      CREATE TABLE IF NOT EXISTS StationEvents (
+        "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        bibId INTEGER DEFAULT (0), stationId INTEGER, timeIn DATETIME, timeOut DATETIME,
+        timeModified DATETIME, note TEXT, sent BOOLEAN DEFAULT (FALSE), status INTEGER);
+    `);
+    legacy.pragma("user_version = 0");
+    return legacy;
+  }
 
   describe("createDatabaseFile", () => {
     it("creates a schema-complete database at the current version", () => {
@@ -114,6 +132,78 @@ describe("connect-db lifecycle", () => {
       switchToDatabase("broken");
 
       expect(isDatabaseConnected()).toBe(false);
+    });
+
+    it("migrates a real legacy version-0 database file on disk", () => {
+      const legacy = writeLegacyV0Database("legacy-race");
+      legacy
+        .prepare(`INSERT INTO Athletes (bibId, firstName, dns, dnf, note) VALUES (?, ?, ?, ?, ?)`)
+        .run(101, "Ada", 1, 0, "never started");
+      legacy.prepare(`INSERT INTO StationEvents (bibId, stationId) VALUES (?, ?)`).run(101, 3);
+      legacy.close();
+
+      switchToDatabase("legacy-race");
+
+      const db = getDatabaseConnection();
+      expect(db.pragma("user_version", { simple: true })).toBe(3);
+      expect(db.prepare(`SELECT bibId FROM TimeRecords`).all()).toEqual([{ bibId: 101 }]);
+      expect(db.prepare(`SELECT dropped, dropReason FROM Status WHERE bibId = 101`).get()).toEqual({
+        dropped: 1,
+        dropReason: "did-not-start"
+      });
+    });
+
+    it("heals a current-shape database file that was stamped back to version 0", () => {
+      createDatabaseFile("bear-100");
+      const db = getDatabaseConnection();
+      db.prepare(`INSERT INTO Status (bibId, dropped, progress) VALUES (?, ?, ?)`).run(101, 1, 4);
+      db.prepare(`INSERT INTO TimeRecords (bibId, stationId) VALUES (?, ?)`).run(101, 3);
+
+      closeActiveConnection();
+
+      const resetVersion = new Database(getDbPaths("bear-100").dbPath);
+      resetVersion.pragma("user_version = 0");
+      resetVersion.close();
+
+      switchToDatabase("bear-100");
+
+      const healed = getDatabaseConnection();
+      expect(healed.pragma("user_version", { simple: true })).toBe(3);
+      expect(
+        healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 101`).get()
+      ).toEqual({
+        dropped: 1,
+        progress: 4
+      });
+      expect(healed.prepare(`SELECT bibId FROM TimeRecords`).all()).toEqual([{ bibId: 101 }]);
+    });
+
+    it("heals a restored copy of a current-shape database file stamped as version 0", () => {
+      createDatabaseFile("original");
+      const db = getDatabaseConnection();
+      db.prepare(`INSERT INTO Status (bibId, dropped, progress) VALUES (?, ?, ?)`).run(202, 0, 7);
+      db.prepare(`INSERT INTO TimeRecords (bibId, stationId) VALUES (?, ?)`).run(202, 9);
+
+      closeActiveConnection();
+
+      const originalPath = getDbPaths("original").dbPath;
+      const restoredPath = getDbPaths("restored").dbPath;
+      const resetVersion = new Database(originalPath);
+      resetVersion.pragma("user_version = 0");
+      resetVersion.close();
+      fs.copyFileSync(originalPath, restoredPath);
+
+      switchToDatabase("restored");
+
+      const healed = getDatabaseConnection();
+      expect(healed.pragma("user_version", { simple: true })).toBe(3);
+      expect(
+        healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 202`).get()
+      ).toEqual({
+        dropped: 0,
+        progress: 7
+      });
+      expect(healed.prepare(`SELECT bibId FROM TimeRecords`).all()).toEqual([{ bibId: 202 }]);
     });
   });
 

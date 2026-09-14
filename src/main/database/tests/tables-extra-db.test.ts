@@ -25,6 +25,7 @@ describe("tables-db", () => {
       const result = CreateTables(db);
 
       expect(result).toBe("Default tables were successfully created.");
+      expect(db.pragma("user_version", { simple: true })).toBe(3);
       expect(getTableNames(db)).toEqual(
         expect.arrayContaining([
           "Athletes",
@@ -53,6 +54,15 @@ describe("tables-db", () => {
       closed.close();
 
       expect(CreateTables(closed)).toBe("Database Create Failed");
+    });
+
+    it("restores the current schema version after a recreate flow", () => {
+      CreateTables(db);
+      expect(ClearTables(db)).toBe("Database tables cleared; Reinitialize or Restart!");
+
+      CreateTables(db);
+
+      expect(db.pragma("user_version", { simple: true })).toBe(3);
     });
   });
 
