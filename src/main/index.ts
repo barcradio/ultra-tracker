@@ -2,7 +2,7 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, Event, Menu, app, dialog, powerMonitor, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
-import { DisconnectRFIDReader, RecoverRFIDReader } from "./api/rfid-processor";
+import { CloseRFIDWebSocket, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
   getDatabaseConnection,
@@ -147,7 +147,7 @@ async function initializeApp(): Promise<void> {
   app.on("activate", function () {
     app.on("window-all-closed", () => {
       if (process.platform !== "darwin") {
-        DisconnectRFIDReader();
+        CloseRFIDWebSocket();
         app.quit();
       }
       shutdown();
@@ -197,7 +197,7 @@ app.on("activate", () => {
 //Window Close Handler
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    DisconnectRFIDReader();
+    CloseRFIDWebSocket();
     app.quit();
   }
   shutdown();
