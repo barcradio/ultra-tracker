@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Calculate, initStatEngine } from "../stat-engine";
+import { Calculate, closeStatEngine, initStatEngine } from "../stat-engine";
 
 const dbAthlete = vi.hoisted(() => ({ GetTotalAthletes: vi.fn(() => 100) }));
 vi.mock("../../database/athlete-db", () => dbAthlete);
@@ -28,6 +28,7 @@ vi.mock("../../database/watchlist-db", () => dbWatchlist);
 describe("stat-engine", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    closeStatEngine();
   });
 
   it("reports every registered statistic", () => {
@@ -74,5 +75,38 @@ describe("stat-engine", () => {
     expect(stats.warnings).toBe(-999);
     expect(stats.errors).toBe(-999);
     expect(stats.finishedRace).toBe(-999);
+  });
+
+  it("registers without reading the database", () => {
+    initStatEngine();
+
+    expect(dbAthlete.GetTotalAthletes).not.toHaveBeenCalled();
+  });
+
+  it("reports nothing once the event is closed", () => {
+    initStatEngine();
+
+    closeStatEngine();
+
+    expect(Calculate()).toEqual({ defaultValue: -999 });
+    expect(dbAthlete.GetTotalAthletes).not.toHaveBeenCalled();
+  });
+
+  it("reports again for the next event opened", () => {
+    initStatEngine();
+    closeStatEngine();
+
+    initStatEngine();
+
+    expect(Calculate()).toMatchObject({ registeredAthletes: 100 });
+  });
+
+  it("does not stack duplicate statistics when an event is opened twice", () => {
+    initStatEngine();
+    initStatEngine();
+
+    Calculate();
+
+    expect(dbAthlete.GetTotalAthletes).toHaveBeenCalledTimes(1);
   });
 });

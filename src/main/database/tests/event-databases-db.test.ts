@@ -2,7 +2,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { closeActiveConnection, createDatabaseFile, getDbPaths } from "../connect-db";
+import { closeDatabaseConnection, createDatabaseFile, getDbPaths } from "../connect-db";
 import {
   getEventDatabaseMetadata,
   listEventDatabaseBackupsWithMetadata,
@@ -40,7 +40,7 @@ describe("event-databases-db", () => {
   });
 
   afterEach(() => {
-    closeActiveConnection();
+    closeDatabaseConnection();
     fs.rmSync(userDataDir, { recursive: true, force: true });
   });
 

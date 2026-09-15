@@ -104,6 +104,7 @@ const connect = vi.hoisted(() => ({
   getDatabaseConnection: vi.fn(() => ({})),
   isDatabaseConnected: vi.fn(() => true),
   listEventDatabaseSlugs: vi.fn(() => ["bear-100"]),
+  setEventLifecycleHandlers: vi.fn(),
   switchToDatabase: vi.fn()
 }));
 vi.mock("../database/connect-db", () => connect);
@@ -131,8 +132,8 @@ const logger = vi.hoisted(() => ({
 }));
 vi.mock("../lib/logger", () => logger);
 
-const initStatEngine = vi.hoisted(() => vi.fn());
-vi.mock("../lib/stat-engine", () => ({ initStatEngine }));
+const statEngine = vi.hoisted(() => ({ initStatEngine: vi.fn(), closeStatEngine: vi.fn() }));
+vi.mock("../lib/stat-engine", () => statEngine);
 
 const storeMock = vi.hoisted(() => {
   const data = new Map<string, unknown>();
@@ -254,11 +255,21 @@ describe("main process", () => {
       expect(connect.switchToDatabase).not.toHaveBeenCalled();
     });
 
-    it("validates the schema and starts the stat engine when a database is open", async () => {
+    // Statistics used to start only when an event was already open at launch, so an event
+    // created during the session reported nothing until the app was restarted.
+    it("wires the stat engine to the event lifecycle", async () => {
+      await bootMain();
+
+      expect(connect.setEventLifecycleHandlers).toHaveBeenCalledWith(
+        statEngine.initStatEngine,
+        statEngine.closeStatEngine
+      );
+    });
+
+    it("validates the schema when a database is open", async () => {
       await bootMain();
 
       expect(validateDatabaseTables).toHaveBeenCalled();
-      expect(initStatEngine).toHaveBeenCalled();
     });
 
     it("skips schema validation when no database is open", async () => {
@@ -267,7 +278,6 @@ describe("main process", () => {
       await bootMain();
 
       expect(validateDatabaseTables).not.toHaveBeenCalled();
-      expect(initStatEngine).not.toHaveBeenCalled();
     });
 
     it("loads the built renderer in production", async () => {
