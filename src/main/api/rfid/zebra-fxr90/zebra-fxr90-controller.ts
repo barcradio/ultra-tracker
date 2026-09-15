@@ -80,6 +80,13 @@ export class ZebraFxr90Controller implements IRfidController {
     await this.restClient?.stop();
   }
 
+  public closeWebSocket(): void {
+    this.manuallyDisconnected = true;
+    this.stopHealthChecks();
+    this.clearReconnectTimer();
+    this.rfidProcessor?.disconnect();
+  }
+
   public recover(): void {
     this.manuallyDisconnected = false;
     this.scanning = false;
