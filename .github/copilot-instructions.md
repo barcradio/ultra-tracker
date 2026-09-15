@@ -19,7 +19,6 @@
 - Use functional React components with strict TypeScript types.
 - Prefer Tailwind CSS utility classes over custom CSS or inline styles, while reusing existing shared styles and components.
 - Follow the repository's ESLint, Prettier, and Commitlint standards.
-- For environment-specific behavior (for example, platform file-path separator differences), add or reuse a shared helper module in `src/shared/` and call it from tests and runtime code instead of inlining OS-specific logic.
 
 ## Electron Architecture
 
