@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tooltip } from "primereact/tooltip";
 import BookmarkIcon from "~/assets/icons/bookmark.svg?react";
-import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 import { useId } from "~/hooks/useId";
+import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 import { DatabaseStatus } from "$shared/enums";
 import { AthleteStatusDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
