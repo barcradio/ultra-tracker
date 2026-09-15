@@ -53,7 +53,7 @@ describe("connect-db lifecycle", () => {
       createDatabaseFile("bear-100");
 
       const db = getDatabaseConnection();
-      expect(db.pragma("user_version", { simple: true })).toBe(3);
+      expect(db.pragma("user_version", { simple: true })).toBe(4);
       const tables = db
         .prepare(`SELECT name FROM sqlite_master WHERE type='table'`)
         .all() as Array<{ name: string }>;
