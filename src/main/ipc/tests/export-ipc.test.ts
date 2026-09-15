@@ -18,8 +18,11 @@ const dbRunners = vi.hoisted(() => ({
   exportUnsentRunnersAsCSV: vi.fn(() => "incremental export done"),
   exportDropsAsCSV: vi.fn(() => "drops export done")
 }));
+const mockedExportDirectory = vi.hoisted(() =>
+  process.platform === "win32" ? "\\tmp\\exports" : "/tmp/exports"
+);
 vi.mock("../../database/runners-db", () => dbRunners);
-vi.mock("../../lib/file-dialogs", () => ({ AppPaths: { userRoot: "/tmp/exports" } }));
+vi.mock("../../lib/file-dialogs", () => ({ AppPaths: { userRoot: mockedExportDirectory } }));
 
 function handlerFor(channel: string) {
   const handler = ipcHandlers.get(channel);
@@ -50,6 +53,6 @@ describe("export-ipc", () => {
   it("opens the export directory for the operator", () => {
     handlerFor("open-export-dir")(undefined);
 
-    expect(shell.openPath).toHaveBeenCalledWith("/tmp/exports");
+    expect(shell.openPath).toHaveBeenCalledWith(mockedExportDirectory);
   });
 });
