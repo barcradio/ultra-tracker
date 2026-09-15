@@ -14,13 +14,10 @@
 
 On first launch, Ultra-Tracker opens **Getting Started** to guide the user through starting an event for timing data collection.
 
-1. Select **Load Stations File** and choose the stations JSON file supplied for the event. This
-   creates the local event database.
+1. Select **Load Event File** and choose the event file (`.zip`) supplied for the event.
 2. Select the station identifier for this computer.
 3. Select the operator callsign.
-4. Select the **Athletes** file supplied by the race organizers.
-5. Select the **Initial Drops** file, containing athletes known to have not started or dropped.
-6. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
+4. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
 
 The event files can be selected from their existing location; they do not need to be copied into a
 special folder first. The default event-config folder is `\Documents\Ultra-Tracker\.event-config\`.
@@ -42,8 +39,6 @@ The left side bar is used to select different pages. Select from Stats, Roster, 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
-
-<a id="markdown-stats-page" name="stats-page"></a>
 
 ## Stats Page
 
@@ -87,6 +82,8 @@ Validation Rules:
 <div style="float: left">
    <img src="./img/stats.png">
 </div>
+
+<a id="markdown-stats-page" name="athlete-and-station-stats"></a>
 
 ### Athlete and Station stats
 
@@ -244,7 +241,7 @@ The Event Manager is used to switch between events and recover from local event 
 
 ---
 
-<a id="markdown-theme-page" name="theme-page"></a>
+<a id="markdown-theme-page" name="theme"></a>
 
 ## Theme
 
@@ -272,11 +269,16 @@ This page allows the operator to manage event input files and the database neede
 - **Linux:** `$HOME/Documents/ultra-tracker`
 - **MacOS:** `/Users/username/Documents/ultra-tracker`
 
-### OpenSplitTime
+#### Drops File Import
 
-OpenSplitTime is an optional integration for sending timing records directly to the selected event group. Configure the event group in the Stations file, then sign in with an OpenSplitTime steward account. Credentials may be saved using the operating system's secure credential storage. If both staging and production event groups are configured, select the environment before signing in. Production sends times to the live event and requires confirmation when switching from staging.
+- **Load Drops File**
+  This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not started** or **dropped from** the race (Withdrew, Timeout, Medical, Unknown).
 
-While signed in, OpenSplitTime status takes precedence over CSV export status in the timing-record indicator. Use **Pause Pushes** to temporarily stop automatic uploads without signing out; **Resume Pushes** restarts them. **Sign Out** returns the indicator to the CSV export state and does not change whether a record has been exported.
+  As an event proceeds more Drops will be recorded and new Drops files will be supplied to stations.
+
+  Importing new Drops files will update all athletes recorded as dropped at or before the current station; drops past the current station are ignored. This provides insight of which athletes are still expected into the current station.
+
+<a id="markdown-user-settings" name="user-settings"></a>
 
 ### User Settings
 
@@ -292,23 +294,31 @@ While signed in, OpenSplitTime status takes precedence over CSV export status in
 
 The following is a description of each button's function. Each of these will open a file open dialog to the `\Documents\Ultra-Tracker\.event-config\` directory.
 
-#### Station Setup
+<a id="markdown-ost-integration" name="opensplittime-integration"></a>
 
-- **Load Stations File**
-  This loads a `JSON` file containing each of the stations and their detailed information to allow ease of selection while setting up this application. A typical filename will be `eventname-YYYY-stations.json`.
-- **Load Athletes File**
-  This function loads a `.csv` file, supplied by race organizers, containing all athletes registered or checked in for the event, whether they are known to have started _or not_.
-- **Load Drops File**
-  This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not started** or **dropped from** the race (Withdrew, Timeout, Medical, Unknown).
+### OpenSplitTime Integration
 
-  As an event proceeds more Drops will be recorded and new Drops files will be supplied to stations.
+OpenSplitTime is an optional integration for sending timing records directly to the configured event group. The configuration is done per event file, then sign in with an OpenSplitTime steward account that is a member of that event. Credentials can be saved between sessions. If both staging and production event groups are configured, select the environment before signing in. Production events send times to a live event and requires confirmation when switching from staging.
 
-  Importing new Drops files will update all athletes recorded as dropped at or before the current station; drops past the current station are ignored. This provides insight of which athletes are still expected into the current station.
+While signed in, OpenSplitTime status takes precedence over CSV export status in the timing-record indicator. Use **Pause Pushes** to temporarily stop automatic uploads without signing out; **Resume Pushes** restarts them. **Sign Out** returns the indicator to the CSV export state and does not change whether a record has been exported.
 
 #### RFID Configuration
 
 - **Initialize RFID**
   Starts and stops a RFID reader service for the Zebra FXR90 hardware. These controls are enabled only for Start and Finish Line stations only. Integrations with more RFID hardware will be possible in the future.
+
+<a id="markdown-developer-tools" name="developer-tools"></a>
+
+#### Developer Tools
+
+- **Reload Events File**
+  This function reloads an event archive file (`.zip`), updating station data, athlete rosters, and initial drop records in the currently loaded event database.
+- **Recreate Database**
+  This function is the means where _ALL_ **database entries and tables are removed** resulting in the loss of _ALL_ setup data and entry history! The intent is to allow recovery of a major database corruption event and the rapid rebuild and subsequent return to normal operation by the operator.
+- **Recover Data From CSV File**
+  This function imports **ALL of the entries** that have previously been made by the operator since the start of this race event! The Ultra-Tracker application has been automatically producing a file containing EVERY entry made by the operator continuously during normal operation! This function will restore all of this data to restore the program to the previous state automatically.
+
+<a id="markdown-app-settings" name="application-settings"></a>
 
 #### Application Settings
 
@@ -320,26 +330,21 @@ The following is a description of each button's function. Each of these will ope
 - **Linux:** `~/.config/ultra-tracker`
 - **MacOS:** `~/Library/Application Support/ultra-tracker`
 
-#### Developer Tools
-
-- **Recreate Database**
-  This function is the means where _ALL_ **database entries and tables are removed** resulting in the loss of _ALL_ setup data and entry history! The intent is to allow recovery of a major database corruption event and the rapid rebuild and subsequent return to normal operation by the operator.
-- **Recover Data From CSV File**
-  This function imports **ALL of the entries** that have previously been made by the operator since the start of this race event! The Ultra-Tracker application has been automatically producing a file containing EVERY entry made by the operator continuously during normal operation! This function will restore all of this data to restore the program to the previous state automatically.
-
 <a id="markdown-recovery-procedure" name="station-recovery-procedure"></a>
 
-### Station Recovery Procedure
+#### Station Recovery Procedure
 
 **If instructed to do so,**
 <span style="color:orange">after **Recreate Database** has been performed, perform the following steps:</span>
 
-1. Load the Stations file.
-1. Load the Athletes file.
-1. Load the Drops file.
-1. Import a Full Export file using "Recover Data From CSV File".
+1. Create a new event using the Event Manager.
+2. Reload the event database file.
+3. Load the Drops file if applicable.
+4. Import a Full Export file using "Recover Data From CSV File".
 
-### Local Database
+<a id="markdown-local-database" name="local-database"></a>
+
+#### Local Database
 
 Ultra-Tracker runs a SQLite database on the local machine. All transactions are preserved immediately and the operator can close and re-open the app without loss of data. A background task backs up the database to a secondary file, every 5 minutes. This backup is used for emergency use only and may not restore all data in a data-loss event. _Do not modify the local database files using external tools!_
 
@@ -366,13 +371,14 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 
 > | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Call Sign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
 > | :------------------------------------------------------ | :----------------------------------------------------------- | :---------------------------------------------------------- |
-> | **Jaren Glenn**                                         | ---                                                          | [**@derethil**](https://github.com/derethil)                |
-> | **David Leikis**                                        | KG7EW                                                        | [**@DLeikis**](https://github.com/DLeikis)                  |
-> | **Russ Leikis**                                         | KE7VFI                                                       | [**@rleikis**](https://github.com/rleikis)                  |
-> | **Jorden Luke**                                         | KF7YEM                                                       | [**@JordenLuke**](https://github.com/JordenLuke)            |
-> | **Brian Marble**                                        | KG7AFQ                                                       | [**@brianmarble**](https://github.com/brianmarble)          |
-> | **Mitch Smith**                                         | N8MLS                                                        | [**@pxls2prnt**](https://github.com/pxls2prnt)              |
-> | **Brandon Tibbitts**                                    | KD7IIW                                                       | [**@Tibbs327**](https://github.com/Tibbs327)                |
+> | **Paul Carter**      | KG7OKR       | [**@cartpaul**](https://github.com/cartpauj)        |
+> | **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)       |
+> | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)         |
+> | **Russ Leikis**      | KE7VFI       | [**@rleikis**](https://github.com/rleikis)         |
+> | **Jorden Luke**      | KF7YEM       | [**@JordenLuke**](https://github.com/JordenLuke)   |
+> | **Brian Marble**     | KG7AFQ       | [**@brianmarble**](https://github.com/brianmarble) |
+> | **Mitch Smith**      | N8MLS        | [**@pxls2prnt**](https://github.com/pxls2prnt)     |
+> | **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)       |
 
 <a id="markdown-license" name="license"></a>
 

@@ -93,6 +93,10 @@ export async function DisconnectRFIDReader(): Promise<string> {
   }
 }
 
+export function CloseRFIDWebSocket(): void {
+  rfidController?.closeWebSocket();
+}
+
 export function RecoverRFIDReader(): void {
   rfidController?.recover();
 }

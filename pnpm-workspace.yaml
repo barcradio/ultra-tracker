@@ -6,6 +6,11 @@ allowBuilds:
 
 overrides:
   "@babel/core": "^7.26.2"
+  # Stryker's instrumenter declares @babel/core ~8.0.0 and pairs it with a Babel 8 parser;
+  # the blanket ^7 override above pins it to 7 and its AST walk then crashes on `implements`
+  # and `interface ... extends`. Scope an exception so only Stryker gets Babel 8 -- the
+  # renderer's @vitejs/plugin-react still needs ^7.29.0.
+  "@stryker-mutator/instrumenter>@babel/core": "^8.0.0"
   "@xmldom/xmldom": "^0.9.12"
   "plist>@xmldom/xmldom": "^0.9.12"
   "browserslist@<=4.28.6": ">=4.28.7"
