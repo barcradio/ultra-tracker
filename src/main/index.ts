@@ -2,7 +2,7 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, Event, Menu, app, dialog, powerMonitor, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
-import { DisconnectRFIDReader, RecoverRFIDReader } from "./api/rfid-processor";
+import { CloseRFIDWebSocket, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
   closeActiveConnection,
@@ -192,10 +192,10 @@ app.on("window-all-closed", () => {
   app.quit();
 });
 
-// Tear down once, however the quit was triggered. Closing the connection
-// checkpoints the WAL.
+// Tear down once, however the quit was triggered. Closing the websocket is synchronous, so it
+// completes before the process goes; closing the connection checkpoints the WAL.
 app.on("will-quit", () => {
-  DisconnectRFIDReader();
+  CloseRFIDWebSocket();
   closeActiveConnection();
   shutdown();
 });

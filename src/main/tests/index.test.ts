@@ -93,6 +93,7 @@ vi.mock("@electron-toolkit/utils", () => utils);
 vi.mock("$resources/iconLinux.png?asset", () => ({ default: "iconLinux.png" }));
 
 const rfid = vi.hoisted(() => ({
+  CloseRFIDWebSocket: vi.fn(),
   DisconnectRFIDReader: vi.fn(),
   RecoverRFIDReader: vi.fn()
 }));
@@ -102,6 +103,7 @@ const connect = vi.hoisted(() => ({
   adoptLegacyDatabaseIfPresent: vi.fn(),
   getDatabaseConnection: vi.fn(() => ({})),
   isDatabaseConnected: vi.fn(() => true),
+  closeActiveConnection: vi.fn(),
   listEventDatabaseSlugs: vi.fn(() => ["bear-100"]),
   switchToDatabase: vi.fn()
 }));
@@ -384,23 +386,32 @@ describe("main process", () => {
   });
 
   describe("shutdown", () => {
-    it("releases the RFID reader and quits when the last window closes", async () => {
+    it("quits when the last window closes", async () => {
       await bootMain();
 
       emitApp("window-all-closed");
 
-      expect(rfid.DisconnectRFIDReader).toHaveBeenCalled();
       expect(app.quit).toHaveBeenCalled();
-      expect(logger.shutdown).toHaveBeenCalled();
     });
 
-    it("keeps running on macOS when the last window closes", async () => {
+    // A docked macOS instance with no window strands the RFID reader and holds the event
+    // database open, so the app quits here too rather than staying resident.
+    it("quits on macOS as well when the last window closes", async () => {
       setPlatform("darwin");
       await bootMain();
 
       emitApp("window-all-closed");
 
-      expect(app.quit).not.toHaveBeenCalled();
+      expect(app.quit).toHaveBeenCalled();
+    });
+
+    it("releases the reader, closes the event database and stops logging on the way out", async () => {
+      await bootMain();
+
+      emitApp("will-quit");
+
+      expect(rfid.CloseRFIDWebSocket).toHaveBeenCalled();
+      expect(connect.closeActiveConnection).toHaveBeenCalled();
       expect(logger.shutdown).toHaveBeenCalled();
     });
   });

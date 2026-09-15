@@ -69,6 +69,11 @@ jobs:
         continue-on-error: true
         run: pnpm test:main:bootstrap
 
+      - name: Test Shared
+        id: test_shared
+        continue-on-error: true
+        run: pnpm test:shared
+
       - name: Test Preload
         id: test_preload
         continue-on-error: true
@@ -91,6 +96,7 @@ jobs:
               ["Test (main / lib)", "${{ steps.test_main_lib.outcome }}"],
               ["Test (main / services)", "${{ steps.test_main_services.outcome }}"],
               ["Test (main / bootstrap)", "${{ steps.test_main_bootstrap.outcome }}"],
+              ["Test (shared)", "${{ steps.test_shared.outcome }}"],
               ["Test (preload)", "${{ steps.test_preload.outcome }}"],
               ["Test (renderer)", "${{ steps.test_renderer.outcome }}"]
             ];
@@ -120,6 +126,7 @@ jobs:
           test "${{ steps.test_main_lib.outcome }}" = "success"
           test "${{ steps.test_main_services.outcome }}" = "success"
           test "${{ steps.test_main_bootstrap.outcome }}" = "success"
+          test "${{ steps.test_shared.outcome }}" = "success"
           test "${{ steps.test_preload.outcome }}" = "success"
           test "${{ steps.test_renderer.outcome }}" = "success"
 
@@ -135,6 +142,7 @@ jobs:
             ! -path 'src/main/lib/*' \
             ! -path 'src/main/services/*' \
             ! -path 'src/main/tests/*' \
+            ! -path 'src/shared/*' \
             ! -path 'src/preload/*' \
             ! -path 'src/renderer/*')
           if [ -n "$unclaimed" ]; then

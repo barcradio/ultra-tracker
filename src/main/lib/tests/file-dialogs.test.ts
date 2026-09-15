@@ -2,6 +2,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { toPlatformPathFromPosix } from "../../../shared/environment";
 import {
   AppPaths,
   initUserDirectories,
@@ -15,6 +16,11 @@ import {
 } from "../file-dialogs";
 
 let documentsDir: string;
+const mockedDocumentsPath = vi.hoisted(() =>
+  process.platform === "win32" ? "\\tmp\\ultra-tracker-documents" : "/tmp/ultra-tracker-documents"
+);
+const mockedOpenFilePath = toPlatformPathFromPosix("/tmp/chosen.csv");
+const mockedSaveFilePath = toPlatformPathFromPosix("/tmp/export.csv");
 
 const dialog = vi.hoisted(() => ({
   showOpenDialog: vi.fn(),
@@ -23,7 +29,7 @@ const dialog = vi.hoisted(() => ({
 
 const app = vi.hoisted(() => ({
   name: "ultra-tracker",
-  getPath: vi.fn(() => "/tmp/ultra-tracker-documents")
+  getPath: vi.fn(() => mockedDocumentsPath)
 }));
 
 vi.mock("electron", () => ({ app, dialog }));
@@ -45,13 +51,13 @@ describe("file-dialogs", () => {
     vi.clearAllMocks();
     storeMock.data.clear();
     storeMock.data.set("station.id", 3);
-    dialog.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: ["/tmp/chosen.csv"] });
-    dialog.showSaveDialog.mockResolvedValue({ canceled: false, filePath: "/tmp/export.csv" });
+    dialog.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: [mockedOpenFilePath] });
+    dialog.showSaveDialog.mockResolvedValue({ canceled: false, filePath: mockedSaveFilePath });
   });
 
   describe("open dialogs", () => {
     it("asks for a stations JSON file", async () => {
-      await expect(selectStationsFile()).resolves.toEqual(["/tmp/chosen.csv"]);
+      await expect(selectStationsFile()).resolves.toEqual([mockedOpenFilePath]);
 
       const config = dialog.showOpenDialog.mock.calls[0][0];
       expect(config.title).toBe("Select a starting Stations file");
@@ -96,7 +102,7 @@ describe("file-dialogs", () => {
 
   describe("save dialogs", () => {
     it("suggests a runners export named after the station", async () => {
-      await expect(saveRunnersToCSV()).resolves.toBe("/tmp/export.csv");
+      await expect(saveRunnersToCSV()).resolves.toBe(mockedSaveFilePath);
 
       const config = dialog.showSaveDialog.mock.calls[0][0];
       expect(config.defaultPath).toContain("Aid03Times");
