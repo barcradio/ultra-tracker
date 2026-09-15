@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizePathForCrossPlatformMatching } from "../../../shared/environment";
 import { LogLevel, initialize, shutdown, uberLog } from "../logger";
 
+const mockedDocumentsPath = vi.hoisted(() =>
+  process.platform === "win32" ? "\\tmp\\documents" : "/tmp/documents"
+);
+
 const scopedLog = vi.hoisted(() => ({
   error: vi.fn(),
   warn: vi.fn(),
@@ -34,7 +38,7 @@ vi.mock("electron-log/main", () => ({ default: log }));
 
 vi.mock("electron", () => ({
   app: {
-    getPath: vi.fn(() => "/tmp/documents"),
+    getPath: vi.fn(() => mockedDocumentsPath),
     name: "ultra-tracker",
     getName: vi.fn(() => "ultra-tracker"),
     getVersion: vi.fn(() => "1.0.0"),

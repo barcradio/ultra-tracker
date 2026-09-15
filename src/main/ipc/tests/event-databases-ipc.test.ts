@@ -3,6 +3,7 @@ import os from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DatabaseStatus } from "../../../shared/enums";
+import { toPlatformPathFromPosix } from "../../../shared/environment";
 import { initEventDatabaseHandlers } from "../event-databases-ipc";
 
 const ipcHandlers = vi.hoisted(() => new Map<string, (...args: unknown[]) => unknown>());
@@ -16,6 +17,7 @@ vi.mock("electron", () => ({
 }));
 
 let workDir: string;
+const mockedStationsPath = toPlatformPathFromPosix("/tmp/stations.json");
 
 const connect = vi.hoisted(() => ({
   createDatabaseFile: vi.fn(),
@@ -121,7 +123,7 @@ describe("event-databases-ipc", () => {
 
   describe("create-event-database", () => {
     it("creates a database named after the event in the stations file", async () => {
-      dialogs.selectStationsFile.mockResolvedValue(["/tmp/stations.json"]);
+      dialogs.selectStationsFile.mockResolvedValue([mockedStationsPath]);
 
       const [slug, status] = (await handlerFor("create-event-database")(undefined)) as [
         string,
@@ -131,7 +133,7 @@ describe("event-databases-ipc", () => {
       expect(status).toBe(DatabaseStatus.Created);
       expect(slug).toBe("bear-100-2");
       expect(connect.createDatabaseFile).toHaveBeenCalledWith("bear-100-2");
-      expect(stations.loadStationsFromFile).toHaveBeenCalledWith("/tmp/stations.json");
+      expect(stations.loadStationsFromFile).toHaveBeenCalledWith(mockedStationsPath);
     });
 
     it("reports when the operator cancels the dialog", async () => {
@@ -148,7 +150,7 @@ describe("event-databases-ipc", () => {
     });
 
     it("reports an unreadable stations file", async () => {
-      dialogs.selectStationsFile.mockResolvedValue(["/tmp/stations.json"]);
+      dialogs.selectStationsFile.mockResolvedValue([mockedStationsPath]);
       stations.readEventNameFromStationsFile.mockImplementation(() => {
         throw new Error("Stations file is missing an event name");
       });

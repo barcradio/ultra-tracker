@@ -11,7 +11,10 @@ vi.mock("electron", () => ({
   }
 }));
 
-const appStore = vi.hoisted(() => ({ get: vi.fn(), path: "C:/fake/config.json" }));
+const mockedAppStorePath = vi.hoisted(() =>
+  process.platform === "win32" ? "\\tmp\\fake\\config.json" : "/tmp/fake/config.json"
+);
+const appStore = vi.hoisted(() => ({ get: vi.fn(), path: mockedAppStorePath }));
 const clearAppStore = vi.hoisted(() => vi.fn());
 vi.mock("../../lib/store", () => ({ appStore, clearAppStore }));
 
@@ -41,6 +44,6 @@ describe("settings-ipc", () => {
     const result = invoke("reset-app-settings");
 
     expect(clearAppStore).toHaveBeenCalled();
-    expect(result).toBe("C:/fake/config.json: Reset!");
+    expect(result).toBe(`${mockedAppStorePath}: Reset!`);
   });
 });
