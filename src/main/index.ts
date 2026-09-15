@@ -12,6 +12,7 @@ import {
 } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
+import { integrateAppImageDesktopEntry } from "./lib/appimage-desktop-integration";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
@@ -63,13 +64,25 @@ function createWindow(): BrowserWindow {
   });
   let rendererCrashDialogOpen = false;
 
-  mainWindow!.once("ready-to-show", () => {
-    uberLog(LogLevel.info, "ui", "Main window ready to show", false);
-    mainWindow!.show();
-    mainWindow!.focus();
-    mainWindow!.setTitle(`${app.name} - v${app.getVersion()}`);
-    mainWindow!.setIcon(iconLinux);
-  });
+  const revealMainWindow = (trigger: string): void => {
+    if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isVisible()) return;
+    uberLog(LogLevel.info, "ui", `Main window ready to show (${trigger})`, false);
+    mainWindow.show();
+    mainWindow.focus();
+    mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
+    // Linux only: Windows and macOS take their icon from the packaged bundle,
+    // and this would replace it with the Linux PNG.
+    if (process.platform === "linux") mainWindow.setIcon(iconLinux);
+  };
+
+  mainWindow!.once("ready-to-show", () => revealMainWindow("ready-to-show"));
+
+  // On Wayland, ready-to-show can never fire (electron/electron#48859), leaving
+  // the hidden window hidden forever. Reveal it anyway; the guard in
+  // revealMainWindow makes this a no-op wherever the event does arrive.
+  const readyToShowFallback = setTimeout(() => revealMainWindow("fallback timer"), 5000);
+  mainWindow!.once("show", () => clearTimeout(readyToShowFallback));
+  mainWindow!.once("closed", () => clearTimeout(readyToShowFallback));
 
   mainWindow!.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -120,6 +133,10 @@ async function initializeApp(): Promise<void> {
   electronApp.setAppUserModelId("com.electron");
 
   setApplicationMenu();
+
+  // Must finish before the first window: the desktop binds a window to its
+  // .desktop entry when it is mapped. No-op unless running as an AppImage.
+  await integrateAppImageDesktopEntry();
 
   createWindow();
 

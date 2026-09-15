@@ -30,21 +30,39 @@ mac:
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
+  # A directory of NxN.png so every size lands in hicolor, not one scaled bitmap.
+  # Resolved under buildResources (build/), and a wrong prefix fails silently.
+  icon: icons
+  # 64-bit only, matching Windows and macOS. Pi 4/5 run arm64.
   target:
     - target: appimage
       arch:
         - x64
-        - armv7l
         - arm64
     - target: deb
       arch:
         - x64
-        - armv7l
         - arm64
-  maintainer: electronjs.org
+  maintainer: BARC <no-reply@barconline.org>
   category: Utility
+  # Debian's Description is "synopsis\n description"; without a synopsis the
+  # whole field renders empty.
+  synopsis: Track athlete times in ultra marathons
+  # Name the .desktop file after executableName so it matches StartupWMClass and
+  # Electron's app_id, which is how a window is matched to its icon.
+  syncDesktopName: true
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  # Both AppImage legs build in the same job, so without ${arch} the second
+  # overwrites the first. The deb target adds its own suffix.
+  artifactName: ${name}-${version}-${arch}.${ext}
+  # The static runtime no longer adds this for us, and an AppImage cannot ship a
+  # setuid sandbox helper. Set explicitly so behaviour is unchanged.
+  executableArgs:
+    - --no-sandbox
+# The static runtime, not the legacy FUSE2 one: that links against an
+# unversioned libz.so absent from stock systems, and needs libfuse2.
+toolsets:
+  appimage: "1.0.2"
 npmRebuild: false
 publish:
   provider: generic
