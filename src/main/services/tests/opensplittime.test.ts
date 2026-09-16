@@ -109,6 +109,7 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     vi.clearAllMocks();
     safeStorage.isEncryptionAvailable.mockReturnValue(true);
     eventMetaUpdateRun.mockReset();
+    eventMetaUpdateRun.mockReturnValue({ changes: 1 });
     databaseMock.prepare.mockClear();
   });
 
@@ -808,6 +809,27 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
 
       const stored = storeMock.data.get("event.openSplitTime") as Record<string, { id: number }>;
       expect(stored.staging.id).toBe(42);
+    });
+
+    it("inserts EventMeta metadata when no row exists yet", async () => {
+      configureEventGroup();
+      const service = await signedIn();
+      fetchMock.mockResolvedValue(jsonResponse({ data: { id: 42, attributes: {} } }));
+      eventMetaUpdateRun.mockReturnValueOnce({ changes: 0 }).mockReturnValueOnce({ changes: 1 });
+
+      await service.syncEventGroupId();
+
+      const stored = storeMock.data.get("event.openSplitTime") as Record<string, { id: number }>;
+      expect(databaseMock.prepare).toHaveBeenNthCalledWith(
+        1,
+        `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
+      );
+      expect(databaseMock.prepare).toHaveBeenNthCalledWith(
+        2,
+        `INSERT INTO EventMeta (openSplitTime) VALUES (?)`
+      );
+      expect(eventMetaUpdateRun).toHaveBeenNthCalledWith(1, JSON.stringify(stored));
+      expect(eventMetaUpdateRun).toHaveBeenNthCalledWith(2, JSON.stringify(stored));
     });
   });
 
