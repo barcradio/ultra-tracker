@@ -8,6 +8,25 @@ import { appStore } from "../lib/store";
 
 let db: Database.Database | null = null;
 let backupInterval: NodeJS.Timeout | null = null;
+const defaultOpenSplitTime = { production: { name: "", id: 0 }, staging: { name: "", id: 0 } };
+
+// The app wires these at startup. Handlers rather than a direct import because the database
+// layer cannot depend on anything that reads from it without creating an import cycle.
+let eventOpened: (() => void) | null = null;
+let eventClosed: (() => void) | null = null;
+
+export function setEventLifecycleHandlers(opened: () => void, closed: () => void): void {
+  let isOpen = false;
+  eventOpened = () => {
+    opened();
+    isOpen = true;
+  };
+  eventClosed = () => {
+    if (!isOpen) return;
+    isOpen = false;
+    closed();
+  };
+}
 
 function getDbFolder(): string {
   return path.join(app.getPath("userData"), `event-databases`);
@@ -47,39 +66,101 @@ function startBackupLoop(dbBackupPath: string): void {
   }, 300000);
 }
 
-export function closeActiveConnection(): void {
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isOpenSplitTimeEnvironment(value: unknown): value is { name: string; id: number } {
+  return (
+    isObject(value) &&
+    typeof value.name === "string" &&
+    typeof value.id === "number" &&
+    Number.isFinite(value.id)
+  );
+}
+
+function isOpenSplitTimeMetadata(value: unknown): value is {
+  production: { name: string; id: number };
+  staging: { name: string; id: number };
+} {
+  return (
+    isObject(value) &&
+    isOpenSplitTimeEnvironment(value.production) &&
+    isOpenSplitTimeEnvironment(value.staging)
+  );
+}
+
+function openDatabaseConnection(slug: string): void {
+  const { dbPath, dbBackupPath } = getDbPaths(slug);
+
+  db = new Database(dbPath);
+  db.pragma("journal_mode = WAL");
+  startBackupLoop(dbBackupPath);
+  applyMigrations(db);
+  const eventMeta = db
+    .prepare(
+      `SELECT name, startline, finishline, starttime, endtime, openSplitTime FROM EventMeta LIMIT 1`
+    )
+    .get() as
+    | {
+        name: string | null;
+        startline: string | null;
+        finishline: string | null;
+        starttime: string | null;
+        endtime: string | null;
+        openSplitTime: string | null;
+      }
+    | undefined;
+  appStore.set("event.name", eventMeta?.name || slug);
+  appStore.set("event.prettyName", formatEventDatabaseName(slug, eventMeta?.name || undefined));
+  appStore.set("event.activeDatabaseSlug", slug);
+  appStore.set("event.startline", eventMeta?.startline ?? "");
+  appStore.set("event.finishline", eventMeta?.finishline ?? "");
+  appStore.set("event.starttime", eventMeta?.starttime ?? "");
+  appStore.set("event.endtime", eventMeta?.endtime ?? "");
+
+  let openSplitTime = defaultOpenSplitTime;
+  if (eventMeta?.openSplitTime) {
+    try {
+      const parsed = JSON.parse(eventMeta.openSplitTime) as unknown;
+      if (isOpenSplitTimeMetadata(parsed)) {
+        openSplitTime = parsed;
+      }
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        console.log(`Unable to parse EventMeta.openSplitTime: ${e.message}`);
+      }
+    }
+  }
+  appStore.set("event.openSplitTime", openSplitTime);
+
+  eventOpened?.();
+  console.log("Connected to SQLite Database:" + dbPath);
+}
+
+export function closeDatabaseConnection(): void {
   if (backupInterval) {
     clearInterval(backupInterval);
     backupInterval = null;
   }
+
+  eventClosed?.();
 
   db?.close();
   db = null;
 }
 
 export function switchToDatabase(slug: string): void {
-  const { dbFolder, dbPath, dbBackupPath } = getDbPaths(slug);
+  const { dbFolder } = getDbPaths(slug);
 
   if (!fs.existsSync(dbFolder)) fs.mkdirSync(dbFolder, { recursive: true });
 
-  closeActiveConnection();
+  closeDatabaseConnection();
 
   try {
-    db = new Database(dbPath);
-    db.pragma("journal_mode = WAL");
-    startBackupLoop(dbBackupPath);
-    applyMigrations(db);
-    const eventMeta = db.prepare(`SELECT name FROM EventMeta LIMIT 1`).get() as
-      | {
-          name: string | null;
-        }
-      | undefined;
-    appStore.set("event.name", eventMeta?.name || slug);
-    appStore.set("event.prettyName", formatEventDatabaseName(slug, eventMeta?.name || undefined));
-    appStore.set("event.activeDatabaseSlug", slug);
-    console.log("Connected to SQLite Database:" + dbPath);
+    openDatabaseConnection(slug);
   } catch (e: unknown) {
-    closeActiveConnection();
+    closeDatabaseConnection();
     if (e instanceof Error) {
       console.log(`Unable to connect or create database: ${e.message}`);
     }
@@ -93,12 +174,12 @@ export function createDatabaseFile(slug: string): void {
 
   if (!fs.existsSync(dbFolder)) fs.mkdirSync(dbFolder, { recursive: true });
 
-  closeActiveConnection();
+  closeDatabaseConnection();
   db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
   CreateTables(db);
-  db.pragma("user_version = 3");
-  closeActiveConnection();
+  db.pragma("user_version = 4");
+  closeDatabaseConnection();
   switchToDatabase(slug);
 }
 

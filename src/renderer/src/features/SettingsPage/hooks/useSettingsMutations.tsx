@@ -6,21 +6,24 @@ import * as loggerHooks from "~/hooks/ipc/useLogger";
 export function useSettingsMutations() {
   const { createToast } = useToasts();
 
-  const importAthletesFile = useBasicIpcCall("load-athletes-file", {
-    preToast: "Loading Athletes file"
-  });
-
-  const importStationsFile = useBasicIpcCall("load-stations-file", {
-    preToast: "Loading Stations file",
-    invalidateQueryKeys: [["opensplittime-event-group-configured"]]
-  });
-
   const importDropsFile = useBasicIpcCall("load-drops-file", {
     preToast: "Loading Drops file"
   });
 
   const importRunnerCSVFile = useBasicIpcCall("import-runners-file", {
     preToast: "Loading Runners file"
+  });
+
+  const reloadEventsFile = useBasicIpcCall("reload-events-file", {
+    preToast: "Reloading Events file",
+    invalidateQueryKeys: [
+      ["opensplittime-event-group-configured"],
+      ["runners-table"],
+      ["stations-list"],
+      ["athletes-table"],
+      ["stats-table"],
+      ["station"]
+    ]
   });
 
   const initializeDatabaseMutation = useBasicIpcCall("initialize-database");
@@ -56,10 +59,9 @@ export function useSettingsMutations() {
     resetAppSettings,
     initializeRfid,
     disconnectRfid,
-    importAthletesFile,
-    importStationsFile,
     importDropsFile,
     importRunnerCSVFile,
+    reloadEventsFile,
     reinitializeDatabase
   };
 }

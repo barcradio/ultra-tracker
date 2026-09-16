@@ -16,14 +16,14 @@ interface Props<T extends object> {
 }
 
 const FilterButton = classed.button({
-  base: "hidden md:block absolute px-2 sm:px-3 md:px-4 opacity-0 transition-all duration-150 ease-in-out cursor-pointer fill-current text-on-surface group-hover/header:opacity-100 hover:text-on-surface-hover",
+  base: "hidden md:flex absolute justify-center items-center p-0 w-[18px] h-[18px] opacity-0 transition-all duration-150 ease-in-out cursor-pointer fill-current text-primary group-hover/header:opacity-100 hover:text-primary-hover",
   variants: {
     align: {
-      right: "left-0",
+      right: "left-2",
       left: "right-0"
     },
     active: {
-      true: "opacity-100 text-on-surface-hover"
+      true: "opacity-100 text-primary-hover"
     }
   }
 });

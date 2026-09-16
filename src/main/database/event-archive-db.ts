@@ -10,6 +10,7 @@ import {
   readEventNameFromStationsContent
 } from "./stations-db";
 import { parseDropsContent } from "./status-db";
+import { selectEventArchiveFile } from "../lib/file-dialogs";
 
 const STATIONS_ENTRY = "stations.json";
 const ATHLETES_ENTRY = "athletes.csv";
@@ -89,5 +90,39 @@ export async function importEventArchiveFile(
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unable to import event file";
     return [null, DatabaseStatus.Error, message];
+  }
+}
+
+export async function reloadEventArchiveFile(archiveFilePath?: string): Promise<string> {
+  let filePath = archiveFilePath;
+  if (!filePath) {
+    const filePaths = await selectEventArchiveFile();
+    filePath = filePaths?.[0];
+  }
+
+  if (!filePath) {
+    throw new Error("No event file selected");
+  }
+
+  const [entries, , message] = readEventArchiveEntries(filePath);
+  if (!entries) {
+    throw new Error(message || "Unable to read event file");
+  }
+
+  try {
+    const stationsJson = entries.stationsEntry.getData().toString("utf-8");
+    const eventName = readEventNameFromStationsContent(stationsJson);
+
+    await parseStationsContent(stationsJson, STATIONS_ENTRY);
+    await parseAthletesContent(Readable.from(entries.athletesEntry.getData()), ATHLETES_ENTRY);
+
+    if (entries.dropsEntry) {
+      await parseDropsContent(Readable.from(entries.dropsEntry.getData()), DROPS_ENTRY);
+    }
+
+    return `Reloaded event file "${eventName}"`;
+  } catch (e: unknown) {
+    const errMessage = e instanceof Error ? e.message : "Unable to reload event file";
+    throw new Error(errMessage);
   }
 }

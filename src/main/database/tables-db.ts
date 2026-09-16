@@ -5,8 +5,9 @@ import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs1 from "./schema/table-definitions-v1";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
+import * as tableDefs4 from "./schema/table-definitions-v4";
 
-const userVersion: number = 3;
+const userVersion: number = 4;
 let tableDefs;
 
 interface Table {
@@ -18,12 +19,15 @@ interface Table {
 }
 
 export function applyMigrations(db: Database.Database) {
+  // Tracked outside the try so a failure reverts to the version the database was really on.
+  let currentVersion = db.pragma("user_version", { simple: true }) as number;
+
   try {
     console.log(`Applying database migrations`);
     for (let index = 0; index <= userVersion; index++) {
       if (index == 0) continue; // skip schema base revision
 
-      const currentVersion = db.pragma("user_version", { simple: true }) as number;
+      currentVersion = db.pragma("user_version", { simple: true }) as number;
       if (currentVersion == userVersion) return;
 
       const migrationVersion = currentVersion + 1;
@@ -35,10 +39,12 @@ export function applyMigrations(db: Database.Database) {
       db.pragma(`user_version = ${migrationVersion}`);
       console.log(`[success] pragma user_version: ${db.pragma("user_version", { simple: true })}`);
     }
-  } catch {
-    db.pragma(`user_version = ${Math.max(0, userVersion - 1)}`);
+  } catch (e: unknown) {
+    db.pragma(`user_version = ${currentVersion}`);
     console.log(
-      `[error] pragma user_version: ${db.pragma("user_version", { simple: true })} reverted`
+      `[error] pragma user_version: ${db.pragma("user_version", { simple: true })} reverted: ${
+        e instanceof Error ? e.message : e
+      }`
     );
   }
 }
@@ -63,6 +69,10 @@ export function validateDatabaseTables(db: Database.Database) {
 
     case 3:
       tableDefs = tableDefs3;
+      break;
+
+    case 4:
+      tableDefs = tableDefs4;
       break;
   }
 
@@ -117,7 +127,7 @@ function* toColumnNames(stmt) {
 
 /* Recreate the database tables, will be the current schema version */
 export function CreateTables(db: Database.Database) {
-  tableDefs = tableDefs3;
+  tableDefs = tableDefs4;
   const result =
     createAthletesTable(db) &&
     createEventLogTable(db) &&
@@ -128,8 +138,11 @@ export function CreateTables(db: Database.Database) {
     createOpenSplitTimePushStatusTable(db) &&
     createRFIDInboxTable(db) &&
     createRFIDPendingWritesTable(db) &&
+    createRFIDProcessedEventsTable(db) &&
     createWatchlistTable(db) &&
     createEventMetaTable(db);
+
+  if (result) db.pragma(`user_version = ${userVersion}`);
 
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
@@ -173,6 +186,8 @@ export const createOpenSplitTimePushStatusTable = (db: Database.Database) =>
   );
 export const createRFIDPendingWritesTable = (db: Database.Database) =>
   createTable(db, tableDefs.expectedTableNames.RFIDPendingWrites, tableDefs.RFIDPendingWrites);
+export const createRFIDProcessedEventsTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.RFIDProcessedEvents, tableDefs.RFIDProcessedEvents);
 export const createWatchlistTable = (db: Database.Database) =>
   createTable(db, tableDefs.expectedTableNames.Watchlist, tableDefs.Watchlist);
 export const createEventMetaTable = (db: Database.Database) =>
@@ -198,8 +213,6 @@ function clearTable(db: Database.Database, tableName: string): boolean {
     db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
 
     console.log(`Dropped '${tableName}' table`);
-
-    if (tableName == tableDefs.expectedTableNames.Athletes) db.pragma(`user_version = 0`);
 
     return true;
   } catch (e: unknown) {

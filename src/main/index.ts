@@ -2,20 +2,23 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, Event, Menu, app, dialog, powerMonitor, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
-import { DisconnectRFIDReader, RecoverRFIDReader } from "./api/rfid-processor";
+import { CloseRFIDWebSocket, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
+  closeDatabaseConnection,
   getDatabaseConnection,
   isDatabaseConnected,
   listEventDatabaseSlugs,
+  setEventLifecycleHandlers,
   switchToDatabase
 } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
+import { integrateAppImageDesktopEntry } from "./lib/appimage-desktop-integration";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
-import { initStatEngine } from "./lib/stat-engine";
+import { closeStatEngine, initStatEngine } from "./lib/stat-engine";
 import { appStore } from "./lib/store";
 
 let mainWindow: BrowserWindow | null = null;
@@ -63,13 +66,25 @@ function createWindow(): BrowserWindow {
   });
   let rendererCrashDialogOpen = false;
 
-  mainWindow!.once("ready-to-show", () => {
-    uberLog(LogLevel.info, "ui", "Main window ready to show", false);
-    mainWindow!.show();
-    mainWindow!.focus();
-    mainWindow!.setTitle(`${app.name} - v${app.getVersion()}`);
-    mainWindow!.setIcon(iconLinux);
-  });
+  const revealMainWindow = (trigger: string): void => {
+    if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isVisible()) return;
+    uberLog(LogLevel.info, "ui", `Main window ready to show (${trigger})`, false);
+    mainWindow.show();
+    mainWindow.focus();
+    mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
+    // Linux only: Windows and macOS take their icon from the packaged bundle,
+    // and this would replace it with the Linux PNG.
+    if (process.platform === "linux") mainWindow.setIcon(iconLinux);
+  };
+
+  mainWindow!.once("ready-to-show", () => revealMainWindow("ready-to-show"));
+
+  // On Wayland, ready-to-show can never fire (electron/electron#48859), leaving
+  // the hidden window hidden forever. Reveal it anyway; the guard in
+  // revealMainWindow makes this a no-op wherever the event does arrive.
+  const readyToShowFallback = setTimeout(() => revealMainWindow("fallback timer"), 5000);
+  mainWindow!.once("show", () => clearTimeout(readyToShowFallback));
+  mainWindow!.once("closed", () => clearTimeout(readyToShowFallback));
 
   mainWindow!.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -121,6 +136,10 @@ async function initializeApp(): Promise<void> {
 
   setApplicationMenu();
 
+  // Must finish before the first window: the desktop binds a window to its
+  // .desktop entry when it is mapped. No-op unless running as an AppImage.
+  await integrateAppImageDesktopEntry();
+
   createWindow();
 
   if (!mainWindow) return;
@@ -129,6 +148,7 @@ async function initializeApp(): Promise<void> {
 
   initialize();
   initUserDirectories();
+  setEventLifecycleHandlers(initStatEngine, closeStatEngine);
   adoptLegacyDatabaseIfPresent();
   const activeDatabaseSlug = appStore.get("event.activeDatabaseSlug") as string | null;
   if (activeDatabaseSlug && listEventDatabaseSlugs().includes(activeDatabaseSlug)) {
@@ -136,23 +156,12 @@ async function initializeApp(): Promise<void> {
   }
   if (isDatabaseConnected()) validateDatabaseTables(getDatabaseConnection());
   initializeIpcHandlers();
-  if (isDatabaseConnected()) initStatEngine();
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     await mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
     await mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
-
-  app.on("activate", function () {
-    app.on("window-all-closed", () => {
-      if (process.platform !== "darwin") {
-        DisconnectRFIDReader();
-        app.quit();
-      }
-      shutdown();
-    });
-  });
 
   openDevToolsOnDomReady(mainWindow);
 
@@ -195,11 +204,17 @@ app.on("activate", () => {
   }
 });
 //Window Close Handler
+// Quit on every platform, macOS included: a docked instance with no window
+// only strands the RFID reader and holds the event database open.
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    DisconnectRFIDReader();
-    app.quit();
-  }
+  app.quit();
+});
+
+// Tear down once, however the quit was triggered. Closing the websocket is synchronous, so it
+// completes before the process goes; closing the connection checkpoints the WAL.
+app.on("will-quit", () => {
+  CloseRFIDWebSocket();
+  closeDatabaseConnection();
   shutdown();
 });
 
