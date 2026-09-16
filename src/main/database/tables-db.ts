@@ -141,6 +141,8 @@ export function CreateTables(db: Database.Database) {
     createWatchlistTable(db) &&
     createEventMetaTable(db);
 
+  if (result) db.pragma(`user_version = ${userVersion}`);
+
   return result ? `Default tables were successfully created.` : `Database Create Failed`;
 }
 
@@ -208,8 +210,6 @@ function clearTable(db: Database.Database, tableName: string): boolean {
     db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
 
     console.log(`Dropped '${tableName}' table`);
-
-    if (tableName == tableDefs.expectedTableNames.Athletes) db.pragma(`user_version = 0`);
 
     return true;
   } catch (e: unknown) {
