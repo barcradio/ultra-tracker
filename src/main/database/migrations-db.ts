@@ -201,9 +201,9 @@ export const migrations: IMigration[] = [
         `);
       }
     },
-    down: `
-        ALTER TABLE EventMeta DROP COLUMN openSplitTime;
-        DROP TABLE IF EXISTS RFIDProcessedEvents;
-      `
+    down: () => {
+      // v4's guarded up path can no-op on current-shape databases stamped with an older
+      // user_version, so rollback avoids removing schema that may have pre-existed the migration.
+    }
   }
 ];

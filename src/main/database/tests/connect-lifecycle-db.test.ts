@@ -186,6 +186,22 @@ describe("connect-db lifecycle", () => {
       expect(storeMock.data.get("event.openSplitTime")).toEqual(raceOneMetadata);
     });
 
+    it("falls back to default openSplitTime metadata when persisted JSON is malformed", () => {
+      createDatabaseFile("race-one");
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", "{not-json");
+
+      switchToDatabase("race-one");
+
+      expect(isDatabaseConnected()).toBe(true);
+      expect(storeMock.data.get("event.activeDatabaseSlug")).toBe("race-one");
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        production: { name: "", id: 0 },
+        staging: { name: "", id: 0 }
+      });
+    });
+
     it("closes the previous connection when switching", () => {
       createDatabaseFile("race-one");
       const first = getDatabaseConnection();

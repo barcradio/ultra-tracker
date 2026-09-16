@@ -94,7 +94,16 @@ function openDatabaseConnection(slug: string): void {
   appStore.set("event.starttime", eventMeta?.starttime ?? "");
   appStore.set("event.endtime", eventMeta?.endtime ?? "");
 
-  let openSplitTime = eventMeta?.openSplitTime ? JSON.parse(eventMeta.openSplitTime) : undefined;
+  let openSplitTime;
+  if (eventMeta?.openSplitTime) {
+    try {
+      openSplitTime = JSON.parse(eventMeta.openSplitTime);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        console.log(`Unable to parse EventMeta.openSplitTime: ${e.message}`);
+      }
+    }
+  }
   if (!openSplitTime) {
     openSplitTime = { production: { name: "", id: 0 }, staging: { name: "", id: 0 } };
   }
