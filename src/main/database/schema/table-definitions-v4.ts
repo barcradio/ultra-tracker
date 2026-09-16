@@ -25,8 +25,7 @@ export {
   Status,
   RFIDInbox,
   RFIDPendingWrites,
-  Watchlist,
-  EventMeta
+  Watchlist
 } from "./table-definitions-v3";
 
 // Records the idempotency key of each RFID tag event once its timing record is durably
@@ -34,3 +33,13 @@ export {
 export const RFIDProcessedEvents: string = `
       eventKey TEXT NOT NULL UNIQUE,
       processedAt DATETIME NOT NULL`;
+
+// openSplitTime holds the JSON-serialized event.openSplitTime metadata (production/staging/splitNames)
+// so it travels with the event database instead of only living in the global app config.
+export const EventMeta = `
+      name TEXT,
+      startline TEXT,
+      finishline TEXT,
+      starttime DATETIME,
+      endtime DATETIME,
+      openSplitTime TEXT`;

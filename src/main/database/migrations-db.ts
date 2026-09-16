@@ -188,6 +188,10 @@ export const migrations: IMigration[] = [
   {
     version: 4,
     up: (db: Database.Database) => {
+      if (!columnExists(db, "EventMeta", "openSplitTime")) {
+        db.exec(`ALTER TABLE EventMeta ADD COLUMN openSplitTime TEXT;`);
+      }
+
       if (!tableExists(db, "RFIDProcessedEvents")) {
         db.exec(`
           CREATE TABLE IF NOT EXISTS RFIDProcessedEvents (
@@ -198,6 +202,7 @@ export const migrations: IMigration[] = [
       }
     },
     down: `
+        ALTER TABLE EventMeta DROP COLUMN openSplitTime;
         DROP TABLE IF EXISTS RFIDProcessedEvents;
       `
   }

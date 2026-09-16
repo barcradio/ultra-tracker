@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { config } from "dotenv";
 import { safeStorage } from "electron";
 import { RunnerDB } from "$shared/models";
+import { getDatabaseConnection } from "../database/connect-db";
 import * as opensplittimeStatusDb from "../database/opensplittimeStatus-db";
 import { emitConnectionStatus } from "../ipc/connectivity-emitter";
 import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
@@ -431,6 +432,13 @@ function deriveSplitEntryKindsFromResponse(
   return splitEntryKinds;
 }
 
+function persistOpenSplitTimeEventMetadata(eventMetadata: OpenSplitTimeEventMetadataStore): void {
+  const db = getDatabaseConnection();
+  db.prepare(
+    `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
+  ).run(JSON.stringify(eventMetadata));
+}
+
 // The stations JSON file records the OpenSplitTime event group id manually, so
 // verify it against the live event group and correct it if OpenSplitTime disagrees.
 export async function syncEventGroupId(): Promise<void> {
@@ -457,6 +465,7 @@ export async function syncEventGroupId(): Promise<void> {
     };
 
     appStore.set("event.openSplitTime", nextEventMetadata);
+    persistOpenSplitTimeEventMetadata(nextEventMetadata);
 
     if (Number.isFinite(remoteId) && remoteId > 0 && remoteId !== configuredEvent?.id) {
       console.info(
@@ -495,6 +504,7 @@ export async function syncSplitEntryKinds(): Promise<void> {
     };
 
     appStore.set("event.openSplitTime", nextEvent);
+    persistOpenSplitTimeEventMetadata(nextEvent);
   } catch (error) {
     console.warn("Unable to sync OpenSplitTime split entry kinds", error);
   }

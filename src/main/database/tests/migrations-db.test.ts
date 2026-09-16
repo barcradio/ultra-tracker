@@ -57,6 +57,7 @@ describe("migrations-db", () => {
           "EventMeta"
         ])
       );
+      expect(getColumnNamesFromTable(db, "EventMeta")).toContain("openSplitTime");
     });
 
     it("renames StationEvents to TimeRecords rather than dropping the timing data", () => {

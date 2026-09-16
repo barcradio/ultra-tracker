@@ -5,7 +5,11 @@ import { hasReadRFID, statusRFID } from "../rfid-emitter";
 import { emitRunnersTableChanged } from "../runner-data-emitter";
 import { sendToastToRenderer } from "../toast-ipc";
 
-const webContents = vi.hoisted(() => ({ send: vi.fn(), reload: vi.fn() }));
+const webContents = vi.hoisted(() => ({
+  send: vi.fn(),
+  reload: vi.fn(),
+  isDestroyed: vi.fn(() => false)
+}));
 const fromId = vi.hoisted(() => vi.fn());
 
 vi.mock("electron", () => ({
@@ -64,5 +68,21 @@ describe("renderer emitters", () => {
     hasReadRFID();
 
     expect(webContents.send).not.toHaveBeenCalled();
+  });
+
+  it("stays quiet when the web contents is already destroyed", () => {
+    webContents.isDestroyed.mockReturnValue(true);
+
+    emitRunnersTableChanged();
+
+    expect(webContents.send).not.toHaveBeenCalled();
+  });
+
+  it("swallows the frame-disposed race when send throws", () => {
+    webContents.send.mockImplementation(() => {
+      throw new Error("Render frame was disposed before WebFrameMain could be accessed");
+    });
+
+    expect(() => emitRunnersTableChanged()).not.toThrow();
   });
 });
