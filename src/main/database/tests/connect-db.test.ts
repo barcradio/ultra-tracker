@@ -3,7 +3,7 @@ import os from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  closeActiveConnection,
+  closeDatabaseConnection,
   createDatabaseFile,
   deleteDatabaseFiles,
   getDatabaseConnection,
@@ -46,7 +46,7 @@ describe("connect-db", () => {
   });
 
   afterEach(() => {
-    closeActiveConnection();
+    closeDatabaseConnection();
     fs.rmSync(userDataDir, { recursive: true, force: true });
   });
 
