@@ -193,7 +193,8 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
 
 function toDate(date: Date | string | null): Date | null {
   if (date == null) return null;
-  return date instanceof Date ? date : new Date(date);
+  const parsed = date instanceof Date ? date : new Date(date);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function toISOString(date: Date | string | null): string | null {

@@ -439,6 +439,20 @@ describe("timingRecords-db", () => {
       expect(log.comments).not.toContain("11:00:00");
     });
 
+    it("still deletes the record when a stored timestamp is malformed", () => {
+      insertOrUpdateTimeRecord(runner());
+      const existing = storedRows()[0];
+      db.prepare(`UPDATE TimeRecords SET timeIn = ? WHERE "index" = ?`).run(
+        "not-a-date",
+        existing.index
+      );
+
+      const [status] = deleteTimeRecord(runner({ index: existing.index }));
+
+      expect(status).toBe(DatabaseStatus.Deleted);
+      expect(storedRows()).toHaveLength(0);
+    });
+
     it("clears any lingering OpenSplitTime push status", () => {
       insertOrUpdateTimeRecord(runner());
       const existing = storedRows()[0];
