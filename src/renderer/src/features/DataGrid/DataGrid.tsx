@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useRef } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useParentHeight } from "~/hooks/useParentRect";
 import { classed } from "~/lib/classed";
@@ -38,6 +38,8 @@ export function DataGrid<T extends object>(props: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
   const height = useParentHeight(parentRef);
 
+  const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
+
   const [compareFn, setSortField, sortState] = useSortState<T>({
     initial: props.initialSort,
     columns: props.columns
@@ -59,6 +61,21 @@ export function DataGrid<T extends object>(props: Props<T>) {
     overscan: props.overscan ?? 0,
     useAnimationFrameWithResizeObserver: true
   });
+
+  // Centred so a row jumped to from another row lands where the eye already is, and marked
+  // briefly so it is obvious which one was landed on.
+  const scrollToIndex = (index: number) => {
+    rowVirtualizer.scrollToIndex(index, { align: "center" });
+    setHighlightIndex(index);
+  };
+
+  useEffect(() => {
+    if (highlightIndex === null) return;
+
+    const timer = setTimeout(() => setHighlightIndex(null), 1500);
+
+    return () => clearTimeout(timer);
+  }, [highlightIndex]);
 
   const handleSetSortField = (field: keyof T) => {
     setSortField(field);
@@ -93,6 +110,8 @@ export function DataGrid<T extends object>(props: Props<T>) {
           {getSection("header")}
           <TableContent<T>
             rowVirtualizer={rowVirtualizer}
+            scrollToIndex={scrollToIndex}
+            highlightIndex={highlightIndex}
             data={filteredData}
             columns={props.columns}
             actionButtons={props.actionButtons}

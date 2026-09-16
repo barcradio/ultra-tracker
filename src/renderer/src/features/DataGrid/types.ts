@@ -2,6 +2,14 @@ import { ReactNode } from "react";
 
 export type RowStatus = "success" | "pending" | "error" | "exported" | "not-exported";
 
+/** Passed to a cell so it can refer to other rows: which rows are on screen, in view order,
+ *  where this one sits among them, and how to bring another one into view. */
+export interface RowContext<T> {
+  index: number;
+  rows: T[];
+  scrollToIndex: (index: number) => void;
+}
+
 export type Column<T extends object> = {
   [K in keyof T]: {
     field: K;
@@ -21,7 +29,7 @@ export type Column<T extends object> = {
     valueFn?: (row: T) => unknown;
     filterable?: boolean;
     sortable?: boolean;
-    render?: (value: T[K], row: T) => ReactNode;
+    render?: (value: T[K], row: T, context: RowContext<T>) => ReactNode;
     align?: "left" | "right";
     truncate?: boolean;
   };

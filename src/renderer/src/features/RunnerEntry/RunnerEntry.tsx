@@ -7,6 +7,7 @@ import { DropReason, RecordStatus } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { InTimeCell } from "./InTimeCell";
 import { RunnerFormStats } from "./RunnerFormStats";
+import { SiblingRowLinks } from "./SiblingRowLinks";
 import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
 
 function getRowStatus(row: RunnerEx): RowStatus {
@@ -46,8 +47,11 @@ export function RunnerEntry() {
       field: "dropReason",
       name: "Status",
       truncate: false,
-      render: (dropReason, { status }) => (
-        <StatusTag dropReason={dropReason} duplicate={status === RecordStatus.Duplicate} />
+      render: (dropReason, { status }, context) => (
+        <>
+          <StatusTag dropReason={dropReason} duplicate={status === RecordStatus.Duplicate} />
+          <SiblingRowLinks context={context} />
+        </>
       ),
       valueFn: (data) =>
         data.dropReason! === DropReason.None
@@ -55,7 +59,7 @@ export function RunnerEntry() {
           : data.dropReason! === DropReason.DidNotStart
             ? "DNS"
             : data.dropReason,
-      sample: "Duplicate"
+      sample: "Duplicate 12, 13"
     },
     {
       field: "note",
