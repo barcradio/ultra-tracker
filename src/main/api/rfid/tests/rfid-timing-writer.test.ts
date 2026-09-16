@@ -19,6 +19,21 @@ const dbPending = vi.hoisted(() => ({
 }));
 vi.mock("../../../database/rfidPendingWrites-db", () => dbPending);
 
+const dbProcessedEvents = vi.hoisted(() => ({
+  claimProcessed: vi.fn((): boolean => true),
+  hasProcessed: vi.fn((): boolean => false),
+  markProcessed: vi.fn()
+}));
+vi.mock("../../../database/rfidProcessedEvents-db", () => dbProcessedEvents);
+
+// A real transaction's atomicity isn't testable against mocked db modules; this stand-in just
+// runs the callback so the writer's transactional wiring can still be exercised.
+vi.mock("../../../database/connect-db", () => ({
+  getDatabaseConnection: () => ({
+    transaction: (fn: () => void) => fn
+  })
+}));
+
 vi.mock("../rfid-log", () => ({
   logRFID: vi.fn(),
   LogLevel: { error: 0, warn: 1, info: 2 }
@@ -38,6 +53,8 @@ describe("rfid-timing-writer", () => {
     vi.clearAllMocks();
     dbTimings.insertOrUpdateTimeRecord.mockReturnValue([DatabaseStatus.Created, "created"]);
     dbPending.getPending.mockReturnValue([]);
+    dbProcessedEvents.claimProcessed.mockReturnValue(true);
+    dbProcessedEvents.hasProcessed.mockReturnValue(false);
     writer = new RfidTimingWriter();
   });
 
@@ -95,6 +112,34 @@ describe("rfid-timing-writer", () => {
     });
   });
 
+  describe("replay safety", () => {
+    it("marks an event processed once its timing record is written", () => {
+      writer.write(tagRead());
+
+      expect(dbProcessedEvents.claimProcessed).toHaveBeenCalledWith(
+        `101:${TAG_TIME.toISOString()}`
+      );
+    });
+
+    it("skips a tag read whose event key cannot be claimed", () => {
+      dbProcessedEvents.claimProcessed.mockReturnValue(false);
+
+      writer.write(tagRead());
+
+      expect(dbTimings.insertOrUpdateTimeRecord).not.toHaveBeenCalled();
+      expect(dbProcessedEvents.markProcessed).not.toHaveBeenCalled();
+    });
+
+    it("does not mark the event processed when the timing write fails", async () => {
+      dbTimings.insertOrUpdateTimeRecord.mockReturnValue([DatabaseStatus.Error, "database locked"]);
+
+      writer.write(tagRead());
+      await vi.advanceTimersByTimeAsync(500);
+
+      expect(dbProcessedEvents.markProcessed).not.toHaveBeenCalled();
+    });
+  });
+
   describe("recoverPendingWrites", () => {
     it("does nothing when there is nothing queued", () => {
       writer.recoverPendingWrites();
@@ -112,6 +157,18 @@ describe("rfid-timing-writer", () => {
       expect(dbTimings.insertOrUpdateTimeRecord).toHaveBeenCalledWith(
         expect.objectContaining({ bibId: 101 })
       );
+      expect(dbPending.markProcessed).toHaveBeenCalledWith(1);
+    });
+
+    it("does not re-insert a timing record for a pending write already processed elsewhere", () => {
+      dbPending.getPending.mockReturnValue([
+        { index: 1, bibId: 101, tagTimestamp: TAG_TIME.toISOString() }
+      ]);
+      dbProcessedEvents.claimProcessed.mockReturnValue(false);
+
+      writer.recoverPendingWrites();
+
+      expect(dbTimings.insertOrUpdateTimeRecord).not.toHaveBeenCalled();
       expect(dbPending.markProcessed).toHaveBeenCalledWith(1);
     });
 

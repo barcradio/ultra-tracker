@@ -71,7 +71,7 @@ describe("connect-db lifecycle", () => {
       createDatabaseFile("bear-100");
 
       const db = getDatabaseConnection();
-      expect(db.pragma("user_version", { simple: true })).toBe(3);
+      expect(db.pragma("user_version", { simple: true })).toBe(4);
       const tables = db
         .prepare(`SELECT name FROM sqlite_master WHERE type='table'`)
         .all() as Array<{ name: string }>;
@@ -162,6 +162,61 @@ describe("connect-db lifecycle", () => {
       expect(storeMock.data.get("event.name")).toBe("bear-100");
     });
 
+    it("restores openSplitTime metadata when switching back to a prior event database", () => {
+      createDatabaseFile("race-one");
+      const raceOneMetadata = {
+        production: { name: "beaverhead", id: 33, splitNames: { in: "in", out: "out" } },
+        staging: { name: "beaverhead-staging", id: 22, splitNames: { in: "in", out: "out" } }
+      };
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", JSON.stringify(raceOneMetadata));
+
+      switchToDatabase("race-one");
+      expect(storeMock.data.get("event.openSplitTime")).toEqual(raceOneMetadata);
+
+      createDatabaseFile("race-two");
+      switchToDatabase("race-two");
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        production: { name: "", id: 0 },
+        staging: { name: "", id: 0 }
+      });
+
+      switchToDatabase("race-one");
+      expect(storeMock.data.get("event.openSplitTime")).toEqual(raceOneMetadata);
+    });
+
+    it("falls back to default openSplitTime metadata when persisted JSON is malformed", () => {
+      createDatabaseFile("race-one");
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", "{not-json");
+
+      switchToDatabase("race-one");
+
+      expect(isDatabaseConnected()).toBe(true);
+      expect(storeMock.data.get("event.activeDatabaseSlug")).toBe("race-one");
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        production: { name: "", id: 0 },
+        staging: { name: "", id: 0 }
+      });
+    });
+
+    it("falls back to default openSplitTime metadata when persisted JSON has the wrong shape", () => {
+      createDatabaseFile("race-one");
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", JSON.stringify({ production: { name: "race-one", id: 1 } }));
+
+      switchToDatabase("race-one");
+
+      expect(isDatabaseConnected()).toBe(true);
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        production: { name: "", id: 0 },
+        staging: { name: "", id: 0 }
+      });
+    });
+
     it("closes the previous connection when switching", () => {
       createDatabaseFile("race-one");
       const first = getDatabaseConnection();
@@ -203,7 +258,7 @@ describe("connect-db lifecycle", () => {
       switchToDatabase("legacy-race");
 
       const db = getDatabaseConnection();
-      expect(db.pragma("user_version", { simple: true })).toBe(3);
+      expect(db.pragma("user_version", { simple: true })).toBe(4);
       expect(db.prepare(`SELECT bibId FROM TimeRecords`).all()).toEqual([{ bibId: 101 }]);
       expect(db.prepare(`SELECT dropped, dropReason FROM Status WHERE bibId = 101`).get()).toEqual({
         dropped: 1,
@@ -226,7 +281,7 @@ describe("connect-db lifecycle", () => {
       switchToDatabase("bear-100");
 
       const healed = getDatabaseConnection();
-      expect(healed.pragma("user_version", { simple: true })).toBe(3);
+      expect(healed.pragma("user_version", { simple: true })).toBe(4);
       expect(
         healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 101`).get()
       ).toEqual({
@@ -254,7 +309,7 @@ describe("connect-db lifecycle", () => {
       switchToDatabase("restored");
 
       const healed = getDatabaseConnection();
-      expect(healed.pragma("user_version", { simple: true })).toBe(3);
+      expect(healed.pragma("user_version", { simple: true })).toBe(4);
       expect(
         healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 202`).get()
       ).toEqual({

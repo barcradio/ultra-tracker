@@ -36,6 +36,14 @@ vi.mock("../../ipc/runner-data-emitter", () => ({ emitRunnersTableChanged }));
 const sendToastToRenderer = vi.hoisted(() => vi.fn());
 vi.mock("../../ipc/toast-ipc", () => ({ sendToastToRenderer }));
 
+const eventMetaUpdateRun = vi.hoisted(() => vi.fn());
+const databaseMock = vi.hoisted(() => ({
+  prepare: vi.fn(() => ({ run: eventMetaUpdateRun }))
+}));
+vi.mock("../../database/connect-db", () => ({
+  getDatabaseConnection: () => databaseMock
+}));
+
 type Service = typeof import("../opensplittime");
 
 const fetchMock = vi.fn();
@@ -100,6 +108,9 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     storeMock.data.set("openSplitTime.encryptedPassword", "");
     vi.clearAllMocks();
     safeStorage.isEncryptionAvailable.mockReturnValue(true);
+    eventMetaUpdateRun.mockReset();
+    eventMetaUpdateRun.mockReturnValue({ changes: 1 });
+    databaseMock.prepare.mockClear();
   });
 
   afterEach(() => {
@@ -754,11 +765,17 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       configureEventGroup();
       const service = await signedIn();
       fetchMock.mockResolvedValue(jsonResponse({ data: { id: 42, attributes: {} } }));
+      eventMetaUpdateRun.mockClear();
+      databaseMock.prepare.mockClear();
 
       await service.syncEventGroupId();
 
       const stored = storeMock.data.get("event.openSplitTime") as Record<string, { id: number }>;
       expect(stored.staging.id).toBe(42);
+      expect(databaseMock.prepare).toHaveBeenCalledWith(
+        `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
+      );
+      expect(eventMetaUpdateRun).toHaveBeenCalledWith(JSON.stringify(stored));
     });
 
     it("does nothing when no event group is configured", async () => {
@@ -778,6 +795,41 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
 
       const stored = storeMock.data.get("event.openSplitTime") as Record<string, { id: number }>;
       expect(stored.staging.id).toBe(7);
+    });
+
+    it("keeps the appStore update when persisting the corrected id fails", async () => {
+      configureEventGroup();
+      const service = await signedIn();
+      fetchMock.mockResolvedValue(jsonResponse({ data: { id: 42, attributes: {} } }));
+      eventMetaUpdateRun.mockImplementationOnce(() => {
+        throw new Error("disk full");
+      });
+
+      await expect(service.syncEventGroupId()).resolves.toBeUndefined();
+
+      const stored = storeMock.data.get("event.openSplitTime") as Record<string, { id: number }>;
+      expect(stored.staging.id).toBe(42);
+    });
+
+    it("inserts EventMeta metadata when no row exists yet", async () => {
+      configureEventGroup();
+      const service = await signedIn();
+      fetchMock.mockResolvedValue(jsonResponse({ data: { id: 42, attributes: {} } }));
+      eventMetaUpdateRun.mockReturnValueOnce({ changes: 0 }).mockReturnValueOnce({ changes: 1 });
+
+      await service.syncEventGroupId();
+
+      const stored = storeMock.data.get("event.openSplitTime") as Record<string, { id: number }>;
+      expect(databaseMock.prepare).toHaveBeenNthCalledWith(
+        1,
+        `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
+      );
+      expect(databaseMock.prepare).toHaveBeenNthCalledWith(
+        2,
+        `INSERT INTO EventMeta (openSplitTime) VALUES (?)`
+      );
+      expect(eventMetaUpdateRun).toHaveBeenNthCalledWith(1, JSON.stringify(stored));
+      expect(eventMetaUpdateRun).toHaveBeenNthCalledWith(2, JSON.stringify(stored));
     });
   });
 
@@ -803,6 +855,8 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
           }
         })
       );
+      eventMetaUpdateRun.mockClear();
+      databaseMock.prepare.mockClear();
 
       await service.syncSplitEntryKinds();
 
@@ -812,6 +866,10 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       >;
       expect(stored.staging.splitEntryKinds["Hardware Ranch"]).toEqual(["in", "out"]);
       expect(stored.staging.splitEntryKinds.Finish).toEqual(["in", "out"]);
+      expect(databaseMock.prepare).toHaveBeenCalledWith(
+        `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
+      );
+      expect(eventMetaUpdateRun).toHaveBeenCalledWith(JSON.stringify(stored));
     });
 
     it("ignores entries with no split name or an unrecognised kind", async () => {

@@ -38,7 +38,7 @@ describe("migrations-db", () => {
     it("reaches the current schema version", () => {
       applyMigrations(db);
 
-      expect(schemaVersion()).toBe(3);
+      expect(schemaVersion()).toBe(4);
     });
 
     it("creates the tables the current app expects", () => {
@@ -51,11 +51,13 @@ describe("migrations-db", () => {
           "TimeRecords",
           "RFIDInbox",
           "RFIDPendingWrites",
+          "RFIDProcessedEvents",
           "OpenSplitTimePushStatus",
           "Watchlist",
           "EventMeta"
         ])
       );
+      expect(getColumnNamesFromTable(db, "EventMeta")).toContain("openSplitTime");
     });
 
     it("renames StationEvents to TimeRecords rather than dropping the timing data", () => {
@@ -141,7 +143,7 @@ describe("migrations-db", () => {
 
       applyMigrations(db);
 
-      expect(schemaVersion()).toBe(3);
+      expect(schemaVersion()).toBe(4);
       expect(getTableNames(db).sort()).toEqual(tablesAfterFirstRun);
     });
 
@@ -173,7 +175,7 @@ describe("migrations-db", () => {
 
       applyMigrations(db);
 
-      expect(schemaVersion()).toBe(3);
+      expect(schemaVersion()).toBe(4);
       const rows = db.prepare(`SELECT * FROM Status WHERE bibId = 101`).all();
       expect(rows).toHaveLength(1);
     });
@@ -188,7 +190,7 @@ describe("migrations-db", () => {
 
       applyMigrations(db);
 
-      expect(schemaVersion()).toBeLessThan(3);
+      expect(schemaVersion()).toBeLessThan(4);
     });
   });
 });
