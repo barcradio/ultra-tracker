@@ -5,7 +5,7 @@ import iconLinux from "$resources/iconLinux.png?asset";
 import { CloseRFIDWebSocket, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
-  closeActiveConnection,
+  closeDatabaseConnection,
   getDatabaseConnection,
   isDatabaseConnected,
   listEventDatabaseSlugs,
@@ -197,7 +197,7 @@ app.on("window-all-closed", () => {
 // completes before the process goes; closing the connection checkpoints the WAL.
 app.on("will-quit", () => {
   CloseRFIDWebSocket();
-  closeActiveConnection();
+  closeDatabaseConnection();
   shutdown();
 });
 

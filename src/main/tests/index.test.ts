@@ -103,7 +103,7 @@ const connect = vi.hoisted(() => ({
   adoptLegacyDatabaseIfPresent: vi.fn(),
   getDatabaseConnection: vi.fn(() => ({})),
   isDatabaseConnected: vi.fn(() => true),
-  closeActiveConnection: vi.fn(),
+  closeDatabaseConnection: vi.fn(),
   listEventDatabaseSlugs: vi.fn(() => ["bear-100"]),
   setEventLifecycleHandlers: vi.fn(),
   switchToDatabase: vi.fn()
@@ -421,7 +421,7 @@ describe("main process", () => {
       emitApp("will-quit");
 
       expect(rfid.CloseRFIDWebSocket).toHaveBeenCalled();
-      expect(connect.closeActiveConnection).toHaveBeenCalled();
+      expect(connect.closeDatabaseConnection).toHaveBeenCalled();
       expect(logger.shutdown).toHaveBeenCalled();
     });
   });
