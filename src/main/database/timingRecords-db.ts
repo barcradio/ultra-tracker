@@ -147,36 +147,36 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
   const db = getDatabaseConnection();
   let queryString = "";
 
-  const searchResult = getTimeRecordbyIndex(record);
+  const [existingRecord, searchStatus] = getTimeRecordbyIndex(record);
 
-  if (searchResult != null) {
+  if (searchStatus === DatabaseStatus.Success && existingRecord != null) {
     queryString = `DELETE FROM TimeRecords WHERE "index" = ?`;
     try {
       const query = db.prepare(queryString);
-      query.run(record.index);
+      query.run(existingRecord.index);
 
       const stationIdentifier = appStore.get("station.identifier") as string;
-      const timeInISO = record.timeIn == null ? null : record.timeIn.toISOString();
-      const timeOutISO = record.timeOut == null ? null : record.timeOut.toISOString();
-      const modifiedISO = record.timeModified == null ? null : record.timeModified.toISOString();
-      const eventLogMessage = `[Delete](Time): bibId: (${record.bibId}), In: ${formatTime(record.timeIn)}, Out: ${formatTime(record.timeOut)}`;
+      const timeInISO = toISOString(existingRecord.timeIn);
+      const timeOutISO = toISOString(existingRecord.timeOut);
+      const modifiedISO = toISOString(existingRecord.timeModified);
+      const eventLogMessage = `[Delete](Time): bibId: (${existingRecord.bibId}), In: ${formatTime(existingRecord.timeIn)}, Out: ${formatTime(existingRecord.timeOut)}`;
       const verbose = false;
 
       logEvent(
-        record.bibId,
+        existingRecord.bibId,
         stationIdentifier,
         timeInISO,
         timeOutISO,
         modifiedISO,
         eventLogMessage,
-        record.sent,
+        existingRecord.sent,
         verbose
       );
 
       // Avoid a stale "success"/"error" status lingering for a bib that no longer has a record here.
-      clearPushStatus(record.bibId);
+      clearPushStatus(existingRecord.bibId);
 
-      return [DatabaseStatus.Deleted, `timing-record:delete ${record.index}`];
+      return [DatabaseStatus.Deleted, `timing-record:delete ${existingRecord.index}`];
     } catch (e) {
       if (e instanceof Error) {
         console.error(e.message);
@@ -185,15 +185,28 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
     }
   }
 
+  if (searchStatus === DatabaseStatus.Error)
+    return [DatabaseStatus.Error, `timing-record:delete ${record.index} lookup failed`];
+
   return [DatabaseStatus.NotFound, `timing-record:delete Bib ${record.bibId} not found`];
 }
 
-function formatTime(date) {
-  if (date == null) return "";
+function toDate(date: Date | string | null): Date | null {
+  if (date == null) return null;
+  return date instanceof Date ? date : new Date(date);
+}
 
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  const seconds = date.getSeconds().toString().padStart(2, "0");
+function toISOString(date: Date | string | null): string | null {
+  return toDate(date)?.toISOString() ?? null;
+}
+
+function formatTime(date: Date | string | null) {
+  const time = toDate(date);
+  if (time == null) return "";
+
+  const hours = time.getHours().toString().padStart(2, "0");
+  const minutes = time.getMinutes().toString().padStart(2, "0");
+  const seconds = time.getSeconds().toString().padStart(2, "0");
 
   return `${hours}:${minutes}:${seconds}`;
 }
