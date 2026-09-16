@@ -162,6 +162,30 @@ describe("connect-db lifecycle", () => {
       expect(storeMock.data.get("event.name")).toBe("bear-100");
     });
 
+    it("restores openSplitTime metadata when switching back to a prior event database", () => {
+      createDatabaseFile("race-one");
+      const raceOneMetadata = {
+        production: { name: "beaverhead", id: 33, splitNames: { in: "in", out: "out" } },
+        staging: { name: "beaverhead-staging", id: 22, splitNames: { in: "in", out: "out" } }
+      };
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", JSON.stringify(raceOneMetadata));
+
+      switchToDatabase("race-one");
+      expect(storeMock.data.get("event.openSplitTime")).toEqual(raceOneMetadata);
+
+      createDatabaseFile("race-two");
+      switchToDatabase("race-two");
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        production: { name: "", id: 0 },
+        staging: { name: "", id: 0 }
+      });
+
+      switchToDatabase("race-one");
+      expect(storeMock.data.get("event.openSplitTime")).toEqual(raceOneMetadata);
+    });
+
     it("closes the previous connection when switching", () => {
       createDatabaseFile("race-one");
       const first = getDatabaseConnection();
