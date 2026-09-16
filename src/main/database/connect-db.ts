@@ -89,10 +89,10 @@ function openDatabaseConnection(slug: string): void {
   appStore.set("event.name", eventMeta?.name || slug);
   appStore.set("event.prettyName", formatEventDatabaseName(slug, eventMeta?.name || undefined));
   appStore.set("event.activeDatabaseSlug", slug);
-  if (eventMeta?.startline) appStore.set("event.startline", eventMeta.startline);
-  if (eventMeta?.finishline) appStore.set("event.finishline", eventMeta.finishline);
-  if (eventMeta?.starttime) appStore.set("event.starttime", eventMeta.starttime);
-  if (eventMeta?.endtime) appStore.set("event.endtime", eventMeta.endtime);
+  appStore.set("event.startline", eventMeta?.startline ?? "");
+  appStore.set("event.finishline", eventMeta?.finishline ?? "");
+  appStore.set("event.starttime", eventMeta?.starttime ?? "");
+  appStore.set("event.endtime", eventMeta?.endtime ?? "");
 
   let openSplitTime = eventMeta?.openSplitTime ? JSON.parse(eventMeta.openSplitTime) : undefined;
   if (!openSplitTime) {
