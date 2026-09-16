@@ -206,8 +206,6 @@ function clearTable(db: Database.Database, tableName: string): boolean {
 
     console.log(`Dropped '${tableName}' table`);
 
-    if (tableName == tableDefs.expectedTableNames.Athletes) db.pragma(`user_version = 0`);
-
     return true;
   } catch (e: unknown) {
     if (e instanceof Error) console.log(`Failed to delete '${tableName}' table: ${e.message}`);
