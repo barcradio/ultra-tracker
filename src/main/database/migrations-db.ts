@@ -3,6 +3,7 @@ import Database from "better-sqlite3";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
+import * as tableDefs4 from "./schema/table-definitions-v4";
 
 // Some real-world databases have already reached a later table shape (e.g. via a build that
 // scaffolded current-shape tables without stamping a matching user_version pragma), so each
@@ -182,6 +183,22 @@ export const migrations: IMigration[] = [
         DROP TABLE IF EXISTS RFIDInbox;
         DROP TABLE IF EXISTS RFIDPendingWrites;
         DROP TABLE IF EXISTS OpenSplitTimePushStatus;
+      `
+  },
+  {
+    version: 4,
+    up: (db: Database.Database) => {
+      if (!tableExists(db, "RFIDProcessedEvents")) {
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS RFIDProcessedEvents (
+            "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            ${tableDefs4.RFIDProcessedEvents}
+          );
+        `);
+      }
+    },
+    down: `
+        DROP TABLE IF EXISTS RFIDProcessedEvents;
       `
   }
 ];

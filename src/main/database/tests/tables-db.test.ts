@@ -17,6 +17,7 @@ const expectedTables = [
   "OpenSplitTimePushStatus",
   "RFIDInbox",
   "RFIDPendingWrites",
+  "RFIDProcessedEvents",
   "Watchlist",
   "EventMeta"
 ];
