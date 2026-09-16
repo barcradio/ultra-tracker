@@ -203,7 +203,7 @@ describe("connect-db lifecycle", () => {
       switchToDatabase("legacy-race");
 
       const db = getDatabaseConnection();
-      expect(db.pragma("user_version", { simple: true })).toBe(3);
+      expect(db.pragma("user_version", { simple: true })).toBe(4);
       expect(db.prepare(`SELECT bibId FROM TimeRecords`).all()).toEqual([{ bibId: 101 }]);
       expect(db.prepare(`SELECT dropped, dropReason FROM Status WHERE bibId = 101`).get()).toEqual({
         dropped: 1,
@@ -226,7 +226,7 @@ describe("connect-db lifecycle", () => {
       switchToDatabase("bear-100");
 
       const healed = getDatabaseConnection();
-      expect(healed.pragma("user_version", { simple: true })).toBe(3);
+      expect(healed.pragma("user_version", { simple: true })).toBe(4);
       expect(
         healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 101`).get()
       ).toEqual({
@@ -254,7 +254,7 @@ describe("connect-db lifecycle", () => {
       switchToDatabase("restored");
 
       const healed = getDatabaseConnection();
-      expect(healed.pragma("user_version", { simple: true })).toBe(3);
+      expect(healed.pragma("user_version", { simple: true })).toBe(4);
       expect(
         healed.prepare(`SELECT dropped, progress FROM Status WHERE bibId = 202`).get()
       ).toEqual({
