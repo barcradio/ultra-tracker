@@ -38,7 +38,7 @@ describe("migrations-db", () => {
     it("reaches the current schema version", () => {
       applyMigrations(db);
 
-      expect(schemaVersion()).toBe(3);
+      expect(schemaVersion()).toBe(4);
     });
 
     it("creates the tables the current app expects", () => {
@@ -141,7 +141,7 @@ describe("migrations-db", () => {
 
       applyMigrations(db);
 
-      expect(schemaVersion()).toBe(3);
+      expect(schemaVersion()).toBe(4);
       expect(getTableNames(db).sort()).toEqual(tablesAfterFirstRun);
     });
 
@@ -173,7 +173,7 @@ describe("migrations-db", () => {
 
       applyMigrations(db);
 
-      expect(schemaVersion()).toBe(3);
+      expect(schemaVersion()).toBe(4);
       const rows = db.prepare(`SELECT * FROM Status WHERE bibId = 101`).all();
       expect(rows).toHaveLength(1);
     });

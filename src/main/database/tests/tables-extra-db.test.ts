@@ -25,7 +25,7 @@ describe("tables-db", () => {
       const result = CreateTables(db);
 
       expect(result).toBe("Default tables were successfully created.");
-      expect(db.pragma("user_version", { simple: true })).toBe(3);
+      expect(db.pragma("user_version", { simple: true })).toBe(4);
       expect(getTableNames(db)).toEqual(
         expect.arrayContaining([
           "Athletes",
@@ -62,7 +62,7 @@ describe("tables-db", () => {
 
       CreateTables(db);
 
-      expect(db.pragma("user_version", { simple: true })).toBe(3);
+      expect(db.pragma("user_version", { simple: true })).toBe(4);
     });
   });
 
@@ -77,7 +77,7 @@ describe("tables-db", () => {
       expect(getTableNames(db)).not.toEqual(
         expect.arrayContaining(["Athletes", "TimeRecords", "Status", "Stations", "EventMeta"])
       );
-      expect(db.pragma("user_version", { simple: true })).toBe(3);
+      expect(db.pragma("user_version", { simple: true })).toBe(4);
     });
 
     // KNOWN DEFECT - intended behaviour asserted below, currently failing.

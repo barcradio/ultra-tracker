@@ -72,14 +72,34 @@ function openDatabaseConnection(slug: string): void {
   db.pragma("journal_mode = WAL");
   startBackupLoop(dbBackupPath);
   applyMigrations(db);
-  const eventMeta = db.prepare(`SELECT name FROM EventMeta LIMIT 1`).get() as
+  const eventMeta = db
+    .prepare(
+      `SELECT name, startline, finishline, starttime, endtime, openSplitTime FROM EventMeta LIMIT 1`
+    )
+    .get() as
     | {
         name: string | null;
+        startline: string | null;
+        finishline: string | null;
+        starttime: string | null;
+        endtime: string | null;
+        openSplitTime: string | null;
       }
     | undefined;
   appStore.set("event.name", eventMeta?.name || slug);
   appStore.set("event.prettyName", formatEventDatabaseName(slug, eventMeta?.name || undefined));
   appStore.set("event.activeDatabaseSlug", slug);
+  appStore.set("event.startline", eventMeta?.startline ?? "");
+  appStore.set("event.finishline", eventMeta?.finishline ?? "");
+  appStore.set("event.starttime", eventMeta?.starttime ?? "");
+  appStore.set("event.endtime", eventMeta?.endtime ?? "");
+
+  let openSplitTime = eventMeta?.openSplitTime ? JSON.parse(eventMeta.openSplitTime) : undefined;
+  if (!openSplitTime) {
+    openSplitTime = { production: { name: "", id: 0 }, staging: { name: "", id: 0 } };
+  }
+  appStore.set("event.openSplitTime", openSplitTime);
+
   eventOpened?.();
   console.log("Connected to SQLite Database:" + dbPath);
 }
@@ -124,7 +144,7 @@ export function createDatabaseFile(slug: string): void {
   db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
   CreateTables(db);
-  db.pragma("user_version = 3");
+  db.pragma("user_version = 4");
   closeDatabaseConnection();
   switchToDatabase(slug);
 }
