@@ -86,14 +86,16 @@ export class RfidTimingWriter {
   // a replay of the same physical tag event is a no-op instead of a duplicate insert.
   private writeTimeRecord(tagRead: RfidTagRead): void {
     const eventKey = `${tagRead.bibId}:${tagRead.timestamp.toISOString()}`;
-
-    if (dbRFIDProcessedEvents.hasProcessed(eventKey)) {
-      logRFID(LogLevel.warn, `Skipping already-processed RFID event, replay detected: ${eventKey}`);
-      return;
-    }
-
     const db = getDatabaseConnection();
     const writeAndAcknowledge = db.transaction(() => {
+      if (!dbRFIDProcessedEvents.claimProcessed(eventKey)) {
+        logRFID(
+          LogLevel.warn,
+          `Skipping already-processed RFID event, replay detected: ${eventKey}`
+        );
+        return;
+      }
+
       const [status, message] = dbTimings.insertOrUpdateTimeRecord({
         index: -1,
         bibId: tagRead.bibId,
@@ -109,8 +111,6 @@ export class RfidTimingWriter {
       if (status === DatabaseStatus.Error) {
         throw new Error(message || "Unknown database error writing RFID timing record");
       }
-
-      dbRFIDProcessedEvents.markProcessed(eventKey);
     });
 
     writeAndAcknowledge();

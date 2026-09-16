@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestDatabase } from "./dbTestHelper";
-import { hasProcessed, markProcessed } from "../rfidProcessedEvents-db";
+import { claimProcessed, hasProcessed, markProcessed } from "../rfidProcessedEvents-db";
 
 let db: Database.Database;
 
@@ -26,6 +26,11 @@ describe("rfidProcessedEvents-db", () => {
     markProcessed("101:2026-09-09T00:00:00.000Z");
 
     expect(hasProcessed("101:2026-09-09T00:00:00.000Z")).toBe(true);
+  });
+
+  it("claims a new event key only once", () => {
+    expect(claimProcessed("101:2026-09-09T00:00:00.000Z")).toBe(true);
+    expect(claimProcessed("101:2026-09-09T00:00:00.000Z")).toBe(false);
   });
 
   it("does not track unrelated events as processed", () => {

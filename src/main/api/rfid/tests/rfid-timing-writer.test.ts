@@ -20,6 +20,7 @@ const dbPending = vi.hoisted(() => ({
 vi.mock("../../../database/rfidPendingWrites-db", () => dbPending);
 
 const dbProcessedEvents = vi.hoisted(() => ({
+  claimProcessed: vi.fn((): boolean => true),
   hasProcessed: vi.fn((): boolean => false),
   markProcessed: vi.fn()
 }));
@@ -52,6 +53,7 @@ describe("rfid-timing-writer", () => {
     vi.clearAllMocks();
     dbTimings.insertOrUpdateTimeRecord.mockReturnValue([DatabaseStatus.Created, "created"]);
     dbPending.getPending.mockReturnValue([]);
+    dbProcessedEvents.claimProcessed.mockReturnValue(true);
     dbProcessedEvents.hasProcessed.mockReturnValue(false);
     writer = new RfidTimingWriter();
   });
@@ -114,15 +116,18 @@ describe("rfid-timing-writer", () => {
     it("marks an event processed once its timing record is written", () => {
       writer.write(tagRead());
 
-      expect(dbProcessedEvents.markProcessed).toHaveBeenCalledWith(`101:${TAG_TIME.toISOString()}`);
+      expect(dbProcessedEvents.claimProcessed).toHaveBeenCalledWith(
+        `101:${TAG_TIME.toISOString()}`
+      );
     });
 
-    it("skips a tag read whose event was already processed", () => {
-      dbProcessedEvents.hasProcessed.mockReturnValue(true);
+    it("skips a tag read whose event key cannot be claimed", () => {
+      dbProcessedEvents.claimProcessed.mockReturnValue(false);
 
       writer.write(tagRead());
 
       expect(dbTimings.insertOrUpdateTimeRecord).not.toHaveBeenCalled();
+      expect(dbProcessedEvents.markProcessed).not.toHaveBeenCalled();
     });
 
     it("does not mark the event processed when the timing write fails", async () => {
@@ -159,7 +164,7 @@ describe("rfid-timing-writer", () => {
       dbPending.getPending.mockReturnValue([
         { index: 1, bibId: 101, tagTimestamp: TAG_TIME.toISOString() }
       ]);
-      dbProcessedEvents.hasProcessed.mockReturnValue(true);
+      dbProcessedEvents.claimProcessed.mockReturnValue(false);
 
       writer.recoverPendingWrites();
 
