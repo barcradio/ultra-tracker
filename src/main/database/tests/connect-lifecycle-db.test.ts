@@ -202,6 +202,21 @@ describe("connect-db lifecycle", () => {
       });
     });
 
+    it("falls back to default openSplitTime metadata when persisted JSON has the wrong shape", () => {
+      createDatabaseFile("race-one");
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", JSON.stringify({ production: { name: "race-one", id: 1 } }));
+
+      switchToDatabase("race-one");
+
+      expect(isDatabaseConnected()).toBe(true);
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        production: { name: "", id: 0 },
+        staging: { name: "", id: 0 }
+      });
+    });
+
     it("closes the previous connection when switching", () => {
       createDatabaseFile("race-one");
       const first = getDatabaseConnection();

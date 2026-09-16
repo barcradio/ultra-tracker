@@ -795,6 +795,20 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       const stored = storeMock.data.get("event.openSplitTime") as Record<string, { id: number }>;
       expect(stored.staging.id).toBe(7);
     });
+
+    it("keeps the appStore update when persisting the corrected id fails", async () => {
+      configureEventGroup();
+      const service = await signedIn();
+      fetchMock.mockResolvedValue(jsonResponse({ data: { id: 42, attributes: {} } }));
+      eventMetaUpdateRun.mockImplementationOnce(() => {
+        throw new Error("disk full");
+      });
+
+      await expect(service.syncEventGroupId()).resolves.toBeUndefined();
+
+      const stored = storeMock.data.get("event.openSplitTime") as Record<string, { id: number }>;
+      expect(stored.staging.id).toBe(42);
+    });
   });
 
   describe("syncSplitEntryKinds", () => {

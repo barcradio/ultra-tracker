@@ -8,6 +8,7 @@ import { appStore } from "../lib/store";
 
 let db: Database.Database | null = null;
 let backupInterval: NodeJS.Timeout | null = null;
+const defaultOpenSplitTime = { production: { name: "", id: 0 }, staging: { name: "", id: 0 } };
 
 // The app wires these at startup. Handlers rather than a direct import because the database
 // layer cannot depend on anything that reads from it without creating an import cycle.
@@ -65,6 +66,30 @@ function startBackupLoop(dbBackupPath: string): void {
   }, 300000);
 }
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isOpenSplitTimeEnvironment(value: unknown): value is { name: string; id: number } {
+  return (
+    isObject(value) &&
+    typeof value.name === "string" &&
+    typeof value.id === "number" &&
+    Number.isFinite(value.id)
+  );
+}
+
+function isOpenSplitTimeMetadata(value: unknown): value is {
+  production: { name: string; id: number };
+  staging: { name: string; id: number };
+} {
+  return (
+    isObject(value) &&
+    isOpenSplitTimeEnvironment(value.production) &&
+    isOpenSplitTimeEnvironment(value.staging)
+  );
+}
+
 function openDatabaseConnection(slug: string): void {
   const { dbPath, dbBackupPath } = getDbPaths(slug);
 
@@ -94,18 +119,18 @@ function openDatabaseConnection(slug: string): void {
   appStore.set("event.starttime", eventMeta?.starttime ?? "");
   appStore.set("event.endtime", eventMeta?.endtime ?? "");
 
-  let openSplitTime;
+  let openSplitTime = defaultOpenSplitTime;
   if (eventMeta?.openSplitTime) {
     try {
-      openSplitTime = JSON.parse(eventMeta.openSplitTime);
+      const parsed = JSON.parse(eventMeta.openSplitTime) as unknown;
+      if (isOpenSplitTimeMetadata(parsed)) {
+        openSplitTime = parsed;
+      }
     } catch (e: unknown) {
       if (e instanceof Error) {
         console.log(`Unable to parse EventMeta.openSplitTime: ${e.message}`);
       }
     }
-  }
-  if (!openSplitTime) {
-    openSplitTime = { production: { name: "", id: 0 }, staging: { name: "", id: 0 } };
   }
   appStore.set("event.openSplitTime", openSplitTime);
 
