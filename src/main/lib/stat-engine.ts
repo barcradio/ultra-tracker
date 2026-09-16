@@ -31,10 +31,14 @@ class StatEngine {
   }
 }
 
-const stats: StatEngine = new StatEngine();
+let stats: StatEngine = new StatEngine();
 
+// Registering a statistic only stores its function, so this runs whether or not an event is
+// open; the functions are not called until something asks for a calculation.
 export function initStatEngine() {
   const invalidResult = -999;
+
+  stats = new StatEngine();
 
   stats.addStat("registeredAthletes", () => dbAthlete.GetTotalAthletes());
   stats.addStat("totalRunners", () => dbRunners.GetTotalRunners());
@@ -68,8 +72,10 @@ export function initStatEngine() {
   stats.addStat("duplicates", () => dbRunners.GetRunnersWithDuplicateStatus());
 
   // stats: StatEngine<"defaultValue" | "inStation" | "throughStation">
+}
 
-  stats.calculate();
+export function closeStatEngine() {
+  stats = new StatEngine();
 }
 
 export function Calculate() {

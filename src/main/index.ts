@@ -5,10 +5,11 @@ import iconLinux from "$resources/iconLinux.png?asset";
 import { CloseRFIDWebSocket, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
-  closeActiveConnection,
+  closeDatabaseConnection,
   getDatabaseConnection,
   isDatabaseConnected,
   listEventDatabaseSlugs,
+  setEventLifecycleHandlers,
   switchToDatabase
 } from "./database/connect-db";
 import { validateDatabaseTables } from "./database/tables-db";
@@ -16,7 +17,7 @@ import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
-import { initStatEngine } from "./lib/stat-engine";
+import { closeStatEngine, initStatEngine } from "./lib/stat-engine";
 import { appStore } from "./lib/store";
 
 let mainWindow: BrowserWindow | null = null;
@@ -130,6 +131,7 @@ async function initializeApp(): Promise<void> {
 
   initialize();
   initUserDirectories();
+  setEventLifecycleHandlers(initStatEngine, closeStatEngine);
   adoptLegacyDatabaseIfPresent();
   const activeDatabaseSlug = appStore.get("event.activeDatabaseSlug") as string | null;
   if (activeDatabaseSlug && listEventDatabaseSlugs().includes(activeDatabaseSlug)) {
@@ -137,7 +139,6 @@ async function initializeApp(): Promise<void> {
   }
   if (isDatabaseConnected()) validateDatabaseTables(getDatabaseConnection());
   initializeIpcHandlers();
-  if (isDatabaseConnected()) initStatEngine();
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     await mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
@@ -196,7 +197,7 @@ app.on("window-all-closed", () => {
 // completes before the process goes; closing the connection checkpoints the WAL.
 app.on("will-quit", () => {
   CloseRFIDWebSocket();
-  closeActiveConnection();
+  closeDatabaseConnection();
   shutdown();
 });
 

@@ -5,14 +5,21 @@ import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   adoptLegacyDatabaseIfPresent,
-  closeActiveConnection,
+  closeDatabaseConnection,
   createDatabaseFile,
   getDatabaseConnection,
   getDbPaths,
   isDatabaseConnected,
+  setEventLifecycleHandlers,
   switchToDatabase
 } from "../connect-db";
 import * as tableDefs0 from "../schema/table-definitions-v0";
+import { applyMigrations } from "../tables-db";
+
+vi.mock("../tables-db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../tables-db")>();
+  return { ...actual, applyMigrations: vi.fn(actual.applyMigrations) };
+});
 
 const storeMock = vi.hoisted(() => {
   const data = new Map<string, unknown>();
@@ -38,7 +45,7 @@ describe("connect-db lifecycle", () => {
   });
 
   afterEach(() => {
-    closeActiveConnection();
+    closeDatabaseConnection();
     vi.useRealTimers();
     fs.rmSync(userDataDir, { recursive: true, force: true });
   });
@@ -80,6 +87,57 @@ describe("connect-db lifecycle", () => {
       createDatabaseFile("bear-100");
 
       expect(fs.existsSync(dbFolder)).toBe(true);
+    });
+  });
+
+  describe("event lifecycle handlers", () => {
+    const opened = vi.fn();
+    const closed = vi.fn();
+
+    beforeEach(() => {
+      opened.mockClear();
+      closed.mockClear();
+      setEventLifecycleHandlers(opened, closed);
+    });
+
+    it("reports an event being opened", () => {
+      createDatabaseFile("bear-100");
+
+      expect(opened).toHaveBeenCalled();
+    });
+
+    it("reports the event being closed", () => {
+      createDatabaseFile("bear-100");
+      closed.mockClear();
+
+      closeDatabaseConnection();
+
+      expect(closed).toHaveBeenCalled();
+    });
+
+    it("says nothing when there was no event open to close", () => {
+      closeDatabaseConnection();
+      closed.mockClear();
+
+      closeDatabaseConnection();
+
+      expect(closed).not.toHaveBeenCalled();
+    });
+
+    it("does not report a second close when the reopen never completed", () => {
+      createDatabaseFile("bear-100");
+      opened.mockClear();
+      closed.mockClear();
+      vi.mocked(applyMigrations).mockImplementationOnce(() => {
+        throw new Error("migration failed");
+      });
+
+      switchToDatabase("bear-100");
+
+      // The pre-existing connection legitimately closes once; the failed reopen must not
+      // report a second close, since its matching open never fired.
+      expect(opened).not.toHaveBeenCalled();
+      expect(closed).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -159,7 +217,7 @@ describe("connect-db lifecycle", () => {
       db.prepare(`INSERT INTO Status (bibId, dropped, progress) VALUES (?, ?, ?)`).run(101, 1, 4);
       db.prepare(`INSERT INTO TimeRecords (bibId, stationId) VALUES (?, ?)`).run(101, 3);
 
-      closeActiveConnection();
+      closeDatabaseConnection();
 
       const resetVersion = new Database(getDbPaths("bear-100").dbPath);
       resetVersion.pragma("user_version = 0");
@@ -184,7 +242,7 @@ describe("connect-db lifecycle", () => {
       db.prepare(`INSERT INTO Status (bibId, dropped, progress) VALUES (?, ?, ?)`).run(202, 0, 7);
       db.prepare(`INSERT INTO TimeRecords (bibId, stationId) VALUES (?, ?)`).run(202, 9);
 
-      closeActiveConnection();
+      closeDatabaseConnection();
 
       const originalPath = getDbPaths("original").dbPath;
       const restoredPath = getDbPaths("restored").dbPath;
@@ -212,7 +270,7 @@ describe("connect-db lifecycle", () => {
       createDatabaseFile("bear-100");
       const { dbBackupPath } = getDbPaths("bear-100");
 
-      closeActiveConnection();
+      closeDatabaseConnection();
       await vi.advanceTimersByTimeAsync(600_000);
 
       expect(fs.existsSync(dbBackupPath)).toBe(false);
