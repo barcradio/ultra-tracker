@@ -463,9 +463,10 @@ describe("timingRecords-db", () => {
     });
 
     it("reports NotFound when the record no longer exists", () => {
-      const [status] = deleteTimeRecord(runner({ index: 999 }));
+      const [status, message] = deleteTimeRecord(runner({ index: 999, bibId: 101 }));
 
       expect(status).toBe(DatabaseStatus.NotFound);
+      expect(message).toContain("index 999");
       const logs = db.prepare(`SELECT * FROM EventLog WHERE comments LIKE '%Delete%'`).all();
       expect(logs).toHaveLength(0);
     });

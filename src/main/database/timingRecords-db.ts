@@ -188,7 +188,7 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
   if (searchStatus === DatabaseStatus.Error)
     return [DatabaseStatus.Error, `timing-record:delete ${record.index} lookup failed`];
 
-  return [DatabaseStatus.NotFound, `timing-record:delete Bib ${record.bibId} not found`];
+  return [DatabaseStatus.NotFound, `timing-record:delete index ${record.index} not found`];
 }
 
 function toDate(date: Date | string | null): Date | null {
