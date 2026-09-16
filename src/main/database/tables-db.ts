@@ -138,6 +138,7 @@ export function CreateTables(db: Database.Database) {
     createOpenSplitTimePushStatusTable(db) &&
     createRFIDInboxTable(db) &&
     createRFIDPendingWritesTable(db) &&
+    createRFIDProcessedEventsTable(db) &&
     createWatchlistTable(db) &&
     createEventMetaTable(db);
 
@@ -185,6 +186,8 @@ export const createOpenSplitTimePushStatusTable = (db: Database.Database) =>
   );
 export const createRFIDPendingWritesTable = (db: Database.Database) =>
   createTable(db, tableDefs.expectedTableNames.RFIDPendingWrites, tableDefs.RFIDPendingWrites);
+export const createRFIDProcessedEventsTable = (db: Database.Database) =>
+  createTable(db, tableDefs.expectedTableNames.RFIDProcessedEvents, tableDefs.RFIDProcessedEvents);
 export const createWatchlistTable = (db: Database.Database) =>
   createTable(db, tableDefs.expectedTableNames.Watchlist, tableDefs.Watchlist);
 export const createEventMetaTable = (db: Database.Database) =>

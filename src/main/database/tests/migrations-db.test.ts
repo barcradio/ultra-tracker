@@ -51,11 +51,13 @@ describe("migrations-db", () => {
           "TimeRecords",
           "RFIDInbox",
           "RFIDPendingWrites",
+          "RFIDProcessedEvents",
           "OpenSplitTimePushStatus",
           "Watchlist",
           "EventMeta"
         ])
       );
+      expect(getColumnNamesFromTable(db, "EventMeta")).toContain("openSplitTime");
     });
 
     it("renames StationEvents to TimeRecords rather than dropping the timing data", () => {
@@ -188,7 +190,7 @@ describe("migrations-db", () => {
 
       applyMigrations(db);
 
-      expect(schemaVersion()).toBeLessThan(3);
+      expect(schemaVersion()).toBeLessThan(4);
     });
   });
 });

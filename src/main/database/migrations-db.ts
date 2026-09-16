@@ -3,6 +3,7 @@ import Database from "better-sqlite3";
 import * as tableDefs0 from "./schema/table-definitions-v0";
 import * as tableDefs2 from "./schema/table-definitions-v2";
 import * as tableDefs3 from "./schema/table-definitions-v3";
+import * as tableDefs4 from "./schema/table-definitions-v4";
 
 // Some real-world databases have already reached a later table shape (e.g. via a build that
 // scaffolded current-shape tables without stamping a matching user_version pragma), so each
@@ -190,9 +191,19 @@ export const migrations: IMigration[] = [
       if (!columnExists(db, "EventMeta", "openSplitTime")) {
         db.exec(`ALTER TABLE EventMeta ADD COLUMN openSplitTime TEXT;`);
       }
+
+      if (!tableExists(db, "RFIDProcessedEvents")) {
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS RFIDProcessedEvents (
+            "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            ${tableDefs4.RFIDProcessedEvents}
+          );
+        `);
+      }
     },
-    down: `
-        ALTER TABLE EventMeta DROP COLUMN openSplitTime;
-      `
+    down: () => {
+      // v4's guarded up path can no-op on current-shape databases stamped with an older
+      // user_version, so rollback avoids removing schema that may have pre-existed the migration.
+    }
   }
 ];

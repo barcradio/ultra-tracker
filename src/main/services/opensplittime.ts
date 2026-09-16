@@ -434,9 +434,16 @@ function deriveSplitEntryKindsFromResponse(
 
 function persistOpenSplitTimeEventMetadata(eventMetadata: OpenSplitTimeEventMetadataStore): void {
   const db = getDatabaseConnection();
-  db.prepare(
+  const serializedMetadata = JSON.stringify(eventMetadata);
+  const updateResult = db
+    .prepare(
     `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
-  ).run(JSON.stringify(eventMetadata));
+    )
+    .run(serializedMetadata);
+
+  if (updateResult.changes === 0) {
+    db.prepare(`INSERT INTO EventMeta (openSplitTime) VALUES (?)`).run(serializedMetadata);
+  }
 }
 
 // The stations JSON file records the OpenSplitTime event group id manually, so

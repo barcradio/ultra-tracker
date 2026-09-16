@@ -1,14 +1,8 @@
 # Ultra-Tracker
 
 Claude follows the same house rules as Copilot. The canonical instructions live in
-`.github/`; this file imports them so there is one source of truth, not two that drift.
-
-@.github/copilot-instructions.md
-@.github/instructions/testing-tdd.instructions.md
-@.github/instructions/electron-main.instructions.md
-@.github/instructions/renderer-ui.instructions.md
-@.github/instructions/opensplittime.instructions.md
-@.github/instructions/data-export.instructions.md
+`.github/`; keep this file limited to Claude-specific notes so the same instruction
+set is not imported twice into agent sessions.
 
 ## Claude-specific notes
 

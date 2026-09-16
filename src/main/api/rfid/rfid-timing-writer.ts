@@ -1,7 +1,9 @@
 import { DatabaseStatus } from "$shared/enums";
 import { RfidTagRead } from "$shared/types";
 import { LogLevel, logRFID } from "./rfid-log";
+import { getDatabaseConnection } from "../../database/connect-db";
 import * as dbRFIDPendingWrites from "../../database/rfidPendingWrites-db";
+import * as dbRFIDProcessedEvents from "../../database/rfidProcessedEvents-db";
 import * as dbTimings from "../../database/timingRecords-db";
 
 export class RfidTimingWriter {
@@ -79,22 +81,39 @@ export class RfidTimingWriter {
     else this.schedulePendingWriteRetry();
   }
 
+  // A crash or reconnect can replay the same RFID inbox message or pending-write record after
+  // it has already produced a timing record; this key ties both together in one transaction so
+  // a replay of the same physical tag event is a no-op instead of a duplicate insert.
   private writeTimeRecord(tagRead: RfidTagRead): void {
-    const [status, message] = dbTimings.insertOrUpdateTimeRecord({
-      index: -1,
-      bibId: tagRead.bibId,
-      stationId: -1,
-      timeIn: tagRead.timestamp,
-      timeOut: tagRead.timestamp,
-      timeModified: tagRead.timestamp,
-      note: "RFID",
-      sent: false,
-      status: -1
+    const eventKey = `${tagRead.bibId}:${tagRead.timestamp.toISOString()}`;
+    const db = getDatabaseConnection();
+    const writeAndAcknowledge = db.transaction(() => {
+      if (!dbRFIDProcessedEvents.claimProcessed(eventKey)) {
+        logRFID(
+          LogLevel.warn,
+          `Skipping already-processed RFID event, replay detected: ${eventKey}`
+        );
+        return;
+      }
+
+      const [status, message] = dbTimings.insertOrUpdateTimeRecord({
+        index: -1,
+        bibId: tagRead.bibId,
+        stationId: -1,
+        timeIn: tagRead.timestamp,
+        timeOut: tagRead.timestamp,
+        timeModified: tagRead.timestamp,
+        note: "RFID",
+        sent: false,
+        status: -1
+      });
+
+      if (status === DatabaseStatus.Error) {
+        throw new Error(message || "Unknown database error writing RFID timing record");
+      }
     });
 
-    if (status === DatabaseStatus.Error) {
-      throw new Error(message || "Unknown database error writing RFID timing record");
-    }
+    writeAndAcknowledge();
   }
 
   private schedulePendingWriteRetry(): void {
