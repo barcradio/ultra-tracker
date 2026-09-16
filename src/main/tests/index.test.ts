@@ -45,6 +45,7 @@ const window = vi.hoisted(() => {
     reload: vi.fn(),
     isMinimized: vi.fn(() => false),
     isDestroyed: vi.fn(() => false),
+    isVisible: vi.fn(() => false),
     setTitle: vi.fn(),
     setIcon: vi.fn(),
     loadURL: vi.fn(async () => undefined),
@@ -306,6 +307,26 @@ describe("main process", () => {
 
       expect(window.show).toHaveBeenCalled();
       expect(window.setTitle).toHaveBeenCalledWith("ultra-tracker - v1.2.3");
+    });
+
+    // ready-to-show and the Wayland fallback timer can both fire, and showing an already
+    // visible window steals focus back from whatever the operator moved to.
+    it("leaves an already visible window alone", async () => {
+      await bootMain();
+      window.isVisible.mockReturnValueOnce(true);
+
+      window.handlers.get("ready-to-show")?.();
+
+      expect(window.show).not.toHaveBeenCalled();
+    });
+
+    it("leaves a destroyed window alone", async () => {
+      await bootMain();
+      window.isDestroyed.mockReturnValueOnce(true);
+
+      window.handlers.get("ready-to-show")?.();
+
+      expect(window.show).not.toHaveBeenCalled();
     });
   });
 
