@@ -67,7 +67,7 @@ describe("tables-db", () => {
   });
 
   describe("ClearTables", () => {
-    it("drops the event tables and resets the schema version", () => {
+    it("drops the event tables and preserves the current schema version", () => {
       db.close();
       db = createTestDatabase();
 
@@ -77,7 +77,7 @@ describe("tables-db", () => {
       expect(getTableNames(db)).not.toEqual(
         expect.arrayContaining(["Athletes", "TimeRecords", "Status", "Stations", "EventMeta"])
       );
-      expect(db.pragma("user_version", { simple: true })).toBe(0);
+      expect(db.pragma("user_version", { simple: true })).toBe(3);
     });
 
     // KNOWN DEFECT - intended behaviour asserted below, currently failing.
