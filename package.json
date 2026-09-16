@@ -53,6 +53,7 @@
     "test:main:lib": "vitest run src/main/lib --passWithNoTests",
     "test:main:services": "vitest run src/main/services --passWithNoTests",
     "test:main:bootstrap": "vitest run src/main/tests --passWithNoTests",
+    "test:shared": "vitest run src/shared --passWithNoTests",
     "test:preload": "vitest run src/preload --passWithNoTests",
     "test:renderer": "vitest run src/renderer --passWithNoTests",
     "test:watch": "vitest",

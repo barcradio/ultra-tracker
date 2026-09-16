@@ -2,9 +2,10 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, Event, Menu, app, dialog, powerMonitor, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
-import { DisconnectRFIDReader, RecoverRFIDReader } from "./api/rfid-processor";
+import { CloseRFIDWebSocket, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
+  closeActiveConnection,
   getDatabaseConnection,
   isDatabaseConnected,
   listEventDatabaseSlugs,
@@ -144,16 +145,6 @@ async function initializeApp(): Promise<void> {
     await mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
 
-  app.on("activate", function () {
-    app.on("window-all-closed", () => {
-      if (process.platform !== "darwin") {
-        DisconnectRFIDReader();
-        app.quit();
-      }
-      shutdown();
-    });
-  });
-
   openDevToolsOnDomReady(mainWindow);
 
   // Prevent navigation in the main window
@@ -195,11 +186,17 @@ app.on("activate", () => {
   }
 });
 //Window Close Handler
+// Quit on every platform, macOS included: a docked instance with no window
+// only strands the RFID reader and holds the event database open.
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    DisconnectRFIDReader();
-    app.quit();
-  }
+  app.quit();
+});
+
+// Tear down once, however the quit was triggered. Closing the websocket is synchronous, so it
+// completes before the process goes; closing the connection checkpoints the WAL.
+app.on("will-quit", () => {
+  CloseRFIDWebSocket();
+  closeActiveConnection();
   shutdown();
 });
 
