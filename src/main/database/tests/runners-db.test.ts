@@ -312,7 +312,9 @@ describe("runners-db", () => {
       expect(lines[2]).toContain("101");
     });
 
-    it("replaces commas in exported notes so the CSV stays parseable", async () => {
+    // The note used to have its commas swapped for semicolons to keep the row parseable, which
+    // changed what the operator wrote. Quoting keeps the row parseable and the note intact.
+    it("quotes an exported note that contains a comma", async () => {
       insertStatusRow(101, 1, "withdrew", "1-start");
       db.prepare(`UPDATE Status SET note = 'tired, sore' WHERE bibId = 101`).run();
       const target = path.join(workDir, "drops.csv");
@@ -321,7 +323,19 @@ describe("runners-db", () => {
       await exportDropsAsCSV();
 
       const lines = await readWhenWritten(target, 3);
-      expect(lines[2]).toContain("tired; sore");
+      expect(lines[2]).toContain('"tired, sore"');
+    });
+
+    it("escapes a quote inside an exported note", async () => {
+      insertStatusRow(101, 1, "withdrew", "1-start");
+      db.prepare(`UPDATE Status SET note = 'said "ok"' WHERE bibId = 101`).run();
+      const target = path.join(workDir, "drops.csv");
+      dialogMocks.saveDropsToCSV.mockResolvedValue(target);
+
+      await exportDropsAsCSV();
+
+      const lines = await readWhenWritten(target, 3);
+      expect(lines[2]).toContain('"said ""ok"""');
     });
 
     it("returns the error message when the query fails", async () => {
@@ -449,6 +463,104 @@ describe("runners-db", () => {
 
       await expect(importRunnersFromCSV()).rejects.toThrow(/Quote Not Closed/);
       expect(sendToastToRenderer).toHaveBeenCalledWith(expect.objectContaining({ type: "danger" }));
+    });
+  });
+
+  describe("importing a file written before notes were quoted", () => {
+    function writeLegacyFile(notes: string[]): string {
+      const target = path.join(workDir, "legacy-export.csv");
+      const rows = notes.map(
+        (note, i) => `${i + 1},0,${101 + i},08:00:00 01 Sep 2026,09:00:00 01 Sep 2026,,,${note}`
+      );
+      fs.writeFileSync(
+        target,
+        [
+          "Bear 100,3-hardware,full-export",
+          "index,sent,bibId,timeIn,timeOut,dropReason,dropStation,note",
+          ...rows
+        ].join("\n") + "\n"
+      );
+      return target;
+    }
+
+    async function importLegacy(notes: string[]) {
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([writeLegacyFile(notes)]);
+
+      await importRunnersFromCSV();
+
+      const rows = db.prepare(`SELECT note FROM TimeRecords ORDER BY bibId`).all() as Array<{
+        note: string;
+      }>;
+
+      return { kept: rows.length, notes: rows.map((row) => row.note) };
+    }
+
+    it("keeps every record when an old note contains a raw quote", async () => {
+      const result = await importLegacy(["fine", "fine", 'said "ok"', "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.notes).toContain('said "ok"');
+    });
+
+    it("keeps every record and the whole note when an old note contains a raw comma", async () => {
+      const result = await importLegacy(["fine", "fine", "tired, sore", "fine"]);
+
+      expect(result.kept).toBe(4);
+      // The comma becomes a semicolon on the way in, but no part of the note is lost.
+      expect(result.notes).toContain("tired; sore");
+    });
+  });
+
+  describe("note round trip", () => {
+    // The note lands on the third data row, so the export file's fifth line carries it.
+    const NOTE_LINE = 4;
+
+    async function roundTrip(notes: string[]) {
+      notes.forEach((note, i) => insertTiming(101 + i, { note, timeOut: "2026-09-01T09:00:00Z" }));
+      const target = path.join(workDir, "full-export.csv");
+      dialogMocks.saveRunnersToCSV.mockResolvedValue(target);
+
+      await exportRunnersAsCSV();
+      const lines = await readWhenWritten(target, notes.length + 2);
+
+      db.exec(`DELETE FROM TimeRecords`);
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([target]);
+      await importRunnersFromCSV();
+
+      const imported = db.prepare(`SELECT note FROM TimeRecords ORDER BY bibId`).all() as Array<{
+        note: string;
+      }>;
+
+      return {
+        kept: imported.length,
+        notes: imported.map((row) => row.note),
+        noteLine: lines[NOTE_LINE]
+      };
+    }
+
+    it("keeps every record when a note contains a comma", async () => {
+      const result = await roundTrip(["fine", "fine", "tired, sore", "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.noteLine).toContain('"tired, sore"');
+      // The import swaps commas for semicolons, which predates this and is left alone: an
+      // operator's comma is stripped as they type, so the app never writes one itself.
+      expect(result.notes).toContain("tired; sore");
+    });
+
+    it("keeps every record when a note contains a quote", async () => {
+      const result = await roundTrip(["fine", "fine", 'said "ok"', "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.noteLine).toContain('"said ""ok"""');
+      expect(result.notes).toContain('said "ok"');
+    });
+
+    it("leaves a plain note unquoted", async () => {
+      const result = await roundTrip(["fine", "fine", "all good", "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.noteLine).toMatch(/,all good$/);
     });
   });
 });

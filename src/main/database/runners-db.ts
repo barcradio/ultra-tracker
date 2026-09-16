@@ -255,40 +255,51 @@ export function readRunnersTable<T>(
 }
 
 export async function importRunnersFromCSV() {
-  const headers = [
-    "index",
-    "sent",
-    "bibId",
-    "timeIn",
-    "timeOut",
-    "dropReason",
-    "dropStation",
-    "note"
-  ];
   const runnerCSVFilePath = await dialogs.loadRunnersFromCSV();
   const fileContent = fs.createReadStream(runnerCSVFilePath[0], { encoding: "utf-8" });
   const stationId = (await appStore.get("station.id")) as number;
   let message: string = "";
 
+  // Files written before notes were quoted carry raw quotes and commas in that last column.
+  // Reading rows as fields tolerates both: a stray quote is taken literally, and anything past
+  // the note column is the note itself, split up, so it is joined back together.
   const parser = fileContent
     .pipe(
       parse({
         delimiter: ",",
-        columns: headers,
-        fromLine: 3
+        fromLine: 3,
+        // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+        relax_quotes: true,
+        // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+        relax_column_count: true
       })
     )
-    .on("data", (timing) => {
+    .on("data", (fields: string[]) => {
+      const timing = {
+        index: fields[0],
+        sent: fields[1],
+        bibId: fields[2],
+        timeIn: fields[3] ?? "",
+        timeOut: fields[4] ?? "",
+        dropReason: fields[5] ?? "",
+        dropStation: fields[6] ?? "",
+        note: fields.slice(7).join(",")
+      };
+
+      // A duplicate carries a fraction, as in 130.2; the record keeps the whole bib number and
+      // the fraction only marks it as a duplicate.
+      const bib = Number(timing.bibId);
+
       const record: DropRunnerDB = {
-        index: timing.bibId,
-        bibId: Number(timing.bibId) - Number(timing.bibId % 1),
+        index: bib,
+        bibId: bib - (bib % 1),
         stationId: stationId,
         timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
         timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
         timeModified: new Date(),
         note: !timing.note ? "" : timing.note.replaceAll(",", ";"),
         sent: false,
-        status: timing.bibId % 1 == 0 ? RecordStatus.OK : RecordStatus.Duplicate,
+        status: Number.isInteger(bib) ? RecordStatus.OK : RecordStatus.Duplicate,
         dropped: Number(timing.dropReason != ""),
         dropReason: timing.dropReason,
         dropStation: timing.dropStation,
@@ -469,9 +480,9 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
           `${row.bibId},` +
           `${row.timeIn == null ? "" : formatDate(new Date(row.timeIn))},` +
           `${row.timeOut == null ? "" : formatDate(new Date(row.timeOut))},` +
-          `${row.dropReason == null ? "" : row.dropReason},` +
-          `${row.dropStation == null ? "" : row.dropStation},` +
-          `${row.note == null ? "" : row.note}`;
+          `${csvField(row.dropReason)},` +
+          `${csvField(row.dropStation)},` +
+          `${csvField(row.note)}`;
         stream.write(rowText + "\n");
       }
     }
@@ -496,8 +507,14 @@ interface DropExportRow {
   note: string;
 }
 
-function sanitizeNoteForExport(note: string | null | undefined): string {
-  return (note ?? "").replaceAll(",", ";");
+// Operator notes are free text and reach these files verbatim. A comma or a quote in one used
+// to make the row unreadable, which stopped an import dead and left the rest of the file behind.
+function csvField(value: string | null | undefined): string {
+  const text = value ?? "";
+
+  if (!/[",\r\n]/.test(text)) return text;
+
+  return `"${text.replaceAll('"', '""')}"`;
 }
 
 function writeDropsToCSV(filename: string, queryResult) {
@@ -520,11 +537,11 @@ function writeDropsToCSV(filename: string, queryResult) {
     for (const row of queryResult as DropExportRow[]) {
       let rowText = "";
       rowText =
-        `${row.dropStation},` +
+        `${csvField(row.dropStation)},` +
         `${row.dropBibId},` +
-        `${row.dropReason},` +
+        `${csvField(row.dropReason)},` +
         `${row.dropDateTime == null ? "" : formatDate(row.dropDateTime)},` +
-        `${sanitizeNoteForExport(row.note)}`;
+        `${csvField(row.note)}`;
       stream.write(rowText + "\n");
     }
     stream.on("error", reject);
