@@ -8,6 +8,8 @@ export type DatabaseResponse<T = undefined> = T extends undefined
 export interface SetStationIdentityParams {
   callsign: string;
   identifier: string;
+  /** Set once the operator has agreed to move the timing records already logged here. */
+  moveTimingRecords?: boolean;
 }
 
 export interface EventArchivePreview {
