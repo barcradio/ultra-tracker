@@ -27,6 +27,12 @@ Linux releases are 64-bit only. For Debian, Ubuntu, and Raspberry Pi OS, downloa
 
 For other Linux distributions, download the `.AppImage` matching the machine architecture: `-x86_64` for a standard PC or `-arm64` for a 64-bit Pi. Make it executable with `chmod +x` and run it. On a Pi, `uname -m` should report `aarch64`; a 32-bit Raspberry Pi OS installation is not supported.
 
+### MacOS Installation
+
+MacOS releases are packaged as a universal DMG. Download the latest `ultra-tracker-<version>.dmg` from the [releases page](https://github.com/barcradio/ultra-tracker/releases), open the disk image, and drag Ultra-Tracker to the Applications folder.
+
+If macOS warns that the app is from an unidentified developer, right-click the application in Applications and choose **Open** once to confirm it, then launch normally. The app is a universal build for Apple Silicon and Intel Macs.
+
 ## Getting Started
 
 On first launch, Ultra-Tracker opens **Getting Started** to guide the user through starting an event for timing data collection.
