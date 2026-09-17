@@ -276,7 +276,7 @@ This page allows the operator to manage event input files and the database neede
 
   As an event proceeds more Drops will be recorded and new Drops files will be supplied to stations.
 
-  Importing new Drops files will update all athletes recorded as dropped at or before the current station; drops past the current station are ignored. This provides insight of which athletes are still expected into the current station.
+  Loading a new Drops file opens a review before any data is imported. Drops recorded past the current station are ignored. If an imported drop conflicts with an existing status for the same athlete, Ultra-Tracker shows the existing and imported station/status details with a recommended action. You can resolve conflicts individually or in a batch, apply the import, or cancel to leave all current data unchanged.
 
 <a id="markdown-user-settings" name="user-settings"></a>
 

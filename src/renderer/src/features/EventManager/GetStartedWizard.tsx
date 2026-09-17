@@ -126,7 +126,13 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
   });
 
   return (
-    <Modal open={open} setOpen={handleClose} title="Get Started" size="md">
+    <Modal
+      open={open}
+      setOpen={handleClose}
+      title="Get Started"
+      size="md"
+      dismissOnClickOutside={false}
+    >
       <form onSubmit={handleStart} className="space-y-4 text-on-component">
         <p className="text-sm opacity-80">Load an event file and select the station identity.</p>
 
