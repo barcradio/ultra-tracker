@@ -1,4 +1,4 @@
-bear-100-2026,6-tony-grove,drops-export
+bear-100-2026,4-righthand-fork,drops-export
 stationId,bibId,dropReason,dropDateTime,note
 0-start-line,17,did-not-start,05:08:00 25 Sep 2026,
 0-start-line,42,did-not-start,05:13:00 25 Sep 2026,
@@ -24,9 +24,3 @@ stationId,bibId,dropReason,dropDateTime,note
 4-righthand-fork,83,withdrew,12:38:00 25 Sep 2026,
 4-righthand-fork,167,medical,13:12:00 25 Sep 2026,
 4-righthand-fork,325,timeout,13:49:00 25 Sep 2026,
-5-temple-fork,29,withdrew,14:17:00 25 Sep 2026,
-5-temple-fork,218,medical,14:43:00 25 Sep 2026,
-5-temple-fork,302,timeout,15:06:00 25 Sep 2026,
-6-tony-grove,94,withdrew,15:24:00 25 Sep 2026,
-6-tony-grove,156,medical,15:36:00 25 Sep 2026,
-6-tony-grove,264,timeout,15:43:00 25 Sep 2026,
