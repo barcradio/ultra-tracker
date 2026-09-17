@@ -192,14 +192,6 @@ export function DropsImportReviewModal(props: Props) {
             type="button"
             size="sm"
             variant="outlined"
-            onClick={() => props.onBatchDecision("recommended")}
-          >
-            Apply Recommended
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outlined"
             color="neutral"
             onClick={() => props.onBatchDecision("preserve-existing")}
           >
@@ -212,6 +204,14 @@ export function DropsImportReviewModal(props: Props) {
             onClick={() => props.onBatchDecision("use-imported")}
           >
             Import All
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outlined"
+            onClick={() => props.onBatchDecision("recommended")}
+          >
+            Apply Recommended
           </Button>
         </Stack>
       }

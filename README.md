@@ -253,7 +253,11 @@ The following is a description of each button's function. Each of these will ope
 
   As an event proceeds more Drops will be recorded and new Drops files will be supplied to stations.
 
-  Importing new Drops files will update all athletes recorded as dropped at or before the current station; drops past the current station are ignored. This provides insight of which athletes are still expected into the current station.
+  Loading a new Drops file opens **Review Drops Import** before any data is imported. The review classifies records as **Conflicts**, **Ready**, **Skipped**, or **Duplicates**. Drops past the current station are skipped to preserve the current station stats, while Ready records can be imported without additional decisions.
+
+  Conflicts are shown with the existing and imported station, drop reason, and time. Each conflict includes a recommendation and an explanation based on the available station data. Select **Preserve** or **Import** for individual conflicts, or use **Apply Recommended**, **Preserve All**, or **Import All** to make a batch decision. The **Apply Import** button shows the number of records selected for import. Select **Cancel Import** to discard the proposed import without changing the current event data.
+
+<img alt="image" src="src/renderer/public/img/drops-import-review.png" />
 
 #### RFID Configuration
 
