@@ -173,6 +173,17 @@ describe("status-db", () => {
       expect(GetPreviousDropped()).toBe(0);
     });
 
+    // Did-not-start athletes are already counted globally by GetTotalDidNotStart(); if
+    // previousDrops also included them, stat-engine's pendingArrivals would subtract them twice.
+    it("excludes did-not-start drops from previous drops to avoid double-counting", () => {
+      seedStatus(101);
+      db.prepare(
+        `UPDATE Status SET dropped = 1, dropReason = 'did-not-start', dropStation = '0-start' WHERE bibId = 101`
+      ).run();
+
+      expect(GetPreviousDropped()).toBe(0);
+    });
+
     it("returns the invalid sentinel for previous drops when the query fails", () => {
       db.exec(`DROP TABLE Status`);
 
