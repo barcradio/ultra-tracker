@@ -235,7 +235,6 @@ export class ZebraFxr90Controller implements IRfidController {
 
   private handleTagRead(tagRead: RfidTagRead): void {
     this.timingWriter.write(tagRead);
-    rfidEmitter.hasReadRFID();
     this.eventEmitter.emit("tag-read", tagRead);
   }
 
