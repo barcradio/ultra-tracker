@@ -36,7 +36,8 @@ const Table = classed.table("overflow-auto w-full font-display text-on-component
 
 export function DataGrid<T extends object>(props: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
-  const height = useParentHeight(parentRef);
+  const measuredHeight = useParentHeight(parentRef);
+  const height = measuredHeight || 320;
 
   const [compareFn, setSortField, sortState] = useSortState<T>({
     initial: props.initialSort,
@@ -57,6 +58,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40,
     overscan: props.overscan ?? 0,
+    useFlushSync: false,
     useAnimationFrameWithResizeObserver: true
   });
 
@@ -85,11 +87,11 @@ export function DataGrid<T extends object>(props: Props<T>) {
   return (
     <div
       ref={parentRef}
-      className={`overflow-y-auto overflow-x-auto ${props.classNames?.root ?? ""}`}
+      className={`w-full overflow-y-auto overflow-x-auto ${props.classNames?.root ?? ""}`}
       style={{ height }}
     >
-      <div className="w-full">
-        <Table className={props.classNames?.table}>
+      <div className="w-full min-w-0">
+        <Table className={`w-full ${props.classNames?.table ?? ""}`}>
           {getSection("header")}
           <TableContent<T>
             rowVirtualizer={rowVirtualizer}

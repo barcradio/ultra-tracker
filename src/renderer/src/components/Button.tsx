@@ -49,6 +49,11 @@ export const Button = classed.button({
       variant: "solid",
       className: "text-on-success bg-success hover:bg-success-hover"
     },
+    {
+      color: "neutral",
+      variant: "solid",
+      className: "text-component bg-on-component hover:bg-on-component-hover"
+    },
     // Ghost Variants
     {
       color: "primary",

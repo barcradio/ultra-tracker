@@ -10,10 +10,23 @@ export function useParentHeight(ref: RefObject<HTMLElement | null>) {
   }, [ref]);
 
   useLayoutEffect(() => {
-    if (!ref?.current) return;
+    const parent = ref?.current?.parentElement;
+    if (!parent) return;
     setSpace();
+    // The first getBoundingClientRect() read can land before the browser has
+    // finished settling flex/animation-driven layout (e.g. a modal's open
+    // transition), returning a stale height that ResizeObserver won't correct
+    // since the box doesn't change size afterward. Re-measure once more after
+    // paint to catch that case.
+    const raf = requestAnimationFrame(setSpace);
     window.addEventListener("resize", setSpace);
-    return () => window.removeEventListener("resize", setSpace);
+    const observer = new ResizeObserver(setSpace);
+    observer.observe(parent);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", setSpace);
+      observer.disconnect();
+    };
   }, [ref, setSpace]);
 
   return height;
