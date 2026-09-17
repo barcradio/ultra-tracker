@@ -417,6 +417,44 @@ describe("timingRecords-db", () => {
       expect(logs).toHaveLength(1);
     });
 
+    it("logs the stored record values instead of renderer-provided values", () => {
+      insertOrUpdateTimeRecord(runner());
+      const existing = storedRows()[0];
+
+      deleteTimeRecord(
+        runner({
+          index: existing.index,
+          bibId: 999,
+          timeIn: new Date("2026-09-01T10:00:00Z"),
+          timeOut: new Date("2026-09-01T11:00:00Z")
+        })
+      );
+
+      const [log] = db
+        .prepare(`SELECT comments FROM EventLog WHERE comments LIKE '%Delete%'`)
+        .all() as [{ comments: string }];
+      expect(log.comments).toContain("bibId: (101)");
+      expect(log.comments).toContain("In: 08:00:00");
+      expect(log.comments).toContain("Out:");
+      expect(log.comments).not.toContain("bibId: (999)");
+      expect(log.comments).not.toContain("10:00:00");
+      expect(log.comments).not.toContain("11:00:00");
+    });
+
+    it("still deletes the record when a stored timestamp is malformed", () => {
+      insertOrUpdateTimeRecord(runner());
+      const existing = storedRows()[0];
+      db.prepare(`UPDATE TimeRecords SET timeIn = ? WHERE "index" = ?`).run(
+        "not-a-date",
+        existing.index
+      );
+
+      const [status] = deleteTimeRecord(runner({ index: existing.index }));
+
+      expect(status).toBe(DatabaseStatus.Deleted);
+      expect(storedRows()).toHaveLength(0);
+    });
+
     it("clears any lingering OpenSplitTime push status", () => {
       insertOrUpdateTimeRecord(runner());
       const existing = storedRows()[0];
@@ -438,6 +476,15 @@ describe("timingRecords-db", () => {
       const [status] = deleteTimeRecord(runner({ index: existing.index }));
 
       expect(status).toBe(DatabaseStatus.Error);
+    });
+
+    it("reports NotFound when the record no longer exists", () => {
+      const [status, message] = deleteTimeRecord(runner({ index: 999, bibId: 101 }));
+
+      expect(status).toBe(DatabaseStatus.NotFound);
+      expect(message).toContain("index 999");
+      const logs = db.prepare(`SELECT * FROM EventLog WHERE comments LIKE '%Delete%'`).all();
+      expect(logs).toHaveLength(0);
     });
   });
 
