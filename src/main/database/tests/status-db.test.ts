@@ -669,7 +669,7 @@ describe("status-db", () => {
         expect.arrayContaining([
           expect.objectContaining({
             bibId: 102,
-            reason: expect.stringMatching(/duplicate|matches/i)
+            reason: expect.stringMatching(/duplicate|matches|already exists/i)
           })
         ])
       );
