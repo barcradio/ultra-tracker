@@ -1,37 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { findSiblingRowNumbers } from "../duplicates";
+import { findRowIndexBySequence, findSiblingSequences } from "../duplicates";
 
-describe("findSiblingRowNumbers", () => {
-  // A third entry for the same bib is numbered 130.2 again, so two rows really can share one.
-  const rows = [{ bibId: 101 }, { bibId: 130 }, { bibId: 205 }, { bibId: 130.2 }, { bibId: 130.2 }];
+describe("findSiblingSequences", () => {
+  // A bib logged again always reads .2, so two rows can carry the same one.
+  const rows = [
+    { bibId: 101, sequence: 11 },
+    { bibId: 130, sequence: 12 },
+    { bibId: 205, sequence: 13 },
+    { bibId: 130.2, sequence: 14 },
+    { bibId: 130.2, sequence: 15 }
+  ];
 
-  it("numbers rows as the operator sees them, from one", () => {
-    expect(findSiblingRowNumbers(rows, 1)).toEqual([4, 5]);
+  it("reports the sequence of every other record sharing the bib", () => {
+    expect(findSiblingSequences(rows, 1)).toEqual([14, 15]);
   });
 
   it("finds the original from a duplicate", () => {
-    expect(findSiblingRowNumbers(rows, 3)).toEqual([2, 5]);
+    expect(findSiblingSequences(rows, 3)).toEqual([12, 15]);
   });
 
-  it("separates two rows that carry the identical duplicate bib", () => {
-    expect(findSiblingRowNumbers(rows, 4)).toEqual([2, 4]);
+  it("separates two records carrying the identical duplicate bib", () => {
+    expect(findSiblingSequences(rows, 4)).toEqual([12, 14]);
   });
 
-  it("never reports the row itself", () => {
-    expect(findSiblingRowNumbers(rows, 4)).not.toContain(5);
+  it("never reports the record itself", () => {
+    expect(findSiblingSequences(rows, 4)).not.toContain(15);
   });
 
   it("reports nothing for a bib logged once", () => {
-    expect(findSiblingRowNumbers(rows, 0)).toEqual([]);
+    expect(findSiblingSequences(rows, 0)).toEqual([]);
   });
 
-  it("follows the current sort rather than the underlying record order", () => {
-    const resorted = [{ bibId: 130.2 }, { bibId: 205 }, { bibId: 130 }];
+  it("reports the same sequences however the grid is sorted", () => {
+    const resorted = [rows[4], rows[2], rows[1]];
 
-    expect(findSiblingRowNumbers(resorted, 0)).toEqual([3]);
+    expect(findSiblingSequences(resorted, 0)).toEqual([12]);
   });
 
   it("copes with an index that is not in the list", () => {
-    expect(findSiblingRowNumbers(rows, 99)).toEqual([]);
+    expect(findSiblingSequences(rows, 99)).toEqual([]);
+  });
+});
+
+describe("findRowIndexBySequence", () => {
+  const rows = [{ sequence: 11 }, { sequence: 12 }, { sequence: 13 }];
+
+  it("finds where a sequence currently sits", () => {
+    expect(findRowIndexBySequence(rows, 12)).toBe(1);
+  });
+
+  it("reports -1 when the record is filtered out of view", () => {
+    expect(findRowIndexBySequence(rows, 99)).toBe(-1);
   });
 });

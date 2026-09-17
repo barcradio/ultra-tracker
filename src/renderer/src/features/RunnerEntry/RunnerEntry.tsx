@@ -3,11 +3,11 @@ import { StatusTag } from "~/components/StatusTag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { RowStatus } from "~/features/DataGrid/types";
 import { formatDate } from "~/lib/datetimes";
+import { findRowIndexBySequence, findSiblingSequences } from "~/lib/duplicates";
 import { DropReason, RecordStatus } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { InTimeCell } from "./InTimeCell";
 import { RunnerFormStats } from "./RunnerFormStats";
-import { SiblingRowLinks } from "./SiblingRowLinks";
 import { RunnerEx, useRunnerData } from "../../hooks/data/useRunnerData";
 
 function getRowStatus(row: RunnerEx): RowStatus {
@@ -47,19 +47,30 @@ export function RunnerEntry() {
       field: "dropReason",
       name: "Status",
       truncate: false,
-      render: (dropReason, { status }, context) => (
-        <>
-          <StatusTag dropReason={dropReason} duplicate={status === RecordStatus.Duplicate} />
-          <SiblingRowLinks context={context} />
-        </>
-      ),
+      render: (dropReason, row, context) => {
+        const siblings = findSiblingSequences(context.rows, context.index);
+        const target = siblings.length ? findRowIndexBySequence(context.rows, siblings[0]) : -1;
+
+        return (
+          <StatusTag
+            dropReason={dropReason}
+            duplicate={row.status === RecordStatus.Duplicate}
+            title={
+              siblings.length
+                ? `Same bib as Seq ${siblings.join(", ")}. Click to go to Seq ${siblings[0]}.`
+                : undefined
+            }
+            onClick={target < 0 ? undefined : () => context.scrollToIndex(target)}
+          />
+        );
+      },
       valueFn: (data) =>
         data.dropReason! === DropReason.None
           ? ""
           : data.dropReason! === DropReason.DidNotStart
             ? "DNS"
             : data.dropReason,
-      sample: "Duplicate 12, 13"
+      sample: "Duplicate"
     },
     {
       field: "note",

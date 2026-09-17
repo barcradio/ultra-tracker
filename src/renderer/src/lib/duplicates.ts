@@ -1,10 +1,10 @@
-/** A duplicate is logged under the same bib with a fraction appended, so 130 and 130.2 are the
- *  same runner. A bib logged a third time gets another 130.2 rather than a 130.3, so rows can
- *  share a bib outright and the row number is the only thing telling them apart.
+/** A duplicate is logged under the same bib with `.2` appended. The affix is not a count: it
+ *  marks the record as an imposter of the real one, so a bib logged again always reads `130.2`
+ *  however many times it happens, and several rows can carry the same one.
  *
- *  Row numbers are positions in the grid as it is currently sorted and filtered, which is what
- *  the operator is actually looking at. */
-export function findSiblingRowNumbers<T extends { bibId: number }>(
+ *  Records are referred to by sequence, which is fixed for the life of a record, rather than by
+ *  position in the grid, which changes with every sort and filter. */
+export function findSiblingSequences<T extends { bibId: number; sequence: number }>(
   rows: T[],
   index: number
 ): number[] {
@@ -15,9 +15,17 @@ export function findSiblingRowNumbers<T extends { bibId: number }>(
 
   return rows.reduce<number[]>((siblings, candidate, candidateIndex) => {
     if (candidateIndex !== index && Math.trunc(candidate.bibId) === bib) {
-      siblings.push(candidateIndex + 1);
+      siblings.push(candidate.sequence);
     }
 
     return siblings;
   }, []);
+}
+
+/** Where a sequence currently sits in the grid, so a record can be brought into view. */
+export function findRowIndexBySequence<T extends { sequence: number }>(
+  rows: T[],
+  sequence: number
+): number {
+  return rows.findIndex((row) => row.sequence === sequence);
 }
