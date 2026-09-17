@@ -536,6 +536,69 @@ describe("status-db", () => {
       expect(GetStatusByBib(102)[0]?.dropped).toBe(0);
     });
 
+    it("imports a drop whose note carries a raw quote", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        ["title row", "header row", '3-hardware,101,withdrew,2026-09-01T12:00:00Z,said "ok"'].join(
+          "\n"
+        )
+      );
+
+      await parseDropsContent(csv, "drops.csv");
+
+      expect(GetStatusByBib(101)[0]?.dropped).toBe(1);
+      expect(GetStatusByBib(101)[0]?.note).toContain('said "ok"');
+    });
+
+    it("imports a drop whose note carries a raw comma, keeping the whole note", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        [
+          "title row",
+          "header row",
+          "3-hardware,101,withdrew,2026-09-01T12:00:00Z,tired, sore"
+        ].join("\n")
+      );
+
+      await parseDropsContent(csv, "drops.csv");
+
+      expect(GetStatusByBib(101)[0]?.dropped).toBe(1);
+      expect(GetStatusByBib(101)[0]?.note).toContain("tired; sore");
+    });
+
+    it("skips a blank line rather than treating it as a drop", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        [
+          "title row",
+          "header row",
+          "3-hardware,101,withdrew,2026-09-01T12:00:00Z,",
+          "",
+          "3-hardware,102,withdrew,2026-09-01T12:30:00Z,"
+        ].join("\n")
+      );
+
+      const message = await parseDropsContent(csv, "drops.csv");
+
+      expect(message).toContain("2 imported");
+    });
+
+    it("skips a drop row with no bib", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        [
+          "title row",
+          "header row",
+          "3-hardware,101,withdrew,2026-09-01T12:00:00Z,",
+          "3-hardware,,withdrew,2026-09-01T12:15:00Z,"
+        ].join("\n")
+      );
+
+      const message = await parseDropsContent(csv, "drops.csv");
+
+      expect(message).toContain("1 imported");
+    });
+
     it("reports a parse failure to the operator", async () => {
       const csv = Readable.from(["title", "header", '1-start,101,"unterminated'].join("\n"));
 
