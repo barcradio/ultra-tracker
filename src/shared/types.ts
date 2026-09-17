@@ -18,6 +18,69 @@ export interface EventArchivePreview {
   stations: Station[];
 }
 
+export type DropsImportConflictAction = "preserve-existing" | "use-imported";
+
+export type DropsImportRecommendationConfidence = "low" | "medium" | "high";
+
+export interface DropsImportStatusValue {
+  dropReason: string | null;
+  dropStation: string | null;
+  dropDateTime: string | null;
+}
+
+export interface DropsImportConflict {
+  id: string;
+  bibId: number;
+  existing: DropsImportStatusValue;
+  imported: DropsImportStatusValue;
+  importedNote: string;
+  recommendedAction: DropsImportConflictAction;
+  recommendationReason: string;
+  recommendationConfidence: DropsImportRecommendationConfidence;
+}
+
+export interface DropsImportPreviewRecord {
+  bibId: number;
+  reason: string;
+  status: string | null;
+  station: string | null;
+  dateTime: string | null;
+  note: string | null;
+}
+
+export interface DropsImportPreview {
+  importId: string;
+  sourceLabel: string;
+  processedCount: number;
+  importableCount: number;
+  skippedFutureStationCount: number;
+  duplicateCount: number;
+  readyRecords: DropsImportPreviewRecord[];
+  skippedRecords: DropsImportPreviewRecord[];
+  duplicateRecords: DropsImportPreviewRecord[];
+  conflicts: DropsImportConflict[];
+}
+
+export interface DropsImportDecision {
+  conflictId: string;
+  action: DropsImportConflictAction;
+}
+
+export interface ApplyDropsImportParams {
+  importId: string;
+  decisions: DropsImportDecision[];
+}
+
+export interface DropsImportReport {
+  sourceLabel: string;
+  processedCount: number;
+  importedCount: number;
+  preservedCount: number;
+  skippedFutureStationCount: number;
+  duplicateCount: number;
+  conflictCount: number;
+}
+
 export interface Toast {
   message: string;
   type: "info" | "success" | "danger" | "warning";
