@@ -260,9 +260,8 @@ export async function importRunnersFromCSV() {
   const stationId = (await appStore.get("station.id")) as number;
   let message: string = "";
 
-  // Files written before notes were quoted carry raw quotes and commas in that last column.
-  // Reading rows as fields tolerates both: a stray quote is taken literally, and anything past
-  // the note column is the note itself, split up, so it is joined back together.
+  // Older files carry raw quotes and commas in the note, so rows are read as fields and the
+  // note is rejoined from everything past its column.
   const parser = fileContent
     .pipe(
       parse({
@@ -286,8 +285,6 @@ export async function importRunnersFromCSV() {
         note: fields.slice(7).join(",")
       };
 
-      // A duplicate carries a fraction, as in 130.2; the record keeps the whole bib number and
-      // the fraction only marks it as a duplicate.
       const bib = Number(timing.bibId);
 
       const record: DropRunnerDB = {
@@ -507,8 +504,6 @@ interface DropExportRow {
   note: string;
 }
 
-// Operator notes are free text and reach these files verbatim. A comma or a quote in one used
-// to make the row unreadable, which stopped an import dead and left the rest of the file behind.
 function csvField(value: string | null | undefined): string {
   const text = value ?? "";
 

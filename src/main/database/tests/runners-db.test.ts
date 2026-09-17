@@ -312,8 +312,6 @@ describe("runners-db", () => {
       expect(lines[2]).toContain("101");
     });
 
-    // The note used to have its commas swapped for semicolons to keep the row parseable, which
-    // changed what the operator wrote. Quoting keeps the row parseable and the note intact.
     it("quotes an exported note that contains a comma", async () => {
       insertStatusRow(101, 1, "withdrew", "1-start");
       db.prepare(`UPDATE Status SET note = 'tired, sore' WHERE bibId = 101`).run();
@@ -506,13 +504,11 @@ describe("runners-db", () => {
       const result = await importLegacy(["fine", "fine", "tired, sore", "fine"]);
 
       expect(result.kept).toBe(4);
-      // The comma becomes a semicolon on the way in, but no part of the note is lost.
       expect(result.notes).toContain("tired; sore");
     });
   });
 
   describe("note round trip", () => {
-    // The note lands on the third data row, so the export file's fifth line carries it.
     const NOTE_LINE = 4;
 
     async function roundTrip(notes: string[]) {
@@ -543,8 +539,6 @@ describe("runners-db", () => {
 
       expect(result.kept).toBe(4);
       expect(result.noteLine).toContain('"tired, sore"');
-      // The import swaps commas for semicolons, which predates this and is left alone: an
-      // operator's comma is stripped as they type, so the app never writes one itself.
       expect(result.notes).toContain("tired; sore");
     });
 
