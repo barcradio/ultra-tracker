@@ -34,6 +34,7 @@ Additional rules:
 - Treat generated files as generated; fix their source instead of hand-editing them.
 - Keep privileged work in `src/main/`, UI in `src/renderer/src/`, and typed bridge logic in `src/preload/`.
 - Keep the app secure: no unnecessary Node integration, no context-isolation weakening, no bypass of external-navigation protections.
+- For pull requests, use the repo's Conventional Commit title format and a body with `## Summary`, `## Changes`, and `## Testing` sections unless the change is trivial.
 
 ## Documentation And Comments
 
