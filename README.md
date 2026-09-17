@@ -13,6 +13,19 @@ For a guide on how to set up an event using Ultra-Tracker, and advanced RFID con
 <img width="1000" alt="image" src="https://github.com/user-attachments/assets/371cc7fe-8e23-4766-b332-2a79f4e30c70" />
 
 ---
+## Installation
+
+The app installs as a normal desktop application and can be launched from the Start menu or desktop shortcut.
+
+### Windows Installation
+
+Windows releases are distributed as a standard NSIS installer. Download the latest `ultra-tracker-<version>-setup.exe` from the [releases page](https://github.com/barcradio/ultra-tracker/releases), run the installer, and follow the prompts to complete setup.
+
+### Linux installation
+
+Linux releases are 64-bit only. For Debian, Ubuntu, and Raspberry Pi OS, download the `.deb` package from the [releases page](https://github.com/barcradio/ultra-tracker/releases) and install it with `sudo apt install ./ultra-tracker_<version>_amd64.deb` (or `_arm64.deb` on a Pi). This is the recommended option.
+
+For other Linux distributions, download the `.AppImage` matching the machine architecture: `-x86_64` for a standard PC or `-arm64` for a 64-bit Pi. Make it executable with `chmod +x` and run it. On a Pi, `uname -m` should report `aarch64`; a 32-bit Raspberry Pi OS installation is not supported.
 
 ## Getting Started
 
