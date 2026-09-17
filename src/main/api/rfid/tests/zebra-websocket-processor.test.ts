@@ -2,11 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RfidSettings } from "../../../../shared/models";
 import { ZebraWebSocketProcessor } from "../zebra-fxr90/zebra-websocket-processor";
 
-/**
- * Minimal stand-in for the `ws` client: the processor only needs on/emit, readyState, terminate.
- * Defined through vi.hoisted so it exists before vi.mock's factory runs, and hand-rolled rather
- * than extending EventEmitter so the hoisted factory needs no imports.
- */
+// Hoisted so it exists before vi.mock's factory runs, which is why it imports nothing.
 const FakeWebSocket = vi.hoisted(() => {
   type Listener = (...args: unknown[]) => void;
 
@@ -45,8 +41,6 @@ const FakeWebSocket = vi.hoisted(() => {
 });
 vi.mock("ws", () => ({ default: FakeWebSocket }));
 
-// An in-memory stand-in for the durable RFID inbox table, so the partial-frame bookkeeping is
-// exercised for real rather than asserted against a mock's call log.
 const inbox = vi.hoisted(() => {
   let nextIndex = 1;
   let rows: Array<{ index: number; payload: string }> = [];

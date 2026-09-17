@@ -15,7 +15,6 @@ let workDir: string;
 const connect = vi.hoisted(() => ({
   createDatabaseFile: vi.fn(),
   resolveUniqueSlug: vi.fn((slug: string) => slug),
-  // Mirrors connect-db's slugify: lowercase, hyphenate, and trim stray hyphens.
   slugify: vi.fn((name: string) =>
     name
       .toLowerCase()
@@ -62,8 +61,6 @@ describe("event-archive-db", () => {
   beforeEach(() => {
     workDir = fs.mkdtempSync(path.join(os.tmpdir(), "ultra-tracker-archive-"));
     vi.clearAllMocks();
-    // These stubs are given rejections/return values by individual tests, so restore the
-    // happy-path implementation for every one of them.
     stations.parseStationsContent.mockResolvedValue("1 stations imported");
     parseAthletesContent.mockResolvedValue(["2 athletes imported"]);
     parseDropsContent.mockResolvedValue("drops imported");

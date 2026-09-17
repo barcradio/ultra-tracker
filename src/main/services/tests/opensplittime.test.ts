@@ -56,8 +56,7 @@ function jsonResponse(body: unknown, status = 200) {
   };
 }
 
-// The service keeps the token, environment and pause flag in module scope, so each test needs a
-// freshly imported copy to start from a known state.
+// The service keeps token, environment and pause flag in module scope, so each test re-imports it.
 async function loadService(): Promise<Service> {
   vi.resetModules();
   return import("../opensplittime");
@@ -94,8 +93,6 @@ function runner(overrides: Partial<RunnerDB> = {}): RunnerDB {
   } as RunnerDB;
 }
 
-// Every test re-imports the service to reset its module-level state, so these tests do real
-// module-graph work; give them more headroom than the 5s default when the machine is busy.
 describe("opensplittime service", { timeout: 30_000 }, () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -254,7 +251,6 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       expect(fetchMock.mock.calls[0][1].body).toContain("secret");
     });
 
-    // Availability requires BOTH halves; an email with no stored password must not count.
     it("reports none available when only an email is stored", async () => {
       storeMock.data.set("openSplitTime.email", "ada@example.com");
       storeMock.data.set("openSplitTime.encryptedPassword", "");
@@ -429,7 +425,6 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       expect(status.openSplitTime).toBe("connected");
     });
 
-    // The cut-off is `status < 500`, so 500 itself is unreachable and 499 is reachable.
     it("treats exactly 500 as unreachable", async () => {
       const service = await loadService();
       fetchMock.mockResolvedValue({ ok: false, status: 500 });
@@ -588,7 +583,6 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
 
       const body = JSON.parse(fetchMock.mock.calls[0][1].body);
       expect(body.data).toHaveLength(1);
-      // The OpenSplitTime API uses snake_case field names, matching the service's own payload.
       /* eslint-disable camelcase */
       expect(body.data[0].attributes).toMatchObject({
         source: "3-hardware",
@@ -663,7 +657,6 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       expect(body.data[0].attributes.sub_split_kind).toBe("in");
     });
 
-    // An empty kinds array carries no information, so the station's entry mode must still win.
     it("falls back to the station's entry mode when the split lists no kinds", async () => {
       storeMock.data.set("event.openSplitTime", {
         staging: { name: "bear-100", id: 7, splitEntryKinds: { "Hardware Ranch": [] } }

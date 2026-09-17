@@ -182,11 +182,8 @@ describe("athlete-db", () => {
       expect(GetTotalAthletes()).toBe(1);
     });
 
-    // KNOWN DEFECT - intended behaviour asserted below, currently failing.
-    // `finished(parser, { error: false })` shows the intent to report a bad file rather than
-    // throw, but the error re-raised by the piped source stream still rejects the call.
-    // Marked `.fails` so CI stays green; it will start failing once the defect is fixed,
-    // at which point the marker should be removed.
+    // KNOWN DEFECT - the intended behaviour is asserted below and currently fails.
+    // Marked `.fails`; drop the marker once the defect is fixed.
     it.fails("reports a parse failure instead of throwing", async () => {
       const csv = Readable.from(["header", 'one,"unterminated'].join("\n"));
 
