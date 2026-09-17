@@ -161,7 +161,9 @@ export function GetPreviousDropped(): number {
   let queryResult;
 
   try {
-    queryResult = db.prepare(`SELECT * FROM Status WHERE dropped == ?`).all(Number(true));
+    queryResult = db
+      .prepare(`SELECT * FROM Status WHERE dropped == ? AND IFNULL(dropReason, '') != ?`)
+      .all(Number(true), DropReason.DidNotStart);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);

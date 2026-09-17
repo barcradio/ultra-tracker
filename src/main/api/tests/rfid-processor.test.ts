@@ -191,10 +191,10 @@ describe("rfid-processor", () => {
         );
       });
 
-      it("announces every tag read", () => {
-        controller.listeners.get("tag-read")?.();
+      it("announces each controller tag read to the renderer exactly once", () => {
+        controller.listeners.get("tag-read")?.({ bibId: 101, timestamp: new Date() });
 
-        expect(rfidEmitter.hasReadRFID).toHaveBeenCalled();
+        expect(rfidEmitter.hasReadRFID).toHaveBeenCalledTimes(1);
       });
     });
   });

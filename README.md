@@ -293,7 +293,7 @@ Tests are written with Vitest and live in a `tests/` folder beside the code they
 ## About Ultra-Tracker
 
 A cross-platform desktop application for tracking athletes during ultra marathons.
-This project is supported on Windows and Linux, with future support for MacOS. Linux is distributed as a `.deb` for Debian, Ubuntu and Raspberry Pi OS, and as an AppImage for other distributions. Both are 64-bit only.
+This project is supported on Windows, Linux and MacOS. Linux is distributed as a `.deb` for Debian, Ubuntu and Raspberry Pi OS, and as an AppImage for other distributions. Both are 64-bit only. The MacOS build is a universal DMG and is not notarized, so clear quarantine on first launch.
 
 Built as an Electron application using TypeScript + React + Tailwind CSS.
 
