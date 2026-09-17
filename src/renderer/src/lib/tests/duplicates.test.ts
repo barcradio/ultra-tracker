@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { findRowIndexBySequence, findSiblingSequences } from "../duplicates";
 
 describe("findSiblingSequences", () => {
-  // A bib logged again always reads .2, so two rows can carry the same one.
   const rows = [
     { bibId: 101, sequence: 11 },
     { bibId: 130, sequence: 12 },

@@ -62,8 +62,6 @@ export function DataGrid<T extends object>(props: Props<T>) {
     useAnimationFrameWithResizeObserver: true
   });
 
-  // Centred so a row jumped to from another row lands where the eye already is, and marked
-  // briefly so it is obvious which one was landed on.
   const scrollToIndex = (index: number) => {
     rowVirtualizer.scrollToIndex(index, { align: "center" });
     setHighlightIndex(index);

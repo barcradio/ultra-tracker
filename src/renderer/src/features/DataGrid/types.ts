@@ -2,8 +2,6 @@ import { ReactNode } from "react";
 
 export type RowStatus = "success" | "pending" | "error" | "exported" | "not-exported";
 
-/** Passed to a cell so it can refer to other rows: which rows are on screen, in view order,
- *  where this one sits among them, and how to bring another one into view. */
 export interface RowContext<T> {
   index: number;
   rows: T[];
