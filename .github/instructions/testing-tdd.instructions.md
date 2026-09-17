@@ -4,18 +4,23 @@ applyTo: "src/**"
 
 # Test-Driven Development
 
-## Workflow
-- When implementing a new function, bug fix, or behavior change in `src/main/`, `src/preload/`, or `src/shared/`, write or update a failing Vitest test first, confirm it fails for the expected reason, then write the minimal implementation to make it pass.
-- For bug fixes, write a regression test that reproduces the bug before changing the fix code.
-- Prefer extending an existing `*.test.ts` file next to the module under test (see `src/main/database/tests/`) over creating a new test layout.
-- After the test passes, refactor if needed while keeping the suite green; do not leave the suite red between edits.
+## Principle
+- TDD is for real behavior, not speculative features.
+- Write a failing test only after the need is justified and the smallest correct solution is clear.
 
-## Scope And Exceptions
-- Apply TDD to logic with meaningful branches or invariants (validation, IPC handlers, database operations, formatters). Skip it for trivial passthrough code, generated files, and pure UI markup with no logic, but still add a test if the change introduces a bug fix or a testable rule.
-- Renderer component behavior (hooks, utilities, non-trivial conditional rendering) should also get tests when a harness exists for it; don't block on adding a new harness if one doesn't exist for the renderer.
-- In unit tests, avoid hard-coded OS-specific behavior (for example path separators or line endings). Use shared helpers from `src/shared/` so tests remain portable across Windows, Linux, and macOS.
+## Workflow
+- Add or extend a failing Vitest test for the behavior under change.
+- For bug fixes, reproduce the bug in a regression test before the fix.
+- Prefer an existing test file next to the module under test.
+- Implement the minimal fix to make the test pass.
+- Keep the suite green; do not leave it red between edits.
+
+## Scope
+- Apply TDD to logic with meaningful branches or invariants: validation, IPC handlers, database operations, formatters, and bug fixes.
+- Skip trivial passthrough code, generated files, and markup without logic.
+- Do not write tests for speculative abstractions or config-only changes that have no real behavior behind them.
 
 ## Running Tests
-- Run the narrowest test file(s) related to the change via the `runTests` tool (or `pnpm test -- <path>`), not the full suite, while iterating.
-- Run `pnpm test` once before declaring the change complete.
-- Do not run `pnpm test:mutation` (Stryker) as part of routine implementation; it is on-demand only and known to have unreliable results (see repo mutation-testing notes) — don't use mutation scores as a completion gate.
+- Run the narrowest relevant test file(s) while iterating.
+- Run the standard project validation before declaring the change complete.
+- Do not treat mutation testing as a routine completion gate.

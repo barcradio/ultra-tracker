@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: barcradio.ultra-tracker
 productName: ultra-tracker
 directories:
   buildResources: build
@@ -20,10 +20,17 @@ nsis:
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist
+  # These prebuilds are byte-identical across the x64 and arm64 passes, and
+  # @electron/universal refuses to merge such files unless declared.
+  x64ArchFiles: "**/better-sqlite3/prebuilds/**"
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+  # No Developer ID, but Apple Silicon still refuses an unsealed bundle, so
+  # sign ad-hoc. Library validation rejects that, so hardened runtime is off.
+  identity: "-"
+  hardenedRuntime: false
   target:
     - target: dmg
       arch: universal

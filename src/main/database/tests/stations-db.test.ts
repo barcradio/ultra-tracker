@@ -45,6 +45,9 @@ vi.mock("../../lib/file-dialogs", () => ({ selectStationsFile }));
 const syncSplitEntryKinds = vi.hoisted(() => vi.fn());
 vi.mock("../../services/opensplittime", () => ({ syncSplitEntryKinds }));
 
+const moveTimingRecordsToStation = vi.hoisted(() => vi.fn(() => [0, 0, ""]));
+vi.mock("../timingRecords-db", () => ({ moveTimingRecordsToStation }));
+
 function station(overrides: Partial<Station> = {}): Station {
   return {
     name: "Hardware Ranch",
@@ -334,6 +337,30 @@ describe("stations-db", () => {
 
       expect(storeMock.data.get("station.operators.secondary.active")).toBe(true);
       expect(storeMock.data.get("station.operators.primary.active")).toBe(false);
+    });
+
+    // An event database holds one station's records, so a change takes them with it, but only
+    // once the operator has agreed to it.
+    it("moves the timing records already logged when asked to", async () => {
+      insertStation(station());
+      storeMock.data.set("station", station());
+
+      await SetStationIdentity({
+        identifier: "3-hardware",
+        callsign: "K7ALN",
+        moveTimingRecords: true
+      });
+
+      expect(moveTimingRecordsToStation).toHaveBeenCalledWith(3);
+    });
+
+    it("leaves the records where they are when not asked", async () => {
+      insertStation(station());
+      storeMock.data.set("station", station());
+
+      await SetStationIdentity({ identifier: "3-hardware", callsign: "K7ALN" });
+
+      expect(moveTimingRecordsToStation).not.toHaveBeenCalled();
     });
   });
 });
