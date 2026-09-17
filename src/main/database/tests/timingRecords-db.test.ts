@@ -4,12 +4,14 @@ import { createTestDatabase } from "./dbTestHelper";
 import { DatabaseStatus, EntryMode, RecordStatus } from "../../../shared/enums";
 import { RunnerDB } from "../../../shared/models";
 import {
+  countTimingRecordsAtOtherStations,
   deleteTimeRecord,
   getTimeRecordbyBib,
   getTimeRecordbyIndex,
   insertOrUpdateTimeRecord,
   isBibDuplicate,
   markTimeRecordAsSent,
+  moveTimingRecordsToStation,
   setTimingRecordNote
 } from "../timingRecords-db";
 
@@ -571,6 +573,63 @@ describe("timingRecords-db", () => {
       const [, status] = isBibDuplicate(101, 1);
 
       expect(status).toBe(DatabaseStatus.Error);
+    });
+  });
+
+  describe("reconciling records after a station change", () => {
+    function record(bibId: number, stationId: number) {
+      db.prepare(
+        `INSERT INTO TimeRecords (bibId, stationId, timeIn, timeModified, note, sent, status)
+         VALUES (?, ?, ?, ?, '', 0, 0)`
+      ).run(bibId, stationId, "2026-09-25T14:00:00Z", "2026-09-25T14:00:00Z");
+    }
+
+    it("counts only the records logged at another station", () => {
+      record(101, 3);
+      record(102, 3);
+      record(103, 7);
+
+      expect(countTimingRecordsAtOtherStations(3)).toBe(1);
+      expect(countTimingRecordsAtOtherStations(7)).toBe(2);
+    });
+
+    it("counts nothing when every record is already at the station", () => {
+      record(101, 3);
+      record(102, 3);
+
+      expect(countTimingRecordsAtOtherStations(3)).toBe(0);
+    });
+
+    it("moves the records that belong to another station and reports how many", () => {
+      record(101, 3);
+      record(102, 7);
+      record(103, 9);
+
+      const [moved, status] = moveTimingRecordsToStation(3);
+
+      expect(moved).toBe(2);
+      expect(status).toBe(DatabaseStatus.Updated);
+      expect(
+        db.prepare(`SELECT COUNT(*) AS count FROM TimeRecords WHERE stationId = 3`).get()
+      ).toEqual({ count: 3 });
+    });
+
+    it("leaves the database alone when there is nothing to move", () => {
+      record(101, 3);
+
+      const [moved] = moveTimingRecordsToStation(3);
+
+      expect(moved).toBe(0);
+    });
+
+    it("reports a failure rather than throwing when the table is gone", () => {
+      db.exec(`DROP TABLE TimeRecords`);
+
+      const [moved, status] = moveTimingRecordsToStation(3);
+
+      expect(moved).toBeNull();
+      expect(status).toBe(DatabaseStatus.Error);
+      expect(countTimingRecordsAtOtherStations(3)).toBe(0);
     });
   });
 });

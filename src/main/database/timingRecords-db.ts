@@ -14,6 +14,43 @@ interface TypedRunnerDB extends RunnerDB {
   recordType: RecordType;
 }
 
+// An event database is expected to hold the timing records of a single station. If the operator
+// changes station mid-event the records already logged still carry the old one, so the two have
+// to be reconciled rather than left to disagree.
+export function countTimingRecordsAtOtherStations(stationId: number): number {
+  const db = getDatabaseConnection();
+
+  try {
+    const result = db
+      .prepare(`SELECT COUNT(*) AS count FROM TimeRecords WHERE stationId IS NOT ?`)
+      .get(stationId) as { count: number };
+
+    return result.count;
+  } catch (e) {
+    if (e instanceof Error) console.error(e.message);
+    return 0;
+  }
+}
+
+export function moveTimingRecordsToStation(stationId: number): DatabaseResponse<number> {
+  const db = getDatabaseConnection();
+
+  try {
+    const result = db
+      .prepare(`UPDATE TimeRecords SET stationId = ? WHERE stationId IS NOT ?`)
+      .run(stationId, stationId);
+
+    return [result.changes, DatabaseStatus.Updated, `Moved ${result.changes} timing records`];
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [null, DatabaseStatus.Error, e.message];
+    }
+
+    return [null, DatabaseStatus.Error, "Failed to move timing records"];
+  }
+}
+
 export function insertOrUpdateTimeRecord(record: RunnerDB): DatabaseResponse {
   let status: DatabaseStatus = DatabaseStatus.Error;
   let message: string = "";

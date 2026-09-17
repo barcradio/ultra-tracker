@@ -24,26 +24,13 @@ You are a specialist at committing changes and opening/updating pull requests fo
 
 ## PR Format
 
-This is the repo's established convention (verified against PRs #213-222 and #234-245). Use it as-is; do not look up other PRs to infer style.
+Use the repo's established format: Conventional Commit title, then a body with `## Summary`, `## Changes`, and `## Testing`.
 
-**Title**: Conventional Commit style, same rules as commit subjects — `type: subject` or `type(scope): subject`, lowercase after the colon, imperative mood, no trailing period (e.g. `fix: stop leaking resize listeners in useTruncated`, `feat: add git pr workflow subagent`).
-
-**Body**:
-
-```markdown
-## Summary
-<1-3 sentences: what changed and why. Start with `Fixes #123.` or `Closes #123.` if an issue is linked.>
-
-## Changes
-- <bullet per notable change; bold a short lead-in for grouped areas, e.g. `- **Auth**: ...`>
-- <add a `- BREAKING CHANGE: ...` bullet with migration/reset guidance when applicable>
-
-## Testing
-- <command(s) run and result, e.g. `pnpm exec eslint <files>` — passes clean>
-- <or `Not applicable: <reason>` when there is no build/runtime code path>
-```
-
-Omit the `## Changes` section only for trivial single-line fixes; never omit `## Summary` or `## Testing`.
+- Title: `type: subject` or `type(scope): subject`, lowercase after the colon, imperative mood, no trailing period.
+- Summary: 1-3 sentences describing what changed and why; start with `Fixes #123.` or `Closes #123.` if linked to an issue.
+- Changes: bullet list of the notable updates; include a `- BREAKING CHANGE: ...` bullet when applicable.
+- Testing: list the commands run or say `Not applicable: <reason>` when no build/runtime path exists.
+- Omit `## Changes` only for trivial one-line fixes; never omit `## Summary` or `## Testing`.
 
 ## Output Format
 

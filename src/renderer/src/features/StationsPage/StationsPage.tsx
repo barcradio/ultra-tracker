@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { Button, Select, Stack } from "~/components";
+import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { useStation } from "~/hooks/data/useStation";
 import { useStations } from "~/hooks/data/useStations";
 import { formatShortDate } from "~/lib/datetimes";
@@ -32,7 +33,14 @@ export function StationsPage() {
   const { data: currentStation } = useStation();
   const { data: stations } = useStations();
 
-  const { setValue, ...identityForm } = useIdentityForm(currentStation);
+  const {
+    setValue,
+    recordsToMove,
+    stationChangePending,
+    confirmStationChange,
+    cancelStationChange,
+    ...identityForm
+  } = useIdentityForm(currentStation);
 
   const stationOptions = useMemo(() => createStationOptions(stations), [stations]);
   const { data: currentOperators } = useStationOperators(identityForm.watch("identifier"));
@@ -150,6 +158,21 @@ export function StationsPage() {
           className="w-72"
         />
         <Button className="px-5 py-[6.8px]">Apply</Button>
+        <ConfirmationModal
+          dangerous
+          open={stationChangePending}
+          setOpen={(open) => {
+            if (!open) cancelStationChange();
+          }}
+          title="Change Station"
+          negativeText="Cancel"
+          affirmativeText="Change Station"
+          onAffirmative={confirmStationChange}
+        >
+          This event database holds {recordsToMove} timing record
+          {recordsToMove === 1 ? "" : "s"} logged at another station. Changing station moves
+          {recordsToMove === 1 ? " it" : " them"} to the station you are selecting.
+        </ConfirmationModal>
         <Stack justify="between" align="center" className="py-6 pl-4 m-4 text-2xl font-display">
           <p className="text-on-component">{entryModeLabel}</p>
         </Stack>
