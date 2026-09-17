@@ -158,13 +158,13 @@ describe("zebra-fxr90-controller", () => {
       );
     });
 
-    it("writes each tag read to the timing database and tells the renderer", () => {
+    it("writes each tag read to the timing database without directly telling the renderer", () => {
       const tagRead = { bibId: 101, timestamp: new Date() };
 
       processor.listeners.get("tag-read")?.(tagRead);
 
       expect(timingWriter.write).toHaveBeenCalledWith(tagRead);
-      expect(rfidEmitter.hasReadRFID).toHaveBeenCalled();
+      expect(rfidEmitter.hasReadRFID).not.toHaveBeenCalled();
     });
 
     it("passes a tag read on to its own listeners", () => {
