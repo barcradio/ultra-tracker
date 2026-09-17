@@ -333,7 +333,7 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 > | **Mitch Smith**      | N8MLS        | [**@pxls2prnt**](https://github.com/pxls2prnt)         |
 > | **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)           |
 
-**Notice:** Starting in Aug 2026 our team is utilizing GitHub Copilot to augment development of UltraTracker. All generated code is human reviewed for function and project compliance.
+**Notice:** Starting in Aug 2026 our team is utilizing AI technologies, such as GitHub Copilot, to augment development of Ultra-Tracker. All generated code is human reviewed for function and project compliance.
 
 ## License
 
