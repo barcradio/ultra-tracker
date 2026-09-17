@@ -4,6 +4,7 @@ import { DatabaseStatus } from "$shared/enums";
 import { DatabaseResponse, SetStationIdentityParams } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { clearStationsTable, createStationsTable } from "./tables-db";
+import { moveTimingRecordsToStation } from "./timingRecords-db";
 import { Station, StationDB } from "../../shared/models";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
@@ -187,6 +188,13 @@ export async function setStation(stationIdentifier: string) {
 
 export async function SetStationIdentity(params: SetStationIdentityParams) {
   await setStation(params.identifier);
+
+  // An event database holds one station's records. Changing station leaves the records already
+  // logged pointing at the old one, so they move across with the operator once agreed.
+  if (params.moveTimingRecords) {
+    const [moved] = moveTimingRecordsToStation(appStore.get("station.id") as number);
+    if (moved) console.log(`Moved ${moved} timing records to ${params.identifier}`);
+  }
   const settings = appStore.get("station") as unknown as Station;
 
   const key = Object.keys(settings.operators).find(
