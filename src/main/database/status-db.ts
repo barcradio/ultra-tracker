@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import fs from "fs";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
@@ -8,7 +9,17 @@ import { clearPushStatus } from "./opensplittimeStatus-db";
 import { alertForWatchlistedAthlete } from "./watchlist-db";
 import { AthleteProgress, DatabaseStatus, DropReason } from "../../shared/enums";
 import { DropRecord, RunnerDB, StatusDB } from "../../shared/models";
-import { DatabaseResponse } from "../../shared/types";
+import {
+  ApplyDropsImportParams,
+  DatabaseResponse,
+  DropsImportConflict,
+  DropsImportConflictAction,
+  DropsImportPreview,
+  DropsImportPreviewRecord,
+  DropsImportRecommendationConfidence,
+  DropsImportReport,
+  DropsImportStatusValue
+} from "../../shared/types";
 import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
@@ -17,17 +28,43 @@ import { pushTimeRecordUpdate } from "../services/opensplittime";
 
 const invalidResult = -999;
 
+interface PendingDropsImportConflict extends DropsImportConflict {
+  importedRecord: DropRecord;
+}
+
+interface PendingDropsImport {
+  sourceLabel: string;
+  processedCount: number;
+  importableRecords: DropRecord[];
+  conflicts: PendingDropsImportConflict[];
+  skippedFutureStationCount: number;
+  duplicateCount: number;
+}
+
+const pendingDropsImports = new Map<string, PendingDropsImport>();
+
 export async function LoadDrops() {
-  const dropsFilePath = await dialogs.loadDropsFromCSV();
-  const filePath = dropsFilePath?.[0];
+  const filePath = await SelectDropsFile();
   if (!filePath) throw new Error("No drops file selected");
 
   return LoadDropsFromFile(filePath);
 }
 
+export async function SelectDropsFile() {
+  const dropsFilePath = await dialogs.loadDropsFromCSV();
+  return dropsFilePath?.[0];
+}
+
 export async function LoadDropsFromFile(dropsFilePath: string) {
   const fileContent = fs.createReadStream(dropsFilePath, { encoding: "utf-8" });
   return parseDropsContent(fileContent, dropsFilePath);
+}
+
+export async function PreviewDropsFromFile(
+  dropsFilePath: string
+): Promise<DatabaseResponse<DropsImportPreview>> {
+  const fileContent = fs.createReadStream(dropsFilePath, { encoding: "utf-8" });
+  return previewDropsContent(fileContent, dropsFilePath);
 }
 
 export async function parseDropsContent(source: Readable, sourceLabel: string) {
@@ -78,6 +115,133 @@ export async function parseDropsContent(source: Readable, sourceLabel: string) {
   await finished(parser);
 
   return message;
+}
+
+export async function previewDropsContent(
+  source: Readable,
+  sourceLabel: string
+): Promise<DatabaseResponse<DropsImportPreview>> {
+  try {
+    const { processedCount, records } = await readDropsRecords(source);
+    const db = getDatabaseConnection();
+    const stationId = appStore.get("station.id") as number;
+    const importId = randomUUID();
+    const importableRecords: DropRecord[] = [];
+    const conflicts: PendingDropsImportConflict[] = [];
+    const readyRecords: DropsImportPreviewRecord[] = [];
+    const skippedRecords: DropsImportPreviewRecord[] = [];
+    const duplicateRecords: DropsImportPreviewRecord[] = [];
+    let skippedFutureStationCount = 0;
+    let duplicateCount = 0;
+
+    for (const record of records) {
+      const dropStationId = getStationOrder(record.stationId);
+      if (dropStationId > stationId) {
+        skippedFutureStationCount++;
+        skippedRecords.push(makePreviewRecord(record, "Dropped at later station"));
+        continue;
+      }
+
+      const existing = db.prepare(`SELECT * FROM Status WHERE bibId = ?`).get(record.bibId) as
+        StatusDB | undefined;
+
+      if (isExistingDropConflict(existing, record)) {
+        const conflict = buildDropsImportConflict(record, existing);
+        conflicts.push({ ...conflict, importedRecord: record });
+        continue;
+      }
+
+      if (isDuplicateDrop(existing, record)) {
+        duplicateCount++;
+        duplicateRecords.push(makePreviewRecord(record, "Exact bib/status already exists"));
+        continue;
+      }
+
+      importableRecords.push(record);
+      readyRecords.push(makePreviewRecord(record, "Ready to import"));
+    }
+
+    pendingDropsImports.set(importId, {
+      sourceLabel,
+      processedCount,
+      importableRecords,
+      conflicts,
+      skippedFutureStationCount,
+      duplicateCount
+    });
+
+    const preview: DropsImportPreview = {
+      importId,
+      sourceLabel,
+      processedCount,
+      importableCount: importableRecords.length,
+      skippedFutureStationCount,
+      duplicateCount,
+      readyRecords,
+      skippedRecords,
+      duplicateRecords,
+      conflicts: conflicts.map(({ importedRecord: _importedRecord, ...conflict }) => conflict)
+    };
+
+    return [preview, DatabaseStatus.Success, formatDropsImportPreviewMessage(preview)];
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unable to preview drops file";
+    console.error(message);
+    sendToastToRenderer({ message, type: "danger" });
+    return [null, DatabaseStatus.Error, message];
+  }
+}
+
+export function applyDropsImport(
+  params: ApplyDropsImportParams
+): DatabaseResponse<DropsImportReport> {
+  const pendingImport = pendingDropsImports.get(params.importId);
+  if (!pendingImport) return [null, DatabaseStatus.NotFound, "Drops import preview expired"];
+
+  const decisions = new Map(
+    params.decisions.map((decision) => [decision.conflictId, decision.action])
+  );
+  let importedCount = 0;
+  let preservedCount = 0;
+
+  try {
+    const db = getDatabaseConnection();
+    const applyImport = db.transaction(() => {
+      for (const record of pendingImport.importableRecords) {
+        updateDropFromCSV(record);
+        importedCount++;
+      }
+
+      for (const conflict of pendingImport.conflicts) {
+        const action = decisions.get(conflict.id) ?? "preserve-existing";
+        if (action === "use-imported") {
+          updateDropFromCSV(conflict.importedRecord);
+          importedCount++;
+        } else {
+          preservedCount++;
+        }
+      }
+    });
+
+    applyImport();
+    pendingDropsImports.delete(params.importId);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unable to apply drops import";
+    console.error(message);
+    return [null, DatabaseStatus.Error, message];
+  }
+
+  const report: DropsImportReport = {
+    sourceLabel: pendingImport.sourceLabel,
+    processedCount: pendingImport.processedCount,
+    importedCount,
+    preservedCount,
+    skippedFutureStationCount: pendingImport.skippedFutureStationCount,
+    duplicateCount: pendingImport.duplicateCount,
+    conflictCount: pendingImport.conflicts.length
+  };
+
+  return [report, DatabaseStatus.Success, formatDropsImportReportMessage(report)];
 }
 
 export function GetStatusByBib(bibNumber: number): [StatusDB | null, DatabaseStatus, string] {
@@ -335,6 +499,212 @@ export function updateDropFromCSV(record: DropRecord): DatabaseResponse {
 
   const message = `athlete:update bibId: ${record.bibId}, dropped: ${droppedValue}, dropStation: ${record.stationId}, dropDateTime: ${dropDateTime}, note: ${record.note}`;
   return [DatabaseStatus.Updated, message];
+}
+
+async function readDropsRecords(
+  source: Readable
+): Promise<{ processedCount: number; records: DropRecord[] }> {
+  const records: DropRecord[] = [];
+  let processedCount = 0;
+
+  const parser = source.pipe(
+    parse({
+      delimiter: ",",
+      fromLine: 3,
+      // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+      relax_quotes: true,
+      // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+      relax_column_count: true
+    })
+  );
+
+  parser.on("data", (fields: string[]) => {
+    const row: DropRecord = {
+      stationId: fields[0] ?? "",
+      bibId: Number(fields[1]),
+      dropReason: fields[2] ?? "",
+      dropDateTime: fields[3] ?? "",
+      note: fields.slice(4).join(",")
+    };
+
+    if ((fields[1] ?? "").trim() === "" || !Number.isFinite(row.bibId)) return;
+
+    processedCount++;
+    records.push(row);
+  });
+
+  await finished(parser);
+  return { processedCount, records };
+}
+
+function getStationOrder(stationIdentifier: string | null | undefined): number {
+  if (!stationIdentifier) return Number.POSITIVE_INFINITY;
+  const order = Number(stationIdentifier.split("-", 1)[0]);
+  return Number.isFinite(order) ? order : Number.POSITIVE_INFINITY;
+}
+
+function getImportedStatus(record: DropRecord): DropsImportStatusValue {
+  return {
+    dropReason: record.dropReason,
+    dropStation: record.stationId,
+    dropDateTime: parseCSVDate(record.dropDateTime).toISOString()
+  };
+}
+
+function getExistingStatus(status: StatusDB): DropsImportStatusValue {
+  return {
+    dropReason: status.dropReason ?? null,
+    dropStation: status.dropStation ?? null,
+    dropDateTime: status.dropDateTime == null ? null : String(status.dropDateTime)
+  };
+}
+
+function isExistingDropConflict(
+  status: StatusDB | undefined,
+  record: DropRecord
+): status is StatusDB {
+  if (!status?.dropped) return false;
+  return !isDuplicateDrop(status, record);
+}
+
+function isDuplicateDrop(status: StatusDB | undefined, record: DropRecord): boolean {
+  if (!status?.dropped) return false;
+
+  const imported = getImportedStatus(record);
+  const existing = getExistingStatus(status);
+
+  return (
+    existing.dropReason === imported.dropReason &&
+    existing.dropStation === imported.dropStation &&
+    existing.dropDateTime === imported.dropDateTime
+  );
+}
+
+function buildDropsImportConflict(record: DropRecord, status: StatusDB): DropsImportConflict {
+  const existing = getExistingStatus(status);
+  const imported = getImportedStatus(record);
+  const recommendation = recommendDropsImportAction(existing, imported, record.bibId);
+
+  return {
+    id: `${record.bibId}:${existing.dropStation ?? "none"}:${imported.dropStation ?? "none"}:${randomUUID()}`,
+    bibId: record.bibId,
+    existing,
+    imported,
+    importedNote: record.note,
+    ...recommendation
+  };
+}
+
+function recommendDropsImportAction(
+  existing: DropsImportStatusValue,
+  imported: DropsImportStatusValue,
+  bibId: number
+): {
+  recommendedAction: DropsImportConflictAction;
+  recommendationReason: string;
+  recommendationConfidence: DropsImportRecommendationConfidence;
+} {
+  const existingStationOrder = getStationOrder(existing.dropStation);
+  const importedStationOrder = getStationOrder(imported.dropStation);
+  const existingIsDns = existing.dropReason === DropReason.DidNotStart;
+  const importedIsDns = imported.dropReason === DropReason.DidNotStart;
+  const existingIsCourseDrop = Boolean(existing.dropReason && !existingIsDns);
+  const importedIsCourseDrop = Boolean(imported.dropReason && !importedIsDns);
+
+  if (existingIsDns && importedIsCourseDrop) {
+    if (hasTimingRecord(bibId)) {
+      return {
+        recommendedAction: "use-imported",
+        recommendationReason:
+          "This bib has timing data, so the imported course drop may correct the DNS status.",
+        recommendationConfidence: "medium"
+      };
+    }
+
+    return {
+      recommendedAction: "preserve-existing",
+      recommendationReason:
+        "The existing DNS status says the athlete did not start; a later course drop may be a wrong-bib report.",
+      recommendationConfidence: "medium"
+    };
+  }
+
+  if (existingIsCourseDrop && importedIsDns) {
+    return {
+      recommendedAction: "preserve-existing",
+      recommendationReason:
+        "The existing course drop is later firsthand station data than an imported DNS row.",
+      recommendationConfidence: "high"
+    };
+  }
+
+  if (existingIsCourseDrop && importedIsCourseDrop && existingStationOrder > importedStationOrder) {
+    return {
+      recommendedAction: "preserve-existing",
+      recommendationReason: "The existing drop was recorded farther along the course.",
+      recommendationConfidence: "high"
+    };
+  }
+
+  if (existingIsCourseDrop && importedIsCourseDrop && importedStationOrder > existingStationOrder) {
+    return {
+      recommendedAction: "use-imported",
+      recommendationReason: "The imported drop was recorded farther along the course.",
+      recommendationConfidence: "high"
+    };
+  }
+
+  if (
+    existing.dropStation === imported.dropStation &&
+    existing.dropReason === imported.dropReason
+  ) {
+    return {
+      recommendedAction: isImportedTimeLater(existing.dropDateTime, imported.dropDateTime)
+        ? "use-imported"
+        : "preserve-existing",
+      recommendationReason: "The station and reason match; prefer the later timestamp.",
+      recommendationConfidence: "medium"
+    };
+  }
+
+  return {
+    recommendedAction: "preserve-existing",
+    recommendationReason:
+      "The imported row conflicts with existing data and needs operator review.",
+    recommendationConfidence: "low"
+  };
+}
+
+function hasTimingRecord(bibId: number): boolean {
+  const db = getDatabaseConnection();
+  const row = db.prepare(`SELECT bibId FROM TimeRecords WHERE bibId = ? LIMIT 1`).get(bibId);
+  return row != null;
+}
+
+function isImportedTimeLater(existingTime: string | null, importedTime: string | null): boolean {
+  const existingTimestamp = existingTime == null ? Number.NaN : Date.parse(existingTime);
+  const importedTimestamp = importedTime == null ? Number.NaN : Date.parse(importedTime);
+
+  return Number.isFinite(importedTimestamp) && importedTimestamp > existingTimestamp;
+}
+
+function makePreviewRecord(record: DropRecord, reason: string): DropsImportPreviewRecord {
+  return {
+    bibId: record.bibId,
+    reason,
+    status: record.dropReason,
+    station: record.stationId,
+    dateTime: record.dropDateTime,
+    note: record.note || null
+  };
+}
+
+function formatDropsImportPreviewMessage(preview: DropsImportPreview): string {
+  return `${preview.sourceLabel}\r\n${preview.processedCount} dropRecords processed, ${preview.importableCount} ready to import, ${preview.conflicts.length} conflicts`;
+}
+
+function formatDropsImportReportMessage(report: DropsImportReport): string {
+  return `${report.sourceLabel}\r\n${report.processedCount} dropRecords processed, ${report.importedCount} imported, ${report.preservedCount} preserved, ${report.skippedFutureStationCount} skipped`;
 }
 
 function parseCSVDate(timingDate: string): Date {
