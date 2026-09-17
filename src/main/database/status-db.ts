@@ -31,7 +31,6 @@ export async function LoadDropsFromFile(dropsFilePath: string) {
 }
 
 export async function parseDropsContent(source: Readable, sourceLabel: string) {
-  const headers = ["stationId", "bibId", "dropReason", "dropDateTime", "note"];
   let message: string = "";
   let dropCount: number = 0;
 
@@ -39,11 +38,24 @@ export async function parseDropsContent(source: Readable, sourceLabel: string) {
     .pipe(
       parse({
         delimiter: ",",
-        columns: headers,
-        fromLine: 3
+        fromLine: 3,
+        // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+        relax_quotes: true,
+        // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+        relax_column_count: true
       })
     )
-    .on("data", (row) => {
+    .on("data", (fields: string[]) => {
+      const row: DropRecord = {
+        stationId: fields[0] ?? "",
+        bibId: Number(fields[1]),
+        dropReason: fields[2] ?? "",
+        dropDateTime: fields[3] ?? "",
+        note: fields.slice(4).join(",")
+      };
+
+      if ((fields[1] ?? "").trim() === "" || !Number.isFinite(row.bibId)) return;
+
       // load a drop into the current station only if it occurred at an earlier or the current
       // station; the start-line is station 0, so did-not-start rows always pass this check
       const dropStationId = Number(row.stationId.split("-", 1)[0]);
