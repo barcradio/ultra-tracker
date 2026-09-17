@@ -280,7 +280,10 @@ export async function importRunnersFromCSV() {
     )
     .on("data", (timing) => {
       const record: DropRunnerDB = {
-        index: timing.bibId,
+        // 0 means "new record", the same thing the renderer sends for a time logged by hand.
+        // Using the bib here made the insert treat an unrelated row with that index as the same
+        // record and overwrite it, so importing a file silently destroyed runners.
+        index: 0,
         bibId: Number(timing.bibId) - Number(timing.bibId % 1),
         stationId: stationId,
         timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
