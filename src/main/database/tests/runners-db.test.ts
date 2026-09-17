@@ -464,6 +464,104 @@ describe("runners-db", () => {
     });
   });
 
+  describe("importing a file whose bibs collide with row positions", () => {
+    function writeExport(name: string, bibs: number[]): string {
+      const file = path.join(workDir, name);
+      fs.writeFileSync(
+        file,
+        [
+          "Bear 100,13-finish-line,full-export",
+          "index,sent,bibId,timeIn,timeOut,dropReason,dropStation,note",
+          ...bibs.map((bib, i) => `${i + 1},1,${bib},0${8 + (i % 9)}:00:00 27 Sep 2025,,,,`)
+        ].join("\n") + "\n"
+      );
+
+      return file;
+    }
+
+    // Carrying the bib as the record's index made the insert treat whatever row already sat at
+    // that position as the same record, so a low bib overwrote an unrelated runner and the
+    // import quietly produced fewer records than the file held.
+    it("keeps every runner when a bib number matches an earlier row", async () => {
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([
+        writeExport("times.csv", [500, 600, 700, 1, 2])
+      ]);
+
+      await importRunnersFromCSV();
+
+      const bibs = (
+        db.prepare(`SELECT bibId FROM TimeRecords ORDER BY "index"`).all() as Array<{
+          bibId: number;
+        }>
+      ).map((row) => row.bibId);
+
+      expect(bibs).toEqual([500, 600, 700, 1, 2]);
+    });
+
+    it("skips a blank line rather than importing it as a record", async () => {
+      const file = path.join(workDir, "blank-line.csv");
+      fs.writeFileSync(
+        file,
+        [
+          "Bear 100,13-finish-line,full-export",
+          "index,sent,bibId,timeIn,timeOut,dropReason,dropStation,note",
+          "1,1,101,08:00:00 27 Sep 2025,,,,",
+          "",
+          "2,1,102,08:00:00 27 Sep 2025,,,,"
+        ].join("\n") + "\n"
+      );
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([file]);
+
+      await importRunnersFromCSV();
+
+      const bibs = (
+        db.prepare(`SELECT bibId FROM TimeRecords ORDER BY "index"`).all() as Array<{
+          bibId: number;
+        }>
+      ).map((row) => row.bibId);
+
+      expect(bibs).toEqual([101, 102]);
+    });
+
+    it("skips a row with no bib", async () => {
+      const file = path.join(workDir, "no-bib.csv");
+      fs.writeFileSync(
+        file,
+        [
+          "Bear 100,13-finish-line,full-export",
+          "index,sent,bibId,timeIn,timeOut,dropReason,dropStation,note",
+          "1,1,101,08:00:00 27 Sep 2025,,,,",
+          "2,1,,08:05:00 27 Sep 2025,,,,",
+          "3,1,102,08:10:00 27 Sep 2025,,,,"
+        ].join("\n") + "\n"
+      );
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([file]);
+
+      await importRunnersFromCSV();
+
+      const bibs = (
+        db.prepare(`SELECT bibId FROM TimeRecords ORDER BY "index"`).all() as Array<{
+          bibId: number;
+        }>
+      ).map((row) => row.bibId);
+
+      expect(bibs).toEqual([101, 102]);
+    });
+
+    it("imports every row of a file whose bibs all sit below the row count", async () => {
+      const bibs = Array.from({ length: 40 }, (_, i) => 40 - i);
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([writeExport("descending.csv", bibs)]);
+
+      await importRunnersFromCSV();
+
+      const imported = db.prepare(`SELECT COUNT(*) AS count FROM TimeRecords`).get() as {
+        count: number;
+      };
+
+      expect(imported.count).toBe(40);
+    });
+  });
+
   describe("importing a file written before notes were quoted", () => {
     function writeLegacyFile(notes: string[]): string {
       const target = path.join(workDir, "legacy-export.csv");

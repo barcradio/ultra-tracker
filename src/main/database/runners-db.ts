@@ -260,8 +260,7 @@ export async function importRunnersFromCSV() {
   const stationId = (await appStore.get("station.id")) as number;
   let message: string = "";
 
-  // Older files carry raw quotes and commas in the note, so rows are read as fields and the
-  // note is rejoined from everything past its column.
+  // Older files carry raw quotes and commas in the note, so the note is rejoined from fields.
   const parser = fileContent
     .pipe(
       parse({
@@ -275,9 +274,7 @@ export async function importRunnersFromCSV() {
     )
     .on("data", (fields: string[]) => {
       const timing = {
-        index: fields[0],
-        sent: fields[1],
-        bibId: fields[2],
+        bibId: fields[2] ?? "",
         timeIn: fields[3] ?? "",
         timeOut: fields[4] ?? "",
         dropReason: fields[5] ?? "",
@@ -286,9 +283,13 @@ export async function importRunnersFromCSV() {
       };
 
       const bib = Number(timing.bibId);
+      if (timing.bibId.trim() === "" || !Number.isFinite(bib)) return;
 
       const record: DropRunnerDB = {
-        index: bib,
+        // 0 means "new record", the same thing the renderer sends for a time logged by hand.
+        // Using the bib here made the insert treat an unrelated row with that index as the same
+        // record and overwrite it, so importing a file silently destroyed runners.
+        index: 0,
         bibId: bib - (bib % 1),
         stationId: stationId,
         timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),

@@ -21,6 +21,9 @@ vi.mock("../../database/stations-db", () => ({
   GetStationByIdentifier
 }));
 
+const countTimingRecordsAtOtherStations = vi.hoisted(() => vi.fn());
+vi.mock("../../database/timingRecords-db", () => ({ countTimingRecordsAtOtherStations }));
+
 describe("stations-ipc", () => {
   beforeEach(() => {
     ipcHandlers.clear();
@@ -69,6 +72,24 @@ describe("stations-ipc", () => {
       const result = invoke("get-station-operators", "unknown-station");
 
       expect(result).toEqual([null, DatabaseStatus.NotFound, "not found"]);
+    });
+  });
+
+  describe("count-records-for-other-stations", () => {
+    it("reports how many records a change to that station would move", () => {
+      countTimingRecordsAtOtherStations.mockReturnValue(12);
+
+      const result = ipcHandlers.get("count-records-for-other-stations")?.(null, "7-tony-grove");
+
+      expect(countTimingRecordsAtOtherStations).toHaveBeenCalledWith(7);
+      expect(result).toBe(12);
+    });
+
+    it("reports nothing for a station identifier it cannot read", () => {
+      const result = ipcHandlers.get("count-records-for-other-stations")?.(null, undefined);
+
+      expect(result).toBe(0);
+      expect(countTimingRecordsAtOtherStations).not.toHaveBeenCalled();
     });
   });
 });
