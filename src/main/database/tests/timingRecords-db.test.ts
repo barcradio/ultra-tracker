@@ -418,7 +418,7 @@ describe("timingRecords-db", () => {
     });
 
     it("logs the stored record values instead of renderer-provided values", () => {
-      insertOrUpdateTimeRecord(runner());
+      insertOrUpdateTimeRecord(runner({ timeIn: new Date(2026, 8, 1, 8, 0, 0) }));
       const existing = storedRows()[0];
 
       deleteTimeRecord(
