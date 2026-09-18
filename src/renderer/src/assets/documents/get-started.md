@@ -51,7 +51,7 @@ Clicking the In button and Out button will record the corresponding time entry.
 
 The datagrid columns can be Sorted by clicking on the column header. Click again to toggle Ascending or Descending Sort.
 
-A Filter control for any column can be opened by clicking the Filter icon (three vertical dots).
+A Filter control for any column can be opened by clicking the Filter icon (three vertical dots). Press **Enter** or the close icon to hide the control again; the filter it holds stays applied.
 
 
 <a id="markdown-athlete-edit-function" name="editing-a-record"></a>
