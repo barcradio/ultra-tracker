@@ -13,6 +13,25 @@ For a guide on how to set up an event using Ultra-Tracker, and advanced RFID con
 <img width="1000" alt="image" src="https://github.com/user-attachments/assets/371cc7fe-8e23-4766-b332-2a79f4e30c70" />
 
 ---
+## Installation
+
+The app installs as a normal desktop application and can be launched from the Start menu or desktop shortcut.
+
+### Windows Installation
+
+Windows releases are distributed as a standard NSIS installer. Download the latest `ultra-tracker-<version>-setup.exe` from the [releases page](https://github.com/barcradio/ultra-tracker/releases), run the installer, and follow the prompts to complete setup.
+
+### Linux installation
+
+Linux releases are 64-bit only. For Debian, Ubuntu, and Raspberry Pi OS, download the `.deb` package from the [releases page](https://github.com/barcradio/ultra-tracker/releases) and install it with `sudo apt install ./ultra-tracker_<version>_amd64.deb` (or `_arm64.deb` on a Pi). This is the recommended option.
+
+For other Linux distributions, download the `.AppImage` matching the machine architecture: `-x86_64` for a standard PC or `-arm64` for a 64-bit Pi. Make it executable with `chmod +x` and run it. On a Pi, `uname -m` should report `aarch64`; a 32-bit Raspberry Pi OS installation is not supported.
+
+### MacOS Installation
+
+MacOS releases are packaged as a universal DMG. Download the latest `ultra-tracker-<version>.dmg` from the [releases page](https://github.com/barcradio/ultra-tracker/releases), open the disk image, and drag Ultra-Tracker to the Applications folder.
+
+If macOS warns that the app is from an unidentified developer, right-click the application in Applications and choose **Open** once to confirm it, then launch normally. The app is a universal build for Apple Silicon and Intel Macs.
 
 ## Getting Started
 
@@ -316,7 +335,7 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 > | **Mitch Smith**      | N8MLS        | [**@pxls2prnt**](https://github.com/pxls2prnt)         |
 > | **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)           |
 
-**Notice:** Starting in Aug 2026 our team is utilizing GitHub Copilot to augment development of UltraTracker. All generated code is human reviewed for function and project compliance.
+**Notice:** Starting in Aug 2026 our team is utilizing AI technologies, such as GitHub Copilot, to augment development of Ultra-Tracker. All generated code is human reviewed for function and project compliance.
 
 ## License
 

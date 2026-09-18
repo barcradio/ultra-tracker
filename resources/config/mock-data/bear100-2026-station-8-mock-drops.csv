@@ -1,4 +1,4 @@
-bear-100-2026,6-tony-grove,drops-export
+bear-100-2026,8-logan-river,drops-export
 stationId,bibId,dropReason,dropDateTime,note
 0-start-line,17,did-not-start,05:08:00 25 Sep 2026,
 0-start-line,42,did-not-start,05:13:00 25 Sep 2026,
@@ -30,3 +30,10 @@ stationId,bibId,dropReason,dropDateTime,note
 6-tony-grove,94,withdrew,15:24:00 25 Sep 2026,
 6-tony-grove,156,medical,15:36:00 25 Sep 2026,
 6-tony-grove,264,timeout,15:43:00 25 Sep 2026,
+7-franklin-trailhead,48,withdrew,17:08:00 25 Sep 2026,
+7-franklin-trailhead,137,medical,17:42:00 25 Sep 2026,
+7-franklin-trailhead,233,timeout,18:19:00 25 Sep 2026,
+7-franklin-trailhead,312,unknown,18:47:00 25 Sep 2026,
+8-logan-river,9,medical,19:14:00 25 Sep 2026,
+8-logan-river,118,withdrew,19:58:00 25 Sep 2026,
+8-logan-river,253,timeout,20:31:00 25 Sep 2026,
