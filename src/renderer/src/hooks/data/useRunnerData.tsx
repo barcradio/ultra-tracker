@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { duplicatedBibs } from "~/lib/duplicates";
 import { DropReason, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
@@ -21,6 +22,7 @@ export interface RunnerEx extends Runner {
   dropped: boolean;
   dropReason: DropReason;
   status: RecordStatus;
+  hasDuplicate: boolean;
   openSplitTimePushStatus?: "success" | "pending" | "error";
   openSplitTimePushError?: string;
 }
@@ -59,6 +61,8 @@ export function useRunnerData() {
 
       if (!success) return [];
 
+      const duplicated = duplicatedBibs(data!);
+
       return data!.map((runner, index) => ({
         id: runner.index,
         sequence: index + 1,
@@ -71,6 +75,7 @@ export function useRunnerData() {
         dropped: runner.dropped ?? false,
         dropReason: runner.dropReason ?? DropReason.None,
         status: runner.status ?? RecordStatus.OK,
+        hasDuplicate: duplicated.has(Math.trunc(runner.bibId)),
         openSplitTimePushStatus: runner.openSplitTimePushStatus,
         openSplitTimePushError: runner.openSplitTimePushError
       }));

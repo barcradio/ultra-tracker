@@ -76,6 +76,8 @@ The datagrid columns can be sorted by clicking the column header. Click again to
 
 A filter control for any column can be opened by clicking the Filter icon (three vertical dots).
 
+A second time recorded against a bib already logged at this station is kept as a duplicate and carries a **Duplicate** tag in the Status column. Hovering the tag reports the Seq number of the original record. Clicking it filters the grid to that bib, so the original and every duplicate of it are listed together. Filtering the Status column by `Duplicate` does the same for every bib that was logged more than once, ordered by bib number.
+
 <br clear="all">
 
 <a id="markdown-athlete-edit-function" name="editing-a-record"></a>

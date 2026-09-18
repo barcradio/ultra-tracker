@@ -3,6 +3,7 @@ import { StatusTag } from "~/components/StatusTag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { RowStatus } from "~/features/DataGrid/types";
 import { formatDate } from "~/lib/datetimes";
+import { findOriginalSequence } from "~/lib/duplicates";
 import { DropReason, RecordStatus } from "$shared/enums";
 import { EditRunner } from "./EditRunner";
 import { InTimeCell } from "./InTimeCell";
@@ -46,15 +47,35 @@ export function RunnerEntry() {
       field: "dropReason",
       name: "Status",
       truncate: false,
-      render: (dropReason, { status }) => (
-        <StatusTag dropReason={dropReason} duplicate={status === RecordStatus.Duplicate} />
-      ),
-      valueFn: (data) =>
-        data.dropReason! === DropReason.None
-          ? ""
-          : data.dropReason! === DropReason.DidNotStart
-            ? "DNS"
-            : data.dropReason,
+      render: (dropReason, row, context) => {
+        const original = findOriginalSequence(context.rows, context.index);
+        const bib = Math.trunc(row.bibId);
+
+        return (
+          <StatusTag
+            dropReason={dropReason}
+            duplicate={row.status === RecordStatus.Duplicate}
+            title={
+              original == null
+                ? undefined
+                : `Duplicate of Seq ${original}. Click to show bib ${bib}.`
+            }
+            onClick={original == null ? undefined : () => context.setFilter("bibId", String(bib))}
+          />
+        );
+      },
+      valueFn: (data) => {
+        const reason =
+          data.dropReason === DropReason.None
+            ? ""
+            : data.dropReason === DropReason.DidNotStart
+              ? "DNS"
+              : data.dropReason;
+        const duplicate =
+          data.status === RecordStatus.Duplicate || data.hasDuplicate ? "Duplicates" : "";
+
+        return [reason, duplicate].filter(Boolean).join(" ");
+      },
       sample: "Duplicate"
     },
     {
@@ -78,6 +99,11 @@ export function RunnerEntry() {
           initialSort={{
             field: "sequence",
             ascending: false
+          }}
+          filterSortRule={{
+            field: "dropReason",
+            match: "duplicate",
+            sort: { field: "bibId", ascending: false }
           }}
           rowStatus={getRowStatus}
         />
