@@ -16,6 +16,7 @@ import {
   SetProgress,
   SyncDirection,
   applyDropsImport,
+  discardDropsImport,
   getStoppedHereForBib,
   initStatus,
   insertStatus,
@@ -675,6 +676,114 @@ describe("status-db", () => {
       );
     });
 
+    it("reports malformed station identifiers instead of treating them as future stations", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        ["title row", "header row", "not-a-station,101,medical,2026-09-25T15:36:00Z,"].join("\n")
+      );
+
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(preview?.skippedRecords).toEqual([
+        expect.objectContaining({
+          bibId: 101,
+          reason: expect.stringMatching(/invalid.*station/i)
+        })
+      ]);
+      expect(preview?.skippedFutureStationCount).toBe(0);
+    });
+
+    it("recommends an imported timestamp when the existing timestamp is invalid", async () => {
+      seedStatus(101);
+      db.prepare(
+        `UPDATE Status SET dropped = 1, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = 101`
+      ).run(DropReason.Medical, "3-hardware", "not-a-timestamp");
+      const csv = Readable.from(
+        ["title row", "header row", "3-hardware,101,medical,2026-09-25T15:36:00Z,"].join("\n")
+      );
+
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(preview?.conflicts[0]).toMatchObject({
+        recommendedAction: "use-imported",
+        recommendationConfidence: "medium"
+      });
+    });
+
+    it("reports an invalid imported timestamp instead of failing the preview", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        ["title row", "header row", "3-hardware,101,medical,not-a-timestamp,"].join("\n")
+      );
+
+      const [preview, status] = await previewDropsContent(csv, "drops.csv");
+
+      expect(status).toBe(DatabaseStatus.Success);
+      expect(preview?.skippedRecords).toEqual([
+        expect.objectContaining({
+          bibId: 101,
+          reason: expect.stringMatching(/invalid.*timestamp/i)
+        })
+      ]);
+      expect(preview?.importableCount).toBe(0);
+    });
+
+    it("reports total, valid, and invalid CSV row counts", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        [
+          "title row",
+          "header row",
+          "3-hardware,101,medical,2026-09-25T15:36:00Z,",
+          "3-hardware,,medical,2026-09-25T15:36:00Z,"
+        ].join("\n")
+      );
+
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(preview).toMatchObject({
+        totalRowCount: 2,
+        processedCount: 1,
+        invalidRowCount: 1
+      });
+    });
+
+    it("uses medium confidence for station-order recommendations", async () => {
+      seedStatus(101);
+      db.prepare(
+        `UPDATE Status SET dropped = 1, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = 101`
+      ).run(DropReason.Medical, "6-tony-grove", "2026-09-25T15:36:00.000Z");
+      const csv = Readable.from(
+        ["title row", "header row", "0-start-line,101,did-not-start,2026-09-25T05:08:00Z,"].join(
+          "\n"
+        )
+      );
+
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(preview?.conflicts[0].recommendationConfidence).toBe("medium");
+    });
+
+    it("downgrades station-order recommendations when timestamps disagree", async () => {
+      seedStatus(101);
+      db.prepare(
+        `UPDATE Status SET dropped = 1, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = 101`
+      ).run(DropReason.Medical, "3-tony-grove", "2026-09-25T15:36:00.000Z");
+      const csv = Readable.from(
+        ["title row", "header row", "2-franklin-trailhead,101,medical,2026-09-25T16:36:00Z,"].join(
+          "\n"
+        )
+      );
+
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(preview?.conflicts[0]).toMatchObject({
+        recommendedAction: "preserve-existing",
+        recommendationConfidence: "low",
+        recommendationReason: expect.stringMatching(/manual review|timestamp|station/i)
+      });
+    });
+
     it("preserves conflicting drops unless the operator chooses the imported row", async () => {
       seedStatus(101);
       db.prepare(
@@ -715,6 +824,123 @@ describe("status-db", () => {
         dropReason: DropReason.DidNotStart,
         dropStation: "0-start-line"
       });
+    });
+
+    it("rejects applying a conflict when the status changed after preview", async () => {
+      seedStatus(101);
+      db.prepare(
+        `UPDATE Status SET dropped = 1, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = 101`
+      ).run(DropReason.Medical, "6-tony-grove", "2026-09-25T15:36:00.000Z");
+      const csv = Readable.from(
+        ["title row", "header row", "0-start-line,101,did-not-start,2026-09-25T05:08:00Z,"].join(
+          "\n"
+        )
+      );
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      db.prepare(
+        `UPDATE Status SET dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = 101`
+      ).run(DropReason.Timeout, "7-franklin-trailhead", "2026-09-25T16:36:00.000Z");
+
+      const [report, status] = applyDropsImport({
+        importId: preview!.importId,
+        decisions: [{ conflictId: preview!.conflicts[0].id, action: "use-imported" }]
+      });
+
+      expect(report).toBeNull();
+      expect(status).toBe(DatabaseStatus.Error);
+      expect(GetStatusByBib(101)[0]).toMatchObject({
+        dropReason: DropReason.Timeout,
+        dropStation: "7-franklin-trailhead"
+      });
+    });
+
+    it("rolls back the entire import when a drop update fails", async () => {
+      seedStatus(101);
+      seedStatus(102);
+      const csv = Readable.from(
+        [
+          "title row",
+          "header row",
+          "1-start,101,withdrew,2026-09-25T05:08:00Z,",
+          "2-aid,102,medical,2026-09-25T06:08:00Z,"
+        ].join("\n")
+      );
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      db.exec(`
+        CREATE TRIGGER fail_second_drop
+        BEFORE UPDATE OF dropped ON Status
+        WHEN NEW.bibId = 102
+        BEGIN
+          SELECT RAISE(ABORT, 'forced failure');
+        END
+      `);
+
+      const [report, status] = applyDropsImport({ importId: preview!.importId, decisions: [] });
+
+      expect(report).toBeNull();
+      expect(status).toBe(DatabaseStatus.Error);
+      expect(GetStatusByBib(101)[0]?.dropped).toBe(0);
+      expect(GetStatusByBib(102)[0]?.dropped).toBe(0);
+    });
+
+    it("reports repeated bibs in the imported file instead of importing them", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        [
+          "title row",
+          "header row",
+          "1-start,101,withdrew,2026-09-25T05:08:00Z,first",
+          "2-aid,101,medical,2026-09-25T06:08:00Z,second"
+        ].join("\n")
+      );
+
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(preview).toMatchObject({ duplicateCount: 2, importableCount: 0 });
+      expect(preview?.duplicateRecords).toHaveLength(2);
+      expect(preview?.duplicateRecords[0].reason).toMatch(/duplicate bib/i);
+      expect(GetStatusByBib(101)[0]?.dropped).toBe(0);
+    });
+
+    it("discards a pending import", async () => {
+      seedStatus(101);
+      const csv = Readable.from(
+        ["title row", "header row", "1-start,101,withdrew,2026-09-25T05:08:00Z,"].join("\n")
+      );
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(discardDropsImport(preview!.importId)).toEqual([
+        DatabaseStatus.Success,
+        "Drops import discarded"
+      ]);
+      expect(applyDropsImport({ importId: preview!.importId, decisions: [] })).toEqual([
+        null,
+        DatabaseStatus.NotFound,
+        "Drops import preview expired"
+      ]);
+    });
+
+    it("expires an abandoned pending import", async () => {
+      vi.useFakeTimers();
+      try {
+        seedStatus(101);
+        const csv = Readable.from(
+          ["title row", "header row", "1-start,101,withdrew,2026-09-25T05:08:00Z,"].join("\n")
+        );
+        const [preview] = await previewDropsContent(csv, "drops.csv");
+
+        vi.advanceTimersByTime(31 * 60 * 1000);
+
+        expect(applyDropsImport({ importId: preview!.importId, decisions: [] })).toEqual([
+          null,
+          DatabaseStatus.NotFound,
+          "Drops import preview expired"
+        ]);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

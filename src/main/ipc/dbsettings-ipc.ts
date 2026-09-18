@@ -47,6 +47,14 @@ const applyDropsImport: Handler<ApplyDropsImportParams> = (_event, params) => {
   return dbStatus.applyDropsImport(params);
 };
 
+const discardDropsImport: Handler<string> = (_event, importId) => {
+  if (typeof importId !== "string") {
+    return [DatabaseStatus.Error, "Invalid drops import ID"];
+  }
+
+  return dbStatus.discardDropsImport(importId);
+};
+
 const importRunnersFile: Handler<string> = () => {
   return dbRunners.importRunnersFromCSV();
 };
@@ -75,6 +83,7 @@ export const initdbSettingsHandlers = () => {
   ipcMain.handle("load-drops-file", loadDropsFile);
   ipcMain.handle("preview-drops-file", previewDropsFile);
   ipcMain.handle("apply-drops-import", applyDropsImport);
+  ipcMain.handle("discard-drops-import", discardDropsImport);
   ipcMain.handle("import-runners-file", importRunnersFile);
   ipcMain.handle("initialize-database", initializeDatabase);
   ipcMain.handle("clear-database", clearDatabase);

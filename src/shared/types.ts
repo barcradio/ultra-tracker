@@ -51,7 +51,9 @@ export interface DropsImportPreviewRecord {
 export interface DropsImportPreview {
   importId: string;
   sourceLabel: string;
+  totalRowCount: number;
   processedCount: number;
+  invalidRowCount: number;
   importableCount: number;
   skippedFutureStationCount: number;
   duplicateCount: number;
@@ -73,7 +75,9 @@ export interface ApplyDropsImportParams {
 
 export interface DropsImportReport {
   sourceLabel: string;
+  totalRowCount: number;
   processedCount: number;
+  invalidRowCount: number;
   importedCount: number;
   preservedCount: number;
   skippedFutureStationCount: number;

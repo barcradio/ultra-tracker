@@ -26,7 +26,8 @@ const dbStatus = vi.hoisted(() => ({
     6,
     "preview ready"
   ]),
-  applyDropsImport: vi.fn(() => [{ importedCount: 1 }, 6, "drops applied"])
+  applyDropsImport: vi.fn(() => [{ importedCount: 1 }, 6, "drops applied"]),
+  discardDropsImport: vi.fn(() => [6, "Drops import discarded"])
 }));
 vi.mock("../../database/status-db", () => dbStatus);
 
@@ -130,6 +131,14 @@ describe("dbsettings-ipc", () => {
       })
     ).toEqual([null, DatabaseStatus.Error, "Invalid drops import decision"]);
     expect(dbStatus.applyDropsImport).not.toHaveBeenCalled();
+  });
+
+  it("discards a pending drops import", () => {
+    expect(handlerFor("discard-drops-import")(undefined, "import-1")).toEqual([
+      DatabaseStatus.Success,
+      "Drops import discarded"
+    ]);
+    expect(dbStatus.discardDropsImport).toHaveBeenCalledWith("import-1");
   });
 
   it("imports a runners file", async () => {

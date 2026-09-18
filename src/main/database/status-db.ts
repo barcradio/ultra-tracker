@@ -27,6 +27,7 @@ import { appStore } from "../lib/store";
 import { pushTimeRecordUpdate } from "../services/opensplittime";
 
 const invalidResult = -999;
+const PENDING_DROPS_IMPORT_TTL_MS = 30 * 60 * 1000;
 
 interface PendingDropsImportConflict extends DropsImportConflict {
   importedRecord: DropRecord;
@@ -34,7 +35,10 @@ interface PendingDropsImportConflict extends DropsImportConflict {
 
 interface PendingDropsImport {
   sourceLabel: string;
+  createdAt: number;
+  totalRowCount: number;
   processedCount: number;
+  invalidRowCount: number;
   importableRecords: DropRecord[];
   conflicts: PendingDropsImportConflict[];
   skippedFutureStationCount: number;
@@ -42,6 +46,14 @@ interface PendingDropsImport {
 }
 
 const pendingDropsImports = new Map<string, PendingDropsImport>();
+
+function removeExpiredPendingDropsImports(now = Date.now()): void {
+  for (const [importId, pendingImport] of pendingDropsImports) {
+    if (now - pendingImport.createdAt >= PENDING_DROPS_IMPORT_TTL_MS) {
+      pendingDropsImports.delete(importId);
+    }
+  }
+}
 
 export async function LoadDrops() {
   const filePath = await SelectDropsFile();
@@ -122,7 +134,9 @@ export async function previewDropsContent(
   sourceLabel: string
 ): Promise<DatabaseResponse<DropsImportPreview>> {
   try {
-    const { processedCount, records } = await readDropsRecords(source);
+    removeExpiredPendingDropsImports();
+    const { totalRowCount, processedCount, invalidRowCount, records } =
+      await readDropsRecords(source);
     const db = getDatabaseConnection();
     const stationId = appStore.get("station.id") as number;
     const importId = randomUUID();
@@ -133,12 +147,33 @@ export async function previewDropsContent(
     const duplicateRecords: DropsImportPreviewRecord[] = [];
     let skippedFutureStationCount = 0;
     let duplicateCount = 0;
+    const bibCounts = new Map<number, number>();
+
+    for (const record of records) {
+      bibCounts.set(record.bibId, (bibCounts.get(record.bibId) ?? 0) + 1);
+    }
 
     for (const record of records) {
       const dropStationId = getStationOrder(record.stationId);
+      if (dropStationId == null) {
+        skippedRecords.push(makePreviewRecord(record, "Invalid station identifier"));
+        continue;
+      }
+
       if (dropStationId > stationId) {
         skippedFutureStationCount++;
         skippedRecords.push(makePreviewRecord(record, "Dropped at later station"));
+        continue;
+      }
+
+      if (!isValidCSVDate(record.dropDateTime)) {
+        skippedRecords.push(makePreviewRecord(record, "Invalid drop timestamp"));
+        continue;
+      }
+
+      if ((bibCounts.get(record.bibId) ?? 0) > 1) {
+        duplicateCount++;
+        duplicateRecords.push(makePreviewRecord(record, "Duplicate bib in import file"));
         continue;
       }
 
@@ -163,7 +198,10 @@ export async function previewDropsContent(
 
     pendingDropsImports.set(importId, {
       sourceLabel,
+      createdAt: Date.now(),
+      totalRowCount,
       processedCount,
+      invalidRowCount,
       importableRecords,
       conflicts,
       skippedFutureStationCount,
@@ -173,7 +211,9 @@ export async function previewDropsContent(
     const preview: DropsImportPreview = {
       importId,
       sourceLabel,
+      totalRowCount,
       processedCount,
+      invalidRowCount,
       importableCount: importableRecords.length,
       skippedFutureStationCount,
       duplicateCount,
@@ -195,6 +235,7 @@ export async function previewDropsContent(
 export function applyDropsImport(
   params: ApplyDropsImportParams
 ): DatabaseResponse<DropsImportReport> {
+  removeExpiredPendingDropsImports();
   const pendingImport = pendingDropsImports.get(params.importId);
   if (!pendingImport) return [null, DatabaseStatus.NotFound, "Drops import preview expired"];
 
@@ -206,16 +247,26 @@ export function applyDropsImport(
 
   try {
     const db = getDatabaseConnection();
+    for (const conflict of pendingImport.conflicts) {
+      const current = db.prepare(`SELECT * FROM Status WHERE bibId = ?`).get(conflict.bibId) as
+        StatusDB | undefined;
+      if (!current || !statusesMatch(getExistingStatus(current), conflict.existing)) {
+        throw new Error(`Bib ${conflict.bibId} changed after the import was previewed`);
+      }
+    }
+
     const applyImport = db.transaction(() => {
       for (const record of pendingImport.importableRecords) {
-        updateDropFromCSV(record);
+        const [status, message] = updateDropFromCSV(record);
+        if (status === DatabaseStatus.Error) throw new Error(message);
         importedCount++;
       }
 
       for (const conflict of pendingImport.conflicts) {
         const action = decisions.get(conflict.id) ?? "preserve-existing";
         if (action === "use-imported") {
-          updateDropFromCSV(conflict.importedRecord);
+          const [status, message] = updateDropFromCSV(conflict.importedRecord);
+          if (status === DatabaseStatus.Error) throw new Error(message);
           importedCount++;
         } else {
           preservedCount++;
@@ -233,7 +284,9 @@ export function applyDropsImport(
 
   const report: DropsImportReport = {
     sourceLabel: pendingImport.sourceLabel,
+    totalRowCount: pendingImport.totalRowCount,
     processedCount: pendingImport.processedCount,
+    invalidRowCount: pendingImport.invalidRowCount,
     importedCount,
     preservedCount,
     skippedFutureStationCount: pendingImport.skippedFutureStationCount,
@@ -242,6 +295,15 @@ export function applyDropsImport(
   };
 
   return [report, DatabaseStatus.Success, formatDropsImportReportMessage(report)];
+}
+
+export function discardDropsImport(importId: string): DatabaseResponse {
+  removeExpiredPendingDropsImports();
+  if (!pendingDropsImports.delete(importId)) {
+    return [DatabaseStatus.NotFound, "Drops import preview expired"];
+  }
+
+  return [DatabaseStatus.Success, "Drops import discarded"];
 }
 
 export function GetStatusByBib(bibNumber: number): [StatusDB | null, DatabaseStatus, string] {
@@ -501,9 +563,12 @@ export function updateDropFromCSV(record: DropRecord): DatabaseResponse {
   return [DatabaseStatus.Updated, message];
 }
 
-async function readDropsRecords(
-  source: Readable
-): Promise<{ processedCount: number; records: DropRecord[] }> {
+async function readDropsRecords(source: Readable): Promise<{
+  totalRowCount: number;
+  processedCount: number;
+  invalidRowCount: number;
+  records: DropRecord[];
+}> {
   const records: DropRecord[] = [];
   let processedCount = 0;
 
@@ -534,13 +599,19 @@ async function readDropsRecords(
   });
 
   await finished(parser);
-  return { processedCount, records };
+  const totalRowCount = parser.info.records;
+  return {
+    totalRowCount,
+    processedCount,
+    invalidRowCount: totalRowCount - processedCount,
+    records
+  };
 }
 
-function getStationOrder(stationIdentifier: string | null | undefined): number {
-  if (!stationIdentifier) return Number.POSITIVE_INFINITY;
+function getStationOrder(stationIdentifier: string | null | undefined): number | null {
+  if (!stationIdentifier) return null;
   const order = Number(stationIdentifier.split("-", 1)[0]);
-  return Number.isFinite(order) ? order : Number.POSITIVE_INFINITY;
+  return Number.isFinite(order) ? order : null;
 }
 
 function getImportedStatus(record: DropRecord): DropsImportStatusValue {
@@ -634,23 +705,55 @@ function recommendDropsImportAction(
       recommendedAction: "preserve-existing",
       recommendationReason:
         "The existing course drop is later firsthand station data than an imported DNS row.",
-      recommendationConfidence: "high"
+      recommendationConfidence: "medium"
     };
   }
 
-  if (existingIsCourseDrop && importedIsCourseDrop && existingStationOrder > importedStationOrder) {
+  if (
+    existingIsCourseDrop &&
+    importedIsCourseDrop &&
+    existingStationOrder != null &&
+    importedStationOrder != null &&
+    stationOrderContradictsTimestamps(
+      existingStationOrder,
+      importedStationOrder,
+      existing.dropDateTime,
+      imported.dropDateTime
+    )
+  ) {
+    return {
+      recommendedAction: "preserve-existing",
+      recommendationReason:
+        "Station order and timestamps disagree; review the conflicting records manually.",
+      recommendationConfidence: "low"
+    };
+  }
+
+  if (
+    existingIsCourseDrop &&
+    importedIsCourseDrop &&
+    existingStationOrder != null &&
+    importedStationOrder != null &&
+    existingStationOrder > importedStationOrder
+  ) {
     return {
       recommendedAction: "preserve-existing",
       recommendationReason: "The existing drop was recorded farther along the course.",
-      recommendationConfidence: "high"
+      recommendationConfidence: "medium"
     };
   }
 
-  if (existingIsCourseDrop && importedIsCourseDrop && importedStationOrder > existingStationOrder) {
+  if (
+    existingIsCourseDrop &&
+    importedIsCourseDrop &&
+    existingStationOrder != null &&
+    importedStationOrder != null &&
+    importedStationOrder > existingStationOrder
+  ) {
     return {
       recommendedAction: "use-imported",
       recommendationReason: "The imported drop was recorded farther along the course.",
-      recommendationConfidence: "high"
+      recommendationConfidence: "medium"
     };
   }
 
@@ -685,7 +788,36 @@ function isImportedTimeLater(existingTime: string | null, importedTime: string |
   const existingTimestamp = existingTime == null ? Number.NaN : Date.parse(existingTime);
   const importedTimestamp = importedTime == null ? Number.NaN : Date.parse(importedTime);
 
-  return Number.isFinite(importedTimestamp) && importedTimestamp > existingTimestamp;
+  if (!Number.isFinite(importedTimestamp)) return false;
+  if (!Number.isFinite(existingTimestamp)) return true;
+  return importedTimestamp > existingTimestamp;
+}
+
+function stationOrderContradictsTimestamps(
+  existingStationOrder: number,
+  importedStationOrder: number,
+  existingTime: string | null,
+  importedTime: string | null
+): boolean {
+  const existingTimestamp = existingTime == null ? Number.NaN : Date.parse(existingTime);
+  const importedTimestamp = importedTime == null ? Number.NaN : Date.parse(importedTime);
+  if (!Number.isFinite(existingTimestamp) || !Number.isFinite(importedTimestamp)) return false;
+
+  const importedStationIsLater = importedStationOrder > existingStationOrder;
+  const importedTimeIsLater = importedTimestamp > existingTimestamp;
+  return importedStationIsLater !== importedTimeIsLater;
+}
+
+function isValidCSVDate(value: string): boolean {
+  return Number.isFinite(Date.parse(value));
+}
+
+function statusesMatch(first: DropsImportStatusValue, second: DropsImportStatusValue): boolean {
+  return (
+    first.dropReason === second.dropReason &&
+    first.dropStation === second.dropStation &&
+    first.dropDateTime === second.dropDateTime
+  );
 }
 
 function makePreviewRecord(record: DropRecord, reason: string): DropsImportPreviewRecord {
@@ -700,11 +832,11 @@ function makePreviewRecord(record: DropRecord, reason: string): DropsImportPrevi
 }
 
 function formatDropsImportPreviewMessage(preview: DropsImportPreview): string {
-  return `${preview.sourceLabel}\r\n${preview.processedCount} dropRecords processed, ${preview.importableCount} ready to import, ${preview.conflicts.length} conflicts`;
+  return `${preview.sourceLabel}\r\n${preview.totalRowCount} rows read, ${preview.processedCount} valid records, ${preview.invalidRowCount} invalid rows, ${preview.importableCount} ready to import, ${preview.conflicts.length} conflicts`;
 }
 
 function formatDropsImportReportMessage(report: DropsImportReport): string {
-  return `${report.sourceLabel}\r\n${report.processedCount} dropRecords processed, ${report.importedCount} imported, ${report.preservedCount} preserved, ${report.skippedFutureStationCount} skipped`;
+  return `${report.sourceLabel}\r\n${report.totalRowCount} rows read, ${report.processedCount} valid records, ${report.invalidRowCount} invalid rows, ${report.importedCount} imported, ${report.preservedCount} preserved, ${report.skippedFutureStationCount} skipped`;
 }
 
 function parseCSVDate(timingDate: string): Date {
