@@ -1,0 +1,4 @@
+bear-100-2026,6-tony-grove,drops-export
+stationId,bibId,dropReason,dropDateTime,note
+2-franklin-trailhead,1003,medical,2026-09-25T12:00:00Z,Imported earlier station
+6-tony-grove,1004,medical,2026-09-25T12:00:00Z,Imported later station

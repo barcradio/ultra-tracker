@@ -1,0 +1,7 @@
+bear-100-2026,3-richards-hollow,drops-export
+stationId,bibId,dropReason,dropDateTime,note
+not-a-station,1010,medical,2026-09-25T15:00:00Z,Invalid station
+3-richards-hollow,1011,medical,not-a-timestamp,Invalid timestamp
+3-richards-hollow,,medical,2026-09-25T15:00:00Z,Missing bib
+3-richards-hollow,1012,medical,2026-09-25T15:00:00Z,First duplicate
+3-richards-hollow,1012,timeout,2026-09-25T16:00:00Z,Second duplicate
