@@ -35,7 +35,10 @@ export function Filter<T extends object>(props: Props<T>) {
 
   const [value, setValue] = useState(props.filterState[column.field] ?? "");
   const debouncedValue = useDebounce(value, 300);
+  const committedValue = useRef(debouncedValue);
   const [open, setOpen] = useState(false);
+
+  committedValue.current = debouncedValue;
 
   const handleOpen = (event: MouseEvent<HTMLButtonElement>) => {
     setOpen(!open);
@@ -52,9 +55,10 @@ export function Filter<T extends object>(props: Props<T>) {
     }
   }, [column.field, debouncedValue, removeFilter, setFilter]);
 
-  // Set value to filter state when filter is removed
+  // Follow the filter when something else sets it, without overwriting what is being typed.
   useEffect(() => {
-    if (!props.filterState[column.field]) setValue("");
+    const external = props.filterState[column.field] ?? "";
+    if (external !== committedValue.current) setValue(external);
   }, [column.field, props.filterState]);
 
   if (column.filterable === false) return null;
