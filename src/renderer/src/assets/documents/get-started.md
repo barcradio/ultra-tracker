@@ -276,9 +276,9 @@ This page allows the operator to manage event input files and the database neede
 
   As an event proceeds more Drops will be recorded and new Drops files will be supplied to stations.
 
-  Loading a new Drops file opens **Review Drops Import** before any data is imported. The review shows separate counts for **Conflicts**, **Ready**, **Skipped**, and **Duplicates**. Drops past the current station are skipped to preserve the current station stats, while ready records can be imported without additional decisions.
+  Loading a new Drops file opens **Review Drops Import** before any data is imported. The review shows separate counts for **Conflicts**, **Ready**, **Skipped**, and **Duplicates**, along with the total rows read, valid records, and invalid rows. Drops past the current station are skipped to preserve the current station stats, while ready records can be imported without additional decisions.
 
-  For each conflict, the review shows the existing and imported station, drop reason, and time. A recommendation explains which record is preferred and why. Select **Preserve** or **Import** for an individual conflict, or use **Apply Recommended**, **Preserve All**, or **Import All** for batch decisions. The **Apply Import** button shows how many records will be imported. Select **Cancel Import** to leave all current data unchanged.
+  For each conflict, the review shows the existing and imported station, drop reason, and time. A recommendation explains which record is preferred and why. Select **Preserve** or **Import** for an individual conflict, or use **Apply Recommended Only**, **Preserve All**, or **Import All** for batch decisions. **Import All** requires confirmation because it selects the imported row for every conflict. The **Apply Import** button shows how many records will be imported. Select **Cancel Import** to leave all current data unchanged.
 
     ![drops-import-review.png](./img/drops-import-review.png)
 
