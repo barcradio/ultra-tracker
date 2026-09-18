@@ -2,6 +2,13 @@ import { ReactNode } from "react";
 
 export type RowStatus = "success" | "pending" | "error" | "exported" | "not-exported";
 
+export interface RowContext<T> {
+  index: number;
+  rows: T[];
+  scrollToIndex: (index: number) => void;
+  setFilter: (field: keyof T, value: string) => void;
+}
+
 export type Column<T extends object> = {
   [K in keyof T]: {
     field: K;
@@ -21,10 +28,17 @@ export type Column<T extends object> = {
     valueFn?: (row: T) => unknown;
     filterable?: boolean;
     sortable?: boolean;
-    render?: (value: T[K], row: T) => ReactNode;
+    render?: (value: T[K], row: T, context: RowContext<T>) => ReactNode;
     align?: "left" | "right";
     truncate?: boolean;
   };
 }[keyof T];
 
 export type ColumnDef<T extends object> = Column<T>[];
+
+/** Applies a sort of its own while one column is filtered by a given text. */
+export interface FilterSortRule<T extends object> {
+  field: keyof T;
+  match: string;
+  sort: { field: keyof T; ascending: boolean };
+}

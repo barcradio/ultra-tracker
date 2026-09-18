@@ -4,7 +4,7 @@ import { getColumnWidthStyle } from "./columnWidth";
 import { Cell, CellWrapper, Row } from "./components";
 import { useKeyFn } from "./hooks/useKeyFn";
 import { useVirtualPadding } from "./hooks/useVirtualPadding";
-import { Column, RowStatus } from "./types";
+import { Column, RowContext, RowStatus } from "./types";
 
 interface Props<T extends object> {
   data: T[];
@@ -14,6 +14,9 @@ interface Props<T extends object> {
   leadingAction?: (row: T) => ReactNode;
   leadingActionAlwaysVisible?: (row: T) => boolean;
   getKey?: (row: T) => string | number;
+  scrollToIndex: (index: number) => void;
+  setFilter: (field: keyof T, value: string) => void;
+  highlightIndex?: number | null;
   rowStatus?: (row: T) => RowStatus;
   rowClassName?: (row: T) => string | undefined;
 }
@@ -41,8 +44,15 @@ export function TableContent<T extends object>(props: Props<T>) {
     return "Not exported";
   };
 
-  const renderCell = (column: Column<T>, row: T) => {
-    if (column.render) return column.render(row[column.field], row);
+  const renderCell = (column: Column<T>, row: T, index: number) => {
+    const context: RowContext<T> = {
+      index,
+      rows: props.data,
+      scrollToIndex: props.scrollToIndex,
+      setFilter: props.setFilter
+    };
+
+    if (column.render) return column.render(row[column.field], row, context);
     if (column.valueFn) return String(column.valueFn(row));
     if (column.field === null) return "";
     return String(row[column.field]);
@@ -62,7 +72,12 @@ export function TableContent<T extends object>(props: Props<T>) {
           even={isEven(row.index)}
           last={isLast(row.index)}
           ref={props.rowVirtualizer.measureElement}
-          className={props.rowClassName?.(props.data[row.index])}
+          className={[
+            props.rowClassName?.(props.data[row.index]),
+            row.index === props.highlightIndex ? "bg-primary/20" : undefined
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
           {props.rowStatus &&
             (() => {
@@ -94,7 +109,7 @@ export function TableContent<T extends object>(props: Props<T>) {
               style={getColumnWidthStyle(column)}
               truncate={column.truncate !== false}
             >
-              {renderCell(column, props.data[row.index])}
+              {renderCell(column, props.data[row.index], row.index)}
             </Cell>
           ))}
           {!props.actionButtons && <CellWrapper />}

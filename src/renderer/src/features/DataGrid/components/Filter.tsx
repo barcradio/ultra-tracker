@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { OverlayPanel } from "primereact/overlaypanel";
 import DotsVerticalIcon from "~/assets/icons/dots-vertical.svg?react";
@@ -35,12 +35,22 @@ export function Filter<T extends object>(props: Props<T>) {
 
   const [value, setValue] = useState(props.filterState[column.field] ?? "");
   const debouncedValue = useDebounce(value, 300);
+  const committedValue = useRef(debouncedValue);
   const [open, setOpen] = useState(false);
+
+  committedValue.current = debouncedValue;
 
   const handleOpen = (event: MouseEvent<HTMLButtonElement>) => {
     setOpen(!open);
     panelRef.current?.toggle(event);
     event.stopPropagation();
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") return;
+
+    panelRef.current?.hide();
+    setOpen(false);
   };
 
   // Update filter state when debounced value changes
@@ -52,9 +62,10 @@ export function Filter<T extends object>(props: Props<T>) {
     }
   }, [column.field, debouncedValue, removeFilter, setFilter]);
 
-  // Set value to filter state when filter is removed
+  // Follow the filter when something else sets it, without overwriting what is being typed.
   useEffect(() => {
-    if (!props.filterState[column.field]) setValue("");
+    const external = props.filterState[column.field] ?? "";
+    if (external !== committedValue.current) setValue(external);
   }, [column.field, props.filterState]);
 
   if (column.filterable === false) return null;
@@ -72,6 +83,7 @@ export function Filter<T extends object>(props: Props<T>) {
           labelProps={{ className: "text-sm" }}
           value={value}
           onChange={(event) => setValue(event.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Filter"
         />
       </OverlayPanel>
