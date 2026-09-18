@@ -1,0 +1,3 @@
+bear-100-2026,3-richards-hollow,drops-export
+stationId,bibId,dropReason,dropDateTime,note
+3-richards-hollow,1009,timeout,2026-09-25T15:00:00Z,Unmatched reason at same station

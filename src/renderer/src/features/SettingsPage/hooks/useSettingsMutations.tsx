@@ -1,13 +1,58 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import log from "electron-log/renderer";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { useBasicIpcCall } from "~/hooks/ipc/useBasicIpcCall";
 import * as loggerHooks from "~/hooks/ipc/useLogger";
+import { useIpcRenderer } from "~/hooks/useIpcRenderer";
+import { DatabaseStatus } from "$shared/enums";
+import {
+  ApplyDropsImportParams,
+  DatabaseResponse,
+  DropsImportPreview,
+  DropsImportReport
+} from "$shared/types";
 
 export function useSettingsMutations() {
+  const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
   const { createToast } = useToasts();
 
-  const importDropsFile = useBasicIpcCall("load-drops-file", {
-    preToast: "Loading Drops file"
+  const previewDropsFile = useMutation({
+    mutationFn: async () => {
+      createToast({ message: "Loading Drops file", type: "info" });
+      return (await ipcRenderer.invoke(
+        "preview-drops-file"
+      )) as DatabaseResponse<DropsImportPreview>;
+    },
+    onError: (error) => console.error(error)
+  });
+
+  const applyDropsImport = useMutation({
+    mutationFn: async (params: ApplyDropsImportParams) => {
+      return (await ipcRenderer.invoke(
+        "apply-drops-import",
+        params
+      )) as DatabaseResponse<DropsImportReport>;
+    },
+    onSuccess: ([, status, message]) => {
+      createToast({ message, type: status === DatabaseStatus.Success ? "success" : "danger" });
+      if (status !== DatabaseStatus.Success) return;
+
+      [["runners-table"], ["athletes-table"], ["stats-table"]].forEach((queryKey) => {
+        queryClient.invalidateQueries({ queryKey });
+      });
+    },
+    onError: (error) => console.error(error)
+  });
+
+  const discardDropsImport = useMutation({
+    mutationFn: async (importId: string) => {
+      return (await ipcRenderer.invoke("discard-drops-import", importId)) as [
+        DatabaseStatus,
+        string
+      ];
+    },
+    onError: (error) => console.error(error)
   });
 
   const importRunnerCSVFile = useBasicIpcCall("import-runners-file", {
@@ -59,7 +104,9 @@ export function useSettingsMutations() {
     resetAppSettings,
     initializeRfid,
     disconnectRfid,
-    importDropsFile,
+    previewDropsFile,
+    applyDropsImport,
+    discardDropsImport,
     importRunnerCSVFile,
     reloadEventsFile,
     reinitializeDatabase
