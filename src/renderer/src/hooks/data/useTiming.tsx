@@ -55,7 +55,14 @@ export const useCreateTiming = () => {
   const { createToast } = useToasts();
 
   return useTimingMutation("add-timing-record", {
-    callback: async (timeRecord, status) => {
+    toastsOnStatus: {
+      [DatabaseStatus.Duplicate]: (runner) => ({
+        message: `Runner #${runner?.bibId} already has a timing record!`,
+        type: "warning",
+        timeoutMs: -1
+      })
+    },
+    callback: async (timeRecord) => {
       const athleteResponse = await ipcRenderer.invoke("get-athlete-by-bib", timeRecord.bibId);
       const [athlete] = athleteResponse as DatabaseResponse<AthleteDB>;
 
@@ -63,14 +70,6 @@ export const useCreateTiming = () => {
       if (athlete === null)
         createToast({
           message: `athletes: No athlete found with bibId: ${timeRecord.bibId}`,
-          type: "warning",
-          timeoutMs: -1
-        });
-
-      // If the timing record is a duplicate, show a warning
-      if (status == DatabaseStatus.Duplicate)
-        createToast({
-          message: `Runner #${timeRecord.bibId} already has a timing record!`,
           type: "warning",
           timeoutMs: -1
         });
