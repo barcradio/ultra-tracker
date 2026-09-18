@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Modal, Stack, Tag } from "~/components";
+import { Button, ConfirmationModal, Modal, Stack, Tag } from "~/components";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import {
   DropsImportConflict,
@@ -46,6 +46,7 @@ function actionLabel(action: DropsImportConflictAction) {
 
 export function DropsImportReviewModal(props: Props) {
   const { preview } = props;
+  const [importAllConfirmationOpen, setImportAllConfirmationOpen] = useState(false);
   const [activeView, setActiveView] = useState<"conflicts" | "ready" | "skipped" | "duplicates">(
     "conflicts"
   );
@@ -173,105 +174,123 @@ export function DropsImportReviewModal(props: Props) {
   } as const;
 
   return (
-    <Modal
-      open={Boolean(preview)}
-      setOpen={(open) => {
-        if (!open) props.onCancel();
-      }}
-      title="Review Drops Import"
-      size="xl"
-      dismissOnClickOutside={false}
-      showNegativeButton
-      negativeText="Cancel Import"
-      affirmativeText={props.applying ? "Applying..." : `Apply Import (${importCount})`}
-      affirmativeDisabled={props.applying || !preview}
-      onAffirmative={props.onApply}
-      footerLeading={
-        <Stack className="gap-2" align="center">
-          <Button
-            type="button"
-            size="sm"
-            variant="outlined"
-            color="neutral"
-            onClick={() => props.onBatchDecision("preserve-existing")}
+    <>
+      <Modal
+        open={Boolean(preview)}
+        setOpen={(open) => {
+          if (!open) props.onCancel();
+        }}
+        title="Review Drops Import"
+        size="xl"
+        dismissOnClickOutside={false}
+        showNegativeButton
+        negativeText="Cancel Import"
+        affirmativeText={props.applying ? "Applying..." : `Apply Import (${importCount})`}
+        affirmativeDisabled={props.applying || !preview}
+        onAffirmative={props.onApply}
+        footerLeading={
+          <Stack className="gap-2" align="center">
+            <Button
+              type="button"
+              size="sm"
+              variant="outlined"
+              color="neutral"
+              onClick={() => props.onBatchDecision("preserve-existing")}
+            >
+              Preserve All
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outlined"
+              color="danger"
+              onClick={() => setImportAllConfirmationOpen(true)}
+            >
+              Import All
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outlined"
+              onClick={() => props.onBatchDecision("recommended")}
+            >
+              Apply Recommended Only
+            </Button>
+          </Stack>
+        }
+      >
+        {preview && (
+          <Stack
+            direction="col"
+            className="h-full min-h-[36rem] gap-3 min-w-0 max-w-full overflow-hidden"
           >
-            Preserve All
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outlined"
-            onClick={() => props.onBatchDecision("use-imported")}
-          >
-            Import All
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outlined"
-            onClick={() => props.onBatchDecision("recommended")}
-          >
-            Apply Recommended
-          </Button>
-        </Stack>
-      }
-    >
-      {preview && (
-        <Stack
-          direction="col"
-          className="h-full min-h-[36rem] gap-3 min-w-0 max-w-full overflow-hidden"
-        >
-          <div className="grid grid-cols-5 gap-2 text-sm text-center min-w-0">
-            {summaryButtons.map((button) => (
-              <button
-                key={button.id}
-                type="button"
-                onClick={() => setActiveView(button.id)}
-                className={`rounded border px-2 py-3 transition ${
-                  activeView === button.id
-                    ? "border-gold bg-gold/10 text-on-component"
-                    : "border-component-strong bg-component-strong text-on-component"
-                }`}
-              >
-                <div className="font-bold">{button.count}</div>
-                <div className="opacity-75">{button.label}</div>
-              </button>
-            ))}
-          </div>
+            <div className="grid grid-cols-5 gap-2 text-sm text-center min-w-0">
+              {summaryButtons.map((button) => (
+                <button
+                  key={button.id}
+                  type="button"
+                  onClick={() => setActiveView(button.id)}
+                  className={`rounded border px-2 py-3 transition ${
+                    activeView === button.id
+                      ? "border-gold bg-gold/10 text-on-component"
+                      : "border-component-strong bg-component-strong text-on-component"
+                  }`}
+                >
+                  <div className="font-bold">{button.count}</div>
+                  <div className="opacity-75">{button.label}</div>
+                </button>
+              ))}
+            </div>
 
-          <div className="text-sm text-on-component">
-            File: <span className="font-bold break-all">{preview.sourceLabel}</span>
-          </div>
+            <div className="text-sm text-on-component">
+              File: <span className="font-bold break-all">{preview.sourceLabel}</span>
+              <span className="ml-3">
+                ({preview.totalRowCount} rows, {preview.processedCount} valid,{" "}
+                {preview.invalidRowCount} invalid)
+              </span>
+            </div>
 
-          {activeView === "conflicts" ? (
-            conflicts.length === 0 ? (
-              <div className="p-4 text-center rounded bg-component-strong text-on-component">
-                No conflicts found. Applying will import all ready rows.
-              </div>
+            {activeView === "conflicts" ? (
+              conflicts.length === 0 ? (
+                <div className="p-4 text-center rounded bg-component-strong text-on-component">
+                  No conflicts found. Applying will import all ready rows.
+                </div>
+              ) : (
+                <div className="flex-1 min-h-0 bg-component-strong">
+                  <DataGrid
+                    data={conflicts}
+                    columns={columns}
+                    getKey={({ id }) => id}
+                    classNames={gridClassNames}
+                  />
+                </div>
+              )
             ) : (
               <div className="flex-1 min-h-0 bg-component-strong">
                 <DataGrid
-                  data={conflicts}
-                  columns={columns}
-                  getKey={({ id }) => id}
+                  data={summaryRows}
+                  columns={singleRecordColumns}
+                  getKey={({ bibId, reason, station, dateTime }) =>
+                    `${bibId}-${reason}-${station ?? "none"}-${dateTime ?? "none"}`
+                  }
                   classNames={gridClassNames}
                 />
               </div>
-            )
-          ) : (
-            <div className="flex-1 min-h-0 bg-component-strong">
-              <DataGrid
-                data={summaryRows}
-                columns={singleRecordColumns}
-                getKey={({ bibId, reason, station, dateTime }) =>
-                  `${bibId}-${reason}-${station ?? "none"}-${dateTime ?? "none"}`
-                }
-                classNames={gridClassNames}
-              />
-            </div>
-          )}
-        </Stack>
-      )}
-    </Modal>
+            )}
+          </Stack>
+        )}
+      </Modal>
+      <ConfirmationModal
+        open={importAllConfirmationOpen}
+        setOpen={setImportAllConfirmationOpen}
+        title="Import All Drops"
+        negativeText="Cancel"
+        affirmativeText="Import All"
+        dangerous
+        onAffirmative={() => props.onBatchDecision("use-imported")}
+      >
+        This will select the imported row for every conflict.
+      </ConfirmationModal>
+    </>
   );
 }

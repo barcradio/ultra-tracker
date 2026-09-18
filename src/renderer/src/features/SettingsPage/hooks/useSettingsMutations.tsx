@@ -45,6 +45,16 @@ export function useSettingsMutations() {
     onError: (error) => console.error(error)
   });
 
+  const discardDropsImport = useMutation({
+    mutationFn: async (importId: string) => {
+      return (await ipcRenderer.invoke("discard-drops-import", importId)) as [
+        DatabaseStatus,
+        string
+      ];
+    },
+    onError: (error) => console.error(error)
+  });
+
   const importRunnerCSVFile = useBasicIpcCall("import-runners-file", {
     preToast: "Loading Runners file"
   });
@@ -96,6 +106,7 @@ export function useSettingsMutations() {
     disconnectRfid,
     previewDropsFile,
     applyDropsImport,
+    discardDropsImport,
     importRunnerCSVFile,
     reloadEventsFile,
     reinitializeDatabase

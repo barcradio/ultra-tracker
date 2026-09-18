@@ -43,7 +43,10 @@ export function SettingsPage() {
     });
   };
 
-  const cancelDropsImport = () => {
+  const cancelDropsImport = (discard = true) => {
+    if (discard && dropsImportPreview) {
+      settingsMutations.discardDropsImport.mutate(dropsImportPreview.importId);
+    }
     setDropsImportPreview(null);
     setDropsImportDecisions({});
   };
@@ -78,7 +81,7 @@ export function SettingsPage() {
       },
       {
         onSuccess: ([, status]) => {
-          if (status === DatabaseStatus.Success) cancelDropsImport();
+          if (status === DatabaseStatus.Success) cancelDropsImport(false);
         }
       }
     );
