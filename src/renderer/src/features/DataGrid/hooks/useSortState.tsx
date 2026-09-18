@@ -34,6 +34,14 @@ export function useSortState<T extends object>({ initial, columns }: Props<T>) {
     }
   };
 
+  const setSortState = useCallback(
+    (newField: keyof T, newAscending: boolean) => {
+      setField(newField);
+      setAscending(newAscending);
+    },
+    [setField, setAscending]
+  );
+
   const compareFn = useCallback(
     (a: unknown, b: unknown) => {
       if (field === null) return 0;
@@ -67,5 +75,5 @@ export function useSortState<T extends object>({ initial, columns }: Props<T>) {
 
   const sortState = { field, ascending };
 
-  return [sortFn, setSort, sortState] as const;
+  return [sortFn, setSort, sortState, setSortState] as const;
 }

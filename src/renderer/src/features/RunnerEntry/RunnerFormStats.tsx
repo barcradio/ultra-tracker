@@ -111,7 +111,7 @@ export function RunnerFormStats() {
         </Tooltip>
       )}
       <Stack direction="row" align="stretch" className="mb-2 w-full h-12 gap-2" justify="stretch">
-        <div className={isFastMode ? "w-1/3" : "w-1/2"} id={buttonInId}>
+        <div className={showInOutButton ? "w-1/3" : "w-1/2"} id={buttonInId}>
           <Button
             name="button_In"
             variant="solid"
@@ -127,7 +127,7 @@ export function RunnerFormStats() {
           name="button_Out"
           variant="solid"
           color="danger"
-          className={isFastMode ? "w-1/3" : "w-1/2"}
+          className={showInOutButton ? "w-1/3" : "w-1/2"}
           onClick={() => createRecord(RecordType.Out)}
           disabled={!hasActiveDatabase}
         >

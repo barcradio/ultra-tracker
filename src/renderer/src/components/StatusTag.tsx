@@ -1,3 +1,4 @@
+import { MouseEventHandler } from "react";
 import { AthleteProgress, DropReason } from "$shared/enums";
 import { Tag, TagColor } from "./Tag";
 
@@ -5,6 +6,8 @@ interface Props {
   dropReason?: DropReason;
   AthleteProgress?: AthleteProgress;
   duplicate?: boolean;
+  title?: string;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
 type TagInfo = { color: TagColor; text: string };
@@ -39,5 +42,9 @@ function getTagInfo(props: Props): TagInfo | null {
 export function StatusTag(props: Props) {
   const tagInfo = getTagInfo(props);
   if (!tagInfo) return null;
-  return <Tag color={tagInfo.color}>{tagInfo.text}</Tag>;
+  return (
+    <Tag color={tagInfo.color} title={props.title} onClick={props.onClick}>
+      {tagInfo.text}
+    </Tag>
+  );
 }

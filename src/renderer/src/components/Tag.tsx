@@ -9,6 +9,7 @@ export type TagColor = TagVariants["color"];
 interface TagProps {
   color?: TagVariants["color"];
   children: ReactNode;
+  title?: string;
   onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
@@ -37,7 +38,12 @@ export function Tag(props: TagProps) {
   if (props.children == null) return null;
 
   return (
-    <TagWrapper disabled={!props.onClick} color={props.color} onClick={props.onClick}>
+    <TagWrapper
+      disabled={!props.onClick}
+      color={props.color}
+      title={props.title}
+      onClick={props.onClick}
+    >
       {props.children}
     </TagWrapper>
   );
