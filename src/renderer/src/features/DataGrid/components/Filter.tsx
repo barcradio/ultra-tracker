@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { OverlayPanel } from "primereact/overlaypanel";
 import DotsVerticalIcon from "~/assets/icons/dots-vertical.svg?react";
@@ -46,6 +46,13 @@ export function Filter<T extends object>(props: Props<T>) {
     event.stopPropagation();
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") return;
+
+    panelRef.current?.hide();
+    setOpen(false);
+  };
+
   // Update filter state when debounced value changes
   useEffect(() => {
     if (debouncedValue === "") {
@@ -76,6 +83,7 @@ export function Filter<T extends object>(props: Props<T>) {
           labelProps={{ className: "text-sm" }}
           value={value}
           onChange={(event) => setValue(event.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Filter"
         />
       </OverlayPanel>
