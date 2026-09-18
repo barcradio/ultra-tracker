@@ -35,7 +35,8 @@ export function useHandleStatusToasts<T>(specialToasts: ToastOnStatus<T> = {}) {
           if (message) createToast({ message, type: "warning" });
           return false;
         case DatabaseStatus.Duplicate:
-          if (message) createToast({ message, type: "warning" });
+          // A caller-provided special toast already covered this status; avoid a second one.
+          if (!specialToasts[status] && message) createToast({ message, type: "warning" });
           return true;
         case DatabaseStatus.Error:
           createToast({ message, type: "danger" });
