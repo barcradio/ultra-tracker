@@ -1,4 +1,8 @@
-import { DatabaseStatus } from "./enums";
+import {
+  DatabaseStatus,
+  DropsImportConflictAction,
+  DropsImportRecommendationConfidence
+} from "./enums";
 import { Station } from "./models";
 
 export type DatabaseResponse<T = undefined> = T extends undefined
@@ -17,10 +21,6 @@ export interface EventArchivePreview {
   eventName: string;
   stations: Station[];
 }
-
-export type DropsImportConflictAction = "preserve-existing" | "use-imported";
-
-export type DropsImportRecommendationConfidence = "low" | "medium" | "high";
 
 export interface DropsImportStatusValue {
   dropReason: string | null;

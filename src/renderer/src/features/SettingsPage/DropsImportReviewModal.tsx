@@ -1,12 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, ConfirmationModal, Modal, Stack, Tag } from "~/components";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
-import {
-  DropsImportConflict,
-  DropsImportConflictAction,
-  DropsImportPreview,
-  DropsImportPreviewRecord
-} from "$shared/types";
+import { DropsImportConflictAction, DropsImportRecommendationConfidence } from "$shared/enums";
+import { DropsImportConflict, DropsImportPreview, DropsImportPreviewRecord } from "$shared/types";
 
 interface ConflictRow extends DropsImportConflict {
   selectedAction: DropsImportConflictAction;
@@ -35,13 +31,13 @@ function formatStatus(reason: string | null, station: string | null, time: strin
 }
 
 function recommendationColor(confidence: DropsImportConflict["recommendationConfidence"]) {
-  if (confidence === "high") return "turquoise";
-  if (confidence === "medium") return "yellow";
+  if (confidence === DropsImportRecommendationConfidence.High) return "turquoise";
+  if (confidence === DropsImportRecommendationConfidence.Medium) return "yellow";
   return "orange";
 }
 
 function actionLabel(action: DropsImportConflictAction) {
-  return action === "use-imported" ? "Use Imported" : "Preserve Existing";
+  return action === DropsImportConflictAction.UseImported ? "Use Imported" : "Preserve Existing";
 }
 
 export function DropsImportReviewModal(props: Props) {
@@ -72,7 +68,9 @@ export function DropsImportReviewModal(props: Props) {
 
   const importCount =
     (preview?.readyRecords.length ?? 0) +
-    conflicts.filter((conflict) => conflict.selectedAction === "use-imported").length;
+    conflicts.filter(
+      (conflict) => conflict.selectedAction === DropsImportConflictAction.UseImported
+    ).length;
 
   const columns: ColumnDef<ConflictRow> = [
     {
@@ -121,18 +119,23 @@ export function DropsImportReviewModal(props: Props) {
           <Button
             type="button"
             size="sm"
-            variant={selectedAction === "preserve-existing" ? "solid" : "outlined"}
+            variant={
+              selectedAction === DropsImportConflictAction.PreserveExisting ? "solid" : "outlined"
+            }
             color="neutral"
-            onClick={() => props.onDecisionChange(row.id, "preserve-existing")}
+            onClick={() =>
+              props.onDecisionChange(row.id, DropsImportConflictAction.PreserveExisting)
+            }
           >
             Preserve
           </Button>
           <Button
             type="button"
-            size="sm"
-            variant={selectedAction === "use-imported" ? "solid" : "outlined"}
+            variant={
+              selectedAction === DropsImportConflictAction.UseImported ? "solid" : "outlined"
+            }
             color="primary"
-            onClick={() => props.onDecisionChange(row.id, "use-imported")}
+            onClick={() => props.onDecisionChange(row.id, DropsImportConflictAction.UseImported)}
           >
             Import
           </Button>
@@ -195,13 +198,12 @@ export function DropsImportReviewModal(props: Props) {
               size="sm"
               variant="outlined"
               color="neutral"
-              onClick={() => props.onBatchDecision("preserve-existing")}
+              onClick={() => props.onBatchDecision(DropsImportConflictAction.PreserveExisting)}
             >
               Preserve All
             </Button>
             <Button
               type="button"
-              size="sm"
               variant="outlined"
               color="danger"
               onClick={() => setImportAllConfirmationOpen(true)}
@@ -210,7 +212,6 @@ export function DropsImportReviewModal(props: Props) {
             </Button>
             <Button
               type="button"
-              size="sm"
               variant="outlined"
               onClick={() => props.onBatchDecision("recommended")}
             >
@@ -287,7 +288,7 @@ export function DropsImportReviewModal(props: Props) {
         negativeText="Cancel"
         affirmativeText="Import All"
         dangerous
-        onAffirmative={() => props.onBatchDecision("use-imported")}
+        onAffirmative={() => props.onBatchDecision(DropsImportConflictAction.UseImported)}
       >
         This will select the imported row for every conflict.
       </ConfirmationModal>

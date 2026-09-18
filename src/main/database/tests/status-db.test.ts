@@ -2,7 +2,13 @@ import { Readable } from "stream";
 import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestDatabase } from "./dbTestHelper";
-import { AthleteProgress, DatabaseStatus, DropReason } from "../../../shared/enums";
+import {
+  AthleteProgress,
+  DatabaseStatus,
+  DropReason,
+  DropsImportConflictAction,
+  DropsImportRecommendationConfidence
+} from "../../../shared/enums";
 import { StatusDB } from "../../../shared/models";
 import {
   GetPreviousDropped,
@@ -705,8 +711,27 @@ describe("status-db", () => {
       const [preview] = await previewDropsContent(csv, "drops.csv");
 
       expect(preview?.conflicts[0]).toMatchObject({
-        recommendedAction: "use-imported",
-        recommendationConfidence: "medium"
+        recommendedAction: DropsImportConflictAction.UseImported,
+        recommendationConfidence: DropsImportRecommendationConfidence.Medium
+      });
+    });
+
+    it("preserves an existing DNS even when timing data exists", async () => {
+      seedStatus(101);
+      seedTimeRecord(101);
+      db.prepare(
+        `UPDATE Status SET dropped = 1, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = 101`
+      ).run(DropReason.DidNotStart, "0-start-line", "2026-09-25T05:08:00.000Z");
+      const csv = Readable.from(
+        ["title row", "header row", "3-hardware,101,medical,2026-09-25T15:36:00Z,"].join("\n")
+      );
+
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(preview?.conflicts[0]).toMatchObject({
+        recommendedAction: DropsImportConflictAction.PreserveExisting,
+        recommendationConfidence: DropsImportRecommendationConfidence.High,
+        recommendationReason: expect.stringMatching(/did not start|DNS/i)
       });
     });
 
@@ -761,7 +786,9 @@ describe("status-db", () => {
 
       const [preview] = await previewDropsContent(csv, "drops.csv");
 
-      expect(preview?.conflicts[0].recommendationConfidence).toBe("medium");
+      expect(preview?.conflicts[0].recommendationConfidence).toBe(
+        DropsImportRecommendationConfidence.Medium
+      );
     });
 
     it("downgrades station-order recommendations when timestamps disagree", async () => {
@@ -778,8 +805,8 @@ describe("status-db", () => {
       const [preview] = await previewDropsContent(csv, "drops.csv");
 
       expect(preview?.conflicts[0]).toMatchObject({
-        recommendedAction: "preserve-existing",
-        recommendationConfidence: "low",
+        recommendedAction: DropsImportConflictAction.PreserveExisting,
+        recommendationConfidence: DropsImportRecommendationConfidence.Low,
         recommendationReason: expect.stringMatching(/manual review|timestamp|station/i)
       });
     });
@@ -798,7 +825,12 @@ describe("status-db", () => {
 
       const [, preserveStatus] = applyDropsImport({
         importId: preview!.importId,
-        decisions: [{ conflictId: preview!.conflicts[0].id, action: "preserve-existing" }]
+        decisions: [
+          {
+            conflictId: preview!.conflicts[0].id,
+            action: DropsImportConflictAction.PreserveExisting
+          }
+        ]
       });
 
       expect(preserveStatus).toBe(DatabaseStatus.Success);
@@ -816,7 +848,12 @@ describe("status-db", () => {
 
       const [, overwriteStatus] = applyDropsImport({
         importId: overwritePreview!.importId,
-        decisions: [{ conflictId: overwritePreview!.conflicts[0].id, action: "use-imported" }]
+        decisions: [
+          {
+            conflictId: overwritePreview!.conflicts[0].id,
+            action: DropsImportConflictAction.UseImported
+          }
+        ]
       });
 
       expect(overwriteStatus).toBe(DatabaseStatus.Success);
@@ -844,7 +881,12 @@ describe("status-db", () => {
 
       const [report, status] = applyDropsImport({
         importId: preview!.importId,
-        decisions: [{ conflictId: preview!.conflicts[0].id, action: "use-imported" }]
+        decisions: [
+          {
+            conflictId: preview!.conflicts[0].id,
+            action: DropsImportConflictAction.UseImported
+          }
+        ]
       });
 
       expect(report).toBeNull();

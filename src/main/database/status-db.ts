@@ -7,16 +7,20 @@ import { getDatabaseConnection } from "./connect-db";
 import { logEvent } from "./eventLogger-db";
 import { clearPushStatus } from "./opensplittimeStatus-db";
 import { alertForWatchlistedAthlete } from "./watchlist-db";
-import { AthleteProgress, DatabaseStatus, DropReason } from "../../shared/enums";
+import {
+  AthleteProgress,
+  DatabaseStatus,
+  DropReason,
+  DropsImportConflictAction,
+  DropsImportRecommendationConfidence
+} from "../../shared/enums";
 import { DropRecord, RunnerDB, StatusDB } from "../../shared/models";
 import {
   ApplyDropsImportParams,
   DatabaseResponse,
   DropsImportConflict,
-  DropsImportConflictAction,
   DropsImportPreview,
   DropsImportPreviewRecord,
-  DropsImportRecommendationConfidence,
   DropsImportReport,
   DropsImportStatusValue
 } from "../../shared/types";
@@ -28,6 +32,16 @@ import { pushTimeRecordUpdate } from "../services/opensplittime";
 
 const invalidResult = -999;
 const PENDING_DROPS_IMPORT_TTL_MS = 30 * 60 * 1000;
+
+const dropsImportRecommendationReasons = {
+  existingDns: "Existing DNS: preserve; the athlete did not start.",
+  existingCourseDropForImportedDns: "Existing course drop: preserve over imported DNS.",
+  conflictingStationAndTimestamp: "Station and timestamp disagree; review manually.",
+  existingStationIsLater: "Existing drop is at a later station; preserve.",
+  importedStationIsLater: "Imported drop is at a later station; use imported.",
+  matchingStationAndReason: "Same station and reason; prefer the later timestamp.",
+  manualReview: "No rule applies; review both records manually."
+} as const;
 
 interface PendingDropsImportConflict extends DropsImportConflict {
   importedRecord: DropRecord;
@@ -263,8 +277,8 @@ export function applyDropsImport(
       }
 
       for (const conflict of pendingImport.conflicts) {
-        const action = decisions.get(conflict.id) ?? "preserve-existing";
-        if (action === "use-imported") {
+        const action = decisions.get(conflict.id) ?? DropsImportConflictAction.PreserveExisting;
+        if (action === DropsImportConflictAction.UseImported) {
           const [status, message] = updateDropFromCSV(conflict.importedRecord);
           if (status === DatabaseStatus.Error) throw new Error(message);
           importedCount++;
@@ -654,7 +668,7 @@ function isDuplicateDrop(status: StatusDB | undefined, record: DropRecord): bool
 function buildDropsImportConflict(record: DropRecord, status: StatusDB): DropsImportConflict {
   const existing = getExistingStatus(status);
   const imported = getImportedStatus(record);
-  const recommendation = recommendDropsImportAction(existing, imported, record.bibId);
+  const recommendation = recommendDropsImportAction(existing, imported);
 
   return {
     id: `${record.bibId}:${existing.dropStation ?? "none"}:${imported.dropStation ?? "none"}:${randomUUID()}`,
@@ -666,10 +680,11 @@ function buildDropsImportConflict(record: DropRecord, status: StatusDB): DropsIm
   };
 }
 
+// HIGH CONFIDENCE CASES
+
 function recommendDropsImportAction(
   existing: DropsImportStatusValue,
-  imported: DropsImportStatusValue,
-  bibId: number
+  imported: DropsImportStatusValue
 ): {
   recommendedAction: DropsImportConflictAction;
   recommendationReason: string;
@@ -683,31 +698,65 @@ function recommendDropsImportAction(
   const importedIsCourseDrop = Boolean(imported.dropReason && !importedIsDns);
 
   if (existingIsDns && importedIsCourseDrop) {
-    if (hasTimingRecord(bibId)) {
-      return {
-        recommendedAction: "use-imported",
-        recommendationReason:
-          "This bib has timing data, so the imported course drop may correct the DNS status.",
-        recommendationConfidence: "medium"
-      };
-    }
-
     return {
-      recommendedAction: "preserve-existing",
-      recommendationReason:
-        "The existing DNS status says the athlete did not start; a later course drop may be a wrong-bib report.",
-      recommendationConfidence: "medium"
+      recommendedAction: DropsImportConflictAction.PreserveExisting,
+      recommendationReason: dropsImportRecommendationReasons.existingDns,
+      recommendationConfidence: DropsImportRecommendationConfidence.High
     };
   }
+
+  // MEDIUM CONFIDENCE CASES
 
   if (existingIsCourseDrop && importedIsDns) {
     return {
-      recommendedAction: "preserve-existing",
-      recommendationReason:
-        "The existing course drop is later firsthand station data than an imported DNS row.",
-      recommendationConfidence: "medium"
+      recommendedAction: DropsImportConflictAction.PreserveExisting,
+      recommendationReason: dropsImportRecommendationReasons.existingCourseDropForImportedDns,
+      recommendationConfidence: DropsImportRecommendationConfidence.Medium
     };
   }
+
+  if (
+    existingIsCourseDrop &&
+    importedIsCourseDrop &&
+    existingStationOrder != null &&
+    importedStationOrder != null &&
+    existingStationOrder > importedStationOrder
+  ) {
+    return {
+      recommendedAction: DropsImportConflictAction.PreserveExisting,
+      recommendationReason: dropsImportRecommendationReasons.existingStationIsLater,
+      recommendationConfidence: DropsImportRecommendationConfidence.Medium
+    };
+  }
+
+  if (
+    existingIsCourseDrop &&
+    importedIsCourseDrop &&
+    existingStationOrder != null &&
+    importedStationOrder != null &&
+    importedStationOrder > existingStationOrder
+  ) {
+    return {
+      recommendedAction: DropsImportConflictAction.UseImported,
+      recommendationReason: dropsImportRecommendationReasons.importedStationIsLater,
+      recommendationConfidence: DropsImportRecommendationConfidence.Medium
+    };
+  }
+
+  if (
+    existing.dropStation === imported.dropStation &&
+    existing.dropReason === imported.dropReason
+  ) {
+    return {
+      recommendedAction: isImportedTimeLater(existing.dropDateTime, imported.dropDateTime)
+        ? DropsImportConflictAction.UseImported
+        : DropsImportConflictAction.PreserveExisting,
+      recommendationReason: dropsImportRecommendationReasons.matchingStationAndReason,
+      recommendationConfidence: DropsImportRecommendationConfidence.Medium
+    };
+  }
+
+  // LOW CONFIDENCE CASES
 
   if (
     existingIsCourseDrop &&
@@ -722,66 +771,17 @@ function recommendDropsImportAction(
     )
   ) {
     return {
-      recommendedAction: "preserve-existing",
-      recommendationReason:
-        "Station order and timestamps disagree; review the conflicting records manually.",
-      recommendationConfidence: "low"
-    };
-  }
-
-  if (
-    existingIsCourseDrop &&
-    importedIsCourseDrop &&
-    existingStationOrder != null &&
-    importedStationOrder != null &&
-    existingStationOrder > importedStationOrder
-  ) {
-    return {
-      recommendedAction: "preserve-existing",
-      recommendationReason: "The existing drop was recorded farther along the course.",
-      recommendationConfidence: "medium"
-    };
-  }
-
-  if (
-    existingIsCourseDrop &&
-    importedIsCourseDrop &&
-    existingStationOrder != null &&
-    importedStationOrder != null &&
-    importedStationOrder > existingStationOrder
-  ) {
-    return {
-      recommendedAction: "use-imported",
-      recommendationReason: "The imported drop was recorded farther along the course.",
-      recommendationConfidence: "medium"
-    };
-  }
-
-  if (
-    existing.dropStation === imported.dropStation &&
-    existing.dropReason === imported.dropReason
-  ) {
-    return {
-      recommendedAction: isImportedTimeLater(existing.dropDateTime, imported.dropDateTime)
-        ? "use-imported"
-        : "preserve-existing",
-      recommendationReason: "The station and reason match; prefer the later timestamp.",
-      recommendationConfidence: "medium"
+      recommendedAction: DropsImportConflictAction.PreserveExisting,
+      recommendationReason: dropsImportRecommendationReasons.conflictingStationAndTimestamp,
+      recommendationConfidence: DropsImportRecommendationConfidence.Low
     };
   }
 
   return {
-    recommendedAction: "preserve-existing",
-    recommendationReason:
-      "The imported row conflicts with existing data and needs operator review.",
-    recommendationConfidence: "low"
+    recommendedAction: DropsImportConflictAction.PreserveExisting,
+    recommendationReason: dropsImportRecommendationReasons.manualReview,
+    recommendationConfidence: DropsImportRecommendationConfidence.Low
   };
-}
-
-function hasTimingRecord(bibId: number): boolean {
-  const db = getDatabaseConnection();
-  const row = db.prepare(`SELECT bibId FROM TimeRecords WHERE bibId = ? LIMIT 1`).get(bibId);
-  return row != null;
 }
 
 function isImportedTimeLater(existingTime: string | null, importedTime: string | null): boolean {

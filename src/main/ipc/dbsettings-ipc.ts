@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import { DatabaseStatus } from "$shared/enums";
+import { DatabaseStatus, DropsImportConflictAction } from "$shared/enums";
 import { ApplyDropsImportParams, DatabaseResponse, DropsImportPreview } from "$shared/types";
 import * as dbAthlete from "../database/athlete-db";
 import { getDatabaseConnection } from "../database/connect-db";
@@ -102,7 +102,8 @@ function isApplyDropsImportParams(value: unknown): value is ApplyDropsImportPara
         typeof decision === "object" &&
         decision !== null &&
         typeof decision.conflictId === "string" &&
-        (decision.action === "preserve-existing" || decision.action === "use-imported")
+        (decision.action === DropsImportConflictAction.PreserveExisting ||
+          decision.action === DropsImportConflictAction.UseImported)
     )
   );
 }

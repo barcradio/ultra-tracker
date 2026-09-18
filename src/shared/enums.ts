@@ -23,6 +23,17 @@ export enum DropReason {
   Unknown = "unknown"
 }
 
+export enum DropsImportConflictAction {
+  PreserveExisting = "preserve-existing",
+  UseImported = "use-imported"
+}
+
+export enum DropsImportRecommendationConfidence {
+  Low = "low",
+  Medium = "medium",
+  High = "high"
+}
+
 export enum EntryMode {
   Normal,
   Fast,
