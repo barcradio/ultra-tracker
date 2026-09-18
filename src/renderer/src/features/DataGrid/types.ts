@@ -6,6 +6,7 @@ export interface RowContext<T> {
   index: number;
   rows: T[];
   scrollToIndex: (index: number) => void;
+  setFilter: (field: keyof T, value: string) => void;
 }
 
 export type Column<T extends object> = {
@@ -34,3 +35,10 @@ export type Column<T extends object> = {
 }[keyof T];
 
 export type ColumnDef<T extends object> = Column<T>[];
+
+/** Applies a sort of its own while one column is filtered by a given text. */
+export interface FilterSortRule<T extends object> {
+  field: keyof T;
+  match: string;
+  sort: { field: keyof T; ascending: boolean };
+}

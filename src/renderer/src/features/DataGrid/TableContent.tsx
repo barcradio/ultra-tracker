@@ -15,6 +15,7 @@ interface Props<T extends object> {
   leadingActionAlwaysVisible?: (row: T) => boolean;
   getKey?: (row: T) => string | number;
   scrollToIndex: (index: number) => void;
+  setFilter: (field: keyof T, value: string) => void;
   highlightIndex?: number | null;
   rowStatus?: (row: T) => RowStatus;
   rowClassName?: (row: T) => string | undefined;
@@ -47,7 +48,8 @@ export function TableContent<T extends object>(props: Props<T>) {
     const context: RowContext<T> = {
       index,
       rows: props.data,
-      scrollToIndex: props.scrollToIndex
+      scrollToIndex: props.scrollToIndex,
+      setFilter: props.setFilter
     };
 
     if (column.render) return column.render(row[column.field], row, context);
