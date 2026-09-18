@@ -2,6 +2,7 @@ import { join } from "path";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { BrowserWindow, Event, Menu, app, dialog, powerMonitor, shell } from "electron";
 import iconLinux from "$resources/iconLinux.png?asset";
+import iconWin from "$resources/iconWin.png?asset";
 import { CloseRFIDWebSocket, RecoverRFIDReader } from "./api/rfid-processor";
 import {
   adoptLegacyDatabaseIfPresent,
@@ -56,9 +57,7 @@ function createWindow(): BrowserWindow {
     backgroundColor: "#0D1519",
     show: false,
     autoHideMenuBar: true,
-    // setting or title here doesn't seem to work
-    //...(process.platform === "linux" ? { iconLinux } : {}),
-    //...(process.platform === "win32" ? { iconWin } : {}),
+    ...(process.platform === "win32" ? { icon: iconWin } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false
@@ -139,6 +138,8 @@ async function initializeApp(): Promise<void> {
   // Must finish before the first window: the desktop binds a window to its
   // .desktop entry when it is mapped. No-op unless running as an AppImage.
   await integrateAppImageDesktopEntry();
+
+  if (process.platform === "darwin" && is.dev) app.dock?.setIcon(iconLinux);
 
   createWindow();
 

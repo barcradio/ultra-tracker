@@ -10,7 +10,7 @@ For a guide on how to set up an event using Ultra-Tracker, and advanced RFID con
 
 ---
 
-<img width="1000" alt="image" src="https://github.com/user-attachments/assets/371cc7fe-8e23-4766-b332-2a79f4e30c70" />
+<img width="1000" alt="image" src="src/renderer/public/img/UI/stats-main.png" />
 
 ---
 ## Installation
@@ -39,50 +39,46 @@ On first launch, Ultra-Tracker opens **Getting Started** to guide the user throu
 
 1. Select **Load Event File** and choose the event file (`.zip`) supplied for the event.
 2. Select the station identifier for this computer.
-3. Select the operator callsign.
-4. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
-
-The event files can be selected from their existing location; they do not need to be copied into a
-special folder first. The default event-config folder is `\Documents\Ultra-Tracker\.event-config\`.
-Additional Drops files can be imported later from the Settings page.
-
-The **Event Manager** can be launched in the sidebar to manage current and previous events.  Selecting **Create New Event** launches the **Getting Started** wizard.
-
-## Navigation Sidebar
-
-The left side bar is used to select different pages. Select from Stats, Roster, Logs, Export, Theme,
-Event Manager, Database, Settings and Help. Hovering over the sidebar area will expand it to show
-the names.
 
 ## Stats Page
 
-<img alt="image" src="src/renderer/public/img/stats-page.png" />
+<img height="48" alt="Stats page overview" src="src/renderer/public/img/sidebar/stats-page.png" />
 
-<img alt="image" src="src/renderer/public/img/bib.png" />
+<table align="right" border="0" cellpadding="0" cellspacing="0" width="300">
+  <tr>
+    <td align="center">
+      <img alt="Stats page bib entry" src="src/renderer/public/img/UI/bib.png" width="300" /><br>
+      <em>BIB# entry and timing controls</em>
+    </td>
+  </tr>
+</table>
 
-The **BIB#** box is the main starting point for using this page. This input control will accept numerical input, either from the 10-key pad or top-row keys of all standard keyboards. See useful keyboard shortcuts below.
+The **BIB#** box is the main starting point for using this page. This input control accepts numerical input from either the 10-key pad or the top-row keys of standard keyboards. See the keyboard shortcuts below.
 
-Clicking the In button and Out button will record the corresponding time entry.
+Clicking the **In** and **Out** buttons records the corresponding time entry.
 
-When a station is configured for **Fast mode**, an optional **+/-** button can record both the In
-and Out times together. This control is hidden by default and can be enabled in Settings under
-**User Settings**. It is only available on Fast mode stations; the standard In and Out buttons and
-keyboard shortcuts remain unchanged.
+The datagrid columns can be sorted by clicking the column header. Click again to toggle ascending or descending sort.
 
-The datagrid columns can be Sorted by clicking on the column header. Click again to toggle Ascending or Descending Sort.
+A filter control for any column can be opened by clicking the Filter icon (three vertical dots).
 
-A Filter control for any column can be opened by clicking the Filter icon (three vertical dots).
-
+<br clear="all">
 
 ### Editing a record
 
-<img width="350" alt="image" src="src/renderer/public/img/athlete-edit.png" />
+<table align="right" border="0" cellpadding="0" cellspacing="0" width="350">
+  <tr>
+    <td align="center">
+      <img alt="Athlete edit pane" src="src/renderer/public/img/UI/athlete-edit.png" width="350" /><br>
+      <em>Edit a timing record</em>
+    </td>
+  </tr>
+</table>
 
-To edit a timing record, click on the icon at the far-right side of the record row.
+To edit a timing record, click the icon at the far-right side of the record row.
 
 The Edit pane allows modification or deletion of a timing record. The In and Out times, Drop Reason, and any notes that have been entered will be displayed. Changes to these fields must be applied to take effect, or cancelled to return to the Stats page.
 
-If the Bib# can be matched with known athlete, the athlete's name will be displayed. The button above the name will jump to that athlete in the Roster page. A timing record for an unknown athlete is considered a warning condition, as all athletes should be known and checked in at the Start of the event, and included in the Athletes file. For a timing record not matched to athlete, limited changes can be performed, resolve the Bib# to a known athlete to modify all values.
+If the Bib# can be matched with a known athlete, the athlete's name will be displayed. The button above the name will jump to that athlete in the Roster page. A timing record for an unknown athlete is considered a warning condition, as all athletes should be known and checked in at the start of the event and included in the Athletes file. For a timing record not matched to athlete, limited changes can be performed; resolve the Bib# to a known athlete to modify all values.
 
 > [!CAUTION]
 > Deleting a time record is permanent. An entry to the Log page is recorded for reference.
@@ -91,13 +87,22 @@ Validation Rules:
 
 - A record must have an In time.
 - An In time must occur before the Out time.
-- Commas are not allowed in the Note field, and will be replaced with semi-colons.
+- Commas are not allowed in the Note field and will be replaced with semicolons.
+
+<br clear="all">
 
 ### Athlete and Station stats
 
-<img width="300" alt="image" src="src/renderer/public/img/stats.png" />
+<table align="left" border="0" cellpadding="0" cellspacing="0" width="300">
+  <tr>
+    <td align="center">
+      <img alt="Stats summary panel" src="src/renderer/public/img/UI/stats.png" width="300" /><br>
+      <em>Athlete and station statistics</em>
+    </td>
+  </tr>
+</table>
 
-Each of the different statistics available are updated in real-time.
+Each of the different statistics available are updated in real time.
 
 The Watchlist count shows athletes marked for follow-up. Hover over the Watchlist row to view their bib numbers and names.
 
@@ -106,6 +111,8 @@ The Watchlist count shows athletes marked for follow-up. Hover over the Watchlis
 
 > [!CAUTION]
 > Errors should be resolved before sending data to race organizers.
+
+<br clear="all">
 
 ### Keyboard shortcuts
 
@@ -120,31 +127,37 @@ _10-key entry is recommended for all stations, for laptops without, use a USB 10
 > | [Numpad-Add]   |                   | [Numpad-Divide] |
 > | [Numpad-Enter] |                   |                 |
 
-<img alt="image" src="src/renderer/public/img/keyboard-layout.png" />
+<div align="center">
+  <img alt="Keyboard layout for timing shortcuts" src="src/renderer/public/img/UI/keyboard-layout.png" />
+  <p><em>Keyboard keys used for In, Out, and combined timing entry</em></p>
+</div>
 
 ## Roster Page
 
-<img height="48" alt="image" src="src/renderer/public/img/roster-page.png" />
+<img height="48" alt="image" src="src/renderer/public/img/sidebar/roster-page.png" />
 
-This page provides the list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and note entries.
+This page provides the list of all athletes and enables the operator to search for an athlete using different search keys, such as name, bib number, city, start time, station TimeIn, station TimeOut, and note entries.
 
-The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS, In, Out, Medical, Timeout, Withdrew`
+The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS (Not Started), In, Out, Medical, Timeout, Withdrew`
 
-<img alt="image" src="src/renderer/public/img/roster-watchlist.png" />     <img alt="image" src="src/renderer/public/img/stats-watchlist.png" />
+<img alt="Roster watchlist control" src="src/renderer/public/img/UI/roster-watchlist.png" />     <img alt="Stats watchlist alert" src="src/renderer/public/img/UI/stats-watchlist.png" />
+<p><em>Watchlist controls in the Roster and Stats pages</em></p>
 
 Use the bookmark button at the left edge of an athlete row to add or remove that athlete from the **Watchlist**. The button appears when the row is hovered; an enabled watchlist button remains visible in red. When a watchlisted athlete arrives at the current station or is included in an imported Drops file, Ultra-Tracker displays an alert. Select **Remove from Watchlist** in the alert to remove the athlete from the Watchlist.
 
 ## Stations Page
 
-<img height="48" alt="image" src="src/renderer/public/img/stations.png" />
+<img height="48" alt="image" src="src/renderer/public/img/sidebar/stations-page.png" />
 
 This page is used to select the Station name and operator callsign. The callsign selection is currently superficial, and is populated by the metadata in the Stations file and cannot be modified during an event.
 
-This page also shows the details about the aid stations throughout the race, location, mileage, cutoff times.
+This page also shows the details about the aid stations throughout the race, including location, mileage, and cutoff times.
+
+> _Note: Callsign selection is for future ham radio integration and does not impact any function at this time._
 
 ## Logs Page
 
-<img height="48" alt="image" src="src/renderer/public/img/logs-page.png" />
+<img height="48" alt="image" src="src/renderer/public/img/sidebar/logs-page.png" />
 
 This page displays the station log file that is auto-generated during station operation. There are two versions of the log that can be viewed and/or exported for the use of operators or developers to aid in fixing errors that may occur due to programming mistakes or unforeseen situations.
 
@@ -155,7 +168,7 @@ Watchlist additions, removals, and alerts are recorded in the normal station log
 
 ## Export Page
 
-<img height="48" alt="image" src="src/renderer/public/img/export-page.png" />
+<img height="48" alt="image" src="src/renderer/public/img/sidebar/export-page.png" />
 
 This page provides Export utilities for sending station data to another station or race organizers. These file formats are optimized for human and machine readability.
 
@@ -189,9 +202,9 @@ This file is useful as a final station report.
 
 ## Event Manager
 
-<img height="48" alt="image" src="src/renderer/public/img/event-manager-page.png" />
+<img height="48" alt="image" src="src/renderer/public/img/sidebar/event-manager-page.png" />
 
-The Event Manager is used to switch between events and recover from local event backups.
+The Event Manager is used to switch between events and recover from local event backups. It keeps a list of saved events and automatic backups, and lets a station operator restore a prior snapshot without losing the current active event.
 
 - **Events** tab lists saved event databases. Select an event and choose **Load Event** to make it the
   active event. The active event is marked with an **Active** tag and cannot be deleted while it is
@@ -204,20 +217,28 @@ The Event Manager is used to switch between events and recover from local event 
 - Enable **Open Event Manager on Startup** to choose an event whenever Ultra-Tracker starts. This
   is useful when the computer is used for more than one event.
 
+<div align="center">
+  <img alt="Event Manager overview" src="src/renderer/public/img/UI/event-manager.png" />
+  <p><em>Event Manager events and backup controls</em></p>
+</div>
+
 ## Theme
 
-<img height="48" alt="image" src="src/renderer/public/img/theme-page.png" />
+<img height="48" alt="image" src="src/renderer/public/img/sidebar/theme-page.png" />
 
 This is a global selection that allows two different color/shading options for use during daylight or nighttime station operation.
 
 ## Settings Page
 
-<img height="48" alt="image" src="src/renderer/public/img/settings-page.png" />
+<img height="48" alt="image" src="src/renderer/public/img/sidebar/settings-page.png" />
+<div align="center">
+  <img alt="Settings overview" src="src/renderer/public/img/UI/settings-all.png" />
+  <p><em>Settings workspace and recovery controls</em></p>
+</div>
 
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/538bcb74-5df4-416a-b458-43b9f04fdbf7" />
+This page allows the operator to manage event input files and the database needed for proper station operation. Event files are loaded and saved from the user's Documents directory (per operating system). File Load/Export dialogs will open here and this directory can be opened quickly via the button provided on the Export page. The settings workspace is also where operators review the event metadata, manage drops imports, and access the OpenSplitTime and recovery controls.
 
-
-This page allows the operator to manage event input files and the database needed for proper station operation. Event files are loaded and saved from the user's Documents directory (per operating system). File Load/Export dialogs will open here and this directory can be opened quickly via the button provided on the Export page.
+The settings overview also brings together drops imports, OpenSplitTime configuration, and recovery controls so the station can be maintained without leaving the main workflow.
 
 - Windows: `%userprofile%\Documents\ultra-tracker\`
 - Linux: `$HOME/Documents/ultra-tracker`
