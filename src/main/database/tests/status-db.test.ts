@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { Readable } from "stream";
 import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -75,6 +77,18 @@ function seedTimeRecord(bibId: number) {
     `INSERT INTO TimeRecords (bibId, stationId, timeIn, timeOut, timeModified, note, sent, status)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(bibId, 3, new Date().toISOString(), null, new Date().toISOString(), "", 0, 0);
+}
+
+function recommendationFixture(name: string): Readable {
+  const filePath = path.resolve(process.cwd(), "resources/config/mock-data", name);
+  return Readable.from(fs.readFileSync(filePath, "utf8"));
+}
+
+function seedDrop(bibId: number, reason: DropReason, station: string, dateTime: string): void {
+  seedStatus(bibId);
+  db.prepare(
+    `UPDATE Status SET dropped = 1, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = ?`
+  ).run(reason, station, dateTime, bibId);
 }
 
 describe("status-db", () => {
@@ -617,6 +631,137 @@ describe("status-db", () => {
   });
 
   describe("drops import review", () => {
+    it("validates recommendation scenarios from CSV fixtures", async () => {
+      seedDrop(1001, DropReason.DidNotStart, "0-start-line", "2026-09-25T05:08:00.000Z");
+      seedDrop(1002, DropReason.Medical, "3-richards-hollow", "2026-09-25T12:00:00.000Z");
+
+      const [dnsPreview, dnsStatus] = await previewDropsContent(
+        recommendationFixture("drops-recommendation-dns.csv"),
+        "drops-recommendation-dns.csv"
+      );
+      const [courseDnsPreview] = await previewDropsContent(
+        recommendationFixture("drops-recommendation-course-dns.csv"),
+        "drops-recommendation-course-dns.csv"
+      );
+
+      expect(dnsStatus).toBe(DatabaseStatus.Success);
+      expect(dnsPreview?.conflicts[0]).toMatchObject({
+        bibId: 1001,
+        recommendedAction: DropsImportConflictAction.PreserveExisting,
+        recommendationConfidence: DropsImportRecommendationConfidence.High
+      });
+      expect(courseDnsPreview?.conflicts[0]).toMatchObject({
+        bibId: 1002,
+        recommendedAction: DropsImportConflictAction.PreserveExisting,
+        recommendationConfidence: DropsImportRecommendationConfidence.Medium
+      });
+    });
+
+    it("validates station-order recommendations from a CSV fixture", async () => {
+      storeMock.data.set("station.id", 6);
+      seedDrop(1003, DropReason.Medical, "6-tony-grove", "2026-09-25T12:00:00.000Z");
+      seedDrop(1004, DropReason.Medical, "2-franklin-trailhead", "2026-09-25T12:00:00.000Z");
+
+      const [preview] = await previewDropsContent(
+        recommendationFixture("drops-recommendation-station-order.csv"),
+        "drops-recommendation-station-order.csv"
+      );
+
+      expect(preview?.conflicts).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            bibId: 1003,
+            recommendedAction: DropsImportConflictAction.PreserveExisting,
+            recommendationConfidence: DropsImportRecommendationConfidence.Medium
+          }),
+          expect.objectContaining({
+            bibId: 1004,
+            recommendedAction: DropsImportConflictAction.UseImported,
+            recommendationConfidence: DropsImportRecommendationConfidence.Medium
+          })
+        ])
+      );
+    });
+
+    it("validates timestamp recommendations from a CSV fixture", async () => {
+      seedDrop(1005, DropReason.Medical, "3-richards-hollow", "2026-09-25T14:00:00.000Z");
+      seedDrop(1006, DropReason.Medical, "3-richards-hollow", "2026-09-25T16:00:00.000Z");
+
+      const [preview] = await previewDropsContent(
+        recommendationFixture("drops-recommendation-same-station-time.csv"),
+        "drops-recommendation-same-station-time.csv"
+      );
+
+      expect(preview?.conflicts).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            bibId: 1005,
+            recommendedAction: DropsImportConflictAction.UseImported,
+            recommendationConfidence: DropsImportRecommendationConfidence.Medium
+          }),
+          expect.objectContaining({
+            bibId: 1006,
+            recommendedAction: DropsImportConflictAction.PreserveExisting,
+            recommendationConfidence: DropsImportRecommendationConfidence.Medium
+          })
+        ])
+      );
+    });
+
+    it("validates manual-review recommendations from CSV fixtures", async () => {
+      seedDrop(1007, DropReason.Medical, "2-franklin-trailhead", "2026-09-25T15:00:00.000Z");
+      seedDrop(1008, DropReason.Medical, "3-richards-hollow", "2026-09-25T15:00:00.000Z");
+      seedDrop(1009, DropReason.Medical, "3-richards-hollow", "2026-09-25T15:00:00.000Z");
+
+      const [conflictPreview] = await previewDropsContent(
+        recommendationFixture("drops-recommendation-conflict.csv"),
+        "drops-recommendation-conflict.csv"
+      );
+      const [manualReviewPreview] = await previewDropsContent(
+        recommendationFixture("drops-recommendation-manual-review.csv"),
+        "drops-recommendation-manual-review.csv"
+      );
+
+      expect(conflictPreview?.conflicts).toEqual(
+        expect.arrayContaining(
+          [1007, 1008].map((bibId) =>
+            expect.objectContaining({
+              bibId,
+              recommendedAction: DropsImportConflictAction.PreserveExisting,
+              recommendationConfidence: DropsImportRecommendationConfidence.Low
+            })
+          )
+        )
+      );
+      expect(manualReviewPreview?.conflicts[0]).toMatchObject({
+        bibId: 1009,
+        recommendedAction: DropsImportConflictAction.PreserveExisting,
+        recommendationConfidence: DropsImportRecommendationConfidence.Low
+      });
+    });
+
+    it("classifies invalid and duplicate rows from a CSV fixture", async () => {
+      const [preview, status, message] = await previewDropsContent(
+        recommendationFixture("drops-recommendation-invalid.csv"),
+        "drops-recommendation-invalid.csv"
+      );
+
+      if (status !== DatabaseStatus.Success) throw new Error(message);
+      expect(preview).toMatchObject({
+        totalRowCount: 5,
+        processedCount: 4,
+        invalidRowCount: 1,
+        duplicateCount: 2
+      });
+      expect(preview?.skippedRecords).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ bibId: 1010, reason: "Invalid station identifier" }),
+          expect.objectContaining({ bibId: 1011, reason: "Invalid drop timestamp" })
+        ])
+      );
+      expect(preview?.duplicateRecords).toHaveLength(2);
+    });
+
     it("previews conflicts without changing any statuses", async () => {
       seedStatus(101);
       db.prepare(

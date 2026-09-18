@@ -680,8 +680,6 @@ function buildDropsImportConflict(record: DropRecord, status: StatusDB): DropsIm
   };
 }
 
-// HIGH CONFIDENCE CASES
-
 function recommendDropsImportAction(
   existing: DropsImportStatusValue,
   imported: DropsImportStatusValue
@@ -705,13 +703,30 @@ function recommendDropsImportAction(
     };
   }
 
-  // MEDIUM CONFIDENCE CASES
-
   if (existingIsCourseDrop && importedIsDns) {
     return {
       recommendedAction: DropsImportConflictAction.PreserveExisting,
       recommendationReason: dropsImportRecommendationReasons.existingCourseDropForImportedDns,
       recommendationConfidence: DropsImportRecommendationConfidence.Medium
+    };
+  }
+
+  if (
+    existingIsCourseDrop &&
+    importedIsCourseDrop &&
+    existingStationOrder != null &&
+    importedStationOrder != null &&
+    stationOrderContradictsTimestamps(
+      existingStationOrder,
+      importedStationOrder,
+      existing.dropDateTime,
+      imported.dropDateTime
+    )
+  ) {
+    return {
+      recommendedAction: DropsImportConflictAction.PreserveExisting,
+      recommendationReason: dropsImportRecommendationReasons.conflictingStationAndTimestamp,
+      recommendationConfidence: DropsImportRecommendationConfidence.Low
     };
   }
 
@@ -756,27 +771,6 @@ function recommendDropsImportAction(
     };
   }
 
-  // LOW CONFIDENCE CASES
-
-  if (
-    existingIsCourseDrop &&
-    importedIsCourseDrop &&
-    existingStationOrder != null &&
-    importedStationOrder != null &&
-    stationOrderContradictsTimestamps(
-      existingStationOrder,
-      importedStationOrder,
-      existing.dropDateTime,
-      imported.dropDateTime
-    )
-  ) {
-    return {
-      recommendedAction: DropsImportConflictAction.PreserveExisting,
-      recommendationReason: dropsImportRecommendationReasons.conflictingStationAndTimestamp,
-      recommendationConfidence: DropsImportRecommendationConfidence.Low
-    };
-  }
-
   return {
     recommendedAction: DropsImportConflictAction.PreserveExisting,
     recommendationReason: dropsImportRecommendationReasons.manualReview,
@@ -805,6 +799,10 @@ function stationOrderContradictsTimestamps(
 
   const importedStationIsLater = importedStationOrder > existingStationOrder;
   const importedTimeIsLater = importedTimestamp > existingTimestamp;
+  if (importedStationOrder === existingStationOrder || importedTimestamp === existingTimestamp) {
+    return false;
+  }
+
   return importedStationIsLater !== importedTimeIsLater;
 }
 
