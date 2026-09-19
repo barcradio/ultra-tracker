@@ -2,10 +2,12 @@ import Database from "better-sqlite3";
 import { getDatabaseConnection } from "./connect-db";
 import { exportDropsAsCSV } from "./runners-db";
 import { SetDrop } from "./status-db";
+import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { DatabaseStatus, DropReason, RecordStatus } from "../../shared/enums";
 import { DatabaseResponse, StartLineDropsPreview, StartLineDropsReport } from "../../shared/types";
+import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { appStore } from "../lib/store";
-import { setOpenSplitTimePushPaused } from "../services/opensplittime";
+import { getAuthStatus, setOpenSplitTimePushPaused } from "../services/opensplittime";
 
 function isCurrentStationStartLine(): boolean {
   const identifier = appStore.get("station.identifier") as string;
@@ -21,7 +23,7 @@ function getStartLineData(db: Database.Database) {
   ).map((row) => row.bibId);
 
   const timeRecords = db
-    .prepare(`SELECT bibId, status FROM TimeRecords WHERE stationId = ? AND timeIn IS NOT NULL`)
+    .prepare(`SELECT bibId, status FROM TimeRecords WHERE stationId = ?`)
     .all(stationId) as { bibId: number; status: number }[];
 
   const startedBibIds = new Set(timeRecords.map((record) => record.bibId));
@@ -66,19 +68,25 @@ export function previewStartLineDrops(): DatabaseResponse<StartLineDropsPreview>
     ];
   }
 
-  const db = getDatabaseConnection();
-  const data = getStartLineData(db);
+  try {
+    const db = getDatabaseConnection();
+    const data = getStartLineData(db);
 
-  const preview: StartLineDropsPreview = {
-    registeredCount: data.registeredBibIds.length,
-    startedCount: data.startedBibIds.size,
-    alreadyDroppedCount: data.alreadyDroppedBibIds.size,
-    newDropCount: data.newDropBibIds.length,
-    duplicateBibIds: data.duplicateBibIds,
-    unknownBibIds: data.unknownBibIds
-  };
+    const preview: StartLineDropsPreview = {
+      registeredCount: data.registeredBibIds.length,
+      startedCount: data.startedBibIds.size,
+      alreadyDroppedCount: data.alreadyDroppedBibIds.size,
+      newDropCount: data.newDropBibIds.length,
+      duplicateBibIds: data.duplicateBibIds,
+      unknownBibIds: data.unknownBibIds
+    };
 
-  return [preview, DatabaseStatus.Success, "Start line drops preview generated"];
+    return [preview, DatabaseStatus.Success, "Start line drops preview generated"];
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Unable to preview start line drops";
+    console.error(message);
+    return [null, DatabaseStatus.Error, message];
+  }
 }
 
 export async function generateStartLineDrops(): Promise<DatabaseResponse<StartLineDropsReport>> {
@@ -90,8 +98,17 @@ export async function generateStartLineDrops(): Promise<DatabaseResponse<StartLi
     ];
   }
 
-  const db = getDatabaseConnection();
-  const data = getStartLineData(db);
+  let db: Database.Database;
+  let data: ReturnType<typeof getStartLineData>;
+
+  try {
+    db = getDatabaseConnection();
+    data = getStartLineData(db);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Unable to generate start line drops";
+    console.error(message);
+    return [null, DatabaseStatus.Error, message];
+  }
 
   if (data.duplicateBibIds.length > 0) {
     return [
@@ -112,12 +129,31 @@ export async function generateStartLineDrops(): Promise<DatabaseResponse<StartLi
   // Fall back to now only if the event start time was never configured.
   const startTime = (appStore.get("event.starttime") as string) || new Date().toISOString();
 
-  setOpenSplitTimePushPaused(true);
+  // Pushes are already paused by default until a real sign-in occurs, and pausing still
+  // requires a valid token, so skip the call entirely when signed out.
+  if (getAuthStatus().authenticated) setOpenSplitTimePushPaused(true);
 
   try {
     const applyDrops = db.transaction((bibIds: number[]) => {
+      const stationId = appStore.get("station.id") as number;
+      const dropTime = new Date(startTime);
+
       for (const bibId of bibIds) {
-        const [status, message] = SetDrop(bibId, new Date(startTime), true, DropReason.DidNotStart);
+        // Give the bib a row in the grid (with the next sequence number) since it never scanned in.
+        const [insertStatus, insertMessage] = insertOrUpdateTimeRecord({
+          index: 0,
+          bibId,
+          stationId,
+          timeIn: dropTime,
+          timeOut: dropTime,
+          timeModified: dropTime,
+          note: "",
+          sent: false,
+          status: RecordStatus.OK
+        });
+        if (insertStatus === DatabaseStatus.Error) throw new Error(insertMessage);
+
+        const [status, message] = SetDrop(bibId, dropTime, true, DropReason.DidNotStart);
         if (status === DatabaseStatus.Error) throw new Error(message);
       }
     });
@@ -127,6 +163,9 @@ export async function generateStartLineDrops(): Promise<DatabaseResponse<StartLi
     const message = e instanceof Error ? e.message : "Unable to generate start line drops";
     return [null, DatabaseStatus.Error, message];
   }
+
+  // SetDrop() skips this for DropReason.DidNotStart since there is no timing record to refresh.
+  if (data.newDropBibIds.length > 0) emitRunnersTableChanged();
 
   const exportMessage = await exportDropsAsCSV();
 

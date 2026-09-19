@@ -25,9 +25,11 @@ vi.mock("../../lib/store", () => ({ appStore: storeMock }));
 
 const setOpenSplitTimePushPaused = vi.hoisted(() => vi.fn());
 const pushTimeRecordUpdate = vi.hoisted(() => vi.fn(async () => ({ pushed: true })));
+const getAuthStatus = vi.hoisted(() => vi.fn(() => ({ authenticated: true, expiration: null })));
 vi.mock("../../services/opensplittime", () => ({
   setOpenSplitTimePushPaused,
-  pushTimeRecordUpdate
+  pushTimeRecordUpdate,
+  getAuthStatus
 }));
 
 const sendToastToRenderer = vi.hoisted(() => vi.fn());
@@ -50,11 +52,17 @@ function seedAthlete(bibId: number) {
   initStatus(bibId);
 }
 
-function seedTimeRecord(bibId: number, stationId: number, status = 0) {
+function seedTimeRecord(
+  bibId: number,
+  stationId: number,
+  status = 0,
+  timeIn: string | null = new Date().toISOString(),
+  timeOut: string | null = null
+) {
   db.prepare(
     `INSERT INTO TimeRecords (bibId, stationId, timeIn, timeOut, timeModified, note, sent, status)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(bibId, stationId, new Date().toISOString(), null, new Date().toISOString(), "", 0, status);
+  ).run(bibId, stationId, timeIn, timeOut, new Date().toISOString(), "", 0, status);
 }
 
 describe("startLineDrops-db", () => {
@@ -122,6 +130,17 @@ describe("startLineDrops-db", () => {
 
       expect(preview?.unknownBibIds).toEqual([999]);
     });
+
+    it("treats an out-only entry (no timeIn) as started, not a DNS candidate", () => {
+      // Start line "Out" button entries record only timeOut; timeIn stays null.
+      seedAthlete(101);
+      seedAthlete(102);
+      seedTimeRecord(101, 0, 0, null, new Date().toISOString());
+
+      const [preview] = previewStartLineDrops();
+
+      expect(preview).toMatchObject({ startedCount: 1, newDropCount: 1 });
+    });
   });
 
   describe("generateStartLineDrops", () => {
@@ -158,6 +177,7 @@ describe("startLineDrops-db", () => {
       expect(report?.newDropCount).toBe(1);
       expect(setOpenSplitTimePushPaused).toHaveBeenCalledWith(true);
       expect(exportDropsAsCSV).toHaveBeenCalled();
+      expect(emitRunnersTableChanged).toHaveBeenCalled();
 
       const droppedStatus = db.prepare(`SELECT * FROM Status WHERE bibId = ?`).get(102) as {
         dropped: number;
@@ -172,6 +192,29 @@ describe("startLineDrops-db", () => {
         dropStation: "0-start-line",
         dropDateTime: "2026-09-25T05:00:00.000Z"
       });
+
+      // The dropped bib gets its own TimeRecords row (auto-assigned sequence number) so it
+      // shows up in the runner grid, with in/out times set to the drop time (event start time).
+      const timeRecord = db.prepare(`SELECT * FROM TimeRecords WHERE bibId = ?`).get(102) as {
+        index: number;
+        timeIn: string | null;
+        timeOut: string | null;
+      };
+
+      expect(timeRecord.index).toBeGreaterThan(0);
+      expect(timeRecord.timeIn).toBe("2026-09-25T05:00:00.000Z");
+      expect(timeRecord.timeOut).toBe("2026-09-25T05:00:00.000Z");
+    });
+
+    it("skips pausing OST when signed out, since pushes are already paused", async () => {
+      getAuthStatus.mockReturnValueOnce({ authenticated: false, expiration: null });
+      seedAthlete(101);
+
+      const [report, status] = await generateStartLineDrops();
+
+      expect(status).toBe(DatabaseStatus.Success);
+      expect(report?.newDropCount).toBe(1);
+      expect(setOpenSplitTimePushPaused).not.toHaveBeenCalled();
     });
   });
 });
