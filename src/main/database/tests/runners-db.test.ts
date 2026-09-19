@@ -160,6 +160,16 @@ describe("runners-db", () => {
       expect(GetTotalRunners()).toBe(2);
     });
 
+    it("excludes did-not-start placeholder records from the runner count", () => {
+      // Start line DNS drops get a placeholder TimeRecords row for grid visibility; it must not
+      // be double-counted against GetTotalDidNotStart() in the pendingArrivals stat formula.
+      insertTiming(101);
+      insertTiming(102);
+      insertStatusRow(102, 1, "did-not-start", "0-start-line");
+
+      expect(GetTotalRunners()).toBe(1);
+    });
+
     it("counts runners still in the station", () => {
       insertTiming(101);
       insertTiming(102, { timeOut: new Date().toISOString() });
@@ -172,6 +182,14 @@ describe("runners-db", () => {
       insertTiming(102, { timeOut: new Date().toISOString() });
 
       expect(GetRunnersOutStation()).toBe(1);
+    });
+
+    it("excludes did-not-start placeholder records from the through-station count", () => {
+      insertTiming(101);
+      insertTiming(102, { timeOut: new Date().toISOString() });
+      insertStatusRow(102, 1, "did-not-start", "0-start-line");
+
+      expect(GetRunnersOutStation()).toBe(0);
     });
 
     it("counts records flagged as duplicates", () => {
