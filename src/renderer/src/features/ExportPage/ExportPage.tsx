@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import DangerIcon from "~/assets/icons/error-octagon.svg?react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { useBasicIpcCall } from "~/hooks/ipc/useBasicIpcCall";
@@ -40,49 +41,67 @@ export function ExportPage() {
   });
 
   const openStartLineDropsConfirmation = async () => {
-    const [preview, status, message] = (await ipcRenderer.invoke(
-      "preview-start-line-drops"
-    )) as DatabaseResponse<StartLineDropsPreview>;
+    try {
+      const [preview, status, message] = (await ipcRenderer.invoke(
+        "preview-start-line-drops"
+      )) as DatabaseResponse<StartLineDropsPreview>;
 
-    if (status !== DatabaseStatus.Success || !preview) {
-      createToast({ message, type: "danger" });
-      return;
+      if (status !== DatabaseStatus.Success || !preview) {
+        createToast({ message, type: "danger" });
+        return;
+      }
+
+      setStartLinePreview(preview);
+    } catch (error) {
+      createToast({ message: String(error), type: "danger" });
     }
-
-    setStartLinePreview(preview);
   };
 
   const generateStartLineDrops = async () => {
-    const [report, status, message] = (await ipcRenderer.invoke(
-      "generate-start-line-drops"
-    )) as DatabaseResponse<StartLineDropsReport>;
+    try {
+      const [report, status, message] = (await ipcRenderer.invoke(
+        "generate-start-line-drops"
+      )) as DatabaseResponse<StartLineDropsReport>;
 
-    createToast({ message, type: status === DatabaseStatus.Success ? "success" : "danger" });
-    if (report) createToast({ message: report.exportMessage, type: "success" });
+      createToast({ message, type: status === DatabaseStatus.Success ? "success" : "danger" });
+      if (report) createToast({ message: report.exportMessage, type: "success" });
+    } catch (error) {
+      createToast({ message: String(error), type: "danger" });
+    }
   };
 
   return (
     <div className="w-full h-full overflow-y-auto bg-component p-6">
       <Stack justify="center" align="start" className="gap-6 flex-wrap xl:flex-nowrap min-w-full">
-        <VerticalButtonGroup label="Export Tools" className="w-[22rem]">
-          <Button color="primary" size="wide" onClick={() => createIncrementalCSVFile.mutate()}>
-            Export Incremental CSV File
-          </Button>
-          <Button color="primary" size="wide" onClick={() => createRunnerCSVFile.mutate()}>
-            Export Full CSV File
-          </Button>
-          <Button color="primary" size="wide" onClick={() => createDropsCSVFile.mutate()}>
-            Export Drops CSV File
-          </Button>
-          <Button
-            color="primary"
-            size="wide"
-            disabled={!canGenerateStartLineDrops}
-            onClick={() => void openStartLineDropsConfirmation()}
-          >
-            Generate Start Line Drops
-          </Button>
-        </VerticalButtonGroup>
+        <Stack direction="col" className="gap-6 w-[22rem]">
+          <VerticalButtonGroup label="Export Tools" className="w-full">
+            <Button color="primary" size="wide" onClick={() => createIncrementalCSVFile.mutate()}>
+              Export Incremental CSV File
+            </Button>
+            <Button color="primary" size="wide" onClick={() => createRunnerCSVFile.mutate()}>
+              Export Full CSV File
+            </Button>
+            <Button color="primary" size="wide" onClick={() => createDropsCSVFile.mutate()}>
+              Export Drops CSV File
+            </Button>
+          </VerticalButtonGroup>
+          <VerticalButtonGroup label="Start Line Export Tool" className="w-full">
+            <Button
+              color="primary"
+              size="wide"
+              disabled={!canGenerateStartLineDrops}
+              onClick={() => void openStartLineDropsConfirmation()}
+            >
+              Generate Start Line Drops
+            </Button>
+            {rfidScanning && (
+              <Stack direction="row" align="center" className="gap-2">
+                <DangerIcon height={18} width={18} className="fill-danger" />
+                <span className="text-on-surface">RFID is still scanning</span>
+              </Stack>
+            )}
+          </VerticalButtonGroup>
+        </Stack>
         <VerticalButtonGroup label="Export Files" className="w-[22rem]">
           <Button color="primary" size="wide" onClick={() => openExportDirectory.mutate()}>
             Open Export Folder
