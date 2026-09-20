@@ -1,7 +1,13 @@
 import { Readable } from "stream";
 import AdmZip from "adm-zip";
+import { parse } from "csv-parse/sync";
 import { DatabaseStatus } from "$shared/enums";
-import { DatabaseResponse, EventArchivePreview } from "$shared/types";
+import {
+  DatabaseResponse,
+  EventArchiveOpenSplitTimePreview,
+  EventArchivePreview,
+  EventArchivePreviewSummary
+} from "$shared/types";
 import { parseAthletesContent } from "./athlete-db";
 import { createDatabaseFile, resolveUniqueSlug, slugify } from "./connect-db";
 import {
@@ -20,6 +26,26 @@ interface EventArchiveEntries {
   stationsEntry: AdmZip.IZipEntry;
   athletesEntry: AdmZip.IZipEntry;
   dropsEntry: AdmZip.IZipEntry | null;
+}
+
+interface EventArchiveJson {
+  event?: EventArchiveEventJson;
+}
+
+interface EventArchiveEventJson {
+  starttime?: unknown;
+  endtime?: unknown;
+  openSplitTime?: OpenSplitTimeArchiveJson;
+}
+
+interface OpenSplitTimeArchiveJson {
+  production?: OpenSplitTimeArchiveMetadata;
+  staging?: OpenSplitTimeArchiveMetadata;
+}
+
+interface OpenSplitTimeArchiveMetadata {
+  name?: unknown;
+  id?: unknown;
 }
 
 function readEventArchiveEntries(archiveFilePath: string): DatabaseResponse<EventArchiveEntries> {
@@ -45,6 +71,46 @@ function readEventArchiveEntries(archiveFilePath: string): DatabaseResponse<Even
   return [{ stationsEntry, athletesEntry, dropsEntry }, DatabaseStatus.Success, ""];
 }
 
+function countCsvRows(content: Buffer, headerRowCount: number): number {
+  const records = parse(content, {
+    ["relax_column_count"]: true,
+    ["skip_empty_lines"]: true
+  }) as unknown[];
+  return Math.max(records.length - headerRowCount, 0);
+}
+
+function readOpenSplitTimePreview(
+  openSplitTime: OpenSplitTimeArchiveJson | undefined
+): EventArchiveOpenSplitTimePreview[] {
+  return (["production", "staging"] as const).flatMap((environment) => {
+    const metadata = openSplitTime?.[environment];
+    if (typeof metadata?.name !== "string" || typeof metadata.id !== "number") return [];
+
+    return [{ environment, name: metadata.name, id: metadata.id }];
+  });
+}
+
+function readEventArchiveSummary(
+  stationsJson: string,
+  stations: EventArchivePreview["stations"],
+  entries: EventArchiveEntries
+): EventArchivePreviewSummary {
+  const archive = JSON.parse(stationsJson) as EventArchiveJson;
+  const startStation = stations[0];
+  const finishStation = stations.at(-1);
+
+  return {
+    startTime: typeof archive.event?.starttime === "string" ? archive.event.starttime : undefined,
+    endTime: typeof archive.event?.endtime === "string" ? archive.event.endtime : undefined,
+    courseDistance: finishStation?.distance,
+    startStationName: startStation?.name,
+    finishStationName: finishStation?.name,
+    athleteCount: countCsvRows(entries.athletesEntry.getData(), 1),
+    dropCount: entries.dropsEntry ? countCsvRows(entries.dropsEntry.getData(), 2) : 0,
+    openSplitTime: readOpenSplitTimePreview(archive.event?.openSplitTime)
+  };
+}
+
 export function previewEventArchiveFile(
   archiveFilePath: string
 ): DatabaseResponse<EventArchivePreview> {
@@ -55,9 +121,10 @@ export function previewEventArchiveFile(
     const stationsJson = entries.stationsEntry.getData().toString("utf-8");
     const eventName = readEventNameFromStationsContent(stationsJson);
     const stations = previewStationsContent(stationsJson);
+    const summary = readEventArchiveSummary(stationsJson, stations, entries);
 
     return [
-      { archiveFilePath, eventName, stations },
+      { archiveFilePath, eventName, stations, summary },
       DatabaseStatus.Success,
       `Loaded event file "${eventName}"`
     ];

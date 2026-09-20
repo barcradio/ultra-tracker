@@ -47,6 +47,31 @@ On first launch, Ultra-Tracker opens **Getting Started** to guide the user throu
 
 1. Select **Load Event File** and choose the event file (`.zip`) supplied for the event.
 2. Select the station identifier for this computer.
+3. Select the operator callsign.
+4. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
+
+The event files can be selected from their existing location; they do not need to be copied into a special folder first. The default event-config folder is `\Documents\Ultra-Tracker\.event-config\`. Additional Drops files can be imported later from the Settings page.
+
+The **Event Manager** can be launched in the sidebar to manage current and previous events. Selecting **Create New Event** launches the **Getting Started** wizard.
+
+The wizard carries the operator through the minimum setup needed to start tracking: load the event file, choose the station, pick the operator callsign, and import the event.
+
+<table border="0" cellpadding="0" cellspacing="12" width="100%">
+  <tr>
+    <td align="center" width="33%">
+      <img alt="Getting Started step 1" src="src/renderer/public/img/UI/getting-started-1.png" width="300" /><br>
+      <em>Select an event file</em>
+    </td>
+    <td align="center" width="33%">
+      <img alt="Getting Started step 2" src="src/renderer/public/img/UI/getting-started-2.png" width="300" /><br>
+      <em>Select the station and operator</em>
+    </td>
+    <td align="center" width="33%">
+      <img alt="Getting Started step 3" src="src/renderer/public/img/UI/getting-started-3.png" width="300" /><br>
+      <em>Import the event and begin timing</em>
+    </td>
+  </tr>
+</table>
 
 ## Stats Page
 
