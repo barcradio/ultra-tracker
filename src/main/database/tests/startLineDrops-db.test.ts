@@ -157,14 +157,24 @@ describe("startLineDrops-db", () => {
   });
 
   describe("generateStartLineDrops", () => {
-    it("errors when RFID is still scanning", async () => {
+    it("does not write or initiate outbound work while RFID is still scanning", async () => {
       IsRFIDScanning.mockReturnValueOnce(true);
+      seedAthlete(101);
 
       const [report, status, message] = await generateStartLineDrops(true);
 
       expect(report).toBeNull();
       expect(status).toBe(DatabaseStatus.Error);
       expect(message).toMatch(/rfid/i);
+      expect(db.prepare(`SELECT COUNT(*) AS count FROM TimeRecords`).get()).toMatchObject({
+        count: 0
+      });
+      expect(db.prepare(`SELECT dropped FROM Status WHERE bibId = ?`).get(101)).toMatchObject({
+        dropped: 0
+      });
+      expect(setOpenSplitTimePushPaused).not.toHaveBeenCalled();
+      expect(pushTimeRecordUpdate).not.toHaveBeenCalled();
+      expect(exportDropsAsCSV).not.toHaveBeenCalled();
     });
 
     it("errors when the start line closure isn't confirmed", async () => {
@@ -211,6 +221,9 @@ describe("startLineDrops-db", () => {
       expect(report?.newDropCount).toBe(1);
       expect(report?.exportStatus).toBe("success");
       expect(setOpenSplitTimePushPaused).toHaveBeenCalledWith(true);
+      expect(setOpenSplitTimePushPaused.mock.invocationCallOrder[0]).toBeLessThan(
+        pushTimeRecordUpdate.mock.invocationCallOrder[0]
+      );
       expect(exportDropsAsCSV).toHaveBeenCalled();
       expect(emitRunnersTableChanged).toHaveBeenCalled();
 
