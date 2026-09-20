@@ -19,7 +19,13 @@ The app installs as a normal desktop application and can be launched from the St
 
 ### Windows Installation
 
-Windows releases are distributed as a standard NSIS installer. Download the latest `ultra-tracker-<version>-setup.exe` from the [releases page](https://github.com/barcradio/ultra-tracker/releases), run the installer, and follow the prompts to complete setup.
+Windows releases are distributed as a standard NSIS installer. 
+1. Download the latest `ultra-tracker-<version>-setup.exe` from the [releases page](https://github.com/barcradio/ultra-tracker/releases).
+  A. Pressing on the three dots should next to the trash can will open pop up that allows you to select "Keep".
+  B. There is a delete button, but next to that is the down caret.
+  C. Pressing the down caret will give you the option to "Keep anyway"
+4. Run the setup.exe
+5. If Microsoft Defender SmartScreen appears, click **More info**, then click **Run anyway**.
 
 ### Linux installation
 
