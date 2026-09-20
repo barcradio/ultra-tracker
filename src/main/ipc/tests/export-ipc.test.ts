@@ -24,6 +24,12 @@ const mockedExportDirectory = vi.hoisted(() =>
 vi.mock("../../database/runners-db", () => dbRunners);
 vi.mock("../../lib/file-dialogs", () => ({ AppPaths: { userRoot: mockedExportDirectory } }));
 
+const startLineDrops = vi.hoisted(() => ({
+  previewStartLineDrops: vi.fn(() => "start line preview done"),
+  generateStartLineDrops: vi.fn(() => "start line drops generated")
+}));
+vi.mock("../../database/startLineDrops-db", () => startLineDrops);
+
 function handlerFor(channel: string) {
   const handler = ipcHandlers.get(channel);
   if (!handler) throw new Error(`${channel} handler was not registered`);
@@ -54,5 +60,17 @@ describe("export-ipc", () => {
     handlerFor("open-export-dir")(undefined);
 
     expect(shell.openPath).toHaveBeenCalledWith(mockedExportDirectory);
+  });
+
+  it("previews start line drops", () => {
+    expect(handlerFor("preview-start-line-drops")(undefined)).toBe("start line preview done");
+    expect(startLineDrops.previewStartLineDrops).toHaveBeenCalled();
+  });
+
+  it("generates start line drops", () => {
+    expect(handlerFor("generate-start-line-drops")(undefined, true)).toBe(
+      "start line drops generated"
+    );
+    expect(startLineDrops.generateStartLineDrops).toHaveBeenCalledWith(true);
   });
 });

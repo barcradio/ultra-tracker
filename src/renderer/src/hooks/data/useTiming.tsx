@@ -141,6 +141,10 @@ interface OpenSplitTimeAuthStatus {
   expiration: string | null;
 }
 
+interface OpenSplitTimePushPausedStatus {
+  paused: boolean;
+}
+
 // Re-checked each time `enabled` flips true (e.g. the EditRunner drawer opening) rather than
 // polled continuously, since the push button's auth check only matters while it's visible.
 export const useOpenSplitTimeAuthStatus = (enabled: boolean) => {
@@ -150,6 +154,17 @@ export const useOpenSplitTimeAuthStatus = (enabled: boolean) => {
     queryKey: ["opensplittime-auth-status"],
     queryFn: () =>
       ipcRenderer.invoke("opensplittime-get-auth-status") as Promise<OpenSplitTimeAuthStatus>,
+    enabled
+  });
+};
+
+export const useOpenSplitTimePushPaused = (enabled: boolean) => {
+  const ipcRenderer = useIpcRenderer();
+
+  return useQuery({
+    queryKey: ["opensplittime-push-paused"],
+    queryFn: () =>
+      ipcRenderer.invoke("opensplittime-get-push-paused") as Promise<OpenSplitTimePushPausedStatus>,
     enabled
   });
 };
