@@ -265,6 +265,15 @@ This file is useful as a final station report.
 - **Export Drops File**
   This function exports a `.csv` file with all Drop entries (Not Started, Withdrew, Timeout, Medical, Unknown) that have occurred at or before the current station. This file is not normally needed to be sent to race organizers but can be an efficient way of sending the current station's Drops list to another station.
 
+- **Generate Start Line Drops**
+  Available only at the Start Line station, and only once the RFID reader has been stopped. This tool compares every registered athlete against those recorded at the Start Line and marks everyone not recorded as a Drop of type **Did Not Start (DNS)**, using the event's official start time.
+
+  Selecting the button opens a preflight review showing Registered, Started, Already Dropped, and New DNS counts. If any duplicate Start Line records or unknown bibs are found, they are listed and generation is blocked until resolved: duplicates must be resolved on the Stats page, and unknown bibs require reloading the event file. Otherwise, check **I confirm the start line is officially closed** to enable **Generate Drops**.
+
+  Generating drops pauses OpenSplitTime pushes (if signed in), records the new DNS drops, and immediately runs the same export as **Export Drops File**. The newly dropped athletes appear on the Stats page with the event start time recorded as both In and Out.
+
+  <span style="color:orange">**NOTE:** Run this only once the Start Line has officially closed. Running it early will mark athletes who have not yet started as Did Not Start.</span>
+
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
