@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DangerIcon from "~/assets/icons/error-octagon.svg?react";
-import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
+import { Button, Modal, Stack, VerticalButtonGroup } from "~/components";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { useBasicIpcCall } from "~/hooks/ipc/useBasicIpcCall";
 import { useStoreValue } from "~/hooks/ipc/useStoreValue";
@@ -13,6 +13,7 @@ export function ExportPage() {
   const ipcRenderer = useIpcRenderer();
   const { createToast } = useToasts();
   const [startLinePreview, setStartLinePreview] = useState<StartLineDropsPreview | null>(null);
+  const [startLineClosedConfirmed, setStartLineClosedConfirmed] = useState(false);
 
   const { data: stationIdentifier } = useStoreValue<string>("station.identifier");
   const { data: startline } = useStoreValue<string>("event.startline");
@@ -23,6 +24,10 @@ export function ExportPage() {
   });
   const isStartLineStation = Boolean(startline) && stationIdentifier === startline;
   const canGenerateStartLineDrops = isStartLineStation && rfidScanning === false;
+  const hasBlockingStartLineIssues = Boolean(
+    startLinePreview &&
+    (startLinePreview.duplicateBibIds.length > 0 || startLinePreview.unknownBibIds.length > 0)
+  );
 
   const createRunnerCSVFile = useBasicIpcCall("export-runners-file", {
     preToast: "Exporting to CSV file"
@@ -51,20 +56,32 @@ export function ExportPage() {
         return;
       }
 
+      setStartLineClosedConfirmed(false);
       setStartLinePreview(preview);
     } catch (error) {
       createToast({ message: String(error), type: "danger" });
     }
   };
 
+  const closeStartLineDropsConfirmation = () => {
+    setStartLinePreview(null);
+    setStartLineClosedConfirmed(false);
+  };
+
   const generateStartLineDrops = async () => {
     try {
       const [report, status, message] = (await ipcRenderer.invoke(
-        "generate-start-line-drops"
+        "generate-start-line-drops",
+        startLineClosedConfirmed
       )) as DatabaseResponse<StartLineDropsReport>;
 
       createToast({ message, type: status === DatabaseStatus.Success ? "success" : "danger" });
-      if (report) createToast({ message: report.exportMessage, type: "success" });
+      if (report) {
+        createToast({
+          message: report.exportMessage,
+          type: report.exportStatus === "success" ? "success" : "danger"
+        });
+      }
     } catch (error) {
       createToast({ message: String(error), type: "danger" });
     }
@@ -109,14 +126,20 @@ export function ExportPage() {
         </VerticalButtonGroup>
       </Stack>
 
-      <ConfirmationModal
-        dangerous
+      <Modal
         open={startLinePreview != null}
-        setOpen={(open) => !open && setStartLinePreview(null)}
+        setOpen={(open) => !open && closeStartLineDropsConfirmation()}
         title="Generate Start Line Drops"
         negativeText="Cancel"
         affirmativeText="Generate Drops"
-        onAffirmative={() => void generateStartLineDrops()}
+        dangerous
+        affirmativeDisabled={
+          !startLinePreview || hasBlockingStartLineIssues || !startLineClosedConfirmed
+        }
+        onAffirmative={() => {
+          void generateStartLineDrops();
+          closeStartLineDropsConfirmation();
+        }}
       >
         {startLinePreview && (
           <div className="text-left">
@@ -124,15 +147,45 @@ export function ExportPage() {
               Only run this once the start line has officially closed. Running it early can mark
               athletes who have not yet started as did-not-start.
             </p>
-            <ul className="mt-2 list-disc list-inside">
-              <li>Registered: {startLinePreview.registeredCount}</li>
-              <li>Started: {startLinePreview.startedCount}</li>
-              <li>Already dropped: {startLinePreview.alreadyDroppedCount}</li>
-              <li>New DNS drops: {startLinePreview.newDropCount}</li>
-            </ul>
+
+            {hasBlockingStartLineIssues ? (
+              <div className="mt-2">
+                <p className="font-bold text-danger">Cannot continue</p>
+                {startLinePreview.duplicateBibIds.length > 0 && (
+                  <p className="mt-1">
+                    Duplicate start line records: {startLinePreview.duplicateBibIds.join(", ")}
+                  </p>
+                )}
+                {startLinePreview.unknownBibIds.length > 0 && (
+                  <p className="mt-1">
+                    Unknown start line bibs: {startLinePreview.unknownBibIds.join(", ")}
+                  </p>
+                )}
+                <p className="mt-1">Fix these issues before exporting.</p>
+              </div>
+            ) : (
+              <>
+                <ul className="mt-2 list-disc list-inside">
+                  <li>Registered: {startLinePreview.registeredCount}</li>
+                  <li>Started: {startLinePreview.startedCount}</li>
+                  <li>Already dropped: {startLinePreview.alreadyDroppedCount}</li>
+                  <li>New DNS drops: {startLinePreview.newDropCount}</li>
+                  <li>Duplicate records: {startLinePreview.duplicateBibIds.length}</li>
+                  <li>Unknown athletes: {startLinePreview.unknownBibIds.length}</li>
+                </ul>
+                <label className="flex items-center gap-2 mt-3">
+                  <input
+                    type="checkbox"
+                    checked={startLineClosedConfirmed}
+                    onChange={(e) => setStartLineClosedConfirmed(e.target.checked)}
+                  />
+                  <span>I confirm the start line is officially closed.</span>
+                </label>
+              </>
+            )}
           </div>
         )}
-      </ConfirmationModal>
+      </Modal>
     </div>
   );
 }
