@@ -56,8 +56,17 @@ function getTotalRunners(): DatabaseResponse<number> {
   let queryResult;
   let message: string = "";
 
+  // Start line DNS drops get a placeholder TimeRecords row for grid visibility (see
+  // startLineDrops-db.ts); they never actually started, so they must not count as runners here
+  // or GetTotalDidNotStart() and this stat would both subtract the same bibs from pendingArrivals.
   try {
-    queryResult = db.prepare(`SELECT COUNT(bibId) FROM TimeRecords`).get();
+    queryResult = db
+      .prepare(
+        `SELECT COUNT(TimeRecords.bibId) FROM TimeRecords LEFT JOIN Status
+         ON TimeRecords.bibId = Status.bibId
+         WHERE IFNULL(Status.dropReason, '') != ?`
+      )
+      .get(DropReason.DidNotStart);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -67,9 +76,9 @@ function getTotalRunners(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetTotalRunnersFromStaEvents: ${queryResult["COUNT(bibId)"]}`;
+  message = `GetTotalRunnersFromStaEvents: ${queryResult["COUNT(TimeRecords.bibId)"]}`;
 
-  return [queryResult["COUNT(bibId)"] as number, DatabaseStatus.Success, message];
+  return [queryResult["COUNT(TimeRecords.bibId)"] as number, DatabaseStatus.Success, message];
 }
 
 function getRunnersInStation(): DatabaseResponse<number> {
@@ -98,8 +107,16 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
   let queryResult;
   let message: string = "";
 
+  // Excludes did-not-start placeholder rows (see getTotalRunners above) so DNS drops don't
+  // inflate "Through Station" for bibs that never actually ran through this station.
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM TimeRecords WHERE timeOut IS NOT NULL`).get();
+    queryResult = db
+      .prepare(
+        `SELECT COUNT(TimeRecords.bibId) FROM TimeRecords LEFT JOIN Status
+         ON TimeRecords.bibId = Status.bibId
+         WHERE TimeRecords.timeOut IS NOT NULL AND IFNULL(Status.dropReason, '') != ?`
+      )
+      .get(DropReason.DidNotStart);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -109,9 +126,9 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From TimeRecords Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From TimeRecords Where 'timeOut IS NOT NULL':${queryResult["COUNT(TimeRecords.bibId)"]}`;
 
-  return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+  return [queryResult["COUNT(TimeRecords.bibId)"] as number, DatabaseStatus.Success, message];
 }
 
 function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {

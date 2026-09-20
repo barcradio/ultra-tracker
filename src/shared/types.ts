@@ -85,6 +85,21 @@ export interface DropsImportReport {
   conflictCount: number;
 }
 
+export interface StartLineDropsPreview {
+  registeredCount: number;
+  startedCount: number;
+  alreadyDroppedCount: number;
+  newDropCount: number;
+  duplicateBibIds: number[];
+  unknownBibIds: number[];
+}
+
+export interface StartLineDropsReport {
+  newDropCount: number;
+  exportMessage: string;
+  exportStatus: "success" | "cancelled" | "error";
+}
+
 export interface Toast {
   message: string;
   type: "info" | "success" | "danger" | "warning";

@@ -560,6 +560,7 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       const outcome = await service.pushTimeRecordUpdate(runner());
 
       expect(outcome).toEqual({ pushed: false });
+      expect(service.isOpenSplitTimePushPaused()).toBe(true);
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
