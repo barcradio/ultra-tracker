@@ -16,10 +16,28 @@ export interface SetStationIdentityParams {
   moveTimingRecords?: boolean;
 }
 
+export interface EventArchiveOpenSplitTimePreview {
+  environment: "production" | "staging";
+  name: string;
+  id: number;
+}
+
+export interface EventArchivePreviewSummary {
+  startTime?: string;
+  endTime?: string;
+  courseDistance?: number;
+  startStationName?: string;
+  finishStationName?: string;
+  athleteCount: number;
+  dropCount: number;
+  openSplitTime: EventArchiveOpenSplitTimePreview[];
+}
+
 export interface EventArchivePreview {
   archiveFilePath: string;
   eventName: string;
   stations: Station[];
+  summary: EventArchivePreviewSummary;
 }
 
 export interface DropsImportStatusValue {

@@ -9,7 +9,7 @@ export function EventImportProgressRow({ label, status }: EventImportProgressRow
   const statusText = {
     pending: "Pending",
     working: "Loading...",
-    success: "Complete",
+    success: "Ready",
     error: "Failed"
   }[status];
 
