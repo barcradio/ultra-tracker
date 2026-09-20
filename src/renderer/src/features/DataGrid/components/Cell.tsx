@@ -1,3 +1,4 @@
+import { CSSProperties, ReactNode } from "react";
 import { Tooltip } from "primereact/tooltip";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { useTruncated } from "~/hooks/dom/useTruncated";
@@ -20,8 +21,9 @@ export const CellWrapper = classed.td(
 );
 
 interface CellProps {
-  children: React.ReactNode;
+  children: ReactNode;
   align: "left" | "right";
+  style?: CSSProperties;
   truncate?: boolean;
 }
 
@@ -36,6 +38,7 @@ export function Cell(props: CellProps) {
       align={props.align}
       ref={cellRef}
       className={cellId}
+      style={props.style}
       truncate={props.truncate !== false}
     >
       {props.children}

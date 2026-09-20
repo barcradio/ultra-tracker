@@ -9,3 +9,46 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+/* Scrollbars: muted, theme-aware colors instead of the bright OS default */
+.dark {
+  scrollbar-color: #4f585d #060b0d;
+}
+
+.light {
+  scrollbar-color: #8a9093 #cfcfcf;
+}
+
+.dark ::-webkit-scrollbar,
+.light ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #060b0d;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #4f585d;
+  border-radius: 6px;
+  border: 3px solid #060b0d;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #64707a;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: #cfcfcf;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background-color: #8a9093;
+  border-radius: 6px;
+  border: 3px solid #cfcfcf;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background-color: #767c7f;
+}

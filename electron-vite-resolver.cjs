@@ -1,7 +1,7 @@
-const isCore = require("is-core-module");
-const resolve = require("resolve");
 const { execSync } = require("child_process");
 const path = require("path");
+const isCore = require("is-core-module");
+const resolve = require("resolve");
 
 /**
  * @typedef ResolverOptions
@@ -151,6 +151,17 @@ const resolvePath = (source, file, options) => {
     return resolveSync(source, resolveOptions, "AS IS");
   } catch (err) {
     log("COULD NOT RESOLVE AS IS", source);
+  }
+
+  // fall back to Node's own resolution, which (unlike the `resolve` package here) understands
+  // package.json "exports" maps, for exports-only packages such as uuid
+  try {
+    log("RESOLVING WITH NODE EXPORTS", source);
+    const resolvedPath = require.resolve(source, { paths: [resolveOptions.basedir] });
+    log("RESOLVED", resolvedPath);
+    return { found: true, path: resolvedPath };
+  } catch (err) {
+    log("COULD NOT RESOLVE WITH NODE EXPORTS", source);
   }
 
   // try to resolve the source with alias

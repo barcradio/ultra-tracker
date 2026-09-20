@@ -1,103 +1,190 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
-import { useStoreValue } from "~/hooks/ipc/useStoreValue";
-import { useRFIDStatus } from "./hooks/useRFIDStatus";
+import { useToasts } from "~/features/Toasts/useToasts";
+import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
+import { useInOutButton } from "~/hooks/useInOutButton";
+import { useOpenEventManagerOnStartup } from "~/hooks/useOpenEventManagerOnStartup";
+import { DatabaseStatus, DropsImportConflictAction } from "$shared/enums";
+import { DropsImportPreview } from "$shared/types";
+import { DropsImportReviewModal } from "./DropsImportReviewModal";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
-import { DeviceStatus } from "../../../../shared/enums";
-
-function useShouldEnableRFID() {
-  const { data: startline } = useStoreValue("event.startline");
-  const { data: finishline } = useStoreValue("event.finishline");
-  const { data: stationIdentifier } = useStoreValue("station.identifier");
-
-  if (!startline || !stationIdentifier || !finishline) return false;
-  return startline === stationIdentifier || finishline === stationIdentifier;
-}
+import { OpenSplitTimeLogin } from "./OpenSplitTimeLogin";
+import { RfidConfiguration } from "./RfidConfiguration";
 
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
+  const { createToast } = useToasts();
+  const gridFontScale = useGridFontScale();
+  const inOutButton = useInOutButton();
+  const eventManagerOnStartup = useOpenEventManagerOnStartup();
   const [resetOpen, setResetOpen] = useState(false);
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
+  const [dropsImportPreview, setDropsImportPreview] = useState<DropsImportPreview | null>(null);
+  const [dropsImportDecisions, setDropsImportDecisions] = useState<
+    Record<string, DropsImportConflictAction>
+  >({});
 
-  const shouldEnableRFID = useShouldEnableRFID();
-  const [rfidStatus] = useRFIDStatus();
+  const handleDropsImportPreview = () => {
+    settingsMutations.previewDropsFile.mutate(undefined, {
+      onSuccess: ([preview, status, message]) => {
+        if (status !== DatabaseStatus.Success || !preview) {
+          createToast({ message, type: "danger" });
+          return;
+        }
 
-  const handleRfidButtonClick = () => {
-    if (rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting) {
-      settingsMutations.disconnectRfid.mutate();
-    } else {
-      settingsMutations.initializeRfid.mutate();
-    }
+        setDropsImportPreview(preview);
+        setDropsImportDecisions(
+          Object.fromEntries(
+            preview.conflicts.map((conflict) => [conflict.id, conflict.recommendedAction])
+          )
+        );
+      }
+    });
   };
 
-  const rfidButtonText =
-    rfidStatus === DeviceStatus.Connected || rfidStatus === DeviceStatus.Connecting
-      ? "Disconnect RFID"
-      : "Initialize RFID";
+  const cancelDropsImport = (discard = true) => {
+    if (discard && dropsImportPreview) {
+      settingsMutations.discardDropsImport.mutate(dropsImportPreview.importId);
+    }
+    setDropsImportPreview(null);
+    setDropsImportDecisions({});
+  };
 
-  const rfidLinkVisibility = shouldEnableRFID ? "visible" : "invisible";
+  const setDropsImportDecision = (conflictId: string, action: DropsImportConflictAction) => {
+    setDropsImportDecisions((current) => ({ ...current, [conflictId]: action }));
+  };
+
+  const setBatchDropsImportDecision = (action: DropsImportConflictAction | "recommended") => {
+    if (!dropsImportPreview) return;
+
+    setDropsImportDecisions(
+      Object.fromEntries(
+        dropsImportPreview.conflicts.map((conflict) => [
+          conflict.id,
+          action === "recommended" ? conflict.recommendedAction : action
+        ])
+      )
+    );
+  };
+
+  const applyDropsImport = () => {
+    if (!dropsImportPreview) return;
+
+    settingsMutations.applyDropsImport.mutate(
+      {
+        importId: dropsImportPreview.importId,
+        decisions: dropsImportPreview.conflicts.map((conflict) => ({
+          conflictId: conflict.id,
+          action: dropsImportDecisions[conflict.id] ?? conflict.recommendedAction
+        }))
+      },
+      {
+        onSuccess: ([, status]) => {
+          if (status === DatabaseStatus.Success) cancelDropsImport(false);
+        }
+      }
+    );
+  };
 
   return (
-    <Stack className="w-full h-full bg-component" justify="center" align="center">
-      <Stack justify="center" align="stretch" className="gap-4 mb-32">
-        <VerticalButtonGroup label="Station Setup">
-          <Button size="wide" onClick={() => settingsMutations.importStationsFile.mutate()}>
-            Load Stations File
-          </Button>
-          <Button size="wide" onClick={() => settingsMutations.importAthletesFile.mutate()}>
-            Load Athletes File
-          </Button>
-          <Button size="wide" onClick={() => settingsMutations.importDNSFile.mutate()}>
-            Load DNS File
-          </Button>
-          <Button size="wide" onClick={() => settingsMutations.importDNFFile.mutate()}>
-            Load DNF File
-          </Button>
-        </VerticalButtonGroup>
-
-        <Stack direction="col" className="gap-4" justify="stretch">
-          <VerticalButtonGroup
-            className="grow"
-            label={
-              <Stack direction="col">
-                <span className="font-medium">RFID Configuration</span>
-                <span className="text-xs font-medium">(Start and Finish Lines Only)</span>
+    <div className="w-full h-full overflow-y-auto bg-component p-6">
+      <Stack justify="center" align="start" className="gap-6 flex-wrap xl:flex-nowrap min-w-full">
+        {/* Event Settings & User Settings */}
+        <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
+          <VerticalButtonGroup label="Drops File Import">
+            <Button size="wide" onClick={handleDropsImportPreview}>
+              Load Drops File
+            </Button>
+          </VerticalButtonGroup>
+          <div className="border-t border-component-strong pt-4">
+            <VerticalButtonGroup label="User Settings">
+              <Stack align="center" className="gap-3">
+                <Button size="md" onClick={gridFontScale.decrease}>
+                  A-
+                </Button>
+                <span className="w-16 text-center font-display text-on-surface-strong">
+                  {Math.round(gridFontScale.scale * 100)}%
+                </span>
+                <Button size="md" onClick={gridFontScale.increase}>
+                  A+
+                </Button>
               </Stack>
-            }
-          >
-            <Button
-              size="wide"
-              onClick={() => handleRfidButtonClick()}
-              disabled={!shouldEnableRFID}
-            >
-              {rfidButtonText}
-            </Button>
-            <a href="https://fxr90c94e1c/" className={`${rfidLinkVisibility}`}>
-              <span className="font-semibold underline">RFID Reader Control Page</span>
-            </a>
-          </VerticalButtonGroup>
-          <VerticalButtonGroup label="App Settings" className="grow">
-            <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
-              Reset App Settings
-            </Button>
-          </VerticalButtonGroup>
+              <Button size="wide" onClick={gridFontScale.reset}>
+                Reset Grid Text Size
+              </Button>
+              <p className="w-80 text-on-surface-strong italic font-display text-sm mt-2">
+                Adjusts text size in data grids. You can also use Ctrl/Cmd + = / - / 0.
+              </p>
+              <div className="w-80 mt-4 border-t border-component-strong pt-4">
+                <Button
+                  size="wide"
+                  variant={inOutButton.enabled ? "solid" : "outlined"}
+                  className={inOutButton.enabled ? "" : "opacity-50"}
+                  aria-pressed={inOutButton.enabled}
+                  onClick={() => inOutButton.setEnabled(!inOutButton.enabled)}
+                >
+                  {inOutButton.enabled ? "Hide +/- Button" : "Show +/- Button"}
+                </Button>
+              </div>
+              <div className="w-80 mt-4 border-t border-component-strong pt-4">
+                <Button
+                  size="wide"
+                  variant={eventManagerOnStartup.enabled ? "solid" : "outlined"}
+                  className={eventManagerOnStartup.enabled ? "" : "opacity-50"}
+                  aria-pressed={eventManagerOnStartup.enabled}
+                  onClick={() => eventManagerOnStartup.setEnabled(!eventManagerOnStartup.enabled)}
+                >
+                  {eventManagerOnStartup.enabled
+                    ? "Disable Open Event Manager on Startup"
+                    : "Enable Open Event Manager on Startup"}
+                </Button>
+              </div>
+            </VerticalButtonGroup>
+          </div>
         </Stack>
 
-        <VerticalButtonGroup label="Developer Tools" className="border-2 grow border-danger/30">
-          <Stack direction="col" className="gap-2">
-            <p className="w-80 text-on-surface-strong italic font-display text-sm font-bold mt-2 mb-4">
-              This is a destructive operation! Under most circumstances you should not do this
-              unless instructed to.
-            </p>
-            <Button color="danger" size="wide" onClick={() => setRecreateOpen(true)}>
-              Recreate Database
-            </Button>
-            <Button color="danger" size="wide" onClick={() => setRecoverOpen(true)}>
-              Recover Data from CSV File
-            </Button>
-          </Stack>
-        </VerticalButtonGroup>
+        {/* Integration Settings */}
+        <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
+          <OpenSplitTimeLogin className="w-full" />
+        </Stack>
+
+        {/* RFID Configuration + Developer Tools + App Settings */}
+        <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
+          <RfidConfiguration />
+
+          <div className="border-t border-component-strong pt-4">
+            <VerticalButtonGroup label="Developer Tools" className="border-2 border-danger/30">
+              <Stack direction="col" className="gap-2">
+                <p className="w-80 text-on-surface-strong italic font-display text-sm font-bold mt-2 mb-4">
+                  These are destructive operations! Under most circumstances you should not do this
+                  unless instructed to.
+                </p>
+                <Button
+                  color="danger"
+                  size="wide"
+                  onClick={() => settingsMutations.reloadEventsFile.mutate()}
+                >
+                  Reload Events File
+                </Button>
+                <Button color="danger" size="wide" onClick={() => setRecreateOpen(true)}>
+                  Recreate Database
+                </Button>
+                <Button color="danger" size="wide" onClick={() => setRecoverOpen(true)}>
+                  Recover Data from CSV File
+                </Button>
+              </Stack>
+            </VerticalButtonGroup>
+          </div>
+
+          <div className="border-t border-component-strong pt-4">
+            <VerticalButtonGroup label="App Settings">
+              <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
+                Reset App Settings
+              </Button>
+            </VerticalButtonGroup>
+          </div>
+        </Stack>
       </Stack>
 
       <ConfirmationModal
@@ -137,6 +224,16 @@ export function SettingsPage() {
         Are you sure you want to recover data from a preexisting Runners file? Note that this will
         overwrite any existing data.
       </ConfirmationModal>
-    </Stack>
+
+      <DropsImportReviewModal
+        preview={dropsImportPreview}
+        decisions={dropsImportDecisions}
+        applying={settingsMutations.applyDropsImport.isPending}
+        onDecisionChange={setDropsImportDecision}
+        onBatchDecision={setBatchDropsImportDecision}
+        onApply={applyDropsImport}
+        onCancel={cancelDropsImport}
+      />
+    </div>
   );
 }

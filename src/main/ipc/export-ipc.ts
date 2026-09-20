@@ -1,5 +1,6 @@
 import { ipcMain, shell } from "electron";
 import * as dbRunners from "../database/runners-db";
+import { generateStartLineDrops, previewStartLineDrops } from "../database/startLineDrops-db";
 import { AppPaths } from "../lib/file-dialogs";
 import { Handler } from "../types";
 
@@ -11,12 +12,16 @@ const exportIncrementalRunnersFile: Handler<string> = () => {
   return dbRunners.exportUnsentRunnersAsCSV();
 };
 
-const exportDNSFile: Handler<string> = () => {
-  return dbRunners.exportDNSAsCSV();
+const exportDropsFile: Handler<string> = () => {
+  return dbRunners.exportDropsAsCSV();
 };
 
-const exportDNFFile: Handler<string> = () => {
-  return dbRunners.exportDNFAsCSV();
+const previewStartLineDropsFile: Handler = () => {
+  return previewStartLineDrops();
+};
+
+const generateStartLineDropsFile: Handler<boolean> = (_, startLineClosedConfirmed) => {
+  return generateStartLineDrops(Boolean(startLineClosedConfirmed));
 };
 
 const openExportDirectory = () => {
@@ -26,7 +31,8 @@ const openExportDirectory = () => {
 export const initExportHandlers = () => {
   ipcMain.handle("export-runners-file", exportRunnersFile);
   ipcMain.handle("export-incremental-file", exportIncrementalRunnersFile);
-  ipcMain.handle("export-dns-file", exportDNSFile);
-  ipcMain.handle("export-dnf-file", exportDNFFile);
+  ipcMain.handle("export-drops-file", exportDropsFile);
+  ipcMain.handle("preview-start-line-drops", previewStartLineDropsFile);
+  ipcMain.handle("generate-start-line-drops", generateStartLineDropsFile);
   ipcMain.handle("open-export-dir", openExportDirectory);
 };

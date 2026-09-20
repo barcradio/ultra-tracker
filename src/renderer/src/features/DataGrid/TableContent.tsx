@@ -1,16 +1,24 @@
 import { ReactNode } from "react";
 import { Virtualizer } from "@tanstack/react-virtual";
+import { getColumnWidthStyle } from "./columnWidth";
 import { Cell, CellWrapper, Row } from "./components";
 import { useKeyFn } from "./hooks/useKeyFn";
 import { useVirtualPadding } from "./hooks/useVirtualPadding";
-import { Column } from "./types";
+import { Column, RowContext, RowStatus } from "./types";
 
 interface Props<T extends object> {
   data: T[];
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   columns: Column<T>[];
   actionButtons?: (row: T) => ReactNode;
+  leadingAction?: (row: T) => ReactNode;
+  leadingActionAlwaysVisible?: (row: T) => boolean;
   getKey?: (row: T) => string | number;
+  scrollToIndex: (index: number) => void;
+  setFilter: (field: keyof T, value: string) => void;
+  highlightIndex?: number | null;
+  rowStatus?: (row: T) => RowStatus;
+  rowClassName?: (row: T) => string | undefined;
 }
 
 export function TableContent<T extends object>(props: Props<T>) {
@@ -20,8 +28,31 @@ export function TableContent<T extends object>(props: Props<T>) {
   const isEven = (index: number) => index % 2 === 0;
   const isLast = (index: number) => index === props.data.length - 1;
 
-  const renderCell = (column: Column<T>, row: T) => {
-    if (column.render) return column.render(row[column.field], row);
+  const statusClass = (status: RowStatus) => {
+    if (status === "success") return "bg-success";
+    if (status === "error") return "bg-danger";
+    if (status === "pending") return "bg-[#FBBE00]";
+    if (status === "exported") return "border-2 border-success";
+    return "border-2 border-gray-500";
+  };
+
+  const statusLabel = (status: RowStatus) => {
+    if (status === "success") return "Uploaded";
+    if (status === "error") return "Upload failed";
+    if (status === "pending") return "Pending upload";
+    if (status === "exported") return "Exported";
+    return "Not exported";
+  };
+
+  const renderCell = (column: Column<T>, row: T, index: number) => {
+    const context: RowContext<T> = {
+      index,
+      rows: props.data,
+      scrollToIndex: props.scrollToIndex,
+      setFilter: props.setFilter
+    };
+
+    if (column.render) return column.render(row[column.field], row, context);
     if (column.valueFn) return String(column.valueFn(row));
     if (column.field === null) return "";
     return String(row[column.field]);
@@ -41,14 +72,44 @@ export function TableContent<T extends object>(props: Props<T>) {
           even={isEven(row.index)}
           last={isLast(row.index)}
           ref={props.rowVirtualizer.measureElement}
+          className={[
+            props.rowClassName?.(props.data[row.index]),
+            row.index === props.highlightIndex ? "bg-primary/20" : undefined
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
+          {props.rowStatus &&
+            (() => {
+              const status = props.rowStatus(props.data[row.index]);
+              const label = statusLabel(status);
+
+              return (
+                <td className="w-4 px-1" aria-label={label} title={label}>
+                  <span
+                    className={`block h-3 w-3 rounded-full ${statusClass(status)}`}
+                    aria-hidden="true"
+                  />
+                </td>
+              );
+            })()}
+          {props.leadingAction && (
+            <CellWrapper
+              truncate={false}
+              align="left"
+              className={`p-0 pl-2 h-inherit ${props.leadingActionAlwaysVisible?.(props.data[row.index]) ? "opacity-100" : "opacity-0 group-hover/row:opacity-100"}`}
+            >
+              {props.leadingAction(props.data[row.index])}
+            </CellWrapper>
+          )}
           {props.columns.map((column) => (
             <Cell
               key={column.name ?? String(column.field)}
               align={column.align ?? "left"}
+              style={getColumnWidthStyle(column)}
               truncate={column.truncate !== false}
             >
-              {renderCell(column, props.data[row.index])}
+              {renderCell(column, props.data[row.index], row.index)}
             </Cell>
           ))}
           {!props.actionButtons && <CellWrapper />}

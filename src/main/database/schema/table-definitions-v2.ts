@@ -2,6 +2,7 @@ export const expectedTableNames = {
   Athletes: "Athletes",
   EventLog: "EventLog",
   Output: "Output",
+  OpenSplitTimePushStatus: "OpenSplitTimePushStatus",
   Stations: "Stations",
   Status: "Status",
   TimeRecords: "TimeRecords"
@@ -72,6 +73,15 @@ export const Status: string = `
       dnfDateTime DATETIME,
       note TEXT,
       progress INTEGER`;
+
+/*  The OpenSplitTimePushStatus table tracks the outcome of the most recent OpenSplitTime push per bib
+    so the UI can show/retry a failed push after the app restarts or another station operator opens
+    the runner. Events that don't use OpenSplitTime simply leave this table empty. */
+export const OpenSplitTimePushStatus: string = `
+      bibId INTEGER DEFAULT (0), -- TODO: Index
+      status TEXT,
+      error TEXT,
+      updatedAt DATETIME`;
 
 /*  The TimeRecords table is used to store time records at the current station. */
 export const TimeRecords: string = `

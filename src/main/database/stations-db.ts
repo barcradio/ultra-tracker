@@ -4,9 +4,11 @@ import { DatabaseStatus } from "$shared/enums";
 import { DatabaseResponse, SetStationIdentityParams } from "$shared/types";
 import { getDatabaseConnection } from "./connect-db";
 import { clearStationsTable, createStationsTable } from "./tables-db";
+import { moveTimingRecordsToStation } from "./timingRecords-db";
 import { Station, StationDB } from "../../shared/models";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
+import { syncSplitEntryKinds } from "../services/opensplittime";
 
 export function formatDate(date: Date | null): string {
   if (date == null) return "";
@@ -23,25 +25,62 @@ interface EventJSON {
   name: string;
   starttime: Date;
   endtime: Date;
+  openSplitTime?: OpenSplitTimeEventJSON;
 }
 
-function importJsonFile(filePath: string): stationsJSON {
-  const fileContent = fs.readFileSync(filePath, "utf-8");
-  let jsonData;
+interface OpenSplitTimeEventJSON {
+  production?: OpenSplitTimeEventMetadata;
+  staging?: OpenSplitTimeEventMetadata;
+  // Maps a station identifier to the split name already configured in OST, when it differs from the station name.
+  splitNames?: Record<string, string>;
+}
+
+interface OpenSplitTimeEventMetadata {
+  name: string;
+  id: number;
+  splitEntryKinds?: Record<string, Array<"in" | "out">>;
+}
+
+function parseStationsJson(jsonContent: string): stationsJSON {
   try {
-    jsonData = JSON.parse(fileContent);
+    return JSON.parse(jsonContent);
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`Error parsing JSON file: ${error.message}`);
     }
+    throw error;
   }
-  return jsonData;
 }
 
-export async function LoadStations() {
-  //const devStationData = require("$resources/config/stations.json");
-  const stationFilePath = await dialogs.selectStationsFile();
-  const stationData = importJsonFile(stationFilePath[0]);
+// Reads the event name out of a stations JSON string without touching the database.
+export function readEventNameFromStationsContent(jsonContent: string): string {
+  const parsed = JSON.parse(jsonContent) as { event?: { name?: string } };
+  const name = parsed.event?.name;
+
+  if (!name || typeof name !== "string") {
+    throw new Error("Stations file is missing an event name");
+  }
+
+  return name;
+}
+
+export function readEventNameFromStationsFile(filePath: string): string {
+  return readEventNameFromStationsContent(fs.readFileSync(filePath, "utf-8"));
+}
+
+export function previewStationsContent(jsonContent: string): Station[] {
+  const stationData = parseStationsJson(jsonContent);
+
+  if (!Array.isArray(stationData.stations)) {
+    throw new Error("Stations file is missing stations");
+  }
+
+  return stationData.stations;
+}
+
+export async function parseStationsContent(jsonContent: string, sourceLabel: string) {
+  const stationData = parseStationsJson(jsonContent);
+  const db = getDatabaseConnection();
 
   if (!stationData) return "Invalid JSON file.";
 
@@ -51,15 +90,31 @@ export async function LoadStations() {
       appStore.set("event.name", stationData.event.name);
       appStore.set("event.starttime", formatDate(stationData.event.starttime));
       appStore.set("event.endtime", formatDate(stationData.event.endtime));
+      appStore.set(
+        "event.openSplitTime",
+        stationData.event.openSplitTime ?? {
+          production: { name: "", id: 0 },
+          staging: { name: "", id: 0 }
+        }
+      );
+
+      try {
+        await syncSplitEntryKinds();
+      } catch (error) {
+        console.warn(
+          "Unable to hydrate OpenSplitTime split entry kinds from the loaded stations file",
+          error
+        );
+      }
     }
 
     if (index == "stations") {
       const [stations] = GetStations();
-      if (stations == null) createStationsTable();
+      if (stations == null) createStationsTable(db);
 
       if (GetStations().length > 0) {
-        clearStationsTable();
-        createStationsTable();
+        clearStationsTable(db);
+        createStationsTable(db);
       }
 
       for (const key in stationData.stations) {
@@ -71,20 +126,51 @@ export async function LoadStations() {
       }
     }
   }
+
+  db.prepare(`DELETE FROM EventMeta`).run();
+  db.prepare(
+    `INSERT INTO EventMeta (name, startline, finishline, starttime, endtime, openSplitTime) VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(
+    stationData.event.name,
+    appStore.get("event.startline"),
+    appStore.get("event.finishline"),
+    stationData.event.starttime,
+    stationData.event.endtime,
+    JSON.stringify(appStore.get("event.openSplitTime"))
+  );
+
   // TODO: Commit transaction
   const stationIdentifier = appStore.get("station.identifier") as string;
   setStation(stationIdentifier);
 
-  return `${stationFilePath}\r\n${stationData.stations.length} stations imported`;
+  return `${sourceLabel}\r\n${stationData.stations.length} stations imported`;
+}
+
+export async function loadStationsFromFile(filePath: string) {
+  const fileContent = fs.readFileSync(filePath, "utf-8");
+  return parseStationsContent(fileContent, filePath);
+}
+
+export async function LoadStations() {
+  //const devStationData = require("$resources/config/stations.json");
+  const stationFilePath = await dialogs.selectStationsFile();
+  return loadStationsFromFile(stationFilePath[0]);
 }
 
 export async function setStation(stationIdentifier: string) {
   const selectedStation: Station | null = GetStationByIdentifier(stationIdentifier)?.[0];
   if (!selectedStation) return;
 
+  const splitNameOverrides =
+    (appStore.get("event.openSplitTime.splitNames") as Record<string, string>) ?? {};
+
   appStore.set("station.name", selectedStation.name);
   appStore.set("station.id", Number(selectedStation.identifier.split("-", 1)[0]));
   appStore.set("station.identifier", selectedStation.identifier);
+  appStore.set(
+    "station.openSplitTimeSplitName",
+    splitNameOverrides[selectedStation.identifier] || selectedStation.name
+  );
   appStore.set("station.entrymode", selectedStation.entrymode);
   appStore.set(`station.shiftBegin`, formatDate(selectedStation.shiftBegin));
   appStore.set(`station.cutofftime`, formatDate(selectedStation.cutofftime));
@@ -102,6 +188,13 @@ export async function setStation(stationIdentifier: string) {
 
 export async function SetStationIdentity(params: SetStationIdentityParams) {
   await setStation(params.identifier);
+
+  // An event database holds one station's records. Changing station leaves the records already
+  // logged pointing at the old one, so they move across with the operator once agreed.
+  if (params.moveTimingRecords) {
+    const [moved] = moveTimingRecordsToStation(appStore.get("station.id") as number);
+    if (moved) console.log(`Moved ${moved} timing records to ${params.identifier}`);
+  }
   const settings = appStore.get("station") as unknown as Station;
 
   const key = Object.keys(settings.operators).find(

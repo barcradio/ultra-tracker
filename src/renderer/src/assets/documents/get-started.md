@@ -3,94 +3,147 @@
 # Ultra-Tracker Help
 
 ---
-### Table of Contents
 
+## Getting Started
 
----
-## Initial Setup
-<a id="markdown-initial-setup" name="initial-setup"></a>
-![settings-page.png](./img/settings-page.png)
-1. Copy the event files into the event-configs folder:  
-   1. `\Documents\Ultra-Tracker\.event-config\`
-2. Load the Stations file
-   1. Select Station location and set operator call sign
-3. Load the Athletes file
-4. Load the Did Not Start (DNS) File
-5. Load the most recent Did Not Finish (DNF) file
-6. Go to stats screen and begin logging athletes
+<a id="markdown-getting-started" name="getting-started"></a>
+
+On first launch, Ultra-Tracker opens **Getting Started** to guide the user through starting an event for timing data collection.
+
+1. Select **Load Event File** and choose the event file (`.zip`) supplied for the event.
+2. Select the station identifier for this computer.
+3. Select the operator callsign.
+4. Select **Import Event**. When the import finishes, go to the Stats page to begin logging.
+
+The event files can be selected from their existing location; they do not need to be copied into a
+special folder first. The default event-config folder is `\Documents\Ultra-Tracker\.event-config\`.
+Additional Drops files can be imported later from the Settings page.
+
+The **Event Manager** can be launched in the sidebar to manage current and previous events. Selecting **Create New Event** launches the **Getting Started** wizard.
+
+The wizard carries the operator through the minimum setup needed to start tracking: load the event file, choose the station, pick the operator callsign, and import the event. The screens below show the flow for starting a new station session.
+
+<div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:16px 0 8px;">
+  <div style="flex:1 1 280px; min-width:240px; max-width:48%;">
+    <img src="./img/UI/getting-started-1.png" alt="Getting Started step 1" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+    <p style="margin:8px 0 0; font-size:0.95rem;">Step 1: Select an event file</p>
+  </div>
+  <div style="flex:1 1 280px; min-width:240px; max-width:48%;">
+    <img src="./img/UI/getting-started-2.png" alt="Getting Started step 2" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+    <p style="margin:8px 0 0; font-size:0.95rem;">Step 2: Select the station and operator</p>
+  </div>
+  <div style="flex:1 1 280px; min-width:240px; max-width:48%;">
+    <img src="./img/UI/getting-started-3.png" alt="Getting Started step 3" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+    <p style="margin:8px 0 0; font-size:0.95rem;">Step 3: Import the event and begin timing on the Stats page</p>
+  </div>
+</div>
+
+_Note: Callsign selection is for future ham radio integration and does not impact any function at this time._
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
+
 ---
+
 <a id="markdown-sidebar" name="navigation-sidebar"></a>
 
 ## Navigation Sidebar
-The left side bar is used to select different pages.  Select from Stats, Roster, Logs, Export, Theme, Database, Settings and Help. Hovering over the sidebar area will expand it to show the names.
+
+The left side bar is used to select different pages. Select from Stats, Roster, Logs, Export, Theme, Database, Settings and Help. Hovering over the sidebar area will expand it to show the names.
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
-<a id="markdown-stats-page" name="stats-page"></a>
 
 ## Stats Page
-<div style="float: left">
-   <img src="./img/bib.png">
-</div>
-The BIB# entry field is the main starting point for using this page. This input control will accept numerical input, either from the 10-key pad or top-row keys of all standard keyboards.  See useful keyboard shortcuts below.
 
-Clicking the In button and Out button will record the corresponding time entry.
+<img src="./img/sidebar/stats-page.png" alt="Stats page overview" height="48" />
 
-The datagrid columns can be Sorted by clicking on the column header.  Click again to toggle Ascending or Descending Sort. 
+<table align="right" border="0" cellpadding="0" cellspacing="0" width="300" style="float:right; margin:0 0 16px 24px;">
+  <tr>
+    <td align="center">
+      <img alt="Stats page bib entry" src="./img/UI/bib.png" width="300" /><br>
+      <em>BIB# entry and timing controls</em>
+    </td>
+  </tr>
+</table>
 
-A Filter control for any column can be opened by clicking the Filter icon (three vertical dots).
+The **BIB#** box is the main starting point for using this page. This input control accepts numerical input from either the 10-key pad or the top-row keys of standard keyboards. See the keyboard shortcuts below.
 
-<span style="color:orange">**WARNING:** If the horizontal width of the Ultra-Tracker window is too small, the column filter buttons can overlap the column headers and cause the Sort and Filter features difficult to use.  The default layout has been carefully adjusted for modern HD resolutions but display scaling or screen resolution settings in the operating system can make the display too small to fit the default size of Ultra-Tracker.  Adjusting these settings will resolve this on most computers.</span>
+Clicking the **In** and **Out** buttons records the corresponding time entry.
+
+The datagrid columns can be sorted by clicking the column header. Click again to toggle ascending or descending sort.
+
+A filter control for any column can be opened by clicking the Filter icon (three vertical dots). Press **Enter** or the close icon to hide the control again; the filter it holds stays applied.
+
+A second time recorded against a bib already logged at this station is kept as a duplicate and carries a **Duplicate** tag in the Status column. Hovering the tag reports the Seq number of the original record. Clicking it filters the grid to that bib, so the original and every duplicate of it are listed together. Filtering the Status column by `Duplicate` does the same for every bib that was logged more than once, ordered by bib number.
+
+<br clear="all">
 
 <a id="markdown-athlete-edit-function" name="editing-a-record"></a>
-<br clear="right"/>
-
-<div style="float: right">
-   <img src="./img/athlete-edit.png" width=350>
-</div>
 
 ### Editing a record
-To edit a timing record, click on the icon at the far-right side of the record row.
 
-The Edit pane allows modification or deletion of a timing record.  The In and Out times, DNF and DNS status, and any notes that have been entered will be displayed.  Changes to these fields must be applied to take effect, or cancelled to return to the Stats page.
+<table align="right" border="0" cellpadding="0" cellspacing="0" width="350" style="float:right; margin:0 0 16px 24px;">
+  <tr>
+    <td align="center">
+      <img alt="Athlete edit pane" src="./img/UI/athlete-edit.png" width="350" /><br>
+      <em>Edit a timing record</em>
+    </td>
+  </tr>
+</table>
 
-If the Bib# can be matched with known athlete, the athlete's name will be displayed.  The button above the name will jump to that athlete in the Roster page.  A timing record for an unknown athlete is considered a warning condition, as all athletes should be known and checked in at the Start of the event, and included in the Athletes file. For a timing record not matched to athlete, limited changes can be performed, resolve the Bib# to a known athlete to modify all values.
+To edit a timing record, click the icon at the far-right side of the record row.
 
-<span style="color:red">**CAUTION:** Deleting a time record is permanent. An entry to the Log page is recorded for reference.</span>
+The Edit pane allows modification or deletion of a timing record. The In and Out times, Drop Reason, and any notes that have been entered will be displayed. Changes to these fields must be applied to take effect, or cancelled to return to the Stats page.
+
+If the Bib# can be matched with a known athlete, the athlete's name will be displayed. The button above the name will jump to that athlete in the Roster page. A timing record for an unknown athlete is considered a warning condition, as all athletes should be known and checked in at the start of the event and included in the Athletes file. For a timing record not matched to athlete, limited changes can be performed; resolve the Bib# to a known athlete to modify all values.
+
+> [!CAUTION]
+> Deleting a time record is permanent. An entry to the Log page is recorded for reference.
 
 Validation Rules:
-* A record must have an In time.
-* An In time must occur before the Out time.
-* Commas are not allowed in the Note field, and will be replaced with semi-colons.
 
-<br clear="right"/>
+- A record must have an In time.
+- An In time must occur before the Out time.
+- Commas are not allowed in the Note field and will be replaced with semicolons.
 
-<div style="float: left">
-   <img src="./img/stats.png">
-</div>
+<br clear="all">
 
 ### Athlete and Station stats
 
-Each of the different statistics available are updated in real-time.
+<table align="left" border="0" cellpadding="0" cellspacing="0" width="300">
+  <tr>
+    <td align="center">
+      <img alt="Stats summary panel" src="./img/UI/stats.png" width="300" /><br>
+      <em>Athlete and station statistics</em>
+    </td>
+  </tr>
+</table>
 
-<span style="color:orange">Warnings should be of interest to the station.</span>
+<a id="markdown-stats-page" name="athlete-and-station-stats"></a>
 
-<span style="color:red">Errors should be resolved before sending data to race organizers.</span>
-<br clear="left"/>
+Each of the different statistics available are updated in real time.
+
+The Watchlist count shows athletes marked for follow-up. Hover over the Watchlist row to view their bib numbers and names.
+
+<span style="color:orange"><strong>Warning:</strong> Warnings should be of interest to the station.</span>
+
+<span style="color:red"><strong>Caution:</strong> Errors should be resolved before sending data to race organizers.</span>
+
+<br clear="all">
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
+
 <a id="markdown-keyboard-shortcuts" name="keyboard-shortcuts"></a>
 
 ### Keyboard shortcuts
+
 Entry of numbers and times is assisted by using some specific keys on both an 88 key (or more) keyboard or a 10-key Numpad. When the cursor is focused in the **Bib#** box, entering a bib number and pressing one of these keys will automatically enter the record and populate the corresponding time.
 
-*10-key entry is recommended for all stations, for laptops without, use a USB 10-key peripheral.*
+_10-key entry is recommended for all stations; for laptops without one, use a USB 10-key peripheral._
 
 > | <div style="width:150px;fontSize:larger">**In**</div> | <div style="width:150px;fontSize:larger">**Out**</div> | <div style="width:150px;fontSize:larger">**In and Out**</div> |
 > | :------------- | :---------------- | :-------------- |
@@ -99,173 +152,291 @@ Entry of numbers and times is assisted by using some specific keys on both an 88
 > | [Numpad-Add]   |                   | [Numpad-Divide] |
 > | [Numpad-Enter] |                   |                 |
 
-![keyboard-layout.png](./img/keyboard-layout.png)
+<div align="center">
+  <img alt="Keyboard layout for timing shortcuts" src="./img/UI/keyboard-layout.png" />
+  <p><em>Keyboard keys used for In, Out, and combined timing entry</em></p>
+</div>
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
+
 <a id="markdown-roster-page" name="roster-page"></a>
 
 ## Roster Page
-<div style="float:left;margin:0 10px 10px 0" markdown="1">
 
-![roster-page.png](./img/roster-page.png)
+<div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:16px 0 18px;">
+  <div style="flex:0 0 260px; min-width:220px; max-width:100%;">
+    <img src="./img/sidebar/roster-page.png" alt="Roster page" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+  </div>
+  <div style="flex:1 1 360px; min-width:220px;">
+    This page provides the list of all athletes and enables the operator to search for an athlete using different search keys, such as name, bib number, city, start time, station TimeIn, station TimeOut, and note entries.
+
+    The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS (Not Started), In, Out, Medical, Timeout, Withdrew`
+
+    Use the bookmark button at the left edge of an athlete row to add or remove that athlete from the **Watchlist**. The button appears when the row is hovered; an enabled watchlist button remains visible in red. When a watchlisted athlete arrives at the current station or is included in an imported Drops file, Ultra-Tracker displays an alert. Select **Remove from Watchlist** in the alert to remove the athlete from the Watchlist.
+  </div>
 </div>
-This page provides the list of all athletes and enable the operator to search for an athlete using different search keys, such as, name, bib number, city, start time, Station TimeIn, Station TimeOut and note entries.
-
-The Status column helps station operators determine which athletes are pertinent to the station.  Valid filter options for the Status column are: `Incoming, DNS, In, Out, Medical, Timeout, Withdrew`
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
+
 <a id="markdown-stations-page" name="stations-page"></a>
 
 ## Stations Page
-<div style="float:left;margin:0 10px 10px 0" markdown="1">
 
-![stations.png](./img/stations.png)
+<div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:16px 0 18px;">
+  <div style="flex:0 0 260px; min-width:220px; max-width:100%;">
+    <img src="./img/sidebar/stations-page.png" alt="Stations page" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+  </div>
+  <div style="flex:1 1 360px; min-width:220px;">
+    This page is used to select the Station name and operator callsign. The callsign selection is currently superficial, and is populated by the metadata in the Stations file and cannot be modified during an event.
+
+    This page also shows the details about the aid stations throughout the race, including location, mileage, and cutoff times.
+
+    _Note: Callsign selection is for future ham radio integration and does not impact any function at this time._
+  </div>
 </div>
-This page is used to select the Station name and operator callsign.  The callsign selection is currently superficial, and is populated by the metadata in the Stations file and cannot be modified during an event.
-
-This page also shows the details about the aid stations throughout the race, location, mileage, cutoff times.
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
+
 <a id="markdown-logs-page" name="logs-page"></a>
 
 ## Logs Page
-<div style="float:left;margin:0 10px 10px 0" markdown="1">
 
-![logs-page.png](./img/logs-page.png)
+<div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:16px 0 18px;">
+  <div style="flex:0 0 260px; min-width:220px; max-width:100%;">
+    <img src="./img/sidebar/logs-page.png" alt="Logs page" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+  </div>
+  <div style="flex:1 1 360px; min-width:220px;">
+    This page displays the station log file that is auto-generated during station operation. There are two versions of the log that can be viewed and/or exported for the use of operators or developers to aid in fixing errors that may occur due to programming mistakes or unforeseen situations.
+
+    - The normal station log contains entries that occur during regular use and typical data gathering operations. This view may be used by operators to get a detailed understanding of where data errors may have been introduced, such as duplicate timing records.
+    - The verbose station log is a saved file that contains all events that occurred as well as debug messages designed to assist Ultra-Tracker developers to locate problems that occur during an event. This can be large and should be sent to the developers only upon request.
+
+    Watchlist additions, removals, and alerts are recorded in the normal station log with timestamps.
+  </div>
 </div>
-This page displays the station log file that is auto-generated during station operation. There are two versions of the log that can be viewed and/or exported for the use of operators or developers to aid in fixing errors that may occur due to programming mistakes or unforeseen situations.
-
-- The normal station log contains entries that occur during regular use and typical data gathering operations. This view may be used by operators to get a detailed understanding of where data errors may have been introduced, such as duplicate timing records.
-- The verbose station log is a saved file that contains all events that occurred as well as debug messages designed to assist Ultra-Tracker developers to locate problems that occur during an event. This can be large and should be sent to the developers only upon request.
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
+
 <a id="markdown-export-page" name="export-page"></a>
 
 ## Export Page
-<div style="float:left;margin:0 10px 10px 0" markdown="1">
 
-![export-page.png](./img/export-page.png)
+<div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:16px 0 18px;">
+  <div style="flex:0 0 260px; min-width:220px; max-width:100%;">
+    <img src="./img/sidebar/export-page.png" alt="Export page" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+  </div>
+  <div style="flex:1 1 360px; min-width:220px;">
+    This page provides Export utilities for sending station data to another station or race organizers. These file formats are optimized for human and machine readability.
+
+    Timing record indicators show the current delivery state:
+  </div>
 </div>
-This page provides Export utilities for sending station data to another station or race organizers.  These file formats are optimized for human and machine readability.
-<br/><br/>
+
+| <div style="width:150px;fontSize:larger">**State**</div> | <div style="width:150px;fontSize:larger">**Indicator**</div> | <div style="width:340px;fontSize:larger">**Meaning**</div> |
+| :------------- | :------------------------------------------------------------------------------- | :-------------------------------------------------------|
+| CSV export     | <img src="./img/status/not-exported.svg" alt="Gray hollow circle" width="16">    | Not exported                                            |
+| CSV export     | <img src="./img/status/exported.svg" alt="Green hollow circle" width="16">       | Exported by a successful incremental or full CSV export |
+| OpenSplitTime  | <img src="./img/status/upload-pending.svg" alt="Yellow solid circle" width="16"> | Pending upload                                          |
+| OpenSplitTime  | <img src="./img/status/uploaded.svg" alt="Green solid circle" width="16">        | Uploaded                                                |
+| OpenSplitTime  | <img src="./img/status/upload-failed.svg" alt="Red solid circle" width="16">     | Upload failed                                           |
 
 - **Export Incremental CSV File**
-This function exports a `.csv` file of the station entries containing unsent or edited records, contains BibID, TimeIn, TimeOut, DNF/DNS status and any notes made by the operator.  The exported file will be automatically named and  incremented. e.g. `Aid05Times_04i.csv, Aid05Times_05i.csv, and Aid05Times_06i.csv`.
+  This function exports a `.csv` file of the station entries containing unsent or edited records, contains BibID, TimeIn, TimeOut, Drop Reason and any notes made by the operator. The exported file will be automatically named and incremented. e.g. `Aid05Times_04i.csv, Aid05Times_05i.csv, and Aid05Times_06i.csv`.
 
-  Sending recent time records in smaller batches allows for much smaller files being routinely sent to race leadership to import to the race timing site, whether by packet radio or internet. This keeps timing data updated timely for athlete support crews and other situation in an event.  Depending on the rate of athletes arriving and departing a station, sending an incremental file _every 30 minutes at a minimim_ is recommended, more often if possible.
-  
-  A station setup with a data entry PC networked to a data transmission PC is recommended so interruption of data entry is limited to a quick Incremental Export operation.  This allows the data transmission operator to access the exported files independently.
+  Sending recent time records in smaller batches allows for much smaller files being routinely sent to race leadership to import to the race timing site, whether by packet radio or internet. This keeps timing data updated timely for athlete support crews and other situation in an event. Depending on the rate of athletes arriving and departing a station, sending an incremental file _every 30 minutes at a minimim_ is recommended, more often if possible.
+
+  A station setup with a data entry PC networked to a data transmission PC is recommended so interruption of data entry is limited to a quick Incremental Export operation. This allows the data transmission operator to access the exported files independently.
 
   <span style="color:orange">**NOTE:** All Incremental files must be transmitted to the race leadership as each file only contains a portion of the overall station data.</span>
 
 - **Export Full CSV File**
-This function exports a full `.csv` file of **all time records** containing TimeIn, TimeOut, DNF/DNS status and any notes made by the station operators.
+  This function exports a full `.csv` file of **all time records** containing TimeIn, TimeOut, Drop Reason and any notes made by the station operators.
 
 This file is useful as a final station report.
 
-- **Export DNS File**
-This function exports a `.csv` file with all DNS entries that have occurred at the current station.  This is unlikely to be used at any station other than the Start Line.
+- **Export Drops File**
+  This function exports a `.csv` file with all Drop entries (Not Started, Withdrew, Timeout, Medical, Unknown) that have occurred at or before the current station. This file is not normally needed to be sent to race organizers but can be an efficient way of sending the current station's Drops list to another station.
 
-- **Export DNF File**
-This function exports a `.csv` file with all DNF entries that have occurred up the current station.  This file is not normally needed to be sent to race organizers but can be an efficient way of sending the current station's DNF list to another station.
+- **Generate Start Line Drops**
+  Available only at the Start Line station, and only once the RFID reader has been stopped. This tool compares every registered athlete against those recorded at the Start Line and marks everyone not recorded as a Drop of type **Did Not Start (DNS)**, using the event's official start time.
+
+  Selecting the button opens a preflight review showing Registered, Started, Already Dropped, and New DNS counts. If any duplicate Start Line records or unknown bibs are found, they are listed and generation is blocked until resolved: duplicates must be resolved on the Stats page, and unknown bibs require reloading the event file. Otherwise, check **I confirm the start line is officially closed** to enable **Generate Drops**.
+
+  Generating drops pauses OpenSplitTime pushes (if signed in), records the new DNS drops, and immediately runs the same export as **Export Drops File**. The newly dropped athletes appear on the Stats page with the event start time recorded as both In and Out.
+
+  <span style="color:orange">**NOTE:** Run this only once the Start Line has officially closed. Running it early will mark athletes who have not yet started as Did Not Start.</span>
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
-<a id="markdown-theme-page" name="theme-page"></a>
 
-## Theme Page
-<div style="float:left;margin:0 10px 10px 0" markdown="1">
+<a id="markdown-event-manager" name="event-manager"></a>
 
-![theme-page.png](./img/theme-page.png)
+## Event Manager
+
+<div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:16px 0 18px;">
+  <div style="flex:0 0 260px; min-width:220px; max-width:100%;">
+    <img src="./img/sidebar/event-manager-page.png" alt="Event Manager sidebar" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+  </div>
+  <div style="flex:1 1 360px; min-width:220px;">
+    The Event Manager is used to switch between events and recover from local event backups. It lists each saved event alongside its automatic backups, making it easy to restore a prior snapshot or switch to another event without disturbing the current active database.
+
+    - **Events** tab lists saved event databases. Select an event and choose **Load Event** to make it the active event. The active event is marked with an **Active** tag and cannot be deleted while it is active.
+    - **Backups** tab lists automatic event database backups. Select a backup and choose **Restore Backup** to restore it. If an event with the same name already exists, confirm **Restore as New Event** to keep both events.
+    - **Create New Event** opens the Getting Started workflow for new event.
+    - **Delete** an inactive event or backup with its delete button. Deleting an event is permanent.
+    - Enable **Open Event Manager on Startup** to choose an event whenever Ultra-Tracker starts. This is useful when the computer is used for more than one event.
+  </div>
 </div>
-This is a global selection that allows two different color/shading options for use during daylight or nighttime station operation.
+
+<img src="./img/UI/event-manager.png" alt="Event Manager overview" style="width:66%; max-width:100%; height:auto; display:block; margin:0 auto;">
+<p style="margin:8px 0 16px; font-size:0.95rem; text-align:center;">Event Manager events and backup controls</p>
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
+
+<a id="markdown-theme-page" name="theme"></a>
+
+## Theme
+
+<div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:16px 0 18px;">
+  <div style="flex:0 0 260px; min-width:220px; max-width:100%;">
+    <img src="./img/sidebar/theme-page.png" alt="Theme page" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+  </div>
+  <div style="flex:1 1 360px; min-width:220px;">
+    This is a global selection that allows two different color/shading options for use during daylight or nighttime station operation.
+  </div>
+</div>
+
+<a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
+
+---
+
 <a id="markdown-settings-page" name="settings-page"></a>
 
 ## Settings Page
-<div style="float:left;margin:0 10px 10px 0" markdown="1">
 
-![settings-page.png](./img/settings-page.png)
+<div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:16px 0 18px;">
+  <div style="flex:0 0 260px; min-width:220px; max-width:100%;">
+    <img src="./img/sidebar/settings-page.png" alt="Settings sidebar" style="width:100%; max-width:100%; height:auto; display:block; border-radius:6px;">
+  </div>
+  <div style="flex:1 1 360px; min-width:220px;">
+    This page allows the operator to manage event input files and the database needed for proper station operation. Event files are loaded and saved from the user's Documents directory (per operating system). File Load/Export dialogs will open here, and this directory can be opened quickly via the button provided on the Export page. By default, system initialization files should be copied into the user documents directory and file reading/writing selection dialogs will open there.
+  </div>
 </div>
-The purpose of this page is to allow the operator to import the various input files and manage the database needed for proper program operation. By default, system initialization files should be copied into user documents directory and file reading/writing selection dialogs will open here.
 
-   * **Windows:** `%userprofile%\Documents\ultra-tracker\`
-   * **Linux:** `$HOME/Documents/ultra-tracker`
-   * **MacOS:**  `/Users/username/Documents/ultra-tracker`
+<img src="./img/UI/settings-all.png" alt="Settings overview" style="width:66%; max-width:100%; height:auto; display:block; margin:0 auto;">
+<p style="margin:8px 0 16px; font-size:0.95rem; text-align:center;">Settings workspace and recovery controls</p>
 
-<span style="color:red">**Warning:** The functions marked in RED on the Settings page are completely destructive to the local database and **MUST NOT be performed during normal operation!**  These are provided only for recovery of the database or data and should only be used at the direction of the software team.</span>
+The settings overview also brings together drops imports, OpenSplitTime configuration, and recovery controls so the station can be maintained without leaving the main workflow.
+
+- **Windows:** `%userprofile%\Documents\ultra-tracker\`
+- **Linux:** `$HOME/Documents/ultra-tracker`
+- **MacOS:** `/Users/username/Documents/ultra-tracker`
+
+#### Drops File Import
+
+- **Load Drops File**
+  This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not started** or **dropped from** the race (Withdrew, Timeout, Medical, Unknown).
+
+  As an event proceeds more Drops will be recorded and new Drops files will be supplied to stations.
+
+  Loading a new Drops file opens **Review Drops Import** before any data is imported. The review shows separate counts for **Conflicts**, **Ready**, **Skipped**, and **Duplicates**, along with the total rows read, valid records, and invalid rows. Drops past the current station are skipped to preserve the current station stats, while ready records can be imported without additional decisions.
+
+  For each conflict, the review shows the existing and imported station, drop reason, and time. A recommendation explains which record is preferred and why. Select **Preserve** or **Import** for an individual conflict, or use **Apply Recommended Only**, **Preserve All**, or **Import All** for batch decisions. **Import All** requires confirmation because it selects the imported row for every conflict. The **Apply Import** button shows how many records will be imported. Select **Cancel Import** to leave all current data unchanged.
+
+    ![drops-import-review.png](./img/drops-import-review.png)
+
+<a id="markdown-user-settings" name="user-settings"></a>
+
+### User Settings
+
+- **Grid Text Size**
+  Use the A-/A+ controls to adjust the size of text in data grids, buttons, and text inputs. The
+  setting is saved and restored when Ultra-Tracker is restarted. The keyboard shortcuts are
+  Ctrl/Cmd + `=` to increase, Ctrl/Cmd + `-` to decrease, and Ctrl/Cmd + `0` to reset.
+- **Show +/- Button**
+  Enables the optional +/- action button on the Stats page. This button is useful for touchscreens and is off by default.
+
+<span style="color:red">**Caution:** The functions marked in RED on the Settings page are completely destructive to the local database and **MUST NOT be performed during normal operation!** These are provided only for recovery of the database or data and should only be used at the direction of the software team.</span>
 
 <span style="color:orange">**NOTE:** The functions in ORANGE are provided as a means to completely recover after a major database error and other methods have not corrected the issue.</span>
 
-The following is a description of each button's function.  Each of these will open a file open dialog to the `\Documents\Ultra-Tracker\.event-config\` directory.
+The following is a description of each button's function. Each of these will open a file open dialog to the `\Documents\Ultra-Tracker\.event-config\` directory.
 
-#### Station Setup
-* **Load Stations File**
-This loads a `JSON` file containing each of the stations and their detailed information to allow ease of selection while setting up this application. A typical filename will be `eventname-YYYY-stations.json`.
-* **Load Athletes File**  
-This function loads a `.csv` file, supplied by race organizers, containing all athletes registered or checked in for the event, whether they are known to have started _or not_.
-* **Load DNS File**
-This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not started** the race.
-* **Load DNF File**
-This function loads a `.csv` file, supplied by race organizers, containing all of the athletes known to have **not finished** the race.
+<a id="markdown-ost-integration" name="opensplittime-integration"></a>
 
-  As an event proceeds more DNF athletes will be recorded and new DNF files will be supplied to stations.
+### OpenSplitTime Integration
 
-  Importing new DNF files will update all athletes recorded and DNF earlier in the race, DNFs past the current station are ignored.  This provides insight of which athletes are still expected into the current station.
+OpenSplitTime is an optional integration for sending timing records directly to the configured event group. The configuration is done per event file, then sign in with an OpenSplitTime steward account that is a member of that event. Credentials can be saved between sessions. If both staging and production event groups are configured, select the environment before signing in. Production events send times to a live event and requires confirmation when switching from staging.
+
+While signed in, OpenSplitTime status takes precedence over CSV export status in the timing-record indicator. Use **Pause Pushes** to temporarily stop automatic uploads without signing out; **Resume Pushes** restarts them. **Sign Out** returns the indicator to the CSV export state and does not change whether a record has been exported.
 
 #### RFID Configuration
-* **Initialize RFID**
-Starts and stops a RFID reader service for the Zebra FXR90 hardware.  These controls are enabled only for Start and Finish Line stations only.  Integrations with more RFID hardware will be possible in the future.
 
-#### Application Settings
-* **Reset App Settings** 
-This will reset the local application settings file to defaults.  This can be useful for recovering from an unexpected error.
-The application settings file `config.json` is located at:
+- **Initialize RFID**
+  Starts and stops a RFID reader service for the Zebra FXR90 hardware. These controls are enabled only for Start and Finish Line stations only. Integrations with more RFID hardware will be possible in the future.
 
- * **Windows:** `%appdata%\ultra-tracker`
- * **Linux:** `~/.config/ultra-tracker`
- * **MacOS:**  `~/Library/Application Support/ultra-tracker`
+<a id="markdown-developer-tools" name="developer-tools"></a>
 
 #### Developer Tools
-* **Recreate Database**
-This function is the means where *ALL* **database entries and tables are removed** resulting in the loss of *ALL* setup data and entry history!  The intent is to allow recovery of a major database corruption event and the rapid rebuild and subsequent return to normal operation by the operator.
-* **Recover Data From CSV File**
-This function imports **ALL of the entries** that have previously been made by the operator since the start of this race event!  The Ultra-Tracker application has been automatically producing a file containing EVERY entry made by the operator continuously during normal operation! This function will restore all of this data to restore the program to the previous state automatically.
+
+- **Reload Events File**
+  This function reloads an event archive file (`.zip`), updating station data, athlete rosters, and initial drop records in the currently loaded event database.
+- **Recreate Database**
+  This function is the means where _ALL_ **database entries and tables are removed** resulting in the loss of _ALL_ setup data and entry history! The intent is to allow recovery of a major database corruption event and the rapid rebuild and subsequent return to normal operation by the operator.
+- **Recover Data From CSV File**
+  This function imports **ALL of the entries** that have previously been made by the operator since the start of this race event! The Ultra-Tracker application has been automatically producing a file containing EVERY entry made by the operator continuously during normal operation! This function will restore all of this data to restore the program to the previous state automatically.
+
+<a id="markdown-app-settings" name="application-settings"></a>
+
+#### Application Settings
+
+- **Reset App Settings**
+  This will reset the local application settings file to defaults. This can be useful for recovering from an unexpected error.
+  The application settings file `config.json` is located at:
+
+- **Windows:** `%appdata%\ultra-tracker`
+- **Linux:** `~/.config/ultra-tracker`
+- **MacOS:** `~/Library/Application Support/ultra-tracker`
 
 <a id="markdown-recovery-procedure" name="station-recovery-procedure"></a>
 
-### Station Recovery Procedure
+#### Station Recovery Procedure
+
 **If instructed to do so,**
 <span style="color:orange">after **Recreate Database** has been performed, perform the following steps:</span>
-1. Load the Stations file.
-1. Load the Athletes file.
-1. Load the DNS file.
-1. Load the most recent DNF file.
-1. Import a Full Export file using "Recover Data From CSV File".
 
-### Local Database
-Ultra-Tracker runs a modern database on the local machine.  All transactions are preserved immediately and the operator can close and re-open the app without loss of data.  A background task backs up the database to a secondary file, every 5 minutes.  This backup is used for emergency use only and may not restore all data in a data-loss event.  *Do not modify the local database files using external tools!*
+1. Create a new event using the Event Manager.
+2. Reload the event database file.
+3. Load the Drops file if applicable.
+4. Import a Full Export file using "Recover Data From CSV File".
+
+<a id="markdown-local-database" name="local-database"></a>
+
+#### Local Database
+
+Ultra-Tracker runs a SQLite database on the local machine. All transactions are preserved immediately and the operator can close and re-open the app without loss of data. A background task backs up the database to a secondary file, every 5 minutes. This backup is used for emergency use only and may not restore all data in a data-loss event. _Do not modify the local database files using external tools!_
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---
+
 <a id="markdown-about-ultra-tracker" name="about-ultra-tracker"></a>
 
 ## About Ultra-Tracker
+
 A cross-platform desktop application for tracking athletes during ultra marathons.
-This project is supported on Windows, Linux, and MacOS.
+This project is supported on Windows, Linux and MacOS. Linux is distributed as a `.deb` for Debian, Ubuntu and Raspberry Pi OS, and as an AppImage for other distributions. Both are 64-bit only. The MacOS build is a universal DMG and is not notarized, so clear quarantine on first launch.
 
 Built as an Electron application using TypeScript + React + Tailwind CSS.
 
@@ -276,19 +447,22 @@ Built as an Electron application using TypeScript + React + Tailwind CSS.
 <a id="markdown-contributors" name="contributors"></a>
 
 ## Contributors
+
 > | <div style="width:200px;fontSize:larger">**Name**</div> | <div style="width:100px;fontSize:larger">**Call Sign**</div> | <div style="width:200px;> fontSize:larger">**GitHub**</div> |
-> | :------------------- | :----------- | :----------------------------------------------------- |
-> | **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)           |
-> | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)             |
-> | **Russ Leikis**      | KE7VFI       | [**@rleikis**](https://github.com/rleikis)             |
-> | **Jorden Luke**      | KF7YEM       | [**@JordenLuke**](https://github.com/JordenLuke)       |
-> | **Brian Marble**     | KG7AFQ       | [**@brianmarble**](https://github.com/brianmarble)     |
-> | **Mitch Smith**      | N8MLS        | [**@pxls2prnt**](https://github.com/pxls2prnt)         |
-> | **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)           |
+> | :------------------------------------------------------ | :----------------------------------------------------------- | :---------------------------------------------------------- |
+> | **Paul Carter**      | KG7OKR       | [**@cartpaul**](https://github.com/cartpauj)        |
+> | **Jaren Glenn**      | ---          | [**@derethil**](https://github.com/derethil)       |
+> | **David Leikis**     | KG7EW        | [**@DLeikis**](https://github.com/DLeikis)         |
+> | **Russ Leikis**      | KE7VFI       | [**@rleikis**](https://github.com/rleikis)         |
+> | **Jorden Luke**      | KF7YEM       | [**@JordenLuke**](https://github.com/JordenLuke)   |
+> | **Brian Marble**     | KG7AFQ       | [**@brianmarble**](https://github.com/brianmarble) |
+> | **Mitch Smith**      | N8MLS        | [**@pxls2prnt**](https://github.com/pxls2prnt)     |
+> | **Brandon Tibbitts** | KD7IIW       | [**@Tibbs327**](https://github.com/Tibbs327)       |
 
 <a id="markdown-license" name="license"></a>
 
 ## License
-[MIT](https://opensource.org/license/mit) ©2025 [Bridgerland Amateur Radio Club](https://barconline.org/)
+
+[MIT](https://opensource.org/license/mit) ©2024 [Bridgerland Amateur Radio Club](https://barconline.org/)
 
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>

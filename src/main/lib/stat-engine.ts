@@ -1,6 +1,7 @@
 import * as dbAthlete from "../database/athlete-db";
 import * as dbRunners from "../database/runners-db";
 import * as dbStatus from "../database/status-db";
+import * as dbWatchlist from "../database/watchlist-db";
 
 type StatFn = (value: Record<string, number>) => number;
 
@@ -30,22 +31,28 @@ class StatEngine {
   }
 }
 
-const stats: StatEngine = new StatEngine();
+let stats: StatEngine = new StatEngine();
 
+// Registering a statistic only stores its function, so this runs whether or not an event is
+// open; the functions are not called until something asks for a calculation.
 export function initStatEngine() {
   const invalidResult = -999;
 
+  stats = new StatEngine();
+
   stats.addStat("registeredAthletes", () => dbAthlete.GetTotalAthletes());
   stats.addStat("totalRunners", () => dbRunners.GetTotalRunners());
-  stats.addStat("totalDNS", () => dbStatus.GetTotalDNS());
-  stats.addStat("previousDNF", () => dbStatus.GetPreviousDNF());
+  stats.addStat("totalDidNotStart", () => dbStatus.GetTotalDidNotStart());
+  stats.addStat("previousDrops", () => dbStatus.GetPreviousDropped());
   stats.addStat("pendingArrivals", (input) => {
     if (
       input.registeredAthletes != invalidResult ||
-      input.totalDNS != invalidResult ||
+      input.totalDidNotStart != invalidResult ||
       input.totalRunners != invalidResult
     ) {
-      return input.registeredAthletes - input.totalDNS - input.previousDNF - input.totalRunners;
+      return (
+        input.registeredAthletes - input.totalDidNotStart - input.previousDrops - input.totalRunners
+      );
     } else {
       return invalidResult;
     }
@@ -53,19 +60,22 @@ export function initStatEngine() {
   stats.addStat("inStation", () => dbRunners.GetRunnersInStation());
   stats.addStat("throughStation", () => dbRunners.GetRunnersOutStation());
   stats.addStat("finishedRace", (input) => input.defaultValue);
-  stats.addStat("stationDNF", () => dbStatus.GetStationDNF());
-  stats.addStat("totalDNF", () => dbStatus.GetTotalDNF());
+  stats.addStat("stationDrops", () => dbStatus.GetStationDropped());
+  stats.addStat("totalDrops", () => dbStatus.GetTotalDropped());
+  stats.addStat("watchlistCount", () => dbWatchlist.GetWatchlistCount());
 
   stats.addStat("warnings", () => invalidResult);
-  stats.addStat("inStationDNS", () => dbRunners.GetDNSRunnersInStation());
+  stats.addStat("inStationDidNotStart", () => dbRunners.GetDidNotStartRunnersInStation());
   stats.addStat("unknownAthletes", () => dbRunners.GetUnknownRunners());
 
   stats.addStat("errors", () => invalidResult);
   stats.addStat("duplicates", () => dbRunners.GetRunnersWithDuplicateStatus());
 
-  stats; // const engine: StatEngine<"defaultValue" | "inStation" | "throughStation">
+  // stats: StatEngine<"defaultValue" | "inStation" | "throughStation">
+}
 
-  stats.calculate();
+export function closeStatEngine() {
+  stats = new StatEngine();
 }
 
 export function Calculate() {

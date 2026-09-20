@@ -4,17 +4,26 @@ const defaults = {
   initialized: false,
   targetLanguage: "eng",
   incrementalFileIndex: 1,
+  legacyDbMigrated: false,
   event: {
     name: "ultra-marathon-2024",
+    prettyName: "Ultra Marathon 2024",
+    activeDatabaseSlug: null as string | null,
     startline: "0-start-line",
     starttime: "00:00:00 Jan 01 2024",
     finishline: "99-finish-line",
-    endtime: "00:00:00 Jan 01 2024"
+    endtime: "00:00:00 Jan 01 2024",
+    openSplitTime: {
+      production: { name: "", id: 0, splitEntryKinds: {} as Record<string, string[]> },
+      staging: { name: "", id: 0, splitEntryKinds: {} as Record<string, string[]> },
+      splitNames: {} as Record<string, string>
+    }
   },
   station: {
     id: 1,
     identifier: "1-default-station",
     name: "Default Station",
+    openSplitTimeSplitName: "Default Station",
     entryMode: "Normal",
     shiftBegin: "00:00:00 Jan 01 2024",
     shiftEnd: "00:00:00 Jan 01 2024",
@@ -33,6 +42,15 @@ const defaults = {
         active: false
       }
     }
+  },
+  openSplitTime: {
+    email: "",
+    encryptedPassword: ""
+  },
+  display: {
+    gridFontScale: 1,
+    showInOutButton: false,
+    openEventManagerOnStartup: true
   }
 };
 
@@ -45,19 +63,45 @@ export const appStore = new Store({
       type: "object",
       properties: {
         name: { type: "string", default: "" },
+        prettyName: { type: "string", default: "" },
+        activeDatabaseSlug: { type: ["string", "null"] as const, default: null },
         startline: { type: "string", default: "" },
         starttime: { type: "string", default: "" },
         finishline: { type: "string", default: "" },
-        endtime: { type: "string", default: "" }
+        endtime: { type: "string", default: "" },
+        openSplitTime: {
+          type: "object",
+          properties: {
+            production: {
+              type: "object",
+              properties: {
+                name: { type: "string", default: "" },
+                id: { type: "number", default: 0 },
+                splitEntryKinds: { type: "object", default: {} }
+              }
+            },
+            staging: {
+              type: "object",
+              properties: {
+                name: { type: "string", default: "" },
+                id: { type: "number", default: 0 },
+                splitEntryKinds: { type: "object", default: {} }
+              }
+            },
+            splitNames: { type: "object", default: {} }
+          }
+        }
       }
       //required: ["name", "startline, "finishline"]
     },
+    legacyDbMigrated: { type: "boolean", default: false },
     station: {
       type: "object",
       properties: {
         id: { type: "number", default: 0 },
         identifier: { type: "string", default: "" },
         name: { type: "string", default: "" },
+        openSplitTimeSplitName: { type: "string", default: "" },
         entryMode: { enum: ["Normal", "Fast", "InOnly", "OutOnly"], default: "Normal" },
         shiftBegin: { type: "string", default: "00:00:00 Jan 01 2024" },
         shiftEnd: { type: "string", default: "00:00:00 Jan 01 2024" },
@@ -79,6 +123,21 @@ export const appStore = new Store({
         }
       }
       //required: ["primary"]
+    },
+    openSplitTime: {
+      type: "object",
+      properties: {
+        email: { type: "string", default: "" },
+        encryptedPassword: { type: "string", default: "" }
+      }
+    },
+    display: {
+      type: "object",
+      properties: {
+        gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 },
+        showInOutButton: { type: "boolean", default: false },
+        openEventManagerOnStartup: { type: "boolean", default: true }
+      }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]
   },

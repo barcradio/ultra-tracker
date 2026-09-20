@@ -1,4 +1,5 @@
 import fs from "fs";
+import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { getDatabaseConnection } from "./connect-db";
@@ -13,6 +14,19 @@ import * as dialogs from "../lib/file-dialogs";
 const invalidResult = -999;
 
 export async function LoadAthletes() {
+  const athleteFilePath = await dialogs.loadAthleteFile();
+  const filePath = athleteFilePath?.[0];
+  if (!filePath) throw new Error("No athletes file selected");
+
+  return LoadAthletesFromFile(filePath);
+}
+
+export async function LoadAthletesFromFile(athleteFilePath: string) {
+  const fileContent = fs.createReadStream(athleteFilePath, { encoding: "utf-8" });
+  return parseAthletesContent(fileContent, athleteFilePath);
+}
+
+export async function parseAthletesContent(source: Readable, sourceLabel: string) {
   const headers = [
     "bibId",
     "firstName",
@@ -25,16 +39,15 @@ export async function LoadAthletes() {
     "emergencyPhone"
   ];
 
-  // this is entirely destructive, will lose any notes and DNS/DNF tags that aren't saved to a file.
-  clearAthletesTable();
-  createAthletesTable();
+  // this is entirely destructive, will lose any notes and Drop tags that aren't saved to a file.
+  const db = getDatabaseConnection();
+  clearAthletesTable(db);
+  createAthletesTable(db);
 
-  const athleteFilePath = await dialogs.loadAthleteFile();
-  const fileContent = fs.createReadStream(athleteFilePath[0], { encoding: "utf-8" });
   const message: string[] = [];
 
   // TODO: Begin transaction
-  const parser = fileContent
+  const parser = source
     .pipe(
       parse({
         delimiter: ",",
@@ -56,7 +69,7 @@ export async function LoadAthletes() {
     })
     .on("end", () => {
       const { records } = parser.info;
-      message.push(`${athleteFilePath}\r\n${records} athletes imported`);
+      message.push(`${sourceLabel}\r\n${records} athletes imported`);
     });
   // TODO: Commit transaction
   await finished(parser, { error: false });
@@ -98,9 +111,11 @@ export function GetAthletes(): DatabaseResponse<AthleteStatusDB[]> {
   try {
     queryResult = db
       .prepare(
-        `SELECT Athletes.*, Status.dns, Status.dnf, Status.dnfType, Status.note, Status.progress
-         FROM Athletes LEFT JOIN Status
-         WHERE Athletes.bibId == Status.bibId`
+        `SELECT Athletes.*, Status.dropped, Status.dropReason, Status.note, Status.progress,
+          Watchlist.bibId IS NOT NULL AS watchlisted
+         FROM Athletes
+         LEFT JOIN Status ON Athletes.bibId == Status.bibId
+         LEFT JOIN Watchlist ON Athletes.bibId == Watchlist.bibId`
       )
       .all();
   } catch (e) {
@@ -113,7 +128,6 @@ export function GetAthletes(): DatabaseResponse<AthleteStatusDB[]> {
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
   message = `table Read Athletes - records:${queryResult.length}`;
-  console.log(message);
   return [queryResult as AthleteStatusDB[], DatabaseStatus.Success, message];
 }
 
@@ -162,7 +176,6 @@ export function GetAthleteFromColumn(
   };
 
   message = `athletes:Found athlete with bibId: ${runner.bibId}`;
-  console.log(message);
   return [runner, DatabaseStatus.Success, message];
 }
 

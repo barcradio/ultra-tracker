@@ -1,4 +1,4 @@
-import { AthleteProgress, DNFType, EntryMode, RecordType } from "./enums";
+import { AthleteProgress, DeviceStatus, DropReason, EntryMode, RecordType } from "./enums";
 
 /**
  * Custom models (types) for ultra-tracker
@@ -13,6 +13,8 @@ export interface RunnerDB {
   note: string;
   sent: boolean;
   status: number;
+  openSplitTimePushStatus?: "success" | "error";
+  openSplitTimePushError?: string;
 }
 
 export interface RunnerCSV {
@@ -22,9 +24,9 @@ export interface RunnerCSV {
   timeOut: string;
   note: string;
   sent: number;
-  dnfType: string;
-  dnfStation: string;
-  dnfDateTime: string;
+  dropReason: string;
+  dropStation: string;
+  dropDateTime: string;
 }
 
 export interface Runner {
@@ -51,11 +53,10 @@ export type AthleteDB = {
 
 export type StatusDB = {
   bibId: number;
-  dns: boolean | undefined;
-  dnf: boolean | undefined;
-  dnfType: DNFType | undefined;
-  dnfStation: string | undefined;
-  dnfDateTime: Date | null;
+  dropped: boolean | undefined;
+  dropReason: DropReason | undefined;
+  dropStation: string | undefined;
+  dropDateTime: Date | null;
   note: string | undefined;
   progress: AthleteProgress | undefined;
 };
@@ -112,18 +113,11 @@ export type Operator = {
   active: boolean;
 };
 
-export type DNSRecord = {
+export type DropRecord = {
   stationId: string;
   bibId: number;
-  dnsDateTime: string;
-  note: string;
-};
-
-export type DNFRecord = {
-  stationIdentifier: string;
-  bibId: number;
-  dnfType: string;
-  dnfDateTime: string;
+  dropReason: string;
+  dropDateTime: string;
   note: string;
 };
 
@@ -139,7 +133,41 @@ export type EventLogRec = {
   verbose: boolean | undefined;
 };
 
-export type RunnerAthleteDB = RunnerDB & Pick<StatusDB, "dnf" | "dnfType" | "dns">;
+export type RunnerAthleteDB = RunnerDB & Pick<StatusDB, "dropped" | "dropReason">;
 
 export type AthleteStatusDB = AthleteDB &
-  Pick<StatusDB, "dns" | "dnf" | "dnfType" | "note" | "progress">;
+  Pick<StatusDB, "dropped" | "dropReason" | "note" | "progress"> & {
+    watchlisted: boolean;
+  };
+
+export type RfidSettings = {
+  type: string;
+  restApiUrl: string;
+  webSocketUrl: string;
+  userName: string;
+  password: string;
+  websocketPort: string | number;
+  secureWebsocket: boolean;
+  // Pinned cert serial number or CN for the reader's self-signed cert
+  sslCert: string;
+  status: DeviceStatus;
+};
+
+export type RfidConnectionSettings = Pick<
+  RfidSettings,
+  "type" | "restApiUrl" | "webSocketUrl" | "userName" | "password" | "sslCert"
+>;
+
+export interface EventDatabaseMetadata {
+  slug: string;
+  type: "database" | "backup";
+  name?: string;
+  startline?: string;
+  finishline?: string;
+  starttime?: Date;
+  endtime?: Date;
+  timingRecordCount?: number;
+  athleteCount?: number;
+  lastModified?: Date;
+  error?: "unreadable";
+}

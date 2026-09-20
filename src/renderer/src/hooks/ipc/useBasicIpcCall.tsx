@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { Toast } from "$shared/types";
 import { useIpcRenderer } from "../useIpcRenderer";
@@ -6,15 +6,18 @@ import { useIpcRenderer } from "../useIpcRenderer";
 interface Options {
   preToast?: string | Toast;
   successToastType?: Toast["type"];
+  suppressToasts?: boolean;
+  invalidateQueryKeys?: QueryKey[];
 }
 
 export function useBasicIpcCall(channel: string, options: Options = {}) {
   const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
   const { createToast } = useToasts();
 
   return useMutation({
     mutationFn: () => {
-      if (options.preToast) {
+      if (options.preToast && !options.suppressToasts) {
         if (typeof options.preToast === "string") {
           createToast({ message: options.preToast, type: "info" });
         } else {
@@ -24,8 +27,14 @@ export function useBasicIpcCall(channel: string, options: Options = {}) {
 
       return ipcRenderer.invoke(channel);
     },
-    onSuccess: (data) =>
-      createToast({ message: data, type: options.successToastType ?? "success" }),
+    onSuccess: (data) => {
+      if (!options.suppressToasts) {
+        createToast({ message: data, type: options.successToastType ?? "success" });
+      }
+      options.invalidateQueryKeys?.forEach((queryKey) => {
+        queryClient.invalidateQueries({ queryKey });
+      });
+    },
     onError: (error) => console.error(error)
   });
 }

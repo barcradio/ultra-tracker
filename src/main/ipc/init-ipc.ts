@@ -1,7 +1,9 @@
 import { initAthleteHandlers } from "./athletes-ipc";
 import { initdbSettingsHandlers } from "./dbsettings-ipc";
+import { initEventDatabaseHandlers } from "./event-databases-ipc";
 import { initEventLogsHandlers } from "./eventLogs-ipc";
 import { initExportHandlers } from "./export-ipc";
+import { initOpenSplitTimeHandlers } from "./opensplittime-ipc";
 import { initResourceHandlers } from "./resource-ipc";
 import { initRFIDHandlers } from "./rfid-ipc";
 import { initRunnerFormHandlers } from "./runnerform-ipc";
@@ -14,7 +16,9 @@ import { initStoreHandlers } from "./store-ipc";
 export function initializeIpcHandlers() {
   initAthleteHandlers();
   initdbSettingsHandlers();
+  initEventDatabaseHandlers();
   initExportHandlers();
+  initOpenSplitTimeHandlers();
   initResourceHandlers();
   initEventLogsHandlers();
   initRFIDHandlers();

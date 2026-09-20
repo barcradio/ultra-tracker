@@ -33,10 +33,7 @@ export function useSetAthleteProgress() {
 
       console.log("updatedData", updatedData);
 
-      return Promise.all([
-        ipcRenderer.invoke("set-dnf", updatedData),
-        ipcRenderer.invoke("set-dns", updatedData)
-      ]);
+      return ipcRenderer.invoke("set-drop", updatedData);
     },
 
     onSuccess: () => {

@@ -10,7 +10,7 @@ interface Props<T extends object> {
 }
 
 const Button = classed.button({
-  base: "py-1 px-3 transition-all duration-150 ease-in-out text-on-surface hover:text-on-surface-hover",
+  base: "py-1 px-2 sm:px-2.5 md:px-3 transition-all duration-150 ease-in-out text-on-surface hover:text-on-surface-hover text-sm md:text-base",
   variants: {
     spinning: {
       true: "duration-500 animate-spin repeat-1"

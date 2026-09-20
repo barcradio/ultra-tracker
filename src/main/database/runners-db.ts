@@ -1,12 +1,13 @@
 import fs from "fs";
+import path from "path";
 import { finished } from "stream/promises";
 import { parse } from "csv-parse";
 import { format } from "date-fns";
-import { DNFType, DatabaseStatus, RecordStatus } from "$shared/enums";
+import { DatabaseStatus, DropReason, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB, RunnerDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
-import { SetDNF } from "./status-db";
 import { getDatabaseConnection } from "./connect-db";
+import { SetDrop } from "./status-db";
 import { insertOrUpdateTimeRecord, markTimeRecordAsSent } from "./timingRecords-db";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
@@ -40,8 +41,8 @@ export function GetRunnersWithDuplicateStatus(): number {
   return count[0] == null ? invalidResult : count[0];
 }
 
-export function GetDNSRunnersInStation(): number {
-  const count = getDNSRunnersInStation();
+export function GetDidNotStartRunnersInStation(): number {
+  const count = getDidNotStartRunnersInStation();
   return count[0] == null ? invalidResult : count[0];
 }
 
@@ -55,8 +56,17 @@ function getTotalRunners(): DatabaseResponse<number> {
   let queryResult;
   let message: string = "";
 
+  // Start line DNS drops get a placeholder TimeRecords row for grid visibility (see
+  // startLineDrops-db.ts); they never actually started, so they must not count as runners here
+  // or GetTotalDidNotStart() and this stat would both subtract the same bibs from pendingArrivals.
   try {
-    queryResult = db.prepare(`SELECT COUNT(bibId) FROM TimeRecords`).get();
+    queryResult = db
+      .prepare(
+        `SELECT COUNT(TimeRecords.bibId) FROM TimeRecords LEFT JOIN Status
+         ON TimeRecords.bibId = Status.bibId
+         WHERE IFNULL(Status.dropReason, '') != ?`
+      )
+      .get(DropReason.DidNotStart);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -66,9 +76,9 @@ function getTotalRunners(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetTotalRunnersFromStaEvents: ${queryResult["COUNT(bibId)"]}`;
+  message = `GetTotalRunnersFromStaEvents: ${queryResult["COUNT(TimeRecords.bibId)"]}`;
 
-  return [queryResult["COUNT(bibId)"] as number, DatabaseStatus.Success, message];
+  return [queryResult["COUNT(TimeRecords.bibId)"] as number, DatabaseStatus.Success, message];
 }
 
 function getRunnersInStation(): DatabaseResponse<number> {
@@ -97,8 +107,16 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
   let queryResult;
   let message: string = "";
 
+  // Excludes did-not-start placeholder rows (see getTotalRunners above) so DNS drops don't
+  // inflate "Through Station" for bibs that never actually ran through this station.
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM TimeRecords WHERE timeOut IS NOT NULL`).get();
+    queryResult = db
+      .prepare(
+        `SELECT COUNT(TimeRecords.bibId) FROM TimeRecords LEFT JOIN Status
+         ON TimeRecords.bibId = Status.bibId
+         WHERE TimeRecords.timeOut IS NOT NULL AND IFNULL(Status.dropReason, '') != ?`
+      )
+      .get(DropReason.DidNotStart);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -108,9 +126,9 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From TimeRecords Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From TimeRecords Where 'timeOut IS NOT NULL':${queryResult["COUNT(TimeRecords.bibId)"]}`;
 
-  return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+  return [queryResult["COUNT(TimeRecords.bibId)"] as number, DatabaseStatus.Success, message];
 }
 
 function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
@@ -159,7 +177,7 @@ function getUnknownRunners(): DatabaseResponse<number> {
   return [queryResult.length as number, DatabaseStatus.Success, message];
 }
 
-function getDNSRunnersInStation(): DatabaseResponse<number> {
+function getDidNotStartRunnersInStation(): DatabaseResponse<number> {
   let stationId = -1;
   try {
     stationId = appStore.get("station.id") as number;
@@ -173,10 +191,10 @@ function getDNSRunnersInStation(): DatabaseResponse<number> {
   let message: string = "";
   let queryResult;
 
-  const stmt = `SELECT TimeRecords.*, Status.dnf, Status.dnfType, Status.dns
+  const stmt = `SELECT TimeRecords.*, Status.dropped, Status.dropReason
        FROM "TimeRecords" LEFT JOIN "Status"
        ON TimeRecords.bibId = Status.bibId
-       WHERE Status.dns == 1 and TimeRecords.stationId == ?`;
+       WHERE Status.dropReason == '${DropReason.DidNotStart}' and TimeRecords.stationId == ?`;
   try {
     queryResult = db.prepare(stmt).all(stationId);
   } catch (e) {
@@ -188,12 +206,12 @@ function getDNSRunnersInStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From TimeRecords Where 'Status.dns == 1 and TimeRecords.stationId == ${stationId}':${queryResult.length}`;
+  message = `GetRunnersInStation From TimeRecords Where 'Status.dropReason == did-not-start and TimeRecords.stationId == ${stationId}':${queryResult.length}`;
 
   return [queryResult.length as number, DatabaseStatus.Success, message];
 }
 
-function getRunnersWithDNFNotSent(): DatabaseResponse<DNFRunnerDB> {
+function getRunnersWithDropNotSent(): DatabaseResponse<DropRunnerDB> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
@@ -201,7 +219,7 @@ function getRunnersWithDNFNotSent(): DatabaseResponse<DNFRunnerDB> {
   try {
     queryResult = db
       .prepare(
-        `SELECT TimeRecords.*, Status.dnf, Status.dnfType, Status.dnfStation, Status.dnfDateTime, Status.dns
+        `SELECT TimeRecords.*, Status.dropped, Status.dropReason, Status.dropStation, Status.dropDateTime
         FROM "TimeRecords" LEFT JOIN "Status"
         ON TimeRecords.bibId = Status.bibId WHERE sent == 0`
       )
@@ -220,14 +238,14 @@ function getRunnersWithDNFNotSent(): DatabaseResponse<DNFRunnerDB> {
 }
 
 export function readRunnersTable<T>(
-  includeDNF: T
+  includeDrops: T
 ): T extends true ? DatabaseResponse<RunnerAthleteDB[]> : DatabaseResponse<RunnerDB[]> {
   const db = getDatabaseConnection();
   let queryResult;
   let message: string = "";
 
-  const statement = includeDNF
-    ? `SELECT TimeRecords.*, Status.dnf, Status.dnfType, Status.dns
+  const statement = includeDrops
+    ? `SELECT TimeRecords.*, Status.dropped, Status.dropReason
        FROM "TimeRecords" LEFT JOIN "Status"
        ON TimeRecords.bibId = Status.bibId`
     : `SELECT * FROM TimeRecords`;
@@ -254,35 +272,53 @@ export function readRunnersTable<T>(
 }
 
 export async function importRunnersFromCSV() {
-  const headers = ["index", "sent", "bibId", "timeIn", "timeOut", "dnfType", "dnfStation", "note"];
   const runnerCSVFilePath = await dialogs.loadRunnersFromCSV();
   const fileContent = fs.createReadStream(runnerCSVFilePath[0], { encoding: "utf-8" });
   const stationId = (await appStore.get("station.id")) as number;
   let message: string = "";
 
+  // Older files carry raw quotes and commas in the note, so the note is rejoined from fields.
   const parser = fileContent
     .pipe(
       parse({
         delimiter: ",",
-        columns: headers,
-        fromLine: 3
+        fromLine: 3,
+        // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+        relax_quotes: true,
+        // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+        relax_column_count: true
       })
     )
-    .on("data", (timing) => {
-      const record: DNFRunnerDB = {
-        index: timing.bibId,
-        bibId: Number(timing.bibId) - Number(timing.bibId % 1),
+    .on("data", (fields: string[]) => {
+      const timing = {
+        bibId: fields[2] ?? "",
+        timeIn: fields[3] ?? "",
+        timeOut: fields[4] ?? "",
+        dropReason: fields[5] ?? "",
+        dropStation: fields[6] ?? "",
+        note: fields.slice(7).join(",")
+      };
+
+      const bib = Number(timing.bibId);
+      if (timing.bibId.trim() === "" || !Number.isFinite(bib)) return;
+
+      const record: DropRunnerDB = {
+        // 0 means "new record", the same thing the renderer sends for a time logged by hand.
+        // Using the bib here made the insert treat an unrelated row with that index as the same
+        // record and overwrite it, so importing a file silently destroyed runners.
+        index: 0,
+        bibId: bib - (bib % 1),
         stationId: stationId,
         timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
         timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
         timeModified: new Date(),
-        note: !timing.note ? "" : timing.note.replaceAll(",", ""),
+        note: !timing.note ? "" : timing.note.replaceAll(",", ";"),
         sent: false,
-        status: timing.bibId % 1 == 0 ? RecordStatus.OK : RecordStatus.Duplicate,
-        dnf: Number(timing.dnfType != ""),
-        dnfType: timing.dnfType,
-        dnfStation: timing.dnfStation,
-        dnfDateTime: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut)
+        status: Number.isInteger(bib) ? RecordStatus.OK : RecordStatus.Duplicate,
+        dropped: Number(timing.dropReason != ""),
+        dropReason: timing.dropReason,
+        dropStation: timing.dropStation,
+        dropDateTime: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut)
       };
 
       function enumFromStringValue<T>(enm: { [s: string]: T }, value: string): T | undefined {
@@ -292,14 +328,14 @@ export async function importRunnersFromCSV() {
       }
 
       insertOrUpdateTimeRecord(record);
-      if (record.dnf) {
-        const dnfType = enumFromStringValue(DNFType, record.dnfType);
-        SetDNF(record.bibId, record.timeOut, Boolean(record.dnf), dnfType!);
+      if (record.dropped) {
+        const dropReason = enumFromStringValue(DropReason, record.dropReason);
+        SetDrop(record.bibId, record.timeOut, Boolean(record.dropped), dropReason!);
       }
     })
     .on("error", (error) => {
       console.error(error);
-      message = `Loading dnfRecords: ${error.message}`;
+      message = `Loading dropRecords: ${error.message}`;
       sendToastToRenderer({ message: error.message, type: "danger" });
     });
   await finished(parser);
@@ -314,7 +350,6 @@ function parseCSVDate(timingDate: string): Date {
 
 export function exportUnsentRunnersAsCSV() {
   let queryResult;
-  const path = require("path");
   const stationId = appStore.get("station.id") as number;
   let fileIndex = appStore.get("incrementalFileIndex") as number;
 
@@ -333,7 +368,7 @@ export function exportUnsentRunnersAsCSV() {
   if (filePath == undefined) return "Invalid file name";
 
   try {
-    queryResult = getRunnersWithDNFNotSent()[0];
+    queryResult = getRunnersWithDropNotSent()[0];
     if (queryResult == null) return `Failed to get unsent runners`;
 
     if (queryResult.length == 0) {
@@ -382,7 +417,7 @@ export async function exportRunnersAsCSV() {
   try {
     queryResult = db
       .prepare(
-        `SELECT TimeRecords.*, Status.dnf, Status.dnfType, Status.dnfStation, Status.dnfDateTime, Status.dns
+        `SELECT TimeRecords.*, Status.dropped, Status.dropReason, Status.dropStation, Status.dropDateTime
         FROM "TimeRecords" LEFT JOIN "Status"
         ON TimeRecords.bibId = Status.bibId`
       )
@@ -401,50 +436,30 @@ export async function exportRunnersAsCSV() {
   return `File Export Successful: ${filename}`;
 }
 
-export async function exportDNSAsCSV() {
+export async function exportDropsAsCSV() {
   const db = getDatabaseConnection();
   let queryResult;
   let filename: string = "";
-
-  const stmt = `SELECT * FROM Status WHERE dns == 1`;
-
-  try {
-    queryResult = db.prepare(stmt).all();
-    filename = await dialogs.saveDNSRunnersToCSV();
-
-    if (filename == undefined) return "Invalid file name";
-
-    writeDNSToCSV(filename, queryResult);
-  } catch (e) {
-    if (e instanceof Error) {
-      console.error(e.message);
-      return e.message;
-    }
-  }
-  return `File Export Successful: ${filename}`;
-}
-
-export async function exportDNFAsCSV() {
-  const db = getDatabaseConnection();
-  let queryResult;
-  let filename: string = "";
-  const stationIdentifier = appStore.get("station.identifier") as number;
+  const stationId = appStore.get("station.id") as number;
 
   const stmt = `
-    SELECT t1.dnf, t1.dnfType, t1.dnfStation, t1.dnfDateTime, t2.*
-    FROM Status t1 INNER JOIN TimeRecords t2
+    SELECT t1.bibId AS dropBibId, t1.dropped, t1.dropReason, t1.dropStation, t1.dropDateTime,
+           COALESCE(t2.note, t1.note) AS note
+    FROM Status t1 LEFT JOIN TimeRecords t2
     ON t1.bibId = t2.bibId
-    WHERE t1.dnf == 1
-    AND t1.dnfStation == ?
+    WHERE t1.dropped == 1
   `;
 
   try {
-    queryResult = db.prepare(stmt).all(stationIdentifier);
-    filename = await dialogs.saveDNFRunnersToCSV();
+    const dropRows = db.prepare(stmt).all() as DropExportRow[];
+    queryResult = dropRows.filter(
+      (row) => Number(String(row.dropStation).split("-", 1)[0]) <= stationId
+    );
+    filename = await dialogs.saveDropsToCSV();
 
     if (filename == undefined) return "Invalid file name";
 
-    writeDNFToCSV(filename, queryResult);
+    writeDropsToCSV(filename, queryResult);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -455,7 +470,6 @@ export async function exportDNFAsCSV() {
 }
 
 function writeToCSV(filename: string, queryResult, incremental: boolean) {
-  const fs = require("fs");
   const eventName = appStore.get("event.name") as string;
   const stationIdentifier = appStore.get("station.identifier") as string;
 
@@ -467,10 +481,10 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
     stream.write(titleText + "\n");
 
     // header row
-    const headerText = `index,sent,bibId,timeIn,timeOut,dnfType,dnfStation,note`;
+    const headerText = `index,sent,bibId,timeIn,timeOut,dropReason,dropStation,note`;
     stream.write(headerText + "\n");
 
-    for (const row of queryResult as DNFRunnerDB[]) {
+    for (const row of queryResult as DropRunnerDB[]) {
       let rowText = "";
       const bSent = Boolean(row.sent);
       if (!incremental || (incremental && !bSent)) {
@@ -481,9 +495,9 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
           `${row.bibId},` +
           `${row.timeIn == null ? "" : formatDate(new Date(row.timeIn))},` +
           `${row.timeOut == null ? "" : formatDate(new Date(row.timeOut))},` +
-          `${row.dnfType == null ? "" : row.dnfType},` +
-          `${row.dnfStation == null ? "" : row.dnfStation},` +
-          `${row.note == null ? "" : row.note}`;
+          `${csvField(row.dropReason)},` +
+          `${csvField(row.dropStation)},` +
+          `${csvField(row.note)}`;
         stream.write(rowText + "\n");
       }
     }
@@ -492,49 +506,31 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
   });
 }
 
-interface DNFRunnerDB extends RunnerDB {
-  dnf: number;
-  dnfType: string;
-  dnfStation: string;
-  dnfDateTime: Date | null;
+interface DropRunnerDB extends RunnerDB {
+  dropped: number;
+  dropReason: string;
+  dropStation: string;
+  dropDateTime: Date | null;
 }
 
-function writeDNSToCSV(filename: string, queryResult) {
-  const fs = require("fs");
-  const eventName = appStore.get("event.name") as string;
-  const eventStartTime = appStore.get("event.starttime") as string;
-  const stationIdentifier = appStore.get("station.identifier") as string;
-  const startLineIdentifier = appStore.get("event.startline") as string;
-
-  return new Promise((resolve, reject) => {
-    const stream = fs.createWriteStream(filename);
-
-    // title row
-    const headerText = `${eventName},${stationIdentifier},dns-export`;
-    stream.write(headerText + "\n");
-
-    // header row
-    // stationId,bibId,dnsDateTime,note
-    const columnNames = ["stationId", "bibId", "dnsDateTime", "note"];
-    const rowText = `${columnNames[0]},${columnNames[1]},${columnNames[2]},${columnNames[3]}`;
-    stream.write(rowText + "\n");
-
-    for (const row of queryResult as RunnerDB[]) {
-      let rowText = "";
-      rowText =
-        `${startLineIdentifier},` +
-        `${row.bibId},` +
-        `${eventStartTime == null ? "" : eventStartTime},` +
-        `${row.note}`;
-      stream.write(rowText + "\n");
-    }
-    stream.on("error", reject);
-    stream.end(resolve);
-  });
+interface DropExportRow {
+  dropBibId: number;
+  dropped: number;
+  dropReason: string;
+  dropStation: string;
+  dropDateTime: Date | null;
+  note: string;
 }
 
-function writeDNFToCSV(filename: string, queryResult) {
-  const fs = require("fs");
+function csvField(value: string | null | undefined): string {
+  const text = value ?? "";
+
+  if (!/[",\r\n]/.test(text)) return text;
+
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+function writeDropsToCSV(filename: string, queryResult) {
   const eventName = appStore.get("event.name") as string;
   const stationIdentifier = appStore.get("station.identifier") as string;
 
@@ -542,23 +538,23 @@ function writeDNFToCSV(filename: string, queryResult) {
     const stream = fs.createWriteStream(filename);
 
     // title row
-    const headerText = `${eventName},${stationIdentifier},dnf-export`;
+    const headerText = `${eventName},${stationIdentifier},drops-export`;
     stream.write(headerText + "\n");
 
     // header row
-    // stationId,bibId,dnfType,dnfDateTime,note
-    const columnNames = ["stationId", "bibId", "dnfType", "dnfDateTime", "note"];
+    // stationId,bibId,dropReason,dropDateTime,note
+    const columnNames = ["stationId", "bibId", "dropReason", "dropDateTime", "note"];
     const rowText = `${columnNames[0]},${columnNames[1]},${columnNames[2]},${columnNames[3]},${columnNames[4]}`;
     stream.write(rowText + "\n");
 
-    for (const row of queryResult as DNFRunnerDB[]) {
+    for (const row of queryResult as DropExportRow[]) {
       let rowText = "";
       rowText =
-        `${row.dnfStation},` +
-        `${row.bibId},` +
-        `${row.dnfType},` +
-        `${row.dnfDateTime == null ? "" : formatDate(row.dnfDateTime)},` +
-        `${row.note}`;
+        `${csvField(row.dropStation)},` +
+        `${row.dropBibId},` +
+        `${csvField(row.dropReason)},` +
+        `${row.dropDateTime == null ? "" : formatDate(row.dropDateTime)},` +
+        `${csvField(row.note)}`;
       stream.write(rowText + "\n");
     }
     stream.on("error", reject);

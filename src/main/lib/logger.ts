@@ -3,6 +3,7 @@ import path from "path";
 import { format } from "date-fns";
 import { app } from "electron";
 import log from "electron-log/main";
+import { isDatabaseConnected } from "../database/connect-db";
 import { logEvent } from "../database/eventLogger-db";
 
 export enum LogLevel {
@@ -20,38 +21,38 @@ export function initialize() {
   log.initialize();
   log.transports.file.resolvePathFn = () =>
     path.join(app.getPath("documents"), app.name, `.logs/${now}-main.log`);
-  log.errorHandler.startCatching();
+  // showDialog defaults to true; an operator mid-event should not have to
+  // dismiss a stack trace.
+  log.errorHandler.startCatching({ showDialog: false });
   log.transports.console.format = "[{iso}] [{level}] [{processType}] {text}";
-  // Override console methods to log both to console and electron-log
-  const originalLog = console.log;
-  const originalError = console.error;
-  const originalWarn = console.warn;
-  const originalInfo = console.info;
-  const originalDebug = console.debug;
 
+  // A closed stdout raises EPIPE, which the handler above logs, which writes
+  // again, which raises EPIPE again. Swallow it so logging cannot kill the app.
+  for (const stream of [process.stdout, process.stderr]) {
+    stream.on("error", (err: NodeJS.ErrnoException) => {
+      if (err.code !== "EPIPE") throw err;
+    });
+  }
+  // Keep the app on a single console transport and let electron-log handle file output.
+  // This avoids duplicates like the same message being emitted twice to the terminal.
   console.log = (...args: unknown[]) => {
-    log.log(...args); // Log to electron-log
-    originalLog(...args); // Log to console
+    log.log(...args);
   };
 
   console.error = (...args: unknown[]) => {
-    log.error(...args); // Log to electron-log
-    originalError(...args); // Log to console
+    log.error(...args);
   };
 
   console.warn = (...args: unknown[]) => {
-    log.warn(...args); // Log to electron-log
-    originalWarn(...args); // Log to console
+    log.warn(...args);
   };
 
   console.info = (...args: unknown[]) => {
-    log.info(...args); // Log to electron-log
-    originalInfo(...args); // Log to console
+    log.info(...args);
   };
 
   console.debug = (...args: unknown[]) => {
-    log.debug(...args); // Log to electron-log
-    originalDebug(...args); // Log to console
+    log.debug(...args);
   };
 
   const freeMem = Number(os.freemem) / Math.pow(1024, 3);
@@ -86,7 +87,7 @@ export function uberLog(level: LogLevel, scope: string, message: string, sendToE
   const scopedLog = !scope ? log : log.scope(scope);
   const logMessage = `${message}`;
 
-  if (sendToEventLog)
+  if (sendToEventLog && isDatabaseConnected())
     logEvent(-1, null, null, null, new Date().toISOString(), logMessage, false, false);
 
   switch (level) {

@@ -1,5 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { DNFType, RecordStatus } from "$shared/enums";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { duplicatedBibs } from "~/lib/duplicates";
+import { DropReason, RecordStatus } from "$shared/enums";
 import { RunnerAthleteDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { useHandleStatusToasts } from "../useHandleStatusToasts";
@@ -15,25 +17,51 @@ export interface Runner {
 
 export interface RunnerEx extends Runner {
   sequence: number;
-  dns: boolean;
-  dnf: boolean;
-  dnfType: DNFType;
+  sent: boolean;
+  openSplitTimeAuthenticated: boolean;
+  dropped: boolean;
+  dropReason: DropReason;
   status: RecordStatus;
+  hasDuplicate: boolean;
+  openSplitTimePushStatus?: "success" | "pending" | "error";
+  openSplitTimePushError?: string;
 }
 
 export function useRunnerData() {
   const handleError = useHandleStatusToasts();
   const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
+
+  // A background OST push (triggered by an edit/insert) can finish after that mutation's own IPC
+  // response already returned, so its push status wouldn't otherwise be reflected until some
+  // unrelated refetch happens.
+  useEffect(() => {
+    const handleRunnersTableChanged = () => {
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+    };
+
+    ipcRenderer.on("runners-table-changed", handleRunnersTableChanged);
+
+    return () => {
+      ipcRenderer.removeAllListeners("runners-table-changed");
+    };
+  }, [ipcRenderer, queryClient]);
 
   return useQuery({
     queryKey: ["runners-table"],
     queryFn: async (): Promise<RunnerEx[]> => {
-      const response = await ipcRenderer.invoke("get-runners-table", { includeDNF: true });
+      const [response, authResult] = await Promise.all([
+        ipcRenderer.invoke("get-runners-table", { includeDrops: true }),
+        ipcRenderer.invoke("opensplittime-get-auth-status")
+      ]);
       const [data, status, message]: DatabaseResponse<RunnerAthleteDB[]> = response;
+      const { authenticated } = authResult as { authenticated: boolean };
 
       const success = handleError(status, message);
 
       if (!success) return [];
+
+      const duplicated = duplicatedBibs(data!);
 
       return data!.map((runner, index) => ({
         id: runner.index,
@@ -42,10 +70,14 @@ export function useRunnerData() {
         in: runner.timeIn,
         out: runner.timeOut,
         note: runner.note,
-        dns: runner.dns ?? false,
-        dnf: runner.dnf ?? false,
-        dnfType: runner.dnfType ?? DNFType.None,
-        status: runner.status ?? RecordStatus.OK
+        sent: runner.sent,
+        openSplitTimeAuthenticated: authenticated,
+        dropped: runner.dropped ?? false,
+        dropReason: runner.dropReason ?? DropReason.None,
+        status: runner.status ?? RecordStatus.OK,
+        hasDuplicate: duplicated.has(Math.trunc(runner.bibId)),
+        openSplitTimePushStatus: runner.openSplitTimePushStatus,
+        openSplitTimePushError: runner.openSplitTimePushError
       }));
     }
   });

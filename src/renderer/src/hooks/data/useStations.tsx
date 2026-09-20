@@ -5,11 +5,12 @@ import { StationDB } from "$shared/models";
 import { DatabaseResponse } from "$shared/types";
 import { useIpcRenderer } from "../useIpcRenderer";
 
-export function useStations() {
+export function useStations(enabled = true) {
   const ipcRenderer = useIpcRenderer();
   const { createToast } = useToasts();
 
   return useQuery({
+    enabled,
     queryKey: ["stations-list"],
     queryFn: async (): Promise<StationDB[]> => {
       const [data, status, message]: DatabaseResponse<StationDB[]> =

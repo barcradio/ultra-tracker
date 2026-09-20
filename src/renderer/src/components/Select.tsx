@@ -1,5 +1,6 @@
 import { ComponentProps } from "react";
 import { Dropdown } from "primereact/dropdown";
+import { twMerge } from "tailwind-merge";
 import WarningIcon from "~/assets/icons/warning-circle.svg?react";
 import { Stack } from "./Stack";
 import { Label } from "./TextInput";
@@ -38,7 +39,7 @@ export function Select(props: Props) {
     : props.options;
 
   return (
-    <Stack direction="col" className={`gap-1 ${props.className}`}>
+    <Stack direction="col" className={twMerge("gap-1 min-w-0", props.className)}>
       <Stack direction="row" align="center" className="gap-2.5">
         {props.label && <Label {...props.labelProps}>{props.label}</Label>}
         {props.error && (
@@ -46,7 +47,7 @@ export function Select(props: Props) {
         )}
       </Stack>
       <Dropdown
-        className={props.className}
+        className={twMerge("w-full min-w-0", props.className)}
         value={props.value}
         onChange={(event) => props.onChange(event.value)}
         filter={props.showFilter}
@@ -58,7 +59,10 @@ export function Select(props: Props) {
         {...(!isGrouped && { optionLabel: "name", optionValue: "value" })}
         pt={{
           input: {
-            className: !props.disabled ? "text-on-component" : "text-on-surface"
+            className: twMerge(
+              "whitespace-normal break-words",
+              !props.disabled ? "text-on-component" : "text-on-surface"
+            )
           }
         }}
       />

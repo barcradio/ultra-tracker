@@ -8,8 +8,12 @@ interface Props<T extends object> {
   sortState: SortState<T>;
 }
 
-const Icon = classed(ArrowIcon, "transition duration-200 fill-on-surface", {
+const Icon = classed(ArrowIcon, "transition duration-200 fill-primary", {
   variants: {
+    align: {
+      right: "ml-3",
+      left: "mr-0"
+    },
     ascending: {
       false: "transform rotate-180"
     },
@@ -26,6 +30,11 @@ export function SortIcon<T extends object>(props: Props<T>) {
   const isActive = (field: keyof T) => props.sortState.field === field;
 
   return (
-    <Icon active={isActive(props.column.field)} ascending={props.sortState.ascending} height={18} />
+    <Icon
+      align={props.column.align ?? "left"}
+      active={isActive(props.column.field)}
+      ascending={props.sortState.ascending}
+      height={18}
+    />
   );
 }

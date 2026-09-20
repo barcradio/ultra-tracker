@@ -1,0 +1,3 @@
+bear-100-2026,3-richards-hollow,drops-export
+stationId,bibId,dropReason,dropDateTime,note
+3-richards-hollow,1001,medical,2026-09-25T15:36:00Z,Imported course drop against existing DNS

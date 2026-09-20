@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { classed } from "~/lib/classed";
+import { getColumnWidthStyle } from "./columnWidth";
 import { Filter, Row, Section } from "./components";
 import { ResetButton } from "./components/ResetButton";
 import { SortIcon } from "./components/SortIcon";
@@ -8,7 +9,7 @@ import { SortState } from "./hooks/useSortState";
 import { Column } from "./types";
 
 const HeaderContainer = classed.div(
-  "flex gap-3 justify-end items-center py-2.5 px-4 w-full text-xl font-bold text-left uppercase group/header",
+  "flex gap-1 sm:gap-1.5 md:gap-2 justify-end items-center py-2.5 px-2 sm:px-2.5 md:px-3 w-full text-xl font-bold text-left uppercase group/header min-w-0 truncate",
   {
     variants: {
       disabled: {
@@ -32,25 +33,28 @@ interface Props<T extends object> {
   sortState: SortState<T>;
   setSortField: (field: keyof T) => void;
   actionButtons?: (row: T) => ReactNode;
+  leadingAction?: (row: T) => ReactNode;
   className?: string;
   type: "header" | "footer";
+  hasRowStatus?: boolean;
 }
 
 export function Headers<T extends object>(props: Props<T>) {
-  const width = (width: Column<T>["width"]) => {
-    if (typeof width === "number") return `${width}px`;
-    return width;
-  };
-
   const isDisabled = (column: Column<T>) => column.sortable === false || props.type === "footer";
 
   return (
     <Section type={props.type}>
       <Row>
+        {props.hasRowStatus && (
+          <th aria-label="OpenSplitTime upload status" className="w-4 text-center">
+            ↑
+          </th>
+        )}
+        {props.leadingAction && <th className="w-8 bg-component-strong" />}
         {props.columns.map((column) => (
           <th
             key={column.name ?? String(column.field)}
-            style={{ width: width(column.width) }}
+            style={getColumnWidthStyle(column)}
             className="relative rounded-s bg-component-strong"
           >
             <HeaderContainer

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { DatabaseStatus } from "$shared/enums";
 import { AthleteDB, RunnerDB } from "$shared/models";
@@ -55,7 +55,14 @@ export const useCreateTiming = () => {
   const { createToast } = useToasts();
 
   return useTimingMutation("add-timing-record", {
-    callback: async (timeRecord, status) => {
+    toastsOnStatus: {
+      [DatabaseStatus.Duplicate]: (runner) => ({
+        message: `Runner #${runner?.bibId} already has a timing record!`,
+        type: "warning",
+        timeoutMs: -1
+      })
+    },
+    callback: async (timeRecord) => {
       const athleteResponse = await ipcRenderer.invoke("get-athlete-by-bib", timeRecord.bibId);
       const [athlete] = athleteResponse as DatabaseResponse<AthleteDB>;
 
@@ -63,14 +70,6 @@ export const useCreateTiming = () => {
       if (athlete === null)
         createToast({
           message: `athletes: No athlete found with bibId: ${timeRecord.bibId}`,
-          type: "warning",
-          timeoutMs: -1
-        });
-
-      // If the timing record is a duplicate, show a warning
-      if (status == DatabaseStatus.Duplicate)
-        createToast({
-          message: `Runner #${timeRecord.bibId} already has a timing record!`,
           type: "warning",
           timeoutMs: -1
         });
@@ -97,5 +96,75 @@ export const useDeleteTiming = () => {
         type: "success"
       })
     }
+  });
+};
+
+export const usePushOpenSplitTimeRecord = () => {
+  const ipcRenderer = useIpcRenderer();
+  const queryClient = useQueryClient();
+  const { createToast } = useToasts();
+
+  return useMutation({
+    mutationFn: async (bibId: number) => {
+      const outcome = (await ipcRenderer.invoke("opensplittime-push-record", { bibId })) as {
+        pushed: boolean;
+        error?: string;
+      };
+      return outcome;
+    },
+    onSuccess: (outcome, bibId) => {
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      // The main process already shows a toast for push failures (recordPushFailure), so only
+      // handle the success/paused cases here to avoid showing the failure twice.
+      if (outcome.error) return;
+
+      createToast({
+        message: outcome.pushed
+          ? `Runner #${bibId} pushed`
+          : `Runner #${bibId} push was skipped (paused)`,
+        type: outcome.pushed ? "success" : "warning"
+      });
+    },
+    onError: (error: Error, bibId) => {
+      queryClient.invalidateQueries({ queryKey: ["runners-table"] });
+      createToast({
+        message: `Runner #${bibId} push failed: ${error.message}`,
+        type: "warning",
+        timeoutMs: -1
+      });
+    }
+  });
+};
+
+interface OpenSplitTimeAuthStatus {
+  authenticated: boolean;
+  expiration: string | null;
+}
+
+interface OpenSplitTimePushPausedStatus {
+  paused: boolean;
+}
+
+// Re-checked each time `enabled` flips true (e.g. the EditRunner drawer opening) rather than
+// polled continuously, since the push button's auth check only matters while it's visible.
+export const useOpenSplitTimeAuthStatus = (enabled: boolean) => {
+  const ipcRenderer = useIpcRenderer();
+
+  return useQuery({
+    queryKey: ["opensplittime-auth-status"],
+    queryFn: () =>
+      ipcRenderer.invoke("opensplittime-get-auth-status") as Promise<OpenSplitTimeAuthStatus>,
+    enabled
+  });
+};
+
+export const useOpenSplitTimePushPaused = (enabled: boolean) => {
+  const ipcRenderer = useIpcRenderer();
+
+  return useQuery({
+    queryKey: ["opensplittime-push-paused"],
+    queryFn: () =>
+      ipcRenderer.invoke("opensplittime-get-push-paused") as Promise<OpenSplitTimePushPausedStatus>,
+    enabled
   });
 };

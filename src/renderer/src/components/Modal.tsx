@@ -13,8 +13,10 @@ export interface ModalProps {
   title: ReactNode;
   showNegativeButton?: boolean;
   negativeText?: ReactNode;
-  size?: "sm" | "md" | "lg" | "auto";
+  footerLeading?: ReactNode;
+  size?: "sm" | "md" | "lg" | "xl" | "auto";
   affirmativeDisabled?: boolean;
+  dismissOnClickOutside?: boolean;
 }
 
 export interface ModalAffirmProps extends ModalProps {
@@ -24,13 +26,14 @@ export interface ModalAffirmProps extends ModalProps {
 }
 
 const ModalElement = classed.div(
-  "cursor-default pointer-events-auto text-on-component font-display",
+  "cursor-default pointer-events-auto text-on-component font-display max-h-[92vh] overflow-hidden flex flex-col",
   {
     variants: {
       size: {
         sm: "w-[24rem]",
         md: "w-[32rem]",
         lg: "w-[48rem]",
+        xl: "w-[80vw] max-w-[96vw] xl:max-w-[72rem]",
         auto: "w-auto"
       }
     }
@@ -41,12 +44,13 @@ export function Modal(props: ModalProps | ModalAffirmProps) {
   const { setOpen, open } = props;
   const portalRoot = usePortalRoot();
   const affirmativeButton: boolean = props["affirmativeText"] && props["onAffirmative"];
+  const dismissOnClickOutside = props.dismissOnClickOutside ?? true;
 
   const handleClose = useCallback(() => {
     setOpen(false);
   }, [setOpen]);
 
-  useAttachBackdrop(open, handleClose);
+  useAttachBackdrop(open, dismissOnClickOutside ? handleClose : undefined);
 
   return createPortal(
     props.open && (
@@ -56,25 +60,33 @@ export function Modal(props: ModalProps | ModalAffirmProps) {
         align="center"
       >
         <ModalElement size={props.size ?? "md"}>
-          <div className="p-3 text-xl font-bold text-center rounded-t-lg bg-component-strong">
+          <div className="w-full p-3 text-xl font-bold text-center rounded-t-lg bg-component-strong shrink-0">
             {props.title}
           </div>
-          <div className="py-4 px-4 bg-component">{props.children}</div>
+          <div className="w-full flex-1 min-h-0 overflow-hidden py-4 px-4 bg-component">
+            {props.children}
+          </div>
           {(affirmativeButton || props.showNegativeButton) && (
-            <Stack justify="end" className="gap-2 p-3 rounded-b-lg bg-component">
-              <Button variant="ghost" color="neutral" onClick={handleClose}>
-                {props.negativeText ?? "Close"}
-              </Button>
-              {affirmativeButton && (
-                <Button
-                  variant="solid"
-                  color={props["dangerous"] ? "danger" : "primary"}
-                  onClick={props["onAffirmative"]}
-                  disabled={props["affirmativeDisabled"]}
-                >
-                  {props["affirmativeText"]}
+            <Stack
+              justify={props.footerLeading ? "between" : "center"}
+              className="gap-2 p-3 rounded-b-lg bg-component shrink-0"
+            >
+              {props.footerLeading}
+              <Stack justify="end" className="gap-2">
+                <Button variant="ghost" color="neutral" onClick={handleClose}>
+                  {props.negativeText ?? "Close"}
                 </Button>
-              )}
+                {affirmativeButton && (
+                  <Button
+                    variant="solid"
+                    color={props["dangerous"] ? "danger" : "primary"}
+                    onClick={props["onAffirmative"]}
+                    disabled={props["affirmativeDisabled"]}
+                  >
+                    {props["affirmativeText"]}
+                  </Button>
+                )}
+              </Stack>
             </Stack>
           )}
         </ModalElement>

@@ -14,12 +14,24 @@ export enum DatabaseStatus {
   Success
 }
 
-export enum DNFType {
+export enum DropReason {
   None = "none",
+  DidNotStart = "did-not-start",
   Withdrew = "withdrew",
   Timeout = "timeout",
   Medical = "medical",
   Unknown = "unknown"
+}
+
+export enum DropsImportConflictAction {
+  PreserveExisting = "preserve-existing",
+  UseImported = "use-imported"
+}
+
+export enum DropsImportRecommendationConfidence {
+  Low = "low",
+  Medium = "medium",
+  High = "high"
 }
 
 export enum EntryMode {

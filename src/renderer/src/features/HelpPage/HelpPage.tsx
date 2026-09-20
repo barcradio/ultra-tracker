@@ -3,7 +3,7 @@ import { RenderMarkdown } from "~/components";
 
 export function HelpPage() {
   return (
-    <div className="overflow-y-auto px-4 max-h-inherit bg-component text-on-component">
+    <div className="overflow-y-auto px-4 h-full bg-component text-on-component">
       <RenderMarkdown trusted>{getStartedContents}</RenderMarkdown>
     </div>
   );

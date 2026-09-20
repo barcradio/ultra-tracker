@@ -2,6 +2,7 @@ import { ipcMain } from "electron";
 import { Station, StationDB } from "$shared/models";
 import { DatabaseResponse, SetStationIdentityParams } from "$shared/types";
 import * as dbStations from "../database/stations-db";
+import { countTimingRecordsAtOtherStations } from "../database/timingRecords-db";
 import { Handler } from "../types";
 
 const getStations: Handler<DatabaseResponse<StationDB>> = () => {
@@ -25,8 +26,16 @@ const getStationOperators: Handler<string, DatabaseResponse<Station["operators"]
   }
 };
 
+// Asked before the change is made, so the operator can be told what it will do and back out.
+const getRecordsHeldForOtherStations: Handler<string, number> = (_, identifier) => {
+  if (typeof identifier !== "string") return 0;
+
+  return countTimingRecordsAtOtherStations(Number(identifier.split("-", 1)[0]));
+};
+
 export const initStationHandlers = () => {
   ipcMain.handle("get-stations-list", getStations);
   ipcMain.handle("set-station-identity", setStationIdentity);
   ipcMain.handle("get-station-operators", getStationOperators);
+  ipcMain.handle("count-records-for-other-stations", getRecordsHeldForOtherStations);
 };

@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { Button, Select, Stack } from "~/components";
+import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { useStation } from "~/hooks/data/useStation";
 import { useStations } from "~/hooks/data/useStations";
 import { formatShortDate } from "~/lib/datetimes";
@@ -32,7 +33,14 @@ export function StationsPage() {
   const { data: currentStation } = useStation();
   const { data: stations } = useStations();
 
-  const { setValue, ...identityForm } = useIdentityForm(currentStation);
+  const {
+    setValue,
+    recordsToMove,
+    stationChangePending,
+    confirmStationChange,
+    cancelStationChange,
+    ...identityForm
+  } = useIdentityForm(currentStation);
 
   const stationOptions = useMemo(() => createStationOptions(stations), [stations]);
   const { data: currentOperators } = useStationOperators(identityForm.watch("identifier"));
@@ -48,7 +56,8 @@ export function StationsPage() {
       field: "name",
       name: "Station",
       valueFn: (station) => `${station.identifier.split("-")[0]} ${station.name}`,
-      width: "20%",
+      flexible: true,
+      sample: "12 Apple Meadow Junction",
       sortable: false
     },
     {
@@ -58,7 +67,7 @@ export function StationsPage() {
         const loc = JSON.parse(station.location);
         return `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`;
       },
-      width: "15%",
+      sample: "41.7283, -111.7995",
       sortable: false
     },
     {
@@ -68,70 +77,70 @@ export function StationsPage() {
         const loc = JSON.parse(station.location);
         return loc.elevation;
       },
-      width: "80px",
+      sample: "9999",
       sortable: false
     },
     {
       field: "distance",
       name: "Dist",
-      width: "80px",
       align: "right",
       render: (value) => value.toFixed(1),
+      sample: "100.0",
       sortable: false
     },
     {
       field: "dropbags",
       name: "Bags",
       render: (value) => (value ? "Yes" : "No"),
-      width: "80px",
+      sample: "Yes",
       sortable: false
     },
     {
       field: "crewaccess",
       name: "Crew",
       render: (value) => (value ? "Yes" : "No"),
-      width: "80px",
+      sample: "Yes",
       sortable: false
     },
     {
       field: "paceraccess",
       name: "Pacer",
       render: (value) => (value ? "Yes" : "No"),
-      width: "80px",
+      sample: "Yes",
       sortable: false
     },
     {
       field: "shiftBegin",
       name: "Open",
       render: (value) => formatShortDate(new Date(value)),
-      width: "135px",
+      sample: "05:00 25 Sep",
       sortable: false
     },
     {
       field: "cutofftime",
       name: "Cutoff",
       render: (value) => formatShortDate(new Date(value)),
-      width: "135px",
+      sample: "05:00 25 Sep",
       sortable: false
     },
     {
       field: "shiftEnd",
       name: "Close",
       render: (value) => formatShortDate(new Date(value)),
-      width: "135px",
+      sample: "05:00 25 Sep",
       sortable: false
     },
     {
       field: "entrymode",
       name: "Mode",
       render: (value) => EntryMode[value].toString(),
-      width: "90px",
+      sample: "OutOnly",
       sortable: false
     }
   ];
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <Stack className="gap-4" align="center" as="form" onSubmit={identityForm.onSubmit}>
         <Select
           options={stationOptions}
@@ -149,11 +158,26 @@ export function StationsPage() {
           className="w-72"
         />
         <Button className="px-5 py-[6.8px]">Apply</Button>
+        <ConfirmationModal
+          dangerous
+          open={stationChangePending}
+          setOpen={(open) => {
+            if (!open) cancelStationChange();
+          }}
+          title="Change Station"
+          negativeText="Cancel"
+          affirmativeText="Change Station"
+          onAffirmative={confirmStationChange}
+        >
+          This event database holds {recordsToMove} timing record
+          {recordsToMove === 1 ? "" : "s"} logged at another station. Changing station moves
+          {recordsToMove === 1 ? " it" : " them"} to the station you are selecting.
+        </ConfirmationModal>
         <Stack justify="between" align="center" className="py-6 pl-4 m-4 text-2xl font-display">
           <p className="text-on-component">{entryModeLabel}</p>
         </Stack>
       </Stack>
-      <div style={{ height: "100vh", paddingTop: "10px" }}>
+      <div className="flex-1 overflow-hidden bg-component">
         <DataGrid data={stations ?? []} columns={columns} getKey={({ identifier }) => identifier} />
       </div>
     </div>
