@@ -97,6 +97,7 @@ export interface StartLineDropsPreview {
 export interface StartLineDropsReport {
   newDropCount: number;
   exportMessage: string;
+  exportStatus: "success" | "cancelled" | "error";
 }
 
 export interface Toast {

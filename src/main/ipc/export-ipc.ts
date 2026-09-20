@@ -20,8 +20,8 @@ const previewStartLineDropsFile: Handler = () => {
   return previewStartLineDrops();
 };
 
-const generateStartLineDropsFile: Handler = () => {
-  return generateStartLineDrops();
+const generateStartLineDropsFile: Handler<boolean> = (_, startLineClosedConfirmed) => {
+  return generateStartLineDrops(Boolean(startLineClosedConfirmed));
 };
 
 const openExportDirectory = () => {

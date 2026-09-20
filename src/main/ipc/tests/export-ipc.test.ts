@@ -68,7 +68,9 @@ describe("export-ipc", () => {
   });
 
   it("generates start line drops", () => {
-    expect(handlerFor("generate-start-line-drops")(undefined)).toBe("start line drops generated");
-    expect(startLineDrops.generateStartLineDrops).toHaveBeenCalled();
+    expect(handlerFor("generate-start-line-drops")(undefined, true)).toBe(
+      "start line drops generated"
+    );
+    expect(startLineDrops.generateStartLineDrops).toHaveBeenCalledWith(true);
   });
 });

@@ -41,6 +41,9 @@ vi.mock("../../ipc/runner-data-emitter", () => ({ emitRunnersTableChanged }));
 const exportDropsAsCSV = vi.hoisted(() => vi.fn(async () => "File Export Successful: drops.csv"));
 vi.mock("../runners-db", () => ({ exportDropsAsCSV }));
 
+const IsRFIDScanning = vi.hoisted(() => vi.fn(() => false));
+vi.mock("../../api/rfid-processor", () => ({ IsRFIDScanning }));
+
 vi.mock("../../lib/file-dialogs", () => ({ loadDropsFromCSV: vi.fn(), saveDropsToCSV: vi.fn() }));
 
 function seedAthlete(bibId: number) {
@@ -141,14 +144,45 @@ describe("startLineDrops-db", () => {
 
       expect(preview).toMatchObject({ startedCount: 1, newDropCount: 1 });
     });
+
+    it("errors when RFID is still scanning", () => {
+      IsRFIDScanning.mockReturnValueOnce(true);
+
+      const [preview, status, message] = previewStartLineDrops();
+
+      expect(preview).toBeNull();
+      expect(status).toBe(DatabaseStatus.Error);
+      expect(message).toMatch(/rfid/i);
+    });
   });
 
   describe("generateStartLineDrops", () => {
+    it("errors when RFID is still scanning", async () => {
+      IsRFIDScanning.mockReturnValueOnce(true);
+
+      const [report, status, message] = await generateStartLineDrops(true);
+
+      expect(report).toBeNull();
+      expect(status).toBe(DatabaseStatus.Error);
+      expect(message).toMatch(/rfid/i);
+    });
+
+    it("errors when the start line closure isn't confirmed", async () => {
+      seedAthlete(101);
+
+      const [report, status, message] = await generateStartLineDrops(false);
+
+      expect(report).toBeNull();
+      expect(status).toBe(DatabaseStatus.Error);
+      expect(message).toMatch(/confirm/i);
+      expect(setOpenSplitTimePushPaused).not.toHaveBeenCalled();
+    });
+
     it("blocks when duplicate start line records exist", async () => {
       seedAthlete(101);
       seedTimeRecord(101, 0, 1);
 
-      const [report, status, message] = await generateStartLineDrops();
+      const [report, status, message] = await generateStartLineDrops(true);
 
       expect(report).toBeNull();
       expect(status).toBe(DatabaseStatus.Error);
@@ -159,7 +193,7 @@ describe("startLineDrops-db", () => {
     it("blocks when unknown bibs have started but are not registered", async () => {
       seedTimeRecord(999, 0);
 
-      const [report, status, message] = await generateStartLineDrops();
+      const [report, status, message] = await generateStartLineDrops(true);
 
       expect(report).toBeNull();
       expect(status).toBe(DatabaseStatus.Error);
@@ -171,10 +205,11 @@ describe("startLineDrops-db", () => {
       seedAthlete(102);
       seedTimeRecord(101, 0);
 
-      const [report, status] = await generateStartLineDrops();
+      const [report, status] = await generateStartLineDrops(true);
 
       expect(status).toBe(DatabaseStatus.Success);
       expect(report?.newDropCount).toBe(1);
+      expect(report?.exportStatus).toBe("success");
       expect(setOpenSplitTimePushPaused).toHaveBeenCalledWith(true);
       expect(exportDropsAsCSV).toHaveBeenCalled();
       expect(emitRunnersTableChanged).toHaveBeenCalled();
@@ -210,11 +245,33 @@ describe("startLineDrops-db", () => {
       getAuthStatus.mockReturnValueOnce({ authenticated: false, expiration: null });
       seedAthlete(101);
 
-      const [report, status] = await generateStartLineDrops();
+      const [report, status] = await generateStartLineDrops(true);
 
       expect(status).toBe(DatabaseStatus.Success);
       expect(report?.newDropCount).toBe(1);
       expect(setOpenSplitTimePushPaused).not.toHaveBeenCalled();
+    });
+
+    it("reports a cancelled export separately from the DB commit succeeding", async () => {
+      exportDropsAsCSV.mockResolvedValueOnce("Invalid file name");
+      seedAthlete(101);
+
+      const [report, status] = await generateStartLineDrops(true);
+
+      expect(status).toBe(DatabaseStatus.Success);
+      expect(report?.newDropCount).toBe(1);
+      expect(report?.exportStatus).toBe("cancelled");
+    });
+
+    it("reports a failed export separately from the DB commit succeeding", async () => {
+      exportDropsAsCSV.mockResolvedValueOnce("Disk is full");
+      seedAthlete(101);
+
+      const [report, status] = await generateStartLineDrops(true);
+
+      expect(status).toBe(DatabaseStatus.Success);
+      expect(report?.newDropCount).toBe(1);
+      expect(report?.exportStatus).toBe("error");
     });
   });
 });

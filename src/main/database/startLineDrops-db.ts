@@ -5,6 +5,7 @@ import { SetDrop } from "./status-db";
 import { insertOrUpdateTimeRecord } from "./timingRecords-db";
 import { DatabaseStatus, DropReason, RecordStatus } from "../../shared/enums";
 import { DatabaseResponse, StartLineDropsPreview, StartLineDropsReport } from "../../shared/types";
+import { IsRFIDScanning } from "../api/rfid-processor";
 import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { appStore } from "../lib/store";
 import { getAuthStatus, setOpenSplitTimePushPaused } from "../services/opensplittime";
@@ -13,6 +14,27 @@ function isCurrentStationStartLine(): boolean {
   const identifier = appStore.get("station.identifier") as string;
   const startline = appStore.get("event.startline") as string;
   return Boolean(startline) && identifier === startline;
+}
+
+// Shared by preview and generate so neither can run from a disabled/stale renderer button.
+function getStartLinePreconditionError(): string | null {
+  if (!isCurrentStationStartLine()) {
+    return "Start line drops can only be generated at the start line station.";
+  }
+
+  if (IsRFIDScanning()) {
+    return "Stop the RFID reader before generating start line drops.";
+  }
+
+  return null;
+}
+
+// exportDropsAsCSV() only ever returns a plain message string, so its outcome has to be
+// classified here to tell the renderer whether the drops CSV actually needs to be retried.
+function classifyExportMessage(message: string): "success" | "cancelled" | "error" {
+  if (message === "Invalid file name") return "cancelled";
+  if (message.startsWith("File Export Successful:")) return "success";
+  return "error";
 }
 
 function getStartLineData(db: Database.Database) {
@@ -60,13 +82,8 @@ function getStartLineData(db: Database.Database) {
 }
 
 export function previewStartLineDrops(): DatabaseResponse<StartLineDropsPreview> {
-  if (!isCurrentStationStartLine()) {
-    return [
-      null,
-      DatabaseStatus.Error,
-      "Start line drops can only be generated at the start line station."
-    ];
-  }
+  const preconditionError = getStartLinePreconditionError();
+  if (preconditionError) return [null, DatabaseStatus.Error, preconditionError];
 
   try {
     const db = getDatabaseConnection();
@@ -89,12 +106,17 @@ export function previewStartLineDrops(): DatabaseResponse<StartLineDropsPreview>
   }
 }
 
-export async function generateStartLineDrops(): Promise<DatabaseResponse<StartLineDropsReport>> {
-  if (!isCurrentStationStartLine()) {
+export async function generateStartLineDrops(
+  startLineClosedConfirmed: boolean
+): Promise<DatabaseResponse<StartLineDropsReport>> {
+  const preconditionError = getStartLinePreconditionError();
+  if (preconditionError) return [null, DatabaseStatus.Error, preconditionError];
+
+  if (!startLineClosedConfirmed) {
     return [
       null,
       DatabaseStatus.Error,
-      "Start line drops can only be generated at the start line station."
+      "Confirm the start line is officially closed before generating drops."
     ];
   }
 
@@ -168,9 +190,10 @@ export async function generateStartLineDrops(): Promise<DatabaseResponse<StartLi
   if (data.newDropBibIds.length > 0) emitRunnersTableChanged();
 
   const exportMessage = await exportDropsAsCSV();
+  const exportStatus = classifyExportMessage(exportMessage);
 
   return [
-    { newDropCount: data.newDropBibIds.length, exportMessage },
+    { newDropCount: data.newDropBibIds.length, exportMessage, exportStatus },
     DatabaseStatus.Success,
     `Generated ${data.newDropBibIds.length} start line drops`
   ];
