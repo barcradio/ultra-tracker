@@ -8,6 +8,7 @@ const powerHandlers = vi.hoisted(() => new Map<string, Handler>());
 
 const app = vi.hoisted(() => ({
   name: "ultra-tracker",
+  dock: { setIcon: vi.fn() },
   on: vi.fn((event: string, handler: Handler) => {
     appHandlers.push([event, handler]);
   }),
@@ -54,6 +55,7 @@ const window = vi.hoisted(() => {
 });
 
 interface BrowserWindowOptions {
+  icon?: string;
   webPreferences: { preload: string; sandbox: boolean };
   show: boolean;
 }
@@ -91,6 +93,7 @@ const utils = vi.hoisted(() => ({
 vi.mock("@electron-toolkit/utils", () => utils);
 
 vi.mock("$resources/iconLinux.png?asset", () => ({ default: "iconLinux.png" }));
+vi.mock("$resources/iconWin.png?asset", () => ({ default: "iconWin.png" }));
 
 const rfid = vi.hoisted(() => ({
   CloseRFIDWebSocket: vi.fn(),
@@ -221,6 +224,24 @@ describe("main process", () => {
       expect(options.webPreferences.preload).toContain("preload");
       expect(options.webPreferences.sandbox).toBe(false);
       expect(options.show).toBe(false);
+    });
+
+    it("uses the Windows icon for the Windows window", async () => {
+      setPlatform("win32");
+
+      await bootMain();
+
+      const options = BrowserWindow.mock.calls[0][0] as BrowserWindowOptions;
+      expect(options.icon).toBe("iconWin.png");
+    });
+
+    it("uses the application icon for the macOS development dock", async () => {
+      setPlatform("darwin");
+      utils.is.dev = true;
+
+      await bootMain();
+
+      expect(app.dock.setIcon).toHaveBeenCalledWith("iconLinux.png");
     });
 
     it("installs an application menu", async () => {

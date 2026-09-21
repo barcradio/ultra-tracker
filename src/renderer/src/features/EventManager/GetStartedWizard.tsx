@@ -32,6 +32,7 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
   const [running, setRunning] = useState(false);
   const archiveLoaded = progress === "success" && archivePreview !== null;
   const stations = archivePreview?.stations ?? [];
+  const summary = archivePreview?.summary;
   const selectedStationId = identityForm.watch("identifier");
   const selectedCallsign = identityForm.watch("callsign");
   const currentOperators = stations.find(
@@ -126,9 +127,61 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
   });
 
   return (
-    <Modal open={open} setOpen={handleClose} title="Get Started" size="md">
+    <Modal
+      open={open}
+      setOpen={handleClose}
+      title="Get Started"
+      size="md"
+      dismissOnClickOutside={false}
+    >
       <form onSubmit={handleStart} className="space-y-4 text-on-component">
         <p className="text-sm opacity-80">Load an event file and select the station identity.</p>
+
+        <div className="rounded border border-component-strong px-3">
+          <EventImportProgressRow label="Event File" status={progress} />
+          {archiveLoaded && summary ? (
+            <div className="grid gap-2 pb-3 pt-1 text-sm sm:grid-cols-3">
+              <div className="sm:col-span-3">
+                <div className="font-medium">Name: {archivePreview.eventName}</div>
+                <div className="text-xs opacity-80">
+                  {summary.courseDistance !== undefined && (
+                    <span>{summary.courseDistance} mi </span>
+                  )}
+                  {(summary.startStationName || summary.finishStationName) && (
+                    <span>
+                      {[summary.startStationName, summary.finishStationName]
+                        .filter(Boolean)
+                        .join(" -> ")}
+                    </span>
+                  )}
+                </div>
+                {(summary.startTime || summary.endTime) && (
+                  <div className="text-xs opacity-70">
+                    {[summary.startTime, summary.endTime].filter(Boolean).join(" to ")}
+                  </div>
+                )}
+              </div>
+              {[
+                ["Stations", stations.length],
+                ["Athletes", summary.athleteCount],
+                ["Drops", summary.dropCount]
+              ].map(([label, value]) => (
+                <div key={label} className="rounded border border-component px-2 py-1">
+                  <div className="text-base font-semibold leading-tight">{value}</div>
+                  <div className="text-xs opacity-70">{label}</div>
+                </div>
+              ))}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-80 sm:col-span-3">
+                {summary.openSplitTime.map((openSplitTime) => (
+                  <span key={openSplitTime.environment}>
+                    OpenSplitTime {openSplitTime.environment}: {openSplitTime.name} (#
+                    {openSplitTime.id})
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
 
         {archiveLoaded ? (
           <>
@@ -163,10 +216,6 @@ export function GetStartedWizard({ open, setOpen }: GetStartedWizardProps) {
             {running ? "Loading..." : "Load Event File"}
           </Button>
         )}
-
-        <div className="rounded border border-component-strong px-3">
-          <EventImportProgressRow label="Event File" status={progress} />
-        </div>
 
         {Object.values(identityForm.formState.errors).map((error) => (
           <p key={error.message} className="text-sm text-danger">

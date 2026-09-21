@@ -1,20 +1,91 @@
 import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
+import { useToasts } from "~/features/Toasts/useToasts";
 import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
 import { useInOutButton } from "~/hooks/useInOutButton";
 import { useOpenEventManagerOnStartup } from "~/hooks/useOpenEventManagerOnStartup";
+import { DatabaseStatus, DropsImportConflictAction } from "$shared/enums";
+import { DropsImportPreview } from "$shared/types";
+import { DropsImportReviewModal } from "./DropsImportReviewModal";
 import { useSettingsMutations } from "./hooks/useSettingsMutations";
 import { OpenSplitTimeLogin } from "./OpenSplitTimeLogin";
 import { RfidConfiguration } from "./RfidConfiguration";
 
 export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
+  const { createToast } = useToasts();
   const gridFontScale = useGridFontScale();
   const inOutButton = useInOutButton();
   const eventManagerOnStartup = useOpenEventManagerOnStartup();
   const [resetOpen, setResetOpen] = useState(false);
   const [recreateOpen, setRecreateOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
+  const [dropsImportPreview, setDropsImportPreview] = useState<DropsImportPreview | null>(null);
+  const [dropsImportDecisions, setDropsImportDecisions] = useState<
+    Record<string, DropsImportConflictAction>
+  >({});
+
+  const handleDropsImportPreview = () => {
+    settingsMutations.previewDropsFile.mutate(undefined, {
+      onSuccess: ([preview, status, message]) => {
+        if (status !== DatabaseStatus.Success || !preview) {
+          createToast({ message, type: "danger" });
+          return;
+        }
+
+        setDropsImportPreview(preview);
+        setDropsImportDecisions(
+          Object.fromEntries(
+            preview.conflicts.map((conflict) => [conflict.id, conflict.recommendedAction])
+          )
+        );
+      }
+    });
+  };
+
+  const cancelDropsImport = (discard = true) => {
+    if (discard && dropsImportPreview) {
+      settingsMutations.discardDropsImport.mutate(dropsImportPreview.importId);
+    }
+    setDropsImportPreview(null);
+    setDropsImportDecisions({});
+  };
+
+  const setDropsImportDecision = (conflictId: string, action: DropsImportConflictAction) => {
+    setDropsImportDecisions((current) => ({ ...current, [conflictId]: action }));
+  };
+
+  const setBatchDropsImportDecision = (action: DropsImportConflictAction | "recommended") => {
+    if (!dropsImportPreview) return;
+
+    setDropsImportDecisions(
+      Object.fromEntries(
+        dropsImportPreview.conflicts.map((conflict) => [
+          conflict.id,
+          action === "recommended" ? conflict.recommendedAction : action
+        ])
+      )
+    );
+  };
+
+  const applyDropsImport = () => {
+    if (!dropsImportPreview) return;
+
+    settingsMutations.applyDropsImport.mutate(
+      {
+        importId: dropsImportPreview.importId,
+        decisions: dropsImportPreview.conflicts.map((conflict) => ({
+          conflictId: conflict.id,
+          action: dropsImportDecisions[conflict.id] ?? conflict.recommendedAction
+        }))
+      },
+      {
+        onSuccess: ([, status]) => {
+          if (status === DatabaseStatus.Success) cancelDropsImport(false);
+        }
+      }
+    );
+  };
 
   return (
     <div className="w-full h-full overflow-y-auto bg-component p-6">
@@ -22,7 +93,7 @@ export function SettingsPage() {
         {/* Event Settings & User Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <VerticalButtonGroup label="Drops File Import">
-            <Button size="wide" onClick={() => settingsMutations.importDropsFile.mutate()}>
+            <Button size="wide" onClick={handleDropsImportPreview}>
               Load Drops File
             </Button>
           </VerticalButtonGroup>
@@ -153,6 +224,16 @@ export function SettingsPage() {
         Are you sure you want to recover data from a preexisting Runners file? Note that this will
         overwrite any existing data.
       </ConfirmationModal>
+
+      <DropsImportReviewModal
+        preview={dropsImportPreview}
+        decisions={dropsImportDecisions}
+        applying={settingsMutations.applyDropsImport.isPending}
+        onDecisionChange={setDropsImportDecision}
+        onBatchDecision={setBatchDropsImportDecision}
+        onApply={applyDropsImport}
+        onCancel={cancelDropsImport}
+      />
     </div>
   );
 }

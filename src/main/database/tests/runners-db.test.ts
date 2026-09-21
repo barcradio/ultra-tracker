@@ -160,6 +160,16 @@ describe("runners-db", () => {
       expect(GetTotalRunners()).toBe(2);
     });
 
+    it("excludes did-not-start placeholder records from the runner count", () => {
+      // Start line DNS drops get a placeholder TimeRecords row for grid visibility; it must not
+      // be double-counted against GetTotalDidNotStart() in the pendingArrivals stat formula.
+      insertTiming(101);
+      insertTiming(102);
+      insertStatusRow(102, 1, "did-not-start", "0-start-line");
+
+      expect(GetTotalRunners()).toBe(1);
+    });
+
     it("counts runners still in the station", () => {
       insertTiming(101);
       insertTiming(102, { timeOut: new Date().toISOString() });
@@ -172,6 +182,14 @@ describe("runners-db", () => {
       insertTiming(102, { timeOut: new Date().toISOString() });
 
       expect(GetRunnersOutStation()).toBe(1);
+    });
+
+    it("excludes did-not-start placeholder records from the through-station count", () => {
+      insertTiming(101);
+      insertTiming(102, { timeOut: new Date().toISOString() });
+      insertStatusRow(102, 1, "did-not-start", "0-start-line");
+
+      expect(GetRunnersOutStation()).toBe(0);
     });
 
     it("counts records flagged as duplicates", () => {
@@ -312,7 +330,7 @@ describe("runners-db", () => {
       expect(lines[2]).toContain("101");
     });
 
-    it("replaces commas in exported notes so the CSV stays parseable", async () => {
+    it("quotes an exported note that contains a comma", async () => {
       insertStatusRow(101, 1, "withdrew", "1-start");
       db.prepare(`UPDATE Status SET note = 'tired, sore' WHERE bibId = 101`).run();
       const target = path.join(workDir, "drops.csv");
@@ -321,7 +339,19 @@ describe("runners-db", () => {
       await exportDropsAsCSV();
 
       const lines = await readWhenWritten(target, 3);
-      expect(lines[2]).toContain("tired; sore");
+      expect(lines[2]).toContain('"tired, sore"');
+    });
+
+    it("escapes a quote inside an exported note", async () => {
+      insertStatusRow(101, 1, "withdrew", "1-start");
+      db.prepare(`UPDATE Status SET note = 'said "ok"' WHERE bibId = 101`).run();
+      const target = path.join(workDir, "drops.csv");
+      dialogMocks.saveDropsToCSV.mockResolvedValue(target);
+
+      await exportDropsAsCSV();
+
+      const lines = await readWhenWritten(target, 3);
+      expect(lines[2]).toContain('"said ""ok"""');
     });
 
     it("returns the error message when the query fails", async () => {
@@ -486,6 +516,56 @@ describe("runners-db", () => {
       expect(bibs).toEqual([500, 600, 700, 1, 2]);
     });
 
+    it("skips a blank line rather than importing it as a record", async () => {
+      const file = path.join(workDir, "blank-line.csv");
+      fs.writeFileSync(
+        file,
+        [
+          "Bear 100,13-finish-line,full-export",
+          "index,sent,bibId,timeIn,timeOut,dropReason,dropStation,note",
+          "1,1,101,08:00:00 27 Sep 2025,,,,",
+          "",
+          "2,1,102,08:00:00 27 Sep 2025,,,,"
+        ].join("\n") + "\n"
+      );
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([file]);
+
+      await importRunnersFromCSV();
+
+      const bibs = (
+        db.prepare(`SELECT bibId FROM TimeRecords ORDER BY "index"`).all() as Array<{
+          bibId: number;
+        }>
+      ).map((row) => row.bibId);
+
+      expect(bibs).toEqual([101, 102]);
+    });
+
+    it("skips a row with no bib", async () => {
+      const file = path.join(workDir, "no-bib.csv");
+      fs.writeFileSync(
+        file,
+        [
+          "Bear 100,13-finish-line,full-export",
+          "index,sent,bibId,timeIn,timeOut,dropReason,dropStation,note",
+          "1,1,101,08:00:00 27 Sep 2025,,,,",
+          "2,1,,08:05:00 27 Sep 2025,,,,",
+          "3,1,102,08:10:00 27 Sep 2025,,,,"
+        ].join("\n") + "\n"
+      );
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([file]);
+
+      await importRunnersFromCSV();
+
+      const bibs = (
+        db.prepare(`SELECT bibId FROM TimeRecords ORDER BY "index"`).all() as Array<{
+          bibId: number;
+        }>
+      ).map((row) => row.bibId);
+
+      expect(bibs).toEqual([101, 102]);
+    });
+
     it("imports every row of a file whose bibs all sit below the row count", async () => {
       const bibs = Array.from({ length: 40 }, (_, i) => 40 - i);
       dialogMocks.loadRunnersFromCSV.mockResolvedValue([writeExport("descending.csv", bibs)]);
@@ -497,6 +577,100 @@ describe("runners-db", () => {
       };
 
       expect(imported.count).toBe(40);
+    });
+  });
+
+  describe("importing a file written before notes were quoted", () => {
+    function writeLegacyFile(notes: string[]): string {
+      const target = path.join(workDir, "legacy-export.csv");
+      const rows = notes.map(
+        (note, i) => `${i + 1},0,${101 + i},08:00:00 01 Sep 2026,09:00:00 01 Sep 2026,,,${note}`
+      );
+      fs.writeFileSync(
+        target,
+        [
+          "Bear 100,3-hardware,full-export",
+          "index,sent,bibId,timeIn,timeOut,dropReason,dropStation,note",
+          ...rows
+        ].join("\n") + "\n"
+      );
+      return target;
+    }
+
+    async function importLegacy(notes: string[]) {
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([writeLegacyFile(notes)]);
+
+      await importRunnersFromCSV();
+
+      const rows = db.prepare(`SELECT note FROM TimeRecords ORDER BY bibId`).all() as Array<{
+        note: string;
+      }>;
+
+      return { kept: rows.length, notes: rows.map((row) => row.note) };
+    }
+
+    it("keeps every record when an old note contains a raw quote", async () => {
+      const result = await importLegacy(["fine", "fine", 'said "ok"', "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.notes).toContain('said "ok"');
+    });
+
+    it("keeps every record and the whole note when an old note contains a raw comma", async () => {
+      const result = await importLegacy(["fine", "fine", "tired, sore", "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.notes).toContain("tired; sore");
+    });
+  });
+
+  describe("note round trip", () => {
+    const NOTE_LINE = 4;
+
+    async function roundTrip(notes: string[]) {
+      notes.forEach((note, i) => insertTiming(101 + i, { note, timeOut: "2026-09-01T09:00:00Z" }));
+      const target = path.join(workDir, "full-export.csv");
+      dialogMocks.saveRunnersToCSV.mockResolvedValue(target);
+
+      await exportRunnersAsCSV();
+      const lines = await readWhenWritten(target, notes.length + 2);
+
+      db.exec(`DELETE FROM TimeRecords`);
+      dialogMocks.loadRunnersFromCSV.mockResolvedValue([target]);
+      await importRunnersFromCSV();
+
+      const imported = db.prepare(`SELECT note FROM TimeRecords ORDER BY bibId`).all() as Array<{
+        note: string;
+      }>;
+
+      return {
+        kept: imported.length,
+        notes: imported.map((row) => row.note),
+        noteLine: lines[NOTE_LINE]
+      };
+    }
+
+    it("keeps every record when a note contains a comma", async () => {
+      const result = await roundTrip(["fine", "fine", "tired, sore", "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.noteLine).toContain('"tired, sore"');
+      expect(result.notes).toContain("tired; sore");
+    });
+
+    it("keeps every record when a note contains a quote", async () => {
+      const result = await roundTrip(["fine", "fine", 'said "ok"', "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.noteLine).toContain('"said ""ok"""');
+      expect(result.notes).toContain('said "ok"');
+    });
+
+    it("leaves a plain note unquoted", async () => {
+      const result = await roundTrip(["fine", "fine", "all good", "fine"]);
+
+      expect(result.kept).toBe(4);
+      expect(result.noteLine).toMatch(/,all good$/);
     });
   });
 });

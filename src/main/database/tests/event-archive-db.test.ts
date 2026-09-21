@@ -42,7 +42,18 @@ vi.mock("../../lib/file-dialogs", () => ({ selectEventArchiveFile }));
 
 function makeArchive(
   entries: Record<string, string> = {
-    "stations.json": '{"event":{"name":"Bear 100"},"stations":[]}',
+    "stations.json": JSON.stringify({
+      event: {
+        name: "Bear 100",
+        starttime: "06:00:00 Sept 25 2026",
+        endtime: "18:00:00 Sept 26 2026",
+        openSplitTime: {
+          production: { name: "the-bear-100-2026", id: 1344 },
+          staging: { name: "bear-100-test", id: 75 }
+        }
+      },
+      stations: []
+    }),
     "athletes.csv": "header\n1,Ada,Lovelace,F,36,London,UK,Charles,5551234\n",
     "drops.csv": "title\nheader\n1-start,101,withdrew,2026-09-01T06:00:00Z,\n"
   },
@@ -66,7 +77,10 @@ describe("event-archive-db", () => {
     parseDropsContent.mockResolvedValue("drops imported");
     selectEventArchiveFile.mockResolvedValue(undefined);
     stations.readEventNameFromStationsContent.mockReturnValue("Bear 100");
-    stations.previewStationsContent.mockReturnValue([{ identifier: "3-hardware" }] as never);
+    stations.previewStationsContent.mockReturnValue([
+      { identifier: "0-start", name: "Start Line", distance: 0 },
+      { identifier: "12-finish", name: "Finish Line", distance: 100 }
+    ] as never);
     connect.resolveUniqueSlug.mockImplementation((slug: string) => slug);
   });
 
@@ -81,8 +95,36 @@ describe("event-archive-db", () => {
       const [preview, status] = previewEventArchiveFile(archive);
 
       expect(status).toBe(DatabaseStatus.Success);
-      expect(preview).toMatchObject({ archiveFilePath: archive, eventName: "Bear 100" });
+      expect(preview).toMatchObject({
+        archiveFilePath: archive,
+        eventName: "Bear 100",
+        summary: {
+          startTime: "06:00:00 Sept 25 2026",
+          endTime: "18:00:00 Sept 26 2026",
+          startStationName: "Start Line",
+          finishStationName: "Finish Line",
+          courseDistance: 100,
+          athleteCount: 1,
+          dropCount: 1,
+          openSplitTime: [
+            { environment: "production", name: "the-bear-100-2026", id: 1344 },
+            { environment: "staging", name: "bear-100-test", id: 75 }
+          ]
+        }
+      });
       expect(connect.createDatabaseFile).not.toHaveBeenCalled();
+    });
+
+    it("previews an archive with no drops file as zero drops", () => {
+      const archive = makeArchive({
+        "stations.json": '{"event":{"name":"Bear 100"},"stations":[]}',
+        "athletes.csv": "header\n1,Ada,Lovelace,F,36,London,UK,Charles,5551234\n"
+      });
+
+      const [preview, status] = previewEventArchiveFile(archive);
+
+      expect(status).toBe(DatabaseStatus.Success);
+      expect(preview?.summary.dropCount).toBe(0);
     });
 
     it("reports an unreadable archive", () => {

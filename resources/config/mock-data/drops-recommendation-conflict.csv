@@ -1,0 +1,4 @@
+bear-100-2026,3-richards-hollow,drops-export
+stationId,bibId,dropReason,dropDateTime,note
+3-richards-hollow,1007,medical,2026-09-25T14:00:00Z,Earlier timestamp at later station
+2-franklin-trailhead,1008,medical,2026-09-25T16:00:00Z,Later timestamp at earlier station

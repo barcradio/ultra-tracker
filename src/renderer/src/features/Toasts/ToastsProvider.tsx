@@ -18,11 +18,7 @@ function useMainToastListener(createToast: (toast: Toast) => void) {
       createToast(toast);
     };
 
-    ipcRenderer.on("create-toast", listener);
-
-    return () => {
-      ipcRenderer.removeListener("create-toast", listener);
-    };
+    return ipcRenderer.on("create-toast", listener);
   }, [createToast, ipcRenderer]);
 }
 

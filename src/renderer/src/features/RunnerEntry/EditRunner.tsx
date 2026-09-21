@@ -20,6 +20,7 @@ import {
   useDeleteTiming,
   useEditTiming,
   useOpenSplitTimeAuthStatus,
+  useOpenSplitTimePushPaused,
   usePushOpenSplitTimeRecord
 } from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
@@ -59,6 +60,7 @@ export function EditRunner(props: Props) {
   const setAthlete = useSetAthleteProgress();
   const pushOpenSplitTimeRecord = usePushOpenSplitTimeRecord();
   const { data: openSplitTimeAuthStatus } = useOpenSplitTimeAuthStatus(isOpen);
+  const { data: openSplitTimePushPaused } = useOpenSplitTimePushPaused(isOpen);
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
@@ -292,6 +294,7 @@ export function EditRunner(props: Props) {
                     size="sm"
                     disabled={
                       !openSplitTimeAuthStatus?.authenticated ||
+                      openSplitTimePushPaused?.paused !== false ||
                       pushOpenSplitTimeRecord.isPending ||
                       selectedRunner.state.openSplitTimePushStatus === "success" ||
                       selectedRunner.state.status === RecordStatus.Duplicate

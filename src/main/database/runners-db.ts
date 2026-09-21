@@ -56,8 +56,17 @@ function getTotalRunners(): DatabaseResponse<number> {
   let queryResult;
   let message: string = "";
 
+  // Start line DNS drops get a placeholder TimeRecords row for grid visibility (see
+  // startLineDrops-db.ts); they never actually started, so they must not count as runners here
+  // or GetTotalDidNotStart() and this stat would both subtract the same bibs from pendingArrivals.
   try {
-    queryResult = db.prepare(`SELECT COUNT(bibId) FROM TimeRecords`).get();
+    queryResult = db
+      .prepare(
+        `SELECT COUNT(TimeRecords.bibId) FROM TimeRecords LEFT JOIN Status
+         ON TimeRecords.bibId = Status.bibId
+         WHERE IFNULL(Status.dropReason, '') != ?`
+      )
+      .get(DropReason.DidNotStart);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -67,9 +76,9 @@ function getTotalRunners(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetTotalRunnersFromStaEvents: ${queryResult["COUNT(bibId)"]}`;
+  message = `GetTotalRunnersFromStaEvents: ${queryResult["COUNT(TimeRecords.bibId)"]}`;
 
-  return [queryResult["COUNT(bibId)"] as number, DatabaseStatus.Success, message];
+  return [queryResult["COUNT(TimeRecords.bibId)"] as number, DatabaseStatus.Success, message];
 }
 
 function getRunnersInStation(): DatabaseResponse<number> {
@@ -98,8 +107,16 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
   let queryResult;
   let message: string = "";
 
+  // Excludes did-not-start placeholder rows (see getTotalRunners above) so DNS drops don't
+  // inflate "Through Station" for bibs that never actually ran through this station.
   try {
-    queryResult = db.prepare(`SELECT COUNT(*) FROM TimeRecords WHERE timeOut IS NOT NULL`).get();
+    queryResult = db
+      .prepare(
+        `SELECT COUNT(TimeRecords.bibId) FROM TimeRecords LEFT JOIN Status
+         ON TimeRecords.bibId = Status.bibId
+         WHERE TimeRecords.timeOut IS NOT NULL AND IFNULL(Status.dropReason, '') != ?`
+      )
+      .get(DropReason.DidNotStart);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -109,9 +126,9 @@ export function getRunnersOutStation(): DatabaseResponse<number> {
 
   if (queryResult == null) return [null, DatabaseStatus.NotFound, message];
 
-  message = `GetRunnersInStation From TimeRecords Where 'timeOut IS NOT NULL':${queryResult["COUNT(*)"]}`;
+  message = `GetRunnersInStation From TimeRecords Where 'timeOut IS NOT NULL':${queryResult["COUNT(TimeRecords.bibId)"]}`;
 
-  return [queryResult["COUNT(*)"] as number, DatabaseStatus.Success, message];
+  return [queryResult["COUNT(TimeRecords.bibId)"] as number, DatabaseStatus.Success, message];
 }
 
 function getRunnersWithDuplicateStatus(): DatabaseResponse<number> {
@@ -255,43 +272,49 @@ export function readRunnersTable<T>(
 }
 
 export async function importRunnersFromCSV() {
-  const headers = [
-    "index",
-    "sent",
-    "bibId",
-    "timeIn",
-    "timeOut",
-    "dropReason",
-    "dropStation",
-    "note"
-  ];
   const runnerCSVFilePath = await dialogs.loadRunnersFromCSV();
   const fileContent = fs.createReadStream(runnerCSVFilePath[0], { encoding: "utf-8" });
   const stationId = (await appStore.get("station.id")) as number;
   let message: string = "";
 
+  // Older files carry raw quotes and commas in the note, so the note is rejoined from fields.
   const parser = fileContent
     .pipe(
       parse({
         delimiter: ",",
-        columns: headers,
-        fromLine: 3
+        fromLine: 3,
+        // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+        relax_quotes: true,
+        // eslint-disable-next-line camelcase -- csv-parse names its own options in snake case
+        relax_column_count: true
       })
     )
-    .on("data", (timing) => {
+    .on("data", (fields: string[]) => {
+      const timing = {
+        bibId: fields[2] ?? "",
+        timeIn: fields[3] ?? "",
+        timeOut: fields[4] ?? "",
+        dropReason: fields[5] ?? "",
+        dropStation: fields[6] ?? "",
+        note: fields.slice(7).join(",")
+      };
+
+      const bib = Number(timing.bibId);
+      if (timing.bibId.trim() === "" || !Number.isFinite(bib)) return;
+
       const record: DropRunnerDB = {
         // 0 means "new record", the same thing the renderer sends for a time logged by hand.
         // Using the bib here made the insert treat an unrelated row with that index as the same
         // record and overwrite it, so importing a file silently destroyed runners.
         index: 0,
-        bibId: Number(timing.bibId) - Number(timing.bibId % 1),
+        bibId: bib - (bib % 1),
         stationId: stationId,
         timeIn: timing.timeIn == "" ? null : parseCSVDate(timing.timeIn),
         timeOut: timing.timeOut == "" ? null : parseCSVDate(timing.timeOut),
         timeModified: new Date(),
         note: !timing.note ? "" : timing.note.replaceAll(",", ";"),
         sent: false,
-        status: timing.bibId % 1 == 0 ? RecordStatus.OK : RecordStatus.Duplicate,
+        status: Number.isInteger(bib) ? RecordStatus.OK : RecordStatus.Duplicate,
         dropped: Number(timing.dropReason != ""),
         dropReason: timing.dropReason,
         dropStation: timing.dropStation,
@@ -472,9 +495,9 @@ function writeToCSV(filename: string, queryResult, incremental: boolean) {
           `${row.bibId},` +
           `${row.timeIn == null ? "" : formatDate(new Date(row.timeIn))},` +
           `${row.timeOut == null ? "" : formatDate(new Date(row.timeOut))},` +
-          `${row.dropReason == null ? "" : row.dropReason},` +
-          `${row.dropStation == null ? "" : row.dropStation},` +
-          `${row.note == null ? "" : row.note}`;
+          `${csvField(row.dropReason)},` +
+          `${csvField(row.dropStation)},` +
+          `${csvField(row.note)}`;
         stream.write(rowText + "\n");
       }
     }
@@ -499,8 +522,12 @@ interface DropExportRow {
   note: string;
 }
 
-function sanitizeNoteForExport(note: string | null | undefined): string {
-  return (note ?? "").replaceAll(",", ";");
+function csvField(value: string | null | undefined): string {
+  const text = value ?? "";
+
+  if (!/[",\r\n]/.test(text)) return text;
+
+  return `"${text.replaceAll('"', '""')}"`;
 }
 
 function writeDropsToCSV(filename: string, queryResult) {
@@ -523,11 +550,11 @@ function writeDropsToCSV(filename: string, queryResult) {
     for (const row of queryResult as DropExportRow[]) {
       let rowText = "";
       rowText =
-        `${row.dropStation},` +
+        `${csvField(row.dropStation)},` +
         `${row.dropBibId},` +
-        `${row.dropReason},` +
+        `${csvField(row.dropReason)},` +
         `${row.dropDateTime == null ? "" : formatDate(row.dropDateTime)},` +
-        `${sanitizeNoteForExport(row.note)}`;
+        `${csvField(row.note)}`;
       stream.write(rowText + "\n");
     }
     stream.on("error", reject);

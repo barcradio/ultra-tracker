@@ -13,12 +13,14 @@ asarUnpack:
   - resources/**
 win:
   executableName: ultra-tracker
+  icon: icon.ico
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  icon: icon.icns
   entitlementsInherit: build/entitlements.mac.plist
   # @electron/universal refuses to merge byte-identical prebuilds unless they are declared.
   x64ArchFiles: "**/better-sqlite3/prebuilds/**"

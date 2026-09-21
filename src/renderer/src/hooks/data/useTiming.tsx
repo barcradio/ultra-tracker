@@ -55,7 +55,14 @@ export const useCreateTiming = () => {
   const { createToast } = useToasts();
 
   return useTimingMutation("add-timing-record", {
-    callback: async (timeRecord, status) => {
+    toastsOnStatus: {
+      [DatabaseStatus.Duplicate]: (runner) => ({
+        message: `Runner #${runner?.bibId} already has a timing record!`,
+        type: "warning",
+        timeoutMs: -1
+      })
+    },
+    callback: async (timeRecord) => {
       const athleteResponse = await ipcRenderer.invoke("get-athlete-by-bib", timeRecord.bibId);
       const [athlete] = athleteResponse as DatabaseResponse<AthleteDB>;
 
@@ -63,14 +70,6 @@ export const useCreateTiming = () => {
       if (athlete === null)
         createToast({
           message: `athletes: No athlete found with bibId: ${timeRecord.bibId}`,
-          type: "warning",
-          timeoutMs: -1
-        });
-
-      // If the timing record is a duplicate, show a warning
-      if (status == DatabaseStatus.Duplicate)
-        createToast({
-          message: `Runner #${timeRecord.bibId} already has a timing record!`,
           type: "warning",
           timeoutMs: -1
         });
@@ -142,6 +141,10 @@ interface OpenSplitTimeAuthStatus {
   expiration: string | null;
 }
 
+interface OpenSplitTimePushPausedStatus {
+  paused: boolean;
+}
+
 // Re-checked each time `enabled` flips true (e.g. the EditRunner drawer opening) rather than
 // polled continuously, since the push button's auth check only matters while it's visible.
 export const useOpenSplitTimeAuthStatus = (enabled: boolean) => {
@@ -151,6 +154,17 @@ export const useOpenSplitTimeAuthStatus = (enabled: boolean) => {
     queryKey: ["opensplittime-auth-status"],
     queryFn: () =>
       ipcRenderer.invoke("opensplittime-get-auth-status") as Promise<OpenSplitTimeAuthStatus>,
+    enabled
+  });
+};
+
+export const useOpenSplitTimePushPaused = (enabled: boolean) => {
+  const ipcRenderer = useIpcRenderer();
+
+  return useQuery({
+    queryKey: ["opensplittime-push-paused"],
+    queryFn: () =>
+      ipcRenderer.invoke("opensplittime-get-push-paused") as Promise<OpenSplitTimePushPausedStatus>,
     enabled
   });
 };
