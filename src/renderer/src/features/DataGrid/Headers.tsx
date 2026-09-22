@@ -37,6 +37,7 @@ interface Props<T extends object> {
   className?: string;
   type: "header" | "footer";
   hasRowStatus?: boolean;
+  showTrailingUtilityColumn: boolean;
 }
 
 export function Headers<T extends object>(props: Props<T>) {
@@ -77,15 +78,17 @@ export function Headers<T extends object>(props: Props<T>) {
             </HeaderContainer>
           </th>
         ))}
-        <th className="relative text-right bg-component-strong" style={{ width: "3%" }}>
-          {props.type === "header" && (
-            <ResetButton
-              removeFilter={props.removeFilter}
-              filterState={props.filterState}
-              onClearFilters={props.onClearFilters}
-            />
-          )}
-        </th>
+        {props.showTrailingUtilityColumn && (
+          <th className="relative text-right bg-component-strong" style={{ width: "3%" }}>
+            {props.type === "header" && (
+              <ResetButton
+                removeFilter={props.removeFilter}
+                filterState={props.filterState}
+                onClearFilters={props.onClearFilters}
+              />
+            )}
+          </th>
+        )}
       </Row>
     </Section>
   );

@@ -31,6 +31,7 @@ interface Props<T extends object> {
   showFooter?: boolean;
   rowStatus?: (row: T) => RowStatus;
   rowClassName?: (row: T) => string | undefined;
+  showTrailingUtilityColumn?: boolean;
 }
 
 const Table = classed.table("overflow-auto w-full font-display text-on-component");
@@ -109,6 +110,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
         className={props.classNames?.header}
         onClearFilters={props.onClearFilters}
         hasRowStatus={Boolean(props.rowStatus)}
+        showTrailingUtilityColumn={props.showTrailingUtilityColumn !== false}
       />
     );
   };
@@ -135,6 +137,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
             rowStatus={props.rowStatus}
             rowClassName={props.rowClassName}
             getKey={props.getKey}
+            showTrailingUtilityColumn={props.showTrailingUtilityColumn !== false}
           />
           {props.showFooter && getSection("footer")}
         </Table>

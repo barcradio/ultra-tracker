@@ -130,10 +130,10 @@ export function Stats() {
       data={stats}
       columns={Columns}
       classNames={{
-        root: "[&_th:last-child]:hidden [&_td:last-child]:hidden",
         header: "text-primary",
         table: "table-auto"
       }}
+      showTrailingUtilityColumn={false}
       rowClassName={(stat) =>
         stat.id === "Watchlist" ? `${watchlistTooltipId} cursor-help` : undefined
       }

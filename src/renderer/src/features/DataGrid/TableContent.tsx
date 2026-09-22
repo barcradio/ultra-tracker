@@ -19,6 +19,7 @@ interface Props<T extends object> {
   highlightIndex?: number | null;
   rowStatus?: (row: T) => RowStatus;
   rowClassName?: (row: T) => string | undefined;
+  showTrailingUtilityColumn: boolean;
 }
 
 export function TableContent<T extends object>(props: Props<T>) {
@@ -112,7 +113,7 @@ export function TableContent<T extends object>(props: Props<T>) {
               {renderCell(column, props.data[row.index], row.index)}
             </Cell>
           ))}
-          {!props.actionButtons && <CellWrapper />}
+          {!props.actionButtons && props.showTrailingUtilityColumn && <CellWrapper />}
           {props.actionButtons && (
             <CellWrapper
               truncate={false}
