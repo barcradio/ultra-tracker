@@ -33,6 +33,8 @@ class StatEngine {
 
 let stats: StatEngine = new StatEngine();
 
+// Registering a statistic only stores its function, so this runs whether or not an event is
+// open; the functions are not called until something asks for a calculation.
 export function initStatEngine() {
   const invalidResult = -999;
 
