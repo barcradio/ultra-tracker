@@ -129,7 +129,11 @@ export function Stats() {
     <DataGrid
       data={stats}
       columns={Columns}
-      classNames={{ header: "text-primary", table: "table-auto" }}
+      classNames={{
+        root: "[&_th:last-child]:hidden [&_td:last-child]:hidden",
+        header: "text-primary",
+        table: "table-auto"
+      }}
       rowClassName={(stat) =>
         stat.id === "Watchlist" ? `${watchlistTooltipId} cursor-help` : undefined
       }
