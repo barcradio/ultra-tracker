@@ -2,6 +2,7 @@ import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { BackdropProvider } from "~/features/Backdrop";
 import { Footer } from "~/features/Footer/Footer";
 import { Header } from "~/features/Header/Header";
+import { PageErrorBoundary } from "~/features/PageErrorBoundary";
 import { Sidebar } from "~/features/Sidebar/Sidebar";
 import { ToastProvider } from "~/features/Toasts/ToastsProvider";
 import { useGridFontScaleShortcuts } from "~/hooks/dom/useGridFontScaleShortcuts";
@@ -16,7 +17,9 @@ function Root() {
         <div className="flex overflow-hidden flex-col ml-[64px] w-screen h-screen">
           <Header />
           <div className="overflow-hidden mx-4 min-h-0 grow">
-            <Outlet />
+            <PageErrorBoundary>
+              <Outlet />
+            </PageErrorBoundary>
           </div>
           <Footer />
         </div>
