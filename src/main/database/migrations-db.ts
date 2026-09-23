@@ -21,8 +21,7 @@ function columnExists(db: Database.Database, tableName: string, columnName: stri
   );
 }
 
-// Migration 2's work, factored out so migration 3 can re-run it on databases that were stamped
-// past version 2 without it ever succeeding. Every step is guarded, so it is a no-op when done.
+// Migration 2's work, re-runnable: a database can be stamped past 2 without it having succeeded.
 function ensureStatusSplit(db: Database.Database): void {
   if (!tableExists(db, "Status")) {
     db.exec(`
@@ -117,8 +116,6 @@ export const migrations: IMigration[] = [
   {
     version: 3,
     up: (db: Database.Database) => {
-      // A database stamped 2 without migration 2 succeeding still holds its timing rows in
-      // StationEvents and its drop flags on Athletes; move them across before touching anything.
       ensureStatusSplit(db);
 
       db.exec(`
@@ -159,8 +156,7 @@ export const migrations: IMigration[] = [
         `);
       }
 
-      // Safe now: ensureStatusSplit has renamed any real StationEvents rows into TimeRecords,
-      // so anything still here is a leftover copy.
+      // ensureStatusSplit has already renamed any real StationEvents rows into TimeRecords.
       if (tableExists(db, "TimeRecords")) db.exec(`DROP TABLE IF EXISTS StationEvents;`);
     },
     down: `

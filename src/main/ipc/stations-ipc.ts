@@ -26,7 +26,6 @@ const getStationOperators: Handler<string, DatabaseResponse<Station["operators"]
   }
 };
 
-// Asked before the change is made, so the operator can be told what it will do and back out.
 const getRecordsHeldForOtherStations: Handler<string, number> = (_, identifier) => {
   if (typeof identifier !== "string") return 0;
 
