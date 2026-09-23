@@ -78,7 +78,7 @@ export function Headers<T extends object>(props: Props<T>) {
             </HeaderContainer>
           </th>
         ))}
-        {props.showTrailingUtilityColumn && (
+        {(props.showTrailingUtilityColumn || props.actionButtons) && (
           <th className="relative text-right bg-component-strong" style={{ width: "3%" }}>
             {props.type === "header" && (
               <ResetButton
