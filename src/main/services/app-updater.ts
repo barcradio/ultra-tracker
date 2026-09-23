@@ -1,6 +1,6 @@
+import { is } from "@electron-toolkit/utils";
 import { BrowserWindow, app, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
-import { is } from "@electron-toolkit/utils";
 import { LogLevel, uberLog } from "../lib/logger";
 import { appStore } from "../lib/store";
 
@@ -37,7 +37,9 @@ function configureUpdater(): void {
   autoUpdater.on("download-progress", (progress) =>
     logUpdater(LogLevel.debug, `App update download progress: ${progress.percent.toFixed(1)}%`)
   );
-  autoUpdater.on("error", (error) => logUpdater(LogLevel.error, `App update error: ${error.message}`));
+  autoUpdater.on("error", (error) =>
+    logUpdater(LogLevel.error, `App update error: ${error.message}`)
+  );
   autoUpdater.on("update-downloaded", async (info) => {
     logUpdater(LogLevel.info, `App update downloaded: ${info.version}`);
 

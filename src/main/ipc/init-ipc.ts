@@ -1,5 +1,5 @@
-import { initAthleteHandlers } from "./athletes-ipc";
 import { initAppUpdaterHandlers } from "./app-updater-ipc";
+import { initAthleteHandlers } from "./athletes-ipc";
 import { initdbSettingsHandlers } from "./dbsettings-ipc";
 import { initEventDatabaseHandlers } from "./event-databases-ipc";
 import { initEventLogsHandlers } from "./eventLogs-ipc";
