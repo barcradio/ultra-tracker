@@ -17,6 +17,7 @@ overrides:
   "@xmldom/xmldom@<0.8.12": ">=0.8.12"
   "@xmldom/xmldom@<0.8.13": ">=0.8.13"
   "app-builder-lib@<26.15.0": ">=26.15.0"
+  "app-builder-lib>@noble/hashes": "1.8.0"
   "brace-expansion@<1.1.18": "1.1.18"
   "brace-expansion@>=2.0.0 <2.1.4": "2.1.4"
   "builder-util-runtime@<9.7.0": ">=9.7.0"
