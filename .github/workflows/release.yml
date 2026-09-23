@@ -16,7 +16,7 @@ jobs:
       # The Release step runs per leg; concurrent legs duplicate the draft.
       max-parallel: 1
       matrix:
-        node-version: [24]
+        node-version: [22]
         os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
       - name: Check out Git repository
