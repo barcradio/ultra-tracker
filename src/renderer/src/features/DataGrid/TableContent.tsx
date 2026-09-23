@@ -25,6 +25,7 @@ interface Props<T extends object> {
 export function TableContent<T extends object>(props: Props<T>) {
   const getKey = useKeyFn(props.getKey);
   const { paddingTop, paddingBottom } = useVirtualPadding(props.rowVirtualizer);
+  const showTrailingCell = props.showTrailingUtilityColumn || Boolean(props.actionButtons);
 
   const isEven = (index: number) => index % 2 === 0;
   const isLast = (index: number) => index === props.data.length - 1;
@@ -113,14 +114,17 @@ export function TableContent<T extends object>(props: Props<T>) {
               {renderCell(column, props.data[row.index], row.index)}
             </Cell>
           ))}
-          {!props.actionButtons && props.showTrailingUtilityColumn && <CellWrapper />}
-          {props.actionButtons && (
+          {showTrailingCell && (
             <CellWrapper
               truncate={false}
               align="right"
-              className="p-0 pr-4 opacity-0 h-inherit group-hover/row:opacity-100"
+              className={
+                props.actionButtons
+                  ? "p-0 pr-4 opacity-0 h-inherit group-hover/row:opacity-100"
+                  : undefined
+              }
             >
-              {props.actionButtons(props.data[row.index])}
+              {props.actionButtons?.(props.data[row.index])}
             </CellWrapper>
           )}
         </Row>
