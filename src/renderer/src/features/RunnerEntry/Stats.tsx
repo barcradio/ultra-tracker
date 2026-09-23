@@ -104,6 +104,7 @@ export function Stats() {
       name: "Stats",
       flexible: true,
       sample: "Registered Athletes",
+      filterable: false,
       sortable: false
     },
     {
@@ -111,6 +112,7 @@ export function Stats() {
       name: "",
       sortable: false,
       align: "right",
+      filterable: false,
       sample: "9999",
       render: (value, stat) =>
         stat.id === "Watchlist" && stat.watchlistAthletes ? (
