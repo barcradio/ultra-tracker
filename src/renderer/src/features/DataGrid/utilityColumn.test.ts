@@ -8,24 +8,17 @@ type Row = {
 };
 
 describe("shouldShowTrailingUtilityColumn", () => {
-  it("keeps the utility column visible when filters are available", () => {
-    const columns: ColumnDef<Row> = [{ field: "id", name: "ID" }, { field: "value", name: "Value" }];
+  const columns: ColumnDef<Row> = [{ field: "id", name: "ID" }, { field: "value", name: "Value" }];
 
-    expect(shouldShowTrailingUtilityColumn(columns, false)).toBe(true);
-  });
-
-  it("hides the utility column when disabled and all columns are non-filterable", () => {
-    const columns: ColumnDef<Row> = [
-      { field: "id", name: "ID", filterable: false },
-      { field: "value", name: "Value", filterable: false }
-    ];
-
+  it("hides the utility column when explicitly disabled", () => {
     expect(shouldShowTrailingUtilityColumn(columns, false)).toBe(false);
   });
 
   it("keeps the utility column visible when explicitly enabled", () => {
-    const columns: ColumnDef<Row> = [{ field: "id", name: "ID", filterable: false }];
-
     expect(shouldShowTrailingUtilityColumn(columns, true)).toBe(true);
+  });
+
+  it("keeps the utility column visible by default", () => {
+    expect(shouldShowTrailingUtilityColumn(columns)).toBe(true);
   });
 });
