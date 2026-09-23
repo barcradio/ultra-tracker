@@ -4,6 +4,7 @@ out
 .DS_Store
 *.log*
 /Database/
+/package-lock.json
 opensplittime.env
 rfid.env
 resources/ost-api-responses/
