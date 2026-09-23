@@ -1,5 +1,5 @@
 import { is } from "@electron-toolkit/utils";
-import { BrowserWindow, app, dialog } from "electron";
+import { BrowserWindow, app, dialog, shell } from "electron";
 import { autoUpdater } from "electron-updater";
 import { LogLevel, uberLog } from "../lib/logger";
 import { appStore } from "../lib/store";
@@ -12,15 +12,39 @@ function logUpdater(level: LogLevel, message: string): void {
   uberLog(level, "updater", message, false);
 }
 
+// macOS needs signed ZIP artifacts and .deb belongs to the package manager.
+function canSelfInstall(): boolean {
+  return process.platform === "win32" || (process.platform === "linux" && !!process.env.APPIMAGE);
+}
+
+async function showUpdateAvailableNotice(version: string): Promise<void> {
+  const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+  const { response } = await dialog.showMessageBox(window, {
+    type: "info",
+    title: "Ultra-Tracker update available",
+    message: `Ultra-Tracker ${version} is available.`,
+    detail: "Download and install it from the release page.",
+    buttons: ["Open release page", "Dismiss"],
+    defaultId: 0,
+    cancelId: 1,
+    noLink: true
+  });
+
+  if (response === 0)
+    void shell.openExternal(`https://github.com/barcradio/ultra-tracker/releases/tag/v${version}`);
+}
+
 function configureUpdater(): void {
-  autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  const selfInstall = canSelfInstall();
+  autoUpdater.autoDownload = selfInstall;
+  autoUpdater.autoInstallOnAppQuit = selfInstall;
   autoUpdater.allowPrerelease = app.getVersion().includes("-");
 
   autoUpdater.on("checking-for-update", () => logUpdater(LogLevel.info, "Checking for app update"));
-  autoUpdater.on("update-available", (info) =>
-    logUpdater(LogLevel.info, `App update available: ${info.version}`)
-  );
+  autoUpdater.on("update-available", async (info) => {
+    logUpdater(LogLevel.info, `App update available: ${info.version}`);
+    if (!selfInstall) await showUpdateAvailableNotice(info.version);
+  });
   autoUpdater.on("update-not-available", (info) => {
     logUpdater(LogLevel.info, `No app update available: ${info.version}`);
     if (!notifyWhenNoUpdateAvailable) return;

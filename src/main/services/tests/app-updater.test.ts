@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 type Handler = (...args: unknown[]) => unknown;
 
@@ -16,7 +16,9 @@ const BrowserWindow = vi.hoisted(() => ({
   getAllWindows: vi.fn(() => [])
 }));
 
-vi.mock("electron", () => ({ app, dialog, BrowserWindow }));
+const shell = vi.hoisted(() => ({ openExternal: vi.fn() }));
+
+vi.mock("electron", () => ({ app, dialog, BrowserWindow, shell }));
 
 const utils = vi.hoisted(() => ({ is: { dev: false } }));
 vi.mock("@electron-toolkit/utils", () => utils);
@@ -53,6 +55,8 @@ async function loadService() {
   return await import("../app-updater");
 }
 
+const originalPlatform = process.platform;
+
 describe("app updater", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -64,6 +68,12 @@ describe("app updater", () => {
     app.isPackaged = true;
     utils.is.dev = false;
     appStore.get.mockReturnValue(true);
+    Object.defineProperty(process, "platform", { value: "win32" });
+    vi.unstubAllEnvs();
+  });
+
+  afterAll(() => {
+    Object.defineProperty(process, "platform", { value: originalPlatform });
   });
 
   it("stays disabled in development", async () => {
@@ -120,5 +130,62 @@ describe("app updater", () => {
       buttons: ["OK"],
       noLink: true
     });
+  });
+
+  it.each([
+    ["darwin", undefined],
+    ["linux", undefined]
+  ])("only notifies on %s installs the app cannot replace itself", async (platform, appImage) => {
+    Object.defineProperty(process, "platform", { value: platform });
+    vi.stubEnv("APPIMAGE", appImage);
+    const { initializeAppUpdater } = await loadService();
+
+    initializeAppUpdater();
+
+    expect(autoUpdater.autoDownload).toBe(false);
+    expect(autoUpdater.autoInstallOnAppQuit).toBe(false);
+  });
+
+  it("self-updates AppImage installs", async () => {
+    Object.defineProperty(process, "platform", { value: "linux" });
+    vi.stubEnv("APPIMAGE", "/opt/ultra-tracker.AppImage");
+    const { initializeAppUpdater } = await loadService();
+
+    initializeAppUpdater();
+
+    expect(autoUpdater.autoDownload).toBe(true);
+  });
+
+  it("links to the release page when an update cannot self-install", async () => {
+    Object.defineProperty(process, "platform", { value: "darwin" });
+    dialog.showMessageBox.mockResolvedValueOnce({ response: 0 });
+    const { initializeAppUpdater } = await loadService();
+    initializeAppUpdater();
+
+    await autoUpdater.handlers.get("update-available")?.({ version: "1.2.4" });
+
+    expect(shell.openExternal).toHaveBeenCalledWith(
+      "https://github.com/barcradio/ultra-tracker/releases/tag/v1.2.4"
+    );
+  });
+
+  it("lets the operator dismiss the update notice", async () => {
+    Object.defineProperty(process, "platform", { value: "darwin" });
+    const { initializeAppUpdater } = await loadService();
+    initializeAppUpdater();
+
+    await autoUpdater.handlers.get("update-available")?.({ version: "1.2.4" });
+
+    expect(dialog.showMessageBox).toHaveBeenCalledOnce();
+    expect(shell.openExternal).not.toHaveBeenCalled();
+  });
+
+  it("does not show the notice when the app will self-install", async () => {
+    const { initializeAppUpdater } = await loadService();
+    initializeAppUpdater();
+
+    await autoUpdater.handlers.get("update-available")?.({ version: "1.2.4" });
+
+    expect(dialog.showMessageBox).not.toHaveBeenCalled();
   });
 });
