@@ -1,4 +1,5 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { AppErrorBoundary } from "~/features/AppErrorBoundary";
 import { BackdropProvider } from "~/features/Backdrop";
 import { Footer } from "~/features/Footer/Footer";
 import { Header } from "~/features/Header/Header";
@@ -10,18 +11,20 @@ function Root() {
   useGridFontScaleShortcuts();
 
   return (
-    <BackdropProvider>
-      <ToastProvider>
-        <Sidebar />
-        <div className="flex overflow-hidden flex-col ml-[64px] w-screen h-screen">
-          <Header />
-          <div className="overflow-hidden mx-4 min-h-0 grow">
-            <Outlet />
+    <AppErrorBoundary>
+      <BackdropProvider>
+        <ToastProvider>
+          <Sidebar />
+          <div className="flex overflow-hidden flex-col ml-[64px] w-screen h-screen">
+            <Header />
+            <div className="overflow-hidden mx-4 min-h-0 grow">
+              <Outlet />
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
-      </ToastProvider>
-    </BackdropProvider>
+        </ToastProvider>
+      </BackdropProvider>
+    </AppErrorBoundary>
   );
 }
 
