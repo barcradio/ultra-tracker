@@ -5,8 +5,7 @@ import { applyMigrations, getColumnNamesFromTable, getTableNames } from "../tabl
 
 let db: Database.Database;
 
-// A database as it looked before the Status table existed: drop flags lived on Athletes and
-// timing rows lived in StationEvents.
+// A database from before the Status table existed.
 function createLegacyV0Database() {
   const database = new Database(":memory:");
   database.exec(`
@@ -165,8 +164,6 @@ describe("migrations-db", () => {
   });
 
   describe("migrating a database whose tables are ahead of its recorded version", () => {
-    // Some real-world databases were scaffolded with current-shape tables but never had a
-    // matching user_version stamped, so the migration steps have to tolerate that.
     it("stamps the current version without corrupting the existing tables", () => {
       db = createLegacyV0Database();
       applyMigrations(db);
@@ -183,8 +180,6 @@ describe("migrations-db", () => {
 
   describe("when a migration fails", () => {
     it("reverts the recorded version rather than claiming to be current", () => {
-      // A Status table carrying `dns` but missing the rest of the legacy drop columns makes the
-      // v3 conversion's INSERT...SELECT fail part-way through.
       db = createLegacyV0Database();
       db.exec(`CREATE TABLE Status (bibId INTEGER, dns INTEGER)`);
 

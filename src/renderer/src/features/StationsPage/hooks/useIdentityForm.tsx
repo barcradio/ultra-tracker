@@ -21,8 +21,6 @@ export function useIdentityForm(station?: Station) {
     }
   }, [identityForm, station]);
 
-  // An event database holds one station's records, so changing station has to take the records
-  // already logged with it. The operator is told how many that is and can back out.
   const onSubmit = identityForm.handleSubmit(async (identity) => {
     if (identity.identifier === station?.identifier) {
       setStationIdentity.mutate(identity);

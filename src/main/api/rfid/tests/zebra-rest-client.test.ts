@@ -21,17 +21,13 @@ interface ReplyOptions {
   certificate?: { serialNumber?: string; CN?: string | string[] } | null;
 }
 
-/** Captures what the client sent so assertions can inspect the request. */
 const sent: Array<{
   url: string;
   options: { method: string; headers: Record<string, string> };
   body?: string;
 }> = [];
 
-/**
- * Stands in for https.request: builds a fake ClientRequest, optionally hands it a TLS socket so
- * the client's certificate pinning runs, then delivers a canned response.
- */
+// Stands in for https.request, optionally with a TLS socket so certificate pinning runs.
 function respondWith(replies: ReplyOptions | ReplyOptions[]) {
   const queue = Array.isArray(replies) ? [...replies] : [replies];
 

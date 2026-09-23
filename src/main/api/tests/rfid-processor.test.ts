@@ -52,7 +52,6 @@ const settings = {
   sslCert: "AABBCC"
 };
 
-// The processor keeps one controller in module scope; disconnecting returns it to a clean state.
 async function resetProcessor() {
   await DisconnectRFIDReader();
   vi.clearAllMocks();
