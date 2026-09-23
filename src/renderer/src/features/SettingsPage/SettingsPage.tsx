@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
+import { Button, ConfirmationModal, Select, Stack, VerticalButtonGroup } from "~/components";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
 import { useAutoUpdate } from "~/hooks/useAutoUpdate";
@@ -157,6 +157,23 @@ export function SettingsPage() {
 
           <div className="border-t border-component-strong pt-4">
             <VerticalButtonGroup label="App Settings">
+              <Select
+                label="Update Channel"
+                value={autoUpdate.channel}
+                options={[
+                  { name: "Stable", value: "stable" },
+                  { name: "Beta", value: "beta" }
+                ]}
+                disabled={autoUpdate.isChannelLoading}
+                onChange={(value) => {
+                  if (value === "stable" || value === "beta") autoUpdate.setChannel(value);
+                }}
+              />
+              {autoUpdate.channel === "beta" && (
+                <p className="w-80 text-sm text-on-surface-strong">
+                  Beta releases may be less stable than production releases.
+                </p>
+              )}
               <Button size="wide" onClick={autoUpdate.checkNow}>
                 Check for Updates
               </Button>
@@ -170,9 +187,11 @@ export function SettingsPage() {
               >
                 {autoUpdate.enabled ? "Disable Auto Updates" : "Enable Auto Updates"}
               </Button>
-              <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
-                Reset App Settings
-              </Button>
+              <div className="w-80 mt-4 border-t border-component-strong pt-4">
+                <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
+                  Reset App Settings
+                </Button>
+              </div>
             </VerticalButtonGroup>
           </div>
 
