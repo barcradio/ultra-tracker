@@ -339,8 +339,6 @@ describe("stations-db", () => {
       expect(storeMock.data.get("station.operators.primary.active")).toBe(false);
     });
 
-    // An event database holds one station's records, so a change takes them with it, but only
-    // once the operator has agreed to it.
     it("moves the timing records already logged when asked to", async () => {
       insertStation(station());
       storeMock.data.set("station", station());
