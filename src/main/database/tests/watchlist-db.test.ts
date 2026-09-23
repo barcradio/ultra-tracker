@@ -80,8 +80,6 @@ describe("watchlist-db", () => {
     expect(logs).toHaveLength(1);
   });
 
-  // The alert text is chosen by `event === "arrival"`; flipping it tells the operator the
-  // opposite of what happened, which no count-based assertion would catch.
   it("tells the operator a watchlisted athlete arrived", () => {
     toggleWatchlist(101);
     sendToastToRenderer.mockClear();
@@ -104,8 +102,6 @@ describe("watchlist-db", () => {
     );
   });
 
-  // A watchlist alert must stay on screen until the operator dismisses it; a positive timeout
-  // would make it vanish before anyone at a busy station noticed.
   it("keeps the alert on screen until it is dismissed", () => {
     toggleWatchlist(101);
     sendToastToRenderer.mockClear();

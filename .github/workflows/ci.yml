@@ -130,8 +130,7 @@ jobs:
           test "${{ steps.test_preload.outcome }}" = "success"
           test "${{ steps.test_renderer.outcome }}" = "success"
 
-      # The suites above are path-scoped, so a test file added outside them would never run in
-      # CI and its failures would go unnoticed. Fail loudly instead.
+      # The suites above are path-scoped, so a test file outside them would never run in CI.
       - name: Check every test file belongs to a suite
         if: always()
         run: |
