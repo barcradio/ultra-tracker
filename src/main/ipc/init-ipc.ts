@@ -1,4 +1,5 @@
 import { initAthleteHandlers } from "./athletes-ipc";
+import { initAppUpdaterHandlers } from "./app-updater-ipc";
 import { initdbSettingsHandlers } from "./dbsettings-ipc";
 import { initEventDatabaseHandlers } from "./event-databases-ipc";
 import { initEventLogsHandlers } from "./eventLogs-ipc";
@@ -15,6 +16,7 @@ import { initStoreHandlers } from "./store-ipc";
 
 export function initializeIpcHandlers() {
   initAthleteHandlers();
+  initAppUpdaterHandlers();
   initdbSettingsHandlers();
   initEventDatabaseHandlers();
   initExportHandlers();

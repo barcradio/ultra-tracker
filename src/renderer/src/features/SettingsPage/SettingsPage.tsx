@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
+import { useAutoUpdate } from "~/hooks/useAutoUpdate";
 import { useInOutButton } from "~/hooks/useInOutButton";
 import { useOpenEventManagerOnStartup } from "~/hooks/useOpenEventManagerOnStartup";
 import { DatabaseStatus, DropsImportConflictAction } from "$shared/enums";
@@ -15,6 +16,7 @@ export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
   const { createToast } = useToasts();
   const gridFontScale = useGridFontScale();
+  const autoUpdate = useAutoUpdate();
   const inOutButton = useInOutButton();
   const eventManagerOnStartup = useOpenEventManagerOnStartup();
   const [resetOpen, setResetOpen] = useState(false);
@@ -154,6 +156,27 @@ export function SettingsPage() {
           <RfidConfiguration />
 
           <div className="border-t border-component-strong pt-4">
+            <VerticalButtonGroup label="App Settings">
+              <Button size="wide" onClick={autoUpdate.checkNow}>
+                Check for Updates
+              </Button>
+              <Button
+                size="wide"
+                variant={autoUpdate.enabled ? "solid" : "outlined"}
+                className={autoUpdate.enabled ? "" : "opacity-50"}
+                aria-pressed={autoUpdate.enabled}
+                disabled={autoUpdate.isLoading}
+                onClick={() => autoUpdate.setEnabled(!autoUpdate.enabled)}
+              >
+                {autoUpdate.enabled ? "Disable Auto Updates" : "Enable Auto Updates"}
+              </Button>
+              <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
+                Reset App Settings
+              </Button>
+            </VerticalButtonGroup>
+          </div>
+
+          <div className="border-t border-component-strong pt-4">
             <VerticalButtonGroup label="Developer Tools" className="border-2 border-danger/30">
               <Stack direction="col" className="gap-2">
                 <p className="w-80 text-on-surface-strong italic font-display text-sm font-bold mt-2 mb-4">
@@ -174,14 +197,6 @@ export function SettingsPage() {
                   Recover Data from CSV File
                 </Button>
               </Stack>
-            </VerticalButtonGroup>
-          </div>
-
-          <div className="border-t border-component-strong pt-4">
-            <VerticalButtonGroup label="App Settings">
-              <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
-                Reset App Settings
-              </Button>
             </VerticalButtonGroup>
           </div>
         </Stack>

@@ -86,5 +86,6 @@ jobs:
             dist/*.rpm
             dist/*.tar.gz
             dist/*.yml
+            dist/*.blockmap
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}

@@ -140,6 +140,12 @@ vi.mock("../lib/logger", () => logger);
 const statEngine = vi.hoisted(() => ({ initStatEngine: vi.fn(), closeStatEngine: vi.fn() }));
 vi.mock("../lib/stat-engine", () => statEngine);
 
+const appUpdater = vi.hoisted(() => ({
+  checkForAppUpdates: vi.fn(async () => undefined),
+  initializeAppUpdater: vi.fn()
+}));
+vi.mock("../services/app-updater", () => appUpdater);
+
 const storeMock = vi.hoisted(() => {
   const data = new Map<string, unknown>();
   return {
