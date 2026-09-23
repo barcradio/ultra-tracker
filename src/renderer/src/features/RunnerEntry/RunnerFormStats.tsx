@@ -92,7 +92,11 @@ export function RunnerFormStats() {
   };
 
   return (
-    <Stack direction="col" align="stretch" className="gap-2 w-1/5 shrink-0 min-h-0">
+    <Stack
+      direction="col"
+      align="stretch"
+      className="gap-2 w-[34rem] max-w-[40vw] grow-0 shrink-0 min-h-0"
+    >
       <div id={bibEntryTooltipId}>
         <TextInput
           ref={inputRef}
