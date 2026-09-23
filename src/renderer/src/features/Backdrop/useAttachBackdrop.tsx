@@ -1,4 +1,4 @@
-import { MouseEventHandler, useEffect, useId } from "react";
+import { MouseEventHandler, useCallback, useEffect, useId, useRef } from "react";
 import { useBackdropContext } from "./useBackdropContext";
 
 // This is a custom hook that attaches a backdrop to a generic open state i.e. open modal/drawer state.
@@ -13,15 +13,29 @@ export const useAttachBackdrop: UseAttachBackdrop = (open, onBackdropClick) => {
   const id = useId();
   const { addBackdrop, removeBackdrop } = useBackdropContext();
 
+  // Callers pass an inline handler, so keeping it in the effect deps detaches and reattaches on
+  // every render of every mounted drawer — enough to exceed React's nested update limit.
+  const handlerRef = useRef(onBackdropClick);
+  useEffect(() => {
+    handlerRef.current = onBackdropClick;
+  });
+
+  const stableHandler: MouseEventHandler<HTMLButtonElement> = useCallback(
+    (event) => handlerRef.current?.(event),
+    []
+  );
+
+  const hasHandler = Boolean(onBackdropClick);
+
   // Attach or remove the backdrop based on the open state
   useEffect(() => {
     if (open) {
-      addBackdrop(id, onBackdropClick);
+      addBackdrop(id, hasHandler ? stableHandler : undefined);
     } else {
       removeBackdrop(id);
     }
 
     // Remove the backdrop if the component unmounts
     return () => removeBackdrop(id);
-  }, [open, id, onBackdropClick, addBackdrop, removeBackdrop]);
+  }, [open, id, hasHandler, stableHandler, addBackdrop, removeBackdrop]);
 };
