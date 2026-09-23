@@ -498,11 +498,11 @@ describe("main process", () => {
     });
   });
 
-  it("watches window shortcuts on every new window", async () => {
+  it("watches window shortcuts on every new window without blocking the text size keys", async () => {
     await bootMain();
 
     emitApp("browser-window-created", null, window);
 
-    expect(utils.optimizer.watchWindowShortcuts).toHaveBeenCalledWith(window);
+    expect(utils.optimizer.watchWindowShortcuts).toHaveBeenCalledWith(window, { zoom: true });
   });
 });
