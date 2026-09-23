@@ -7,6 +7,7 @@ import { FilterState, useFilterState } from "./hooks/useFilterState";
 import { InitialSortState, useSortState } from "./hooks/useSortState";
 import { TableContent } from "./TableContent";
 import { ColumnDef, FilterSortRule, RowStatus } from "./types";
+import { shouldShowTrailingUtilityColumn } from "./utilityColumn";
 
 interface GridClassNames {
   root: string;
@@ -42,9 +43,10 @@ export function DataGrid<T extends object>(props: Props<T>) {
   const height = measuredHeight || 320;
 
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
-  const showTrailingUtilityColumn = props.showTrailingUtilityColumn !== false;
-  const hasFilterControls = props.columns.some((column) => column.filterable !== false);
-  const showUtilityColumn = showTrailingUtilityColumn || hasFilterControls;
+  const showUtilityColumn = shouldShowTrailingUtilityColumn(
+    props.columns,
+    props.showTrailingUtilityColumn
+  );
 
   const [compareFn, setSortField, sortState, setSortState] = useSortState<T>({
     initial: props.initialSort,
