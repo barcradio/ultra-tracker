@@ -43,6 +43,8 @@ export function DataGrid<T extends object>(props: Props<T>) {
 
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
   const showTrailingUtilityColumn = props.showTrailingUtilityColumn !== false;
+  const hasFilterControls = props.columns.some((column) => column.filterable !== false);
+  const showUtilityColumn = showTrailingUtilityColumn || hasFilterControls;
 
   const [compareFn, setSortField, sortState, setSortState] = useSortState<T>({
     initial: props.initialSort,
@@ -111,7 +113,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
         className={props.classNames?.header}
         onClearFilters={props.onClearFilters}
         hasRowStatus={Boolean(props.rowStatus)}
-        showTrailingUtilityColumn={showTrailingUtilityColumn}
+        showTrailingUtilityColumn={showUtilityColumn}
       />
     );
   };
@@ -138,7 +140,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
             rowStatus={props.rowStatus}
             rowClassName={props.rowClassName}
             getKey={props.getKey}
-            showTrailingUtilityColumn={showTrailingUtilityColumn}
+            showTrailingUtilityColumn={showUtilityColumn}
           />
           {props.showFooter && getSection("footer")}
         </Table>
