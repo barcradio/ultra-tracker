@@ -45,7 +45,7 @@ module.exports = [
       },
       "import/resolver": {
         [resolve("./electron-vite-resolver.cjs")]: {
-          viteConfigPath: "./electron.vite.config.cjs"
+          viteConfigPath: "./electron.vite.shared.cjs"
         }
       }
     },
