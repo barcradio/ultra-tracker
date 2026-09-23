@@ -364,31 +364,7 @@ Ultra-Tracker runs a SQLite database on the local machine. All transactions are 
 
 ## Development
 
-Ultra-Tracker requires Node 22 or newer. Running `pnpm install` downloads and uses a matching version of Node automatically, so no manual version switching is needed.
-
-Use the platform scripts to reset or prepare a development environment:
-
-- **Windows safe clean:** `powershell -ExecutionPolicy Bypass -File ./clean-dev.ps1`
-- **Windows deep clean:** `powershell -ExecutionPolicy Bypass -File ./clean-dev.ps1 -Deep`
-- **Linux/macOS safe clean:** `sh ./clean-dev.sh`
-- **Linux/macOS deep clean:** `sh ./clean-dev.sh --deep`
-- **Windows hydration:** `powershell -ExecutionPolicy Bypass -File ./hydrate-dev.ps1`
-- **Linux/macOS hydration:** `sh ./hydrate-dev.sh`
-
-Safe cleanup removes disposable development artifacts. Deep cleanup also deletes local databases, environment files, and generated API/test data. Review those files before using the deep option. Hydration installs dependencies, downloads the Electron binary, and rebuilds native modules; it does not start the application. Run `pnpm dev` or `pnpm start` separately afterward.
-
-- **`pnpm dev`**
-  Runs the application in development mode.
-- **`pnpm test`**
-  Runs the test suite once and reports the result.
-- **`pnpm test:watch`**
-  Runs the test suite and re-runs it as files change.
-- **`pnpm test:coverage`**
-  Runs the test suite and produces a coverage report.
-- **`pnpm lint`** and **`pnpm typecheck`**
-  Check formatting, lint rules, and TypeScript types.
-
-Tests are written with Vitest and live in a `tests/` folder beside the code they cover, such as `src/main/database/tests/`. Every pull request runs the test suite, lint, and typecheck.
+Development setup, local workflow, cleanup, and validation guidance is maintained in the project wiki: [Development Guidance](https://github.com/barcradio/ultra-tracker/wiki/Development-Guidance).
 
 ## About Ultra-Tracker
 
