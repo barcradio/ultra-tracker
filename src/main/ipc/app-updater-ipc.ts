@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
-import { checkForAppUpdates } from "../services/app-updater";
+import { checkForAppUpdates, getAppUpdateChannel } from "../services/app-updater";
 
 export const initAppUpdaterHandlers = () => {
   ipcMain.handle("check-for-app-updates", () => checkForAppUpdates(true));
+  ipcMain.handle("get-app-update-channel", () => getAppUpdateChannel());
 };

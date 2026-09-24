@@ -30,6 +30,8 @@ const autoUpdater = vi.hoisted(() => {
     autoDownload: false,
     autoInstallOnAppQuit: false,
     allowPrerelease: false,
+    allowDowngrade: false,
+    channel: null as string | null,
     on: vi.fn((event: string, handler: Handler) => {
       handlers.set(event, handler);
     }),
@@ -46,7 +48,7 @@ const logger = vi.hoisted(() => ({
 vi.mock("../../lib/logger", () => logger);
 
 const appStore = vi.hoisted(() => ({
-  get: vi.fn(() => true)
+  get: vi.fn((key: string): unknown => (key === "display.autoUpdate" ? true : undefined))
 }));
 vi.mock("../../lib/store", () => ({ appStore }));
 
@@ -64,10 +66,14 @@ describe("app updater", () => {
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = false;
     autoUpdater.allowPrerelease = false;
+    autoUpdater.allowDowngrade = false;
+    autoUpdater.channel = null;
     app.getVersion.mockReturnValue("1.2.3");
     app.isPackaged = true;
     utils.is.dev = false;
-    appStore.get.mockReturnValue(true);
+    appStore.get.mockImplementation((key: string) =>
+      key === "display.autoUpdate" ? true : undefined
+    );
     Object.defineProperty(process, "platform", { value: "win32" });
     vi.unstubAllEnvs();
   });
@@ -94,6 +100,8 @@ describe("app updater", () => {
     expect(autoUpdater.autoDownload).toBe(true);
     expect(autoUpdater.autoInstallOnAppQuit).toBe(true);
     expect(autoUpdater.allowPrerelease).toBe(false);
+    expect(autoUpdater.channel).toBe("latest");
+    expect(autoUpdater.allowDowngrade).toBe(false);
     expect(autoUpdater.checkForUpdates).toHaveBeenCalledOnce();
   });
 
@@ -114,6 +122,40 @@ describe("app updater", () => {
     initializeAppUpdater();
 
     expect(autoUpdater.allowPrerelease).toBe(true);
+    expect(autoUpdater.channel).toBe("beta");
+  });
+
+  it("uses the saved beta channel for stable builds", async () => {
+    appStore.get.mockImplementation((key: string) => {
+      if (key === "display.autoUpdate") return true;
+      if (key === "display.updateChannel") return "beta";
+      return undefined;
+    });
+    const { initializeAppUpdater } = await loadService();
+
+    initializeAppUpdater();
+
+    expect(autoUpdater.channel).toBe("beta");
+    expect(autoUpdater.allowPrerelease).toBe(true);
+    expect(autoUpdater.allowDowngrade).toBe(false);
+  });
+
+  it("refreshes the saved channel before a manual check", async () => {
+    let channel = "stable";
+    appStore.get.mockImplementation((key: string) => {
+      if (key === "display.autoUpdate") return false;
+      if (key === "display.updateChannel") return channel;
+      return undefined;
+    });
+    const { initializeAppUpdater, checkForAppUpdates } = await loadService();
+    initializeAppUpdater();
+    channel = "beta";
+
+    await checkForAppUpdates(true);
+
+    expect(autoUpdater.channel).toBe("beta");
+    expect(autoUpdater.allowPrerelease).toBe(true);
+    expect(autoUpdater.allowDowngrade).toBe(false);
   });
 
   it("reports no update for manual checks", async () => {

@@ -12,7 +12,8 @@ vi.mock("electron", () => ({
 }));
 
 const checkForAppUpdates = vi.hoisted(() => vi.fn(async () => undefined));
-vi.mock("../../services/app-updater", () => ({ checkForAppUpdates }));
+const getAppUpdateChannel = vi.hoisted(() => vi.fn(() => "beta"));
+vi.mock("../../services/app-updater", () => ({ checkForAppUpdates, getAppUpdateChannel }));
 
 describe("app-updater-ipc", () => {
   beforeEach(() => {
@@ -28,5 +29,13 @@ describe("app-updater-ipc", () => {
     await handler();
 
     expect(checkForAppUpdates).toHaveBeenCalledWith(true);
+  });
+
+  it("returns the effective app update channel", () => {
+    const handler = ipcHandlers.get("get-app-update-channel");
+    if (!handler) throw new Error("get-app-update-channel handler was not registered");
+
+    expect(handler()).toBe("beta");
+    expect(getAppUpdateChannel).toHaveBeenCalledOnce();
   });
 });

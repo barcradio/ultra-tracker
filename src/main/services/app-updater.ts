@@ -8,6 +8,8 @@ let initialized = false;
 let updateCheckInProgress = false;
 let notifyWhenNoUpdateAvailable = false;
 
+export type AppUpdateChannel = "stable" | "beta";
+
 function logUpdater(level: LogLevel, message: string): void {
   uberLog(level, "updater", message, false);
 }
@@ -34,11 +36,24 @@ async function showUpdateAvailableNotice(version: string): Promise<void> {
     void shell.openExternal(`https://github.com/barcradio/ultra-tracker/releases/tag/v${version}`);
 }
 
+export function getAppUpdateChannel(): AppUpdateChannel {
+  const savedChannel = appStore.get("display.updateChannel");
+  if (savedChannel === "stable" || savedChannel === "beta") return savedChannel;
+  return app.getVersion().includes("-") ? "beta" : "stable";
+}
+
+function applyUpdateChannel(): void {
+  const channel = getAppUpdateChannel();
+  autoUpdater.channel = channel === "beta" ? "beta" : "latest";
+  autoUpdater.allowPrerelease = channel === "beta";
+  autoUpdater.allowDowngrade = false;
+}
+
 function configureUpdater(): void {
   const selfInstall = canSelfInstall();
   autoUpdater.autoDownload = selfInstall;
   autoUpdater.autoInstallOnAppQuit = selfInstall;
-  autoUpdater.allowPrerelease = app.getVersion().includes("-");
+  applyUpdateChannel();
 
   autoUpdater.on("checking-for-update", () => logUpdater(LogLevel.info, "Checking for app update"));
   autoUpdater.on("update-available", async (info) => {
@@ -118,6 +133,8 @@ export async function checkForAppUpdates(showNoUpdateDialog: boolean): Promise<v
   updateCheckInProgress = true;
   notifyWhenNoUpdateAvailable = showNoUpdateDialog;
   try {
+    applyUpdateChannel();
+    logUpdater(LogLevel.info, `Using ${autoUpdater.channel} app update channel`);
     await autoUpdater.checkForUpdates();
   } catch (error) {
     notifyWhenNoUpdateAvailable = false;

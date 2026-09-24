@@ -138,7 +138,8 @@ export const appStore = new Store({
         gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 },
         showInOutButton: { type: "boolean", default: false },
         openEventManagerOnStartup: { type: "boolean", default: true },
-        autoUpdate: { type: "boolean", default: true }
+        autoUpdate: { type: "boolean", default: true },
+        updateChannel: { enum: ["stable", "beta"] }
       }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]
