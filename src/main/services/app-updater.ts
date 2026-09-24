@@ -85,16 +85,26 @@ function configureUpdater(): void {
     const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
     const { response } = await dialog.showMessageBox(window, {
       type: "info",
-      title: "Ultra-Tracker update ready",
+      title: "Ultra-Tracker update available",
       message: `Ultra-Tracker ${info.version} is ready to install.`,
       detail: "Restart the app to finish installing the update.",
-      buttons: ["Restart and update", "Later"],
+      buttons: ["Restart and update", "Install after exit", "Install later"],
       defaultId: 0,
-      cancelId: 1,
+      cancelId: 2,
       noLink: true
     });
 
-    if (response === 0) autoUpdater.quitAndInstall();
+    switch (response) {
+      case 0:
+        autoUpdater.quitAndInstall();
+        break;
+      case 1:
+        autoUpdater.autoInstallOnAppQuit = true;
+        break;
+      case 2:
+        autoUpdater.autoInstallOnAppQuit = false;
+        break;
+    }
   });
 }
 
