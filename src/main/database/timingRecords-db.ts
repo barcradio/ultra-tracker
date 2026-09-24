@@ -8,7 +8,7 @@ import { DatabaseStatus, EntryMode, RecordStatus, RecordType } from "../../share
 import { RunnerDB } from "../../shared/models";
 import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { appStore } from "../lib/store";
-import { OpenSplitTimeSubSplitKind, pushTimeRecordUpdate } from "../services/opensplittime";
+import { pushTimeRecordUpdate } from "../services/opensplittime";
 
 interface TypedRunnerDB extends RunnerDB {
   recordType: RecordType;
@@ -273,16 +273,6 @@ function updateTimeRecord(
     (existingRecord.bibId !== record.bibId ||
       timeValue(existingRecord.timeIn) !== timeValue(record.timeIn) ||
       timeValue(existingRecord.timeOut) !== timeValue(record.timeOut));
-  const changedKinds: OpenSplitTimeSubSplitKind[] = [];
-  if (timeValue(existingRecord.timeIn) !== timeValue(record.timeIn)) changedKinds.push("in");
-  if (timeValue(existingRecord.timeOut) !== timeValue(record.timeOut)) changedKinds.push("out");
-  const pushKinds =
-    existingRecord.bibId !== record.bibId
-      ? ([
-          record.timeIn ? "in" : null,
-          record.timeOut ? "out" : null
-        ].filter((kind): kind is OpenSplitTimeSubSplitKind => kind !== null))
-      : changedKinds;
 
   // Edited values invalidate whatever was already pushed, so force sent=false rather than
   // trusting the stale "sent" flag carried over from the renderer's original record.
@@ -365,16 +355,11 @@ function updateTimeRecord(
     clearPushStatus(record.bibId);
     emitRunnersTableChanged();
 
-    const pushPromise =
-      pushKinds.length > 0
-        ? pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId), {
-            kinds: pushKinds
-          })
-        : pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId));
-
-    void pushPromise.catch((error: unknown) => {
-      console.error("OpenSplitTime record update failed", error);
-    });
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId)).catch(
+      (error: unknown) => {
+        console.error("OpenSplitTime record update failed", error);
+      }
+    );
   }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];
@@ -444,15 +429,11 @@ function insertTimeRecord(record: TypedRunnerDB): DatabaseResponse {
   // pushing here would incorrectly overwrite the original runner's time on OST until the operator
   // resolves the duplicate to a real bib number.
   if (record.status !== RecordStatus.Duplicate) {
-    const createdKinds: OpenSplitTimeSubSplitKind[] = [];
-    if (record.timeIn != null) createdKinds.push("in");
-    if (record.timeOut != null) createdKinds.push("out");
-
-    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId), {
-      kinds: createdKinds
-    }).catch((error: unknown) => {
-      console.error("OpenSplitTime record update failed", error);
-    });
+    void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId)).catch(
+      (error: unknown) => {
+        console.error("OpenSplitTime record update failed", error);
+      }
+    );
   }
 
   if (record.status == RecordStatus.Duplicate) return [DatabaseStatus.Duplicate, message];

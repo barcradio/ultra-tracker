@@ -71,7 +71,7 @@ interface OpenSplitTimeAuthResponse {
   expiration?: string;
 }
 
-export type OpenSplitTimeSubSplitKind = "in" | "out";
+type OpenSplitTimeSubSplitKind = "in" | "out";
 
 interface OpenSplitTimeEventMetadata {
   name: string;
@@ -580,14 +580,6 @@ export interface OpenSplitTimePushOutcome {
   error?: string;
 }
 
-export function getOpenSplitTimePushKindsForEntryMode(): OpenSplitTimeSubSplitKind[] {
-  const entryMode = Number(appStore.get("station.entrymode") ?? 0);
-  if (entryMode === 2) return ["in"];
-  if (entryMode === 3) return ["out"];
-
-  return ["in", "out"];
-}
-
 interface OpenSplitTimePushConfig {
   eventGroupIdOrSlug: string;
   stationIdentifier: string;
@@ -606,7 +598,11 @@ function resolveAllowedKindsForSplit(splitName: string): OpenSplitTimeSubSplitKi
     return [...new Set(liveKinds)];
   }
 
-  return getOpenSplitTimePushKindsForEntryMode();
+  const entryMode = Number(appStore.get("station.entrymode") ?? 0);
+  if (entryMode === 2) return ["in"];
+  if (entryMode === 3) return ["out"];
+
+  return ["in", "out"];
 }
 
 function resolvePushConfig(): OpenSplitTimePushConfig {
@@ -639,18 +635,15 @@ function resolvePushConfig(): OpenSplitTimePushConfig {
 function buildRawTimeRecords(
   record: RunnerDB,
   config: OpenSplitTimePushConfig,
-  stoppedHere?: boolean,
-  kinds?: OpenSplitTimeSubSplitKind[]
+  stoppedHere?: boolean
 ): OpenSplitTimeRawTime[] {
   const records: OpenSplitTimeRawTime[] = [];
   const stoppedHereValue =
     stoppedHere == null ? undefined : (String(stoppedHere) as "true" | "false");
   const allowedKinds = new Set(config.allowedKinds);
-  const requestedKinds = kinds == null ? null : new Set(kinds);
 
   const addRecord = (time: Date | null, kind: OpenSplitTimeSubSplitKind) => {
-    if (!time || !allowedKinds.has(kind) || (requestedKinds != null && !requestedKinds.has(kind)))
-      return;
+    if (!time || !allowedKinds.has(kind)) return;
 
     records.push({
       source: config.stationIdentifier,
@@ -706,14 +699,14 @@ function recordPushFailure(
 export async function pushTimeRecordUpdate(
   record: RunnerDB,
   stoppedHere?: boolean,
-  options: { force?: boolean; kinds?: OpenSplitTimeSubSplitKind[] } = {}
+  options: { force?: boolean } = {}
 ): Promise<OpenSplitTimePushOutcome> {
   if (pushPaused && !options.force) {
     return { pushed: false };
   }
 
   const config = resolvePushConfig();
-  const records = buildRawTimeRecords(record, config, stoppedHere, options.kinds);
+  const records = buildRawTimeRecords(record, config, stoppedHere);
 
   if (records.length === 0) return { pushed: false };
 

@@ -14,7 +14,6 @@ import {
   getCachedConnectionStatus,
   getEventGroup,
   getOpenSplitTimeEnvironment,
-  getOpenSplitTimePushKindsForEntryMode,
   getSavedCredentials,
   isOpenSplitTimeEventGroupConfigured,
   isOpenSplitTimePushPaused,
@@ -135,8 +134,7 @@ const pushOpenSplitTimeRecord: Handler<PushRecordParams> = async (_, params) => 
   }
 
   return pushTimeRecordUpdate(record, getStoppedHereForBib(record.bibId), {
-    force: true,
-    kinds: getOpenSplitTimePushKindsForEntryMode()
+    force: true
   });
 };
 
