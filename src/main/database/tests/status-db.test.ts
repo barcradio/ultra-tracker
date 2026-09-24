@@ -63,7 +63,11 @@ const emitRunnersTableChanged = vi.hoisted(() => vi.fn());
 vi.mock("../../ipc/runner-data-emitter", () => ({ emitRunnersTableChanged }));
 
 const pushTimeRecordUpdate = vi.hoisted(() => vi.fn(async () => ({ pushed: true })));
-vi.mock("../../services/opensplittime", () => ({ pushTimeRecordUpdate }));
+const getOpenSplitTimePushKindsForEntryMode = vi.hoisted(() => vi.fn(() => ["in"]));
+vi.mock("../../services/opensplittime", () => ({
+  getOpenSplitTimePushKindsForEntryMode,
+  pushTimeRecordUpdate
+}));
 
 const loadDropsFromCSV = vi.hoisted(() => vi.fn());
 vi.mock("../../lib/file-dialogs", () => ({ loadDropsFromCSV }));
@@ -272,6 +276,9 @@ describe("status-db", () => {
       await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
 
       expect(emitRunnersTableChanged).toHaveBeenCalled();
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(expect.anything(), expect.anything(), {
+        kinds: ["in"]
+      });
     });
 
     it("marks the record sent once the push succeeds", async () => {
