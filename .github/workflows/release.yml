@@ -70,20 +70,26 @@ jobs:
         run: |
           node -e "const fs=require('fs');const p='package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));j.version=process.env.RELEASE_VERSION;fs.writeFileSync(p, JSON.stringify(j, null, 2)+'\n');"
 
-      - name: Install Dependencies
-        run: pnpm install
-
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
-        run: pnpm build:linux -- --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
+        shell: bash
+        run: |
+          pnpm exec electron-vite build
+          pnpm exec electron-builder --linux --publish never
 
       - name: Build Mac
         if: matrix.os == 'macos-latest'
-        run: pnpm build:mac -- --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
+        shell: bash
+        run: |
+          pnpm exec electron-vite build
+          pnpm exec electron-builder --mac --publish never
 
       - name: Build Windows
         if: matrix.os == 'windows-latest'
-        run: pnpm build:win -- --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
+        shell: bash
+        run: |
+          pnpm exec electron-vite build
+          pnpm exec electron-builder --win --publish never
 
       - name: Verify update channel metadata
         shell: bash
