@@ -365,11 +365,14 @@ function updateTimeRecord(
     clearPushStatus(record.bibId);
     emitRunnersTableChanged();
 
-    void pushTimeRecordUpdate(
-      record,
-      dbStatus.getStoppedHereForBib(record.bibId),
-      pushKinds.length > 0 ? { kinds: pushKinds } : undefined
-    ).catch((error: unknown) => {
+    const pushPromise =
+      pushKinds.length > 0
+        ? pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId), {
+            kinds: pushKinds
+          })
+        : pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId));
+
+    void pushPromise.catch((error: unknown) => {
       console.error("OpenSplitTime record update failed", error);
     });
   }
