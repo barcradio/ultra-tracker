@@ -278,10 +278,9 @@ function updateTimeRecord(
   if (timeValue(existingRecord.timeOut) !== timeValue(record.timeOut)) changedKinds.push("out");
   const pushKinds =
     existingRecord.bibId !== record.bibId
-      ? ([
-          record.timeIn ? "in" : null,
-          record.timeOut ? "out" : null
-        ].filter((kind): kind is OpenSplitTimeSubSplitKind => kind !== null))
+      ? [record.timeIn ? "in" : null, record.timeOut ? "out" : null].filter(
+          (kind): kind is OpenSplitTimeSubSplitKind => kind !== null
+        )
       : changedKinds;
 
   // Edited values invalidate whatever was already pushed, so force sent=false rather than

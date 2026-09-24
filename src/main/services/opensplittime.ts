@@ -138,8 +138,7 @@ export interface OpenSplitTimeAuthStatus {
 
 function getConfiguredEnvironment(): OpenSplitTimeEnvironment | null {
   const eventMetadata = appStore.get("event.openSplitTime") as
-    | OpenSplitTimeEventMetadataStore
-    | undefined;
+    OpenSplitTimeEventMetadataStore | undefined;
 
   if (eventMetadata?.[currentEnvironment]?.name) return currentEnvironment;
   if (eventMetadata?.staging?.name) return "staging";
