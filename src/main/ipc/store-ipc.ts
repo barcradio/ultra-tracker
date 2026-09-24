@@ -11,6 +11,9 @@ const resetStoreValue: Handler<TypedKey> = (_, storeKey) => appStore.reset(store
 const clearStore: Handler<void, void> = () => appStore.clear();
 
 const setStoreValue: Handler<{ key: string; value: unknown }> = (_, { key, value }) => {
+  if (key === "display.updateChannel" && value !== "stable" && value !== "beta") {
+    throw new TypeError("Invalid app update channel");
+  }
   return appStore.set(key, value);
 };
 
