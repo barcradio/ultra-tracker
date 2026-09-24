@@ -1,6 +1,8 @@
 import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
+import * as tableDefs0 from "../schema/table-definitions-v0";
 import {
+  ClearTables,
   CreateTables,
   getColumnNamesFromTable,
   getTableNames,
@@ -67,6 +69,38 @@ describe("tables-db", () => {
       validateDatabaseTables(db);
 
       expect(getTableNames(db)).toContain("Watchlist");
+    });
+
+    it("migrates legacy timing data without creating the replacement table first", () => {
+      const db = new Database(":memory:");
+      db.exec(`
+        CREATE TABLE Athletes (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ${tableDefs0.Athletes}
+        );
+        CREATE TABLE StationEvents (
+          "index" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          bibId INTEGER DEFAULT (0), stationId INTEGER, timeIn DATETIME, timeOut DATETIME,
+          timeModified DATETIME, note TEXT, sent BOOLEAN DEFAULT (FALSE), status INTEGER
+        );
+      `);
+      db.pragma("user_version = 0");
+      db.prepare("INSERT INTO StationEvents (bibId, stationId) VALUES (?, ?)").run(101, 3);
+
+      validateDatabaseTables(db);
+
+      expect(db.pragma("user_version", { simple: true })).toBe(4);
+      expect(getTableNames(db)).not.toContain("StationEvents");
+      expect(db.prepare("SELECT bibId, stationId FROM TimeRecords").all()).toEqual([
+        expect.objectContaining({ bibId: 101, stationId: 3 })
+      ]);
+      expect(ClearTables(db)).toBe("Database tables cleared; Reinitialize or Restart!");
+    });
+
+    it("rejects an unsupported schema version", () => {
+      const db = new Database(":memory:");
+      db.pragma("user_version = 99");
+
+      expect(() => validateDatabaseTables(db)).toThrow("Unsupported database schema version: 99");
     });
   });
 });

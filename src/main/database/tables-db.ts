@@ -10,6 +10,39 @@ import * as tableDefs4 from "./schema/table-definitions-v4";
 const userVersion: number = 4;
 let tableDefs;
 
+const tableDefinitionsByVersion = {
+  0: tableDefs0,
+  1: tableDefs1,
+  2: tableDefs2,
+  3: tableDefs3,
+  4: tableDefs4
+} as const;
+
+type SchemaVersion = keyof typeof tableDefinitionsByVersion;
+
+function getTableDefinitions(version: number) {
+  if (!Number.isInteger(version) || !Object.hasOwn(tableDefinitionsByVersion, version)) {
+    throw new Error(`Unsupported database schema version: ${version}`);
+  }
+
+  return tableDefinitionsByVersion[version as SchemaVersion];
+}
+
+// abstract this behavior for clarity, yet single caller usage only
+function validateRecordedSchemaPrerequisites(
+  db: Database.Database,
+  definitions: { expectedTableNames: Record<string, string>; [key: string]: unknown }
+) {
+  const tableNames = getTableNames(db);
+
+  for (const [definitionName, tableName] of Object.entries(definitions.expectedTableNames)) {
+    if (!tableNames.includes(tableName)) {
+      console.log(`Table not found: ${tableName}`);
+      createTable(db, tableName, definitions[definitionName] as string);
+    }
+  }
+}
+
 interface Table {
   type: string;
   name: string;
@@ -52,41 +85,15 @@ export function applyMigrations(db: Database.Database) {
 export function validateDatabaseTables(db: Database.Database) {
   console.log("validateDatabaseTables");
 
-  const tableNames = getTableNames(db);
+  const databaseVersion = db.pragma("user_version", { simple: true }) as number;
+  tableDefs = getTableDefinitions(databaseVersion);
+  validateRecordedSchemaPrerequisites(db, tableDefs);
 
-  switch (userVersion) {
-    case 0:
-      tableDefs = tableDefs0;
-      break;
-
-    case 1:
-      tableDefs = tableDefs1;
-      break;
-
-    case 2:
-      tableDefs = tableDefs2;
-      break;
-
-    case 3:
-      tableDefs = tableDefs3;
-      break;
-
-    case 4:
-      tableDefs = tableDefs4;
-      break;
+  if (databaseVersion < userVersion) {
+    applyMigrations(db);
+    const migratedVersion = db.pragma("user_version", { simple: true }) as number;
+    tableDefs = getTableDefinitions(migratedVersion);
   }
-
-  for (const key in tableDefs.expectedTableNames) {
-    type TableDef = keyof typeof tableDefs;
-    const name = tableDefs.expectedTableNames[key] as TableDef;
-
-    if (!tableNames.find((element) => element == name)) {
-      console.log(`Table not found: ${tableDefs.expectedTableNames[key]}`);
-      createTable(db, tableDefs.expectedTableNames[key], tableDefs[name]);
-    }
-  }
-
-  if (tableDefs.Version < userVersion) applyMigrations(db);
 }
 
 export function getTableNames(db: Database.Database): string[] {
@@ -202,6 +209,9 @@ export function ClearTables(db: Database.Database) {
     clearOutputTable(db) &&
     clearStatusTable(db) &&
     clearOpenSplitTimePushStatusTable(db) &&
+    clearRFIDInboxTable(db) &&
+    clearRFIDPendingWritesTable(db) &&
+    clearRFIDProcessedEventsTable(db) &&
     clearWatchlistTable(db) &&
     clearEventMetaTable(db);
 
@@ -235,6 +245,12 @@ export const clearStatusTable = (db: Database.Database) =>
   clearTable(db, tableDefs.expectedTableNames.Status);
 export const clearOpenSplitTimePushStatusTable = (db: Database.Database) =>
   clearTable(db, tableDefs.expectedTableNames.OpenSplitTimePushStatus);
+export const clearRFIDInboxTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.RFIDInbox);
+export const clearRFIDPendingWritesTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.RFIDPendingWrites);
+export const clearRFIDProcessedEventsTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.RFIDProcessedEvents);
 export const clearWatchlistTable = (db: Database.Database) =>
   clearTable(db, tableDefs.expectedTableNames.Watchlist);
 export const clearEventMetaTable = (db: Database.Database) =>

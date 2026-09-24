@@ -44,13 +44,14 @@ const defaults = {
     }
   },
   openSplitTime: {
-    email: "",
-    encryptedPassword: ""
+    production: { email: "", encryptedPassword: "" },
+    staging: { email: "", encryptedPassword: "" }
   },
   display: {
     gridFontScale: 1,
     showInOutButton: false,
-    openEventManagerOnStartup: true
+    openEventManagerOnStartup: true,
+    autoUpdate: true
   }
 };
 
@@ -127,8 +128,20 @@ export const appStore = new Store({
     openSplitTime: {
       type: "object",
       properties: {
-        email: { type: "string", default: "" },
-        encryptedPassword: { type: "string", default: "" }
+        production: {
+          type: "object",
+          properties: {
+            email: { type: "string", default: "" },
+            encryptedPassword: { type: "string", default: "" }
+          }
+        },
+        staging: {
+          type: "object",
+          properties: {
+            email: { type: "string", default: "" },
+            encryptedPassword: { type: "string", default: "" }
+          }
+        }
       }
     },
     display: {
@@ -136,7 +149,9 @@ export const appStore = new Store({
       properties: {
         gridFontScale: { type: "number", default: 1, minimum: 0.8, maximum: 1.6 },
         showInOutButton: { type: "boolean", default: false },
-        openEventManagerOnStartup: { type: "boolean", default: true }
+        openEventManagerOnStartup: { type: "boolean", default: true },
+        autoUpdate: { type: "boolean", default: true },
+        updateChannel: { enum: ["stable", "beta"] }
       }
     }
     //required: ["id", "identifier", "name", "entryMode", "operators"]

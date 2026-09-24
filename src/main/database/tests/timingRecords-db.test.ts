@@ -112,6 +112,39 @@ describe("timingRecords-db", () => {
       expect(storedRows()[0].stationId).toBe(3);
     });
 
+    it("pushes only the created in time", async () => {
+      insertOrUpdateTimeRecord(runner());
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ timeIn: IN, timeOut: null }),
+        expect.anything(),
+        { kinds: ["in"] }
+      );
+    });
+
+    it("pushes only the created out time", async () => {
+      insertOrUpdateTimeRecord(runner({ timeIn: null, timeOut: OUT }));
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ timeIn: null, timeOut: OUT }),
+        expect.anything(),
+        { kinds: ["out"] }
+      );
+    });
+
+    it("pushes both kinds when both times are created", async () => {
+      insertOrUpdateTimeRecord(runner({ timeOut: OUT }));
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ timeIn: IN, timeOut: OUT }),
+        expect.anything(),
+        { kinds: ["in", "out"] }
+      );
+    });
+
     it("mirrors the in time to the out time in fast entry mode", () => {
       storeMock.data.set("station.entrymode", EntryMode.Fast);
 
@@ -282,6 +315,23 @@ describe("timingRecords-db", () => {
   });
 
   describe("insertOrUpdateTimeRecord - edits", () => {
+    it("scrubs renderer string dates before updating", () => {
+      insertOrUpdateTimeRecord(runner());
+      const existing = storedRows()[0];
+
+      const stringDates = runner({
+        index: existing.index,
+        timeIn: "2026-09-01T08:15:00.000Z",
+        timeOut: "2026-09-01T09:15:00.000Z",
+        timeModified: "2026-09-01T09:15:00.000Z"
+      } as never);
+
+      expect(() => insertOrUpdateTimeRecord(stringDates)).not.toThrow();
+      expect(storedRows()[0].timeIn).toBeNull();
+      expect(storedRows()[0].timeOut).toBeNull();
+      expect(storedRows()[0].timeModified).toBeNull();
+    });
+
     it("replaces the time on an existing record without merging", () => {
       insertOrUpdateTimeRecord(runner());
       const existing = storedRows()[0];
@@ -295,6 +345,41 @@ describe("timingRecords-db", () => {
       expect(storedRows()[0].timeIn).toBe(corrected.toISOString());
     });
 
+    it("updates the index-matched record as a duplicate when bib and index match different records", () => {
+      insertOrUpdateTimeRecord(runner({ bibId: 101 }));
+      insertOrUpdateTimeRecord(runner({ bibId: 202, timeIn: new Date("2026-09-01T08:30:00Z") }));
+      const rows = storedRows();
+      const bibMatched = rows.find((row) => row.bibId === 101)!;
+      const indexMatched = rows.find((row) => row.bibId === 202)!;
+
+      const [status] = insertOrUpdateTimeRecord(
+        runner({
+          index: indexMatched.index,
+          bibId: bibMatched.bibId,
+          timeIn: new Date("2026-09-01T08:45:00Z")
+        })
+      );
+
+      expect(status).toBe(DatabaseStatus.Duplicate);
+      expect(storedRows()).toHaveLength(2);
+      expect(storedRows().map((row) => row.bibId)).toEqual(
+        expect.arrayContaining([bibMatched.bibId, bibMatched.bibId + 0.2])
+      );
+    });
+
+    it("does nothing when bib and index identify an unchanged record", () => {
+      insertOrUpdateTimeRecord(runner());
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      const [status, message] = insertOrUpdateTimeRecord(existing);
+
+      expect(status).toBe(DatabaseStatus.Error);
+      expect(message).toBe("");
+      expect(pushTimeRecordUpdate).not.toHaveBeenCalled();
+      expect(storedRows()).toEqual([existing]);
+    });
+
     it("moves a record onto a corrected bib number", () => {
       insertOrUpdateTimeRecord(runner());
       const existing = storedRows()[0];
@@ -304,6 +389,76 @@ describe("timingRecords-db", () => {
       const rows = storedRows();
       expect(rows).toHaveLength(1);
       expect(rows[0].bibId).toBe(202);
+    });
+
+    it("re-pushes present kinds when correcting a bib number on an out-only record", async () => {
+      insertOrUpdateTimeRecord(runner({ timeIn: null, timeOut: OUT }));
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      insertOrUpdateTimeRecord(
+        runner({ index: existing.index, bibId: 202, timeIn: null, timeOut: OUT })
+      );
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ bibId: 202 }),
+        expect.anything(),
+        { kinds: ["out"] }
+      );
+    });
+
+    it("re-pushes the in kind when correcting a bib number on an in-only record", async () => {
+      insertOrUpdateTimeRecord(runner({ timeIn: IN, timeOut: null }));
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      insertOrUpdateTimeRecord(
+        runner({ index: existing.index, bibId: 202, timeIn: IN, timeOut: null })
+      );
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ bibId: 202 }),
+        expect.anything(),
+        { kinds: ["in"] }
+      );
+    });
+
+    it("re-pushes both present kinds when correcting a bib number on an in/out record", async () => {
+      insertOrUpdateTimeRecord(runner({ timeIn: IN, timeOut: OUT }));
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      insertOrUpdateTimeRecord(
+        runner({ index: existing.index, bibId: 202, timeIn: IN, timeOut: OUT })
+      );
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ bibId: 202 }),
+        expect.anything(),
+        { kinds: ["in", "out"] }
+      );
+    });
+
+    it("re-pushes a previously sent corrected bib record", async () => {
+      insertOrUpdateTimeRecord(runner({ timeIn: IN, timeOut: OUT }));
+      markTimeRecordAsSent(101, true);
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      insertOrUpdateTimeRecord(
+        runner({ index: existing.index, bibId: 202, timeIn: IN, timeOut: OUT, sent: true })
+      );
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(storedRows()[0].sent).toBe(0);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ bibId: 202 }),
+        expect.anything(),
+        { kinds: ["in", "out"] }
+      );
     });
 
     it("marks an edited record unsent so it is pushed again", async () => {
@@ -329,6 +484,51 @@ describe("timingRecords-db", () => {
 
       await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
       expect(emitRunnersTableChanged).toHaveBeenCalled();
+    });
+
+    it("pushes only the edited in time", async () => {
+      insertOrUpdateTimeRecord(runner());
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      insertOrUpdateTimeRecord(
+        runner({ index: existing.index, timeIn: new Date("2026-09-01T08:15:00Z") })
+      );
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(expect.anything(), expect.anything(), {
+        kinds: ["in"]
+      });
+    });
+
+    it("pushes only the edited out time", async () => {
+      insertOrUpdateTimeRecord(runner({ timeOut: OUT }));
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      insertOrUpdateTimeRecord(
+        runner({
+          index: existing.index,
+          timeOut: new Date("2026-09-01T09:15:00Z")
+        })
+      );
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(expect.anything(), expect.anything(), {
+        kinds: ["out"]
+      });
+    });
+
+    it("pushes only the newly merged out time", async () => {
+      insertOrUpdateTimeRecord(runner());
+      pushTimeRecordUpdate.mockClear();
+
+      insertOrUpdateTimeRecord(runner({ timeIn: null, timeOut: OUT }));
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(expect.anything(), expect.anything(), {
+        kinds: ["out"]
+      });
     });
 
     it("does not push when nothing about the times or bib changed", () => {

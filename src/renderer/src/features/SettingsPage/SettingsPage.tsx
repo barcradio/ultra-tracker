@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Button, ConfirmationModal, Stack, VerticalButtonGroup } from "~/components";
+import { Button, ConfirmationModal, Select, Stack, VerticalButtonGroup } from "~/components";
 import { useToasts } from "~/features/Toasts/useToasts";
 import { useGridFontScale } from "~/hooks/dom/useGridFontScale";
+import { useAutoUpdate } from "~/hooks/useAutoUpdate";
 import { useInOutButton } from "~/hooks/useInOutButton";
 import { useOpenEventManagerOnStartup } from "~/hooks/useOpenEventManagerOnStartup";
 import { DatabaseStatus, DropsImportConflictAction } from "$shared/enums";
@@ -15,6 +16,7 @@ export function SettingsPage() {
   const settingsMutations = useSettingsMutations();
   const { createToast } = useToasts();
   const gridFontScale = useGridFontScale();
+  const autoUpdate = useAutoUpdate();
   const inOutButton = useInOutButton();
   const eventManagerOnStartup = useOpenEventManagerOnStartup();
   const [resetOpen, setResetOpen] = useState(false);
@@ -89,7 +91,7 @@ export function SettingsPage() {
 
   return (
     <div className="w-full h-full overflow-y-auto bg-component p-6">
-      <Stack justify="center" align="start" className="gap-6 flex-wrap xl:flex-nowrap min-w-full">
+      <Stack justify="center" align="start" className="gap-6 flex-wrap min-w-full">
         {/* Event Settings & User Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <VerticalButtonGroup label="Drops File Import">
@@ -144,12 +146,51 @@ export function SettingsPage() {
           </div>
         </Stack>
 
-        {/* Integration Settings */}
+        {/* Integration Settings + App Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <OpenSplitTimeLogin className="w-full" />
+          <div className="border-t border-component-strong pt-4">
+            <VerticalButtonGroup label="App Settings">
+              <Select
+                label="Update Channel"
+                value={autoUpdate.channel}
+                options={[
+                  { name: "Stable", value: "stable" },
+                  { name: "Beta", value: "beta" }
+                ]}
+                disabled={autoUpdate.isChannelLoading}
+                onChange={(value) => {
+                  if (value === "stable" || value === "beta") autoUpdate.setChannel(value);
+                }}
+              />
+              {autoUpdate.channel === "beta" && (
+                <p className="w-80 text-sm text-on-surface-strong">
+                  Beta releases may be less stable than production releases.
+                </p>
+              )}
+              <Button size="wide" onClick={autoUpdate.checkNow}>
+                Check for Updates
+              </Button>
+              <Button
+                size="wide"
+                variant={autoUpdate.enabled ? "solid" : "outlined"}
+                className={autoUpdate.enabled ? "" : "opacity-50"}
+                aria-pressed={autoUpdate.enabled}
+                disabled={autoUpdate.isLoading}
+                onClick={() => autoUpdate.setEnabled(!autoUpdate.enabled)}
+              >
+                {autoUpdate.enabled ? "Disable Auto Updates" : "Enable Auto Updates"}
+              </Button>
+              <div className="w-80 mt-4 border-t border-component-strong pt-4">
+                <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
+                  Reset App Settings
+                </Button>
+              </div>
+            </VerticalButtonGroup>
+          </div>
         </Stack>
 
-        {/* RFID Configuration + Developer Tools + App Settings */}
+        {/* RFID Configuration + Developer Tools */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <RfidConfiguration />
 
@@ -174,14 +215,6 @@ export function SettingsPage() {
                   Recover Data from CSV File
                 </Button>
               </Stack>
-            </VerticalButtonGroup>
-          </div>
-
-          <div className="border-t border-component-strong pt-4">
-            <VerticalButtonGroup label="App Settings">
-              <Button color="danger" onClick={() => setResetOpen(true)} size="wide">
-                Reset App Settings
-              </Button>
             </VerticalButtonGroup>
           </div>
         </Stack>

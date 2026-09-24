@@ -28,8 +28,7 @@ jobs:
       - if: matrix.os == 'windows-latest'
         run: pnpm config set virtual-store-dir-max-length 80
 
-      # electron-builder fetches its own fpm. If that ever proves unreliable,
-      # install it here and set USE_SYSTEM_FPM=true on the Build Linux step:
+      # electron-builder fetches its own fpm; install it here with USE_SYSTEM_FPM=true if that fails:
       # - if: matrix.os == 'ubuntu-latest'
       #   run: sudo apt install ruby ruby-dev
       # - if: matrix.os == 'ubuntu-latest'
@@ -42,13 +41,23 @@ jobs:
           cache: pnpm
 
       - name: Derive release version from tag
+        id: release
         shell: bash
         run: |
-          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-            echo "Invalid tag '${GITHUB_REF_NAME}'. Expected format: vX.Y.Z[-prerelease]"
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$ ]]; then
+            echo "Invalid tag '${GITHUB_REF_NAME}'. Expected format: vX.Y.Z or vX.Y.Z-beta.N"
             exit 1
           fi
           echo "RELEASE_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          if [[ "${GITHUB_REF_NAME}" == *-beta.* ]]; then
+            echo "UPDATE_CHANNEL=beta" >> "$GITHUB_ENV"
+            echo "channel=beta" >> "$GITHUB_OUTPUT"
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "UPDATE_CHANNEL=latest" >> "$GITHUB_ENV"
+            echo "channel=latest" >> "$GITHUB_OUTPUT"
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Sync package version for tagged release
         # electron-builder reads package.json version for app metadata and artifact names.
@@ -61,21 +70,37 @@ jobs:
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
-        run: pnpm build:linux
+        run: pnpm build:linux -- --config.publish.channel=${{ steps.release.outputs.channel }}
 
       - name: Build Mac
         if: matrix.os == 'macos-latest'
-        run: pnpm build:mac
+        run: pnpm build:mac -- --config.publish.channel=${{ steps.release.outputs.channel }}
 
       - name: Build Windows
         if: matrix.os == 'windows-latest'
-        run: pnpm build:win
+        run: pnpm build:win -- --config.publish.channel=${{ steps.release.outputs.channel }}
+
+      - name: Verify update channel metadata
+        shell: bash
+        run: |
+          metadata_file_found=
+          for metadata_file in dist/"${UPDATE_CHANNEL}"*.yml; do
+            if [ -f "$metadata_file" ]; then
+              metadata_file_found=true
+              break
+            fi
+          done
+          if [ -z "$metadata_file_found" ]; then
+            echo "Missing ${UPDATE_CHANNEL} update metadata in dist"
+            exit 1
+          fi
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
           draft: true
+          prerelease: ${{ steps.release.outputs.is_prerelease }}
           files: |
             dist/*.exe
             dist/*.zip
@@ -86,5 +111,6 @@ jobs:
             dist/*.rpm
             dist/*.tar.gz
             dist/*.yml
+            dist/*.blockmap
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}

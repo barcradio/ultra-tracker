@@ -8,21 +8,14 @@ import { LogLevel, uberLog } from "./logger";
 
 const run = promisify(execFile);
 
-// An AppImage installs nothing, so no .desktop entry exists for desktop
-// environments to match the window against - and on Wayland that entry is the
-// only way to give a window an icon. This copies the entry and icons out of the
-// image into the user's XDG directories, doing for the AppImage what dpkg does
+// An AppImage installs nothing, so nothing matches the window to a .desktop entry - and on
+// Wayland that entry is the only way a window gets an icon. This does for it what dpkg does
 // for the .deb.
 
 const DESKTOP_FILE_NAME = "ultra-tracker.desktop";
 const ICON_RELATIVE_ROOT = join("usr", "share", "icons", "hicolor");
 
-/**
- * Absolute path of the running AppImage, or null when not running as one.
- *
- * The static runtime does not always set APPIMAGE the way the legacy one did,
- * but ARGV0 and OWD together reconstruct it.
- */
+// The static runtime does not always set APPIMAGE, but ARGV0 and OWD together reconstruct it.
 function resolveAppImagePath(): string | null {
   const direct = process.env.APPIMAGE;
   if (direct && isAbsolute(direct)) return direct;
@@ -36,13 +29,10 @@ function resolveAppImagePath(): string | null {
   return resolve(originalWorkingDir, argv0);
 }
 
-/** Root of the mounted AppImage contents, or null when not running as one. */
 function resolveAppDir(): string | null {
   const appDir = process.env.APPDIR;
   if (appDir) return appDir;
 
-  // The executable's directory is the mount root; only trust it when it looks
-  // like one.
   const candidate = dirname(process.execPath);
   return candidate.includes("/.mount_") ? candidate : null;
 }
@@ -56,14 +46,13 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-/** Point Exec and TryExec at the AppImage rather than the temporary mount. */
+// Point Exec and TryExec at the AppImage rather than the temporary mount.
 function rewriteDesktopEntry(source: string, appImagePath: string): string {
   const quoted = appImagePath.includes(" ") ? `"${appImagePath}"` : appImagePath;
   return source
     .split("\n")
     .map((line) => {
       if (line.startsWith("Exec=")) {
-        // Replace only the AppRun placeholder, keeping flags and field codes.
         const args = line.slice("Exec=".length).trim().split(/\s+/).slice(1);
         return `Exec=${[quoted, ...args].join(" ")}`;
       }
@@ -73,13 +62,8 @@ function rewriteDesktopEntry(source: string, appImagePath: string): string {
     .join("\n");
 }
 
-/**
- * Describe the icon directories we just populated as a hicolor theme.
- *
- * Qt ignores a hicolor directory with no index.theme, so icons are present but
- * unused on LXQt and KDE; GTK finds them either way. Left alone when a richer
- * index already exists.
- */
+// Qt ignores a hicolor directory with no index.theme, so LXQt and KDE find no icons without
+// one; GTK works either way.
 async function writeIconThemeIndex(iconRoot: string, sizeDirs: string[]): Promise<void> {
   const indexPath = join(iconRoot, "index.theme");
   if (sizeDirs.length === 0 || (await exists(indexPath))) return;
@@ -130,13 +114,7 @@ async function copyIcons(appDir: string, iconTargetRoot: string): Promise<number
   return copied;
 }
 
-/**
- * Tell the desktop that entries and icons changed - a stale icon cache hides
- * what we just wrote.
- *
- * Intentionally not awaited: these only affect menus, read long after startup,
- * and both tools are often absent.
- */
+// Deliberately not awaited: menus are read long after startup and both tools are often absent.
 function refreshDesktopCaches(applicationsDir: string, iconRoot: string): void {
   void Promise.allSettled([
     run("update-desktop-database", [applicationsDir], { timeout: 5_000 }),
@@ -146,13 +124,8 @@ function refreshDesktopCaches(applicationsDir: string, iconRoot: string): void {
   ]);
 }
 
-/**
- * Drop the entry this module wrote once a packaged install owns the launcher.
- *
- * Both share a basename and the user-level one wins, so a leftover AppImage
- * entry keeps shadowing the installed app. Only ours, only when a system entry
- * exists to take over; running the AppImage again recreates it.
- */
+// Both entries share a basename and the user-level one wins, so a leftover AppImage entry
+// keeps shadowing an installed package.
 async function removeSupersededEntry(): Promise<void> {
   try {
     const dataHome = process.env.XDG_DATA_HOME || join(homedir(), ".local", "share");
@@ -165,7 +138,6 @@ async function removeSupersededEntry(): Promise<void> {
     await rm(userEntry, { force: true });
     const iconRoot = join(dataHome, "icons", "hicolor");
     for (const sizeDir of await readdir(iconRoot).catch(() => [])) {
-      // hicolor also holds plain files such as icon-theme.cache; skip those.
       await rm(join(iconRoot, sizeDir, "apps", "ultra-tracker.png"), { force: true }).catch(
         () => undefined
       );
@@ -180,17 +152,12 @@ async function removeSupersededEntry(): Promise<void> {
       false
     );
   } catch {
-    // Cosmetic cleanup; never let it affect startup.
+    // Cosmetic; never let it affect startup.
   }
 }
 
-/**
- * Install the AppImage's desktop entry and icons into the user's XDG
- * directories so the running window resolves to its icon.
- *
- * Safe to call unconditionally: a no-op unless running as an AppImage on Linux,
- * and it never throws. Re-runs each launch so the entry follows a moved image.
- */
+// Safe to call unconditionally: a no-op unless running as an AppImage on Linux, and it never
+// throws. Re-runs each launch so the entry follows a moved image.
 export async function integrateAppImageDesktopEntry(): Promise<void> {
   if (process.platform !== "linux") return;
 
@@ -222,7 +189,6 @@ export async function integrateAppImageDesktopEntry(): Promise<void> {
     const entry = rewriteDesktopEntry(await readFile(sourceDesktopEntry, "utf8"), appImagePath);
     const targetDesktopEntry = join(applicationsDir, DESKTOP_FILE_NAME);
 
-    // Skip identical writes; touching mtime triggers a desktop rescan.
     const current = await readFile(targetDesktopEntry, "utf8").catch(() => null);
     if (current === entry) return;
 
@@ -238,7 +204,6 @@ export async function integrateAppImageDesktopEntry(): Promise<void> {
       false
     );
   } catch (error) {
-    // Desktop integration is cosmetic; never let it stop the app starting.
     uberLog(
       LogLevel.warn,
       "startup",

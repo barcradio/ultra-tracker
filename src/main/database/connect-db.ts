@@ -10,8 +10,7 @@ let db: Database.Database | null = null;
 let backupInterval: NodeJS.Timeout | null = null;
 const defaultOpenSplitTime = { production: { name: "", id: 0 }, staging: { name: "", id: 0 } };
 
-// The app wires these at startup. Handlers rather than a direct import because the database
-// layer cannot depend on anything that reads from it without creating an import cycle.
+// Handlers rather than direct imports: the database layer cannot import its own consumers.
 let eventOpened: (() => void) | null = null;
 let eventClosed: (() => void) | null = null;
 

@@ -37,6 +37,8 @@ interface Props<T extends object> {
   className?: string;
   type: "header" | "footer";
   hasRowStatus?: boolean;
+  showTrailingUtilityColumn: boolean;
+  showResetButton: boolean;
 }
 
 export function Headers<T extends object>(props: Props<T>) {
@@ -46,7 +48,10 @@ export function Headers<T extends object>(props: Props<T>) {
     <Section type={props.type}>
       <Row>
         {props.hasRowStatus && (
-          <th aria-label="OpenSplitTime upload status" className="w-4 text-center">
+          <th
+            aria-label="OpenSplitTime upload status"
+            className="w-4 text-center bg-component-strong"
+          >
             ↑
           </th>
         )}
@@ -77,15 +82,17 @@ export function Headers<T extends object>(props: Props<T>) {
             </HeaderContainer>
           </th>
         ))}
-        <th className="relative text-right bg-component-strong" style={{ width: "3%" }}>
-          {props.type === "header" && (
-            <ResetButton
-              removeFilter={props.removeFilter}
-              filterState={props.filterState}
-              onClearFilters={props.onClearFilters}
-            />
-          )}
-        </th>
+        {(props.showTrailingUtilityColumn || props.actionButtons) && (
+          <th className="relative text-right bg-component-strong" style={{ width: "3%" }}>
+            {props.type === "header" && props.showResetButton && (
+              <ResetButton
+                removeFilter={props.removeFilter}
+                filterState={props.filterState}
+                onClearFilters={props.onClearFilters}
+              />
+            )}
+          </th>
+        )}
       </Row>
     </Section>
   );

@@ -28,7 +28,10 @@ import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
-import { pushTimeRecordUpdate } from "../services/opensplittime";
+import {
+  getOpenSplitTimePushKindsForEntryMode,
+  pushTimeRecordUpdate
+} from "../services/opensplittime";
 
 const invalidResult = -999;
 const PENDING_DROPS_IMPORT_TTL_MS = 30 * 60 * 1000;
@@ -447,13 +450,25 @@ export function SetDrop(
   let stationIdentifier: string | null = appStore.get("station.identifier") as string;
   let reason: DropReason | null = dropReason;
   const dropDateTime = !timeOut ? new Date().toISOString() : timeOut.toISOString();
-  const timingRecord = db.prepare(`SELECT * FROM TimeRecords WHERE bibId = ?`).get(bibId) as
-    RunnerDB | undefined;
-  const previousDrop = db.prepare(`SELECT dropped FROM Status WHERE bibId = ?`).get(bibId) as
-    | {
-        dropped: number;
-      }
-    | undefined;
+
+  let timingRecord: RunnerDB | undefined;
+  let previousDrop: { dropped: number } | undefined;
+
+  try {
+    timingRecord = db.prepare(`SELECT * FROM TimeRecords WHERE bibId = ?`).get(bibId) as
+      RunnerDB | undefined;
+    previousDrop = db.prepare(`SELECT dropped FROM Status WHERE bibId = ?`).get(bibId) as
+      | {
+          dropped: number;
+        }
+      | undefined;
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return [DatabaseStatus.Error, e.message];
+    }
+    return [DatabaseStatus.Error, "Unknown database error while checking drop status"];
+  }
 
   if (!droppedValue) {
     stationIdentifier = null;
@@ -500,7 +515,9 @@ export function SetDrop(
     clearPushStatus(bibId);
     emitRunnersTableChanged();
 
-    void pushTimeRecordUpdate(timingRecord, droppedValue)
+    void pushTimeRecordUpdate(timingRecord, droppedValue, {
+      kinds: getOpenSplitTimePushKindsForEntryMode()
+    })
       .then((outcome) => {
         if (outcome.pushed) {
           db.prepare(`UPDATE TimeRecords SET sent = ? WHERE "bibId" = ?`).run(
@@ -632,7 +649,7 @@ function getImportedStatus(record: DropRecord): DropsImportStatusValue {
   return {
     dropReason: record.dropReason,
     dropStation: record.stationId,
-    dropDateTime: parseCSVDate(record.dropDateTime).toISOString()
+    dropDateTime: truncateToSeconds(parseCSVDate(record.dropDateTime).toISOString())
   };
 }
 
@@ -640,8 +657,17 @@ function getExistingStatus(status: StatusDB): DropsImportStatusValue {
   return {
     dropReason: status.dropReason ?? null,
     dropStation: status.dropStation ?? null,
-    dropDateTime: status.dropDateTime == null ? null : String(status.dropDateTime)
+    dropDateTime:
+      status.dropDateTime == null ? null : truncateToSeconds(String(status.dropDateTime))
   };
+}
+
+// Drops files don't record milliseconds, so comparisons must ignore them to avoid false conflicts.
+function truncateToSeconds(iso: string): string {
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return iso;
+  date.setMilliseconds(0);
+  return date.toISOString();
 }
 
 function isExistingDropConflict(

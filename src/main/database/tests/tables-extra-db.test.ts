@@ -80,12 +80,7 @@ describe("tables-db", () => {
       expect(db.pragma("user_version", { simple: true })).toBe(4);
     });
 
-    // KNOWN DEFECT - intended behaviour asserted below, currently failing.
-    // ClearTables drops every event table except RFIDInbox and RFIDPendingWrites, so tag reads
-    // queued against the cleared event survive and can be replayed into the next one.
-    // Marked `.fails` so CI stays green; it will start failing once the defect is fixed,
-    // at which point the marker should be removed.
-    it.fails("leaves no queued RFID reads behind from the cleared event", () => {
+    it("leaves no queued RFID reads behind from the cleared event", () => {
       db.close();
       db = createTestDatabase();
 

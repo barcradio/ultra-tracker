@@ -189,8 +189,6 @@ export async function setStation(stationIdentifier: string) {
 export async function SetStationIdentity(params: SetStationIdentityParams) {
   await setStation(params.identifier);
 
-  // An event database holds one station's records. Changing station leaves the records already
-  // logged pointing at the old one, so they move across with the operator once agreed.
   if (params.moveTimingRecords) {
     const [moved] = moveTimingRecordsToStation(appStore.get("station.id") as number);
     if (moved) console.log(`Moved ${moved} timing records to ${params.identifier}`);
@@ -259,7 +257,7 @@ export function GetStationByIdentifier(identifier: string): DatabaseResponse<Sta
     name: queryResult.name,
     identifier: queryResult.identifier,
     description: queryResult.description,
-    location: { latitude: loc.latitude, longitude: loc.latitude, elevation: loc.elevation },
+    location: { latitude: loc.latitude, longitude: loc.longitude, elevation: loc.elevation },
     distance: queryResult.distance,
     dropbags: queryResult.dropbags,
     crewaccess: queryResult.crewaccess,

@@ -21,6 +21,7 @@ const ost = vi.hoisted(() => ({
   getCachedConnectionStatus: vi.fn(() => ({ online: true })),
   getEventGroup: vi.fn(async () => ({ id: 7 })),
   getOpenSplitTimeEnvironment: vi.fn(() => "production"),
+  getOpenSplitTimePushKindsForEntryMode: vi.fn(() => ["in"]),
   getSavedCredentials: vi.fn(() => ({ email: "ada@example.com" })),
   isOpenSplitTimeEventGroupConfigured: vi.fn(() => true),
   isOpenSplitTimePushPaused: vi.fn(() => false),
@@ -228,7 +229,10 @@ describe("opensplittime-ipc", () => {
     it("force-pushes the record for the requested bib", async () => {
       await handlerFor("opensplittime-push-record")(undefined, { bibId: 101 });
 
-      expect(ost.pushTimeRecordUpdate).toHaveBeenCalledWith({ bibId: 101 }, false, { force: true });
+      expect(ost.pushTimeRecordUpdate).toHaveBeenCalledWith({ bibId: 101 }, false, {
+        force: true,
+        kinds: ["in"]
+      });
     });
 
     it("rejects a non-numeric bib", async () => {

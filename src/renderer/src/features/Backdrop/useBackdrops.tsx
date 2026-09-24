@@ -16,7 +16,12 @@ export function useBackdrops() {
   );
 
   const removeBackdrop = useCallback((backdropId: string | number) => {
-    setBackdrops((prev) => prev.filter((backdrop) => backdrop.id !== backdropId.toString()));
+    const id = backdropId.toString();
+    setBackdrops((prev) =>
+      prev.some((backdrop) => backdrop.id === id)
+        ? prev.filter((backdrop) => backdrop.id !== id)
+        : prev
+    );
   }, []);
 
   const handleBackdropClick: MouseEventHandler<HTMLButtonElement> = useCallback(

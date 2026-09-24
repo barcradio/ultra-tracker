@@ -3,6 +3,7 @@ import { initializeIpcHandlers } from "../init-ipc";
 
 const inits = vi.hoisted(() => ({
   initAthleteHandlers: vi.fn(),
+  initAppUpdaterHandlers: vi.fn(),
   initdbSettingsHandlers: vi.fn(),
   initEventDatabaseHandlers: vi.fn(),
   initEventLogsHandlers: vi.fn(),
@@ -19,6 +20,7 @@ const inits = vi.hoisted(() => ({
 }));
 
 vi.mock("../athletes-ipc", () => ({ initAthleteHandlers: inits.initAthleteHandlers }));
+vi.mock("../app-updater-ipc", () => ({ initAppUpdaterHandlers: inits.initAppUpdaterHandlers }));
 vi.mock("../dbsettings-ipc", () => ({ initdbSettingsHandlers: inits.initdbSettingsHandlers }));
 vi.mock("../event-databases-ipc", () => ({
   initEventDatabaseHandlers: inits.initEventDatabaseHandlers

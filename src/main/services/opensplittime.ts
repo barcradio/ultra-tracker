@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { config } from "dotenv";
 import { safeStorage } from "electron";
 import { RunnerDB } from "$shared/models";
-import { getDatabaseConnection } from "../database/connect-db";
+import { getDatabaseConnection, isDatabaseConnected } from "../database/connect-db";
 import * as opensplittimeStatusDb from "../database/opensplittimeStatus-db";
 import { emitConnectionStatus } from "../ipc/connectivity-emitter";
 import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
@@ -71,7 +71,7 @@ interface OpenSplitTimeAuthResponse {
   expiration?: string;
 }
 
-type OpenSplitTimeSubSplitKind = "in" | "out";
+export type OpenSplitTimeSubSplitKind = "in" | "out";
 
 interface OpenSplitTimeEventMetadata {
   name: string;
@@ -125,6 +125,7 @@ function computeDefaultEnvironment(): OpenSplitTimeEnvironment {
 
 let currentEnvironment: OpenSplitTimeEnvironment = computeDefaultEnvironment();
 let apiToken: string | null = null;
+let tokenEnvironment: OpenSplitTimeEnvironment | null = null;
 // Tracks the active token's expiration so the UI can restore its signed-in state after remounting.
 let tokenExpiration: string | null = null;
 // Paused until a real sign-in sets tokenExpiration.
@@ -135,7 +136,35 @@ export interface OpenSplitTimeAuthStatus {
   expiration: string | null;
 }
 
+function getConfiguredEnvironment(): OpenSplitTimeEnvironment | null {
+  const eventMetadata = appStore.get("event.openSplitTime") as
+    OpenSplitTimeEventMetadataStore | undefined;
+
+  if (eventMetadata?.[currentEnvironment]?.name) return currentEnvironment;
+  if (eventMetadata?.staging?.name) return "staging";
+  if (eventMetadata?.production?.name) return "production";
+
+  return null;
+}
+
+function savedCredentialKeys(): { email: string; encryptedPassword: string } | null {
+  const environment = getConfiguredEnvironment();
+  if (!environment) return null;
+
+  return {
+    email: `openSplitTime.${environment}.email`,
+    encryptedPassword: `openSplitTime.${environment}.encryptedPassword`
+  };
+}
+
 export function getAuthStatus(): OpenSplitTimeAuthStatus {
+  if (
+    apiToken !== null &&
+    (tokenEnvironment === null || tokenEnvironment !== getConfiguredEnvironment())
+  ) {
+    clearAuthentication();
+  }
+
   return {
     authenticated: apiToken !== null && tokenExpiration !== null,
     expiration: tokenExpiration
@@ -143,7 +172,7 @@ export function getAuthStatus(): OpenSplitTimeAuthStatus {
 }
 
 export function getOpenSplitTimeEnvironment(): OpenSplitTimeEnvironment {
-  return currentEnvironment;
+  return getConfiguredEnvironment() ?? currentEnvironment;
 }
 
 export function isOpenSplitTimePushPaused(): boolean {
@@ -153,12 +182,7 @@ export function isOpenSplitTimePushPaused(): boolean {
 // The stations file must supply an OST event group for the active environment before pushes
 // may run; otherwise every push would fail against a nonexistent or wrong event group.
 export function isOpenSplitTimeEventGroupConfigured(): boolean {
-  const eventMetadata = appStore.get("event.openSplitTime") as
-    OpenSplitTimeEventMetadataStore | undefined;
-  const configuredEvent =
-    currentEnvironment === "production" ? eventMetadata?.production : eventMetadata?.staging;
-
-  return Boolean(configuredEvent?.name);
+  return getConfiguredEnvironment() !== null;
 }
 
 export function setOpenSplitTimePushPaused(paused: boolean): void {
@@ -210,6 +234,7 @@ export function setOpenSplitTimeEnvironment(environment: OpenSplitTimeEnvironmen
 
   currentEnvironment = environment;
   apiToken = null;
+  tokenEnvironment = null;
   tokenExpiration = null;
   pushPaused = true;
 }
@@ -259,6 +284,7 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
       // the app believing it's still authenticated until the next manual auth check.
       if (response.status === 401) {
         apiToken = null;
+        tokenEnvironment = null;
         tokenExpiration = null;
         pushPaused = true;
       }
@@ -350,7 +376,17 @@ export async function authenticate(
   password: string,
   saveCredentials = false
 ): Promise<OpenSplitTimeAuthResult> {
+  if (!isDatabaseConnected()) {
+    throw new OpenSplitTimeApiError("Load an event before signing in to OpenSplitTime", 400);
+  }
+  const environment = getConfiguredEnvironment();
+  if (!environment) {
+    throw new OpenSplitTimeApiError("OpenSplitTime is not configured for this event", 400);
+  }
+
+  currentEnvironment = environment;
   apiToken = null;
+  tokenEnvironment = null;
 
   const response = await request<OpenSplitTimeAuthResponse>("/auth", {
     method: "POST",
@@ -371,16 +407,19 @@ export async function authenticate(
   }
 
   apiToken = response.token;
+  tokenEnvironment = environment;
   tokenExpiration = response.expiration;
-  // Sign-in is always allowed, but pushes stay paused until an event group is configured.
   pushPaused = !isOpenSplitTimeEventGroupConfigured();
 
+  const credentialKeys = savedCredentialKeys();
   if (saveCredentials && safeStorage.isEncryptionAvailable()) {
-    appStore.set("openSplitTime.email", email);
-    appStore.set(
-      "openSplitTime.encryptedPassword",
-      safeStorage.encryptString(password).toString("base64")
-    );
+    if (credentialKeys) {
+      appStore.set(credentialKeys.email, email);
+      appStore.set(
+        credentialKeys.encryptedPassword,
+        safeStorage.encryptString(password).toString("base64")
+      );
+    }
   } else if (!saveCredentials) {
     clearSavedCredentials();
   }
@@ -437,7 +476,7 @@ function persistOpenSplitTimeEventMetadata(eventMetadata: OpenSplitTimeEventMeta
   const serializedMetadata = JSON.stringify(eventMetadata);
   const updateResult = db
     .prepare(
-    `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
+      `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
     )
     .run(serializedMetadata);
 
@@ -518,8 +557,12 @@ export async function syncSplitEntryKinds(): Promise<void> {
 }
 
 export function getSavedCredentials(): OpenSplitTimeSavedCredentials {
-  const email = appStore.get("openSplitTime.email") as string;
-  const encryptedPassword = appStore.get("openSplitTime.encryptedPassword") as string;
+  const credentialKeys = savedCredentialKeys();
+  if (!credentialKeys) return { email: "", available: false };
+
+  const email = (appStore.get(credentialKeys.email) as string | undefined) ?? "";
+  const encryptedPassword =
+    (appStore.get(credentialKeys.encryptedPassword) as string | undefined) ?? "";
 
   return { email, available: email !== "" && encryptedPassword !== "" };
 }
@@ -534,18 +577,27 @@ export async function authenticateSaved(): Promise<OpenSplitTimeAuthResult> {
     throw new OpenSplitTimeApiError("Saved OpenSplitTime credentials are unavailable", 401);
   }
 
-  const encryptedPassword = appStore.get("openSplitTime.encryptedPassword") as string;
+  const credentialKeys = savedCredentialKeys();
+  if (!credentialKeys) {
+    throw new OpenSplitTimeApiError("OpenSplitTime is not configured for this event", 400);
+  }
+
+  const encryptedPassword = appStore.get(credentialKeys.encryptedPassword) as string;
   const password = safeStorage.decryptString(Buffer.from(encryptedPassword, "base64"));
   return authenticate(savedCredentials.email, password, true);
 }
 
 export function clearSavedCredentials(): void {
-  appStore.set("openSplitTime.email", "");
-  appStore.set("openSplitTime.encryptedPassword", "");
+  const credentialKeys = savedCredentialKeys();
+  if (!credentialKeys) return;
+
+  appStore.set(credentialKeys.email, "");
+  appStore.set(credentialKeys.encryptedPassword, "");
 }
 
 export function clearAuthentication(): void {
   apiToken = null;
+  tokenEnvironment = null;
   tokenExpiration = null;
   pushPaused = true;
 }
@@ -580,6 +632,14 @@ export interface OpenSplitTimePushOutcome {
   error?: string;
 }
 
+export function getOpenSplitTimePushKindsForEntryMode(): OpenSplitTimeSubSplitKind[] {
+  const entryMode = Number(appStore.get("station.entrymode") ?? 0);
+  if (entryMode === 2) return ["in"];
+  if (entryMode === 3) return ["out"];
+
+  return ["in", "out"];
+}
+
 interface OpenSplitTimePushConfig {
   eventGroupIdOrSlug: string;
   stationIdentifier: string;
@@ -598,11 +658,7 @@ function resolveAllowedKindsForSplit(splitName: string): OpenSplitTimeSubSplitKi
     return [...new Set(liveKinds)];
   }
 
-  const entryMode = Number(appStore.get("station.entrymode") ?? 0);
-  if (entryMode === 2) return ["in"];
-  if (entryMode === 3) return ["out"];
-
-  return ["in", "out"];
+  return getOpenSplitTimePushKindsForEntryMode();
 }
 
 function resolvePushConfig(): OpenSplitTimePushConfig {
@@ -635,15 +691,18 @@ function resolvePushConfig(): OpenSplitTimePushConfig {
 function buildRawTimeRecords(
   record: RunnerDB,
   config: OpenSplitTimePushConfig,
-  stoppedHere?: boolean
+  stoppedHere?: boolean,
+  kinds?: OpenSplitTimeSubSplitKind[]
 ): OpenSplitTimeRawTime[] {
   const records: OpenSplitTimeRawTime[] = [];
   const stoppedHereValue =
     stoppedHere == null ? undefined : (String(stoppedHere) as "true" | "false");
   const allowedKinds = new Set(config.allowedKinds);
+  const requestedKinds = kinds == null ? null : new Set(kinds);
 
   const addRecord = (time: Date | null, kind: OpenSplitTimeSubSplitKind) => {
-    if (!time || !allowedKinds.has(kind)) return;
+    if (!time || !allowedKinds.has(kind) || (requestedKinds != null && !requestedKinds.has(kind)))
+      return;
 
     records.push({
       source: config.stationIdentifier,
@@ -699,14 +758,14 @@ function recordPushFailure(
 export async function pushTimeRecordUpdate(
   record: RunnerDB,
   stoppedHere?: boolean,
-  options: { force?: boolean } = {}
+  options: { force?: boolean; kinds?: OpenSplitTimeSubSplitKind[] } = {}
 ): Promise<OpenSplitTimePushOutcome> {
   if (pushPaused && !options.force) {
     return { pushed: false };
   }
 
   const config = resolvePushConfig();
-  const records = buildRawTimeRecords(record, config, stoppedHere);
+  const records = buildRawTimeRecords(record, config, stoppedHere, options.kinds);
 
   if (records.length === 0) return { pushed: false };
 
