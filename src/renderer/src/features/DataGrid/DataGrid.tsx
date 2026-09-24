@@ -78,7 +78,6 @@ export function DataGrid<T extends object>(props: Props<T>) {
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40,
     overscan: props.overscan ?? 0,
-    useFlushSync: false,
     useAnimationFrameWithResizeObserver: true
   });
 
