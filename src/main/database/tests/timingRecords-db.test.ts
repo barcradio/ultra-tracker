@@ -282,6 +282,23 @@ describe("timingRecords-db", () => {
   });
 
   describe("insertOrUpdateTimeRecord - edits", () => {
+    it("scrubs renderer string dates before updating", () => {
+      insertOrUpdateTimeRecord(runner());
+      const existing = storedRows()[0];
+
+      const stringDates = runner({
+        index: existing.index,
+        timeIn: "2026-09-01T08:15:00.000Z",
+        timeOut: "2026-09-01T09:15:00.000Z",
+        timeModified: "2026-09-01T09:15:00.000Z"
+      } as never);
+
+      expect(() => insertOrUpdateTimeRecord(stringDates)).not.toThrow();
+      expect(storedRows()[0].timeIn).toBeNull();
+      expect(storedRows()[0].timeOut).toBeNull();
+      expect(storedRows()[0].timeModified).toBeNull();
+    });
+
     it("replaces the time on an existing record without merging", () => {
       insertOrUpdateTimeRecord(runner());
       const existing = storedRows()[0];
@@ -293,6 +310,41 @@ describe("timingRecords-db", () => {
 
       expect(status).toBe(DatabaseStatus.Updated);
       expect(storedRows()[0].timeIn).toBe(corrected.toISOString());
+    });
+
+    it("updates the index-matched record as a duplicate when bib and index match different records", () => {
+      insertOrUpdateTimeRecord(runner({ bibId: 101 }));
+      insertOrUpdateTimeRecord(runner({ bibId: 202, timeIn: new Date("2026-09-01T08:30:00Z") }));
+      const rows = storedRows();
+      const bibMatched = rows.find((row) => row.bibId === 101)!;
+      const indexMatched = rows.find((row) => row.bibId === 202)!;
+
+      const [status] = insertOrUpdateTimeRecord(
+        runner({
+          index: indexMatched.index,
+          bibId: bibMatched.bibId,
+          timeIn: new Date("2026-09-01T08:45:00Z")
+        })
+      );
+
+      expect(status).toBe(DatabaseStatus.Duplicate);
+      expect(storedRows()).toHaveLength(2);
+      expect(storedRows().map((row) => row.bibId)).toEqual(
+        expect.arrayContaining([bibMatched.bibId, bibMatched.bibId + 0.2])
+      );
+    });
+
+    it("does nothing when bib and index identify an unchanged record", () => {
+      insertOrUpdateTimeRecord(runner());
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      const [status, message] = insertOrUpdateTimeRecord(existing);
+
+      expect(status).toBe(DatabaseStatus.Error);
+      expect(message).toBe("");
+      expect(pushTimeRecordUpdate).not.toHaveBeenCalled();
+      expect(storedRows()).toEqual([existing]);
     });
 
     it("moves a record onto a corrected bib number", () => {

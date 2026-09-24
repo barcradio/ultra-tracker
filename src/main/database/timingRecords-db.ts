@@ -450,9 +450,9 @@ function processDuplicate(record: TypedRunnerDB): TypedRunnerDB {
 
 function scrubStringsFromRenderer(record: TypedRunnerDB) {
   // scrub any string values coming from the UI
-  if (record.timeIn instanceof String) record.timeIn = null;
-  if (record.timeOut instanceof String) record.timeOut = null;
-  if (record.timeModified instanceof String) record.timeModified = null;
+  if (typeof record.timeIn === "string") record.timeIn = null;
+  if (typeof record.timeOut === "string") record.timeOut = null;
+  if (typeof record.timeModified === "string") record.timeModified = null;
 }
 
 function preserveOrMergeTimes(
