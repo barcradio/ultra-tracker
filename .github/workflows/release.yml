@@ -75,21 +75,21 @@ jobs:
         shell: bash
         run: |
           pnpm exec electron-vite build
-          pnpm exec electron-builder --linux --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
+          pnpm exec electron-builder --linux --publish never
 
       - name: Build Mac
         if: matrix.os == 'macos-latest'
         shell: bash
         run: |
           pnpm exec electron-vite build
-          pnpm exec electron-builder --mac --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
+          pnpm exec electron-builder --mac --publish never
 
       - name: Build Windows
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
           pnpm exec electron-vite build
-          pnpm exec electron-builder --win --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
+          pnpm exec electron-builder --win --publish never
 
       - name: Verify update channel metadata
         shell: bash
