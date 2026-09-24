@@ -91,7 +91,7 @@ export function SettingsPage() {
 
   return (
     <div className="w-full h-full overflow-y-auto bg-component p-6">
-      <Stack justify="center" align="start" className="gap-6 flex-wrap xl:flex-nowrap min-w-full">
+      <Stack justify="center" align="start" className="gap-6 flex-wrap min-w-full">
         {/* Event Settings & User Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <VerticalButtonGroup label="Drops File Import">

@@ -231,5 +231,5 @@ powerMonitor.on("resume", () => {
 
 // Shortcuts Watcher
 app.on("browser-window-created", (_, window) => {
-  optimizer.watchWindowShortcuts(window);
+  optimizer.watchWindowShortcuts(window, { zoom: true });
 });
