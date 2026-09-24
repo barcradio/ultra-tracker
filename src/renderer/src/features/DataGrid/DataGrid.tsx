@@ -7,6 +7,7 @@ import { FilterState, useFilterState } from "./hooks/useFilterState";
 import { InitialSortState, useSortState } from "./hooks/useSortState";
 import { TableContent } from "./TableContent";
 import { ColumnDef, FilterSortRule, RowStatus } from "./types";
+import { shouldShowResetButton, shouldShowTrailingUtilityColumn } from "./utilityColumn";
 
 interface GridClassNames {
   root: string;
@@ -31,6 +32,7 @@ interface Props<T extends object> {
   showFooter?: boolean;
   rowStatus?: (row: T) => RowStatus;
   rowClassName?: (row: T) => string | undefined;
+  showTrailingUtilityColumn?: boolean;
 }
 
 const Table = classed.table("overflow-auto w-full font-display text-on-component");
@@ -41,6 +43,8 @@ export function DataGrid<T extends object>(props: Props<T>) {
   const height = measuredHeight || 320;
 
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
+  const showUtilityColumn = shouldShowTrailingUtilityColumn(props.showTrailingUtilityColumn);
+  const showResetButton = shouldShowResetButton(props.columns, props.showTrailingUtilityColumn);
 
   const [compareFn, setSortField, sortState, setSortState] = useSortState<T>({
     initial: props.initialSort,
@@ -109,6 +113,8 @@ export function DataGrid<T extends object>(props: Props<T>) {
         className={props.classNames?.header}
         onClearFilters={props.onClearFilters}
         hasRowStatus={Boolean(props.rowStatus)}
+        showTrailingUtilityColumn={showUtilityColumn}
+        showResetButton={showResetButton}
       />
     );
   };
@@ -135,6 +141,7 @@ export function DataGrid<T extends object>(props: Props<T>) {
             rowStatus={props.rowStatus}
             rowClassName={props.rowClassName}
             getKey={props.getKey}
+            showTrailingUtilityColumn={showUtilityColumn}
           />
           {props.showFooter && getSection("footer")}
         </Table>
