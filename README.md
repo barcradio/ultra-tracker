@@ -364,20 +364,7 @@ Ultra-Tracker runs a SQLite database on the local machine. All transactions are 
 
 ## Development
 
-Ultra-Tracker requires Node 22 or newer. Running `pnpm install` downloads and uses a matching version of Node automatically, so no manual version switching is needed.
-
-- **`pnpm dev`**
-  Runs the application in development mode.
-- **`pnpm test`**
-  Runs the test suite once and reports the result.
-- **`pnpm test:watch`**
-  Runs the test suite and re-runs it as files change.
-- **`pnpm test:coverage`**
-  Runs the test suite and produces a coverage report.
-- **`pnpm lint`** and **`pnpm typecheck`**
-  Check formatting, lint rules, and TypeScript types.
-
-Tests are written with Vitest and live in a `tests/` folder beside the code they cover, such as `src/main/database/tests/`. Every pull request runs the test suite, lint, and typecheck.
+Development setup, local workflow, cleanup, and validation guidance is maintained in the project wiki: [Development Guidance](https://github.com/barcradio/ultra-tracker/wiki/Development-Guidance).
 
 ## About Ultra-Tracker
 
