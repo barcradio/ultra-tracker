@@ -257,7 +257,7 @@ export function GetStationByIdentifier(identifier: string): DatabaseResponse<Sta
     name: queryResult.name,
     identifier: queryResult.identifier,
     description: queryResult.description,
-    location: { latitude: loc.latitude, longitude: loc.latitude, elevation: loc.elevation },
+    location: { latitude: loc.latitude, longitude: loc.longitude, elevation: loc.elevation },
     distance: queryResult.distance,
     dropbags: queryResult.dropbags,
     crewaccess: queryResult.crewaccess,
