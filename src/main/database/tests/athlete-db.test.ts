@@ -182,9 +182,7 @@ describe("athlete-db", () => {
       expect(GetTotalAthletes()).toBe(1);
     });
 
-    // KNOWN DEFECT - the intended behaviour is asserted below and currently fails.
-    // Marked `.fails`; drop the marker once the defect is fixed.
-    it.fails("reports a parse failure instead of throwing", async () => {
+    it("reports a parse failure instead of throwing", async () => {
       const csv = Readable.from(["header", 'one,"unterminated'].join("\n"));
 
       const message = await parseAthletesContent(csv, "athletes.csv");
