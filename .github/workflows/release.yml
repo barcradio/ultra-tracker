@@ -70,15 +70,15 @@ jobs:
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
-        run: pnpm build:linux -- --config.publish.channel=${{ steps.release.outputs.channel }}
+        run: pnpm build:linux -- --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
 
       - name: Build Mac
         if: matrix.os == 'macos-latest'
-        run: pnpm build:mac -- --config.publish.channel=${{ steps.release.outputs.channel }}
+        run: pnpm build:mac -- --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
 
       - name: Build Windows
         if: matrix.os == 'windows-latest'
-        run: pnpm build:win -- --config.publish.channel=${{ steps.release.outputs.channel }}
+        run: pnpm build:win -- --publish never --config.publish.channel=${{ steps.release.outputs.channel }}
 
       - name: Verify update channel metadata
         shell: bash
