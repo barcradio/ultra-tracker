@@ -235,21 +235,24 @@ describe("app updater", () => {
     ["restarts and installs immediately", 0, true, true],
     ["installs after exit", 1, false, true],
     ["defers installation", 2, false, false]
-  ])("handles a downloaded update when the operator %s", async (_action, response, restarts, installsOnQuit) => {
-    dialog.showMessageBox.mockResolvedValueOnce({ response });
-    const { initializeAppUpdater } = await loadService();
-    initializeAppUpdater();
+  ])(
+    "handles a downloaded update when the operator %s",
+    async (_action, response, restarts, installsOnQuit) => {
+      dialog.showMessageBox.mockResolvedValueOnce({ response });
+      const { initializeAppUpdater } = await loadService();
+      initializeAppUpdater();
 
-    await autoUpdater.handlers.get("update-downloaded")?.({ version: "1.2.4" });
+      await autoUpdater.handlers.get("update-downloaded")?.({ version: "1.2.4" });
 
-    expect(autoUpdater.quitAndInstall).toHaveBeenCalledTimes(restarts ? 1 : 0);
-    expect(autoUpdater.autoInstallOnAppQuit).toBe(installsOnQuit);
-    expect(dialog.showMessageBox).toHaveBeenCalledWith(
-      undefined,
-      expect.objectContaining({
-        buttons: ["Restart and update", "Install after exit", "Install later"],
-        cancelId: 2
-      })
-    );
-  });
+      expect(autoUpdater.quitAndInstall).toHaveBeenCalledTimes(restarts ? 1 : 0);
+      expect(autoUpdater.autoInstallOnAppQuit).toBe(installsOnQuit);
+      expect(dialog.showMessageBox).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({
+          buttons: ["Restart and update", "Install after exit", "Install later"],
+          cancelId: 2
+        })
+      );
+    }
+  );
 });
