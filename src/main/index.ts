@@ -21,6 +21,7 @@ import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
 import { closeStatEngine, initStatEngine } from "./lib/stat-engine";
 import { appStore } from "./lib/store";
+import { checkForAppUpdates, initializeAppUpdater } from "./services/app-updater";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -36,6 +37,11 @@ function setApplicationMenu(): void {
       {
         label: "View",
         submenu: [
+          {
+            label: "Check for Updates...",
+            click: () => void checkForAppUpdates(true)
+          },
+          { type: "separator" },
           { role: "reload" },
           { role: "forceReload" },
           { role: "toggleDevTools" },
@@ -162,6 +168,7 @@ async function initializeApp(): Promise<void> {
   }
 
   openDevToolsOnDomReady(mainWindow);
+  initializeAppUpdater();
 
   // Prevent navigation in the main window
   const handleRedirect = (event: Event, url: string) => {

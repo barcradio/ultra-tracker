@@ -41,6 +41,13 @@ MacOS releases are packaged as a universal DMG. Download the latest `ultra-track
 
 If macOS warns that the app is from an unidentified developer, right-click the application in Applications and choose **Open** once to confirm it, then launch normally. The app is a universal build for Apple Silicon and Intel Macs.
 
+### Updating
+
+Ultra-Tracker checks GitHub for a newer release each time it starts, and again when you click **Check for Updates** (Settings page or the **View** menu). No internet means no check, and nothing is shown.
+
+- **Windows and AppImage:** The update downloads in the background. When it is ready, choose **Restart and update** to install now, **Install after exit** to install when you close the app, or **Install later** to be asked again next launch.
+- **MacOS and `.deb`:** A notice shows the new version. Click **Open release page** to download and install it the same way as above, or **Dismiss** to hide it until the next launch.
+
 ## Getting Started
 
 On first launch, Ultra-Tracker opens **Getting Started** to guide the user through starting an event for timing data collection.
@@ -297,7 +304,7 @@ While signed in, OpenSplitTime status takes precedence over CSV export status in
 
 ### User Settings
 
-- **Grid Text Size**
+- **UI Scaling**
   Use the A-/A+ controls to adjust the size of text in data grids, buttons, and text inputs. The
   setting is saved and restored when Ultra-Tracker is restarted. The keyboard shortcuts are
   Ctrl/Cmd + `=` to increase, Ctrl/Cmd + `-` to decrease, and Ctrl/Cmd + `0` to reset.
@@ -332,6 +339,12 @@ The following is a description of each button's function. Each of these will ope
 
 #### Application Settings
 
+- **Update Channel**
+  **Stable** gets normal releases only. **Beta** also gets beta releases, which may be less stable. The default matches the installed version.
+- **Check for Updates**
+  Checks GitHub for a newer release now. See [Updating](#updating) for what happens on each platform.
+- **Disable Auto Updates / Enable Auto Updates**
+  Turns the check at startup off or on. **Check for Updates** still works while it is off.
 - **Reset App Settings**
   This will reset the local application settings file to defaults. This can be useful for recovering from an unexpected error.
   The application settings file `config.json` is located at:
