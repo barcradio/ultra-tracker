@@ -80,9 +80,7 @@ describe("tables-db", () => {
       expect(db.pragma("user_version", { simple: true })).toBe(4);
     });
 
-    // KNOWN DEFECT - the intended behaviour is asserted below and currently fails.
-    // Marked `.fails`; drop the marker once the defect is fixed.
-    it.fails("leaves no queued RFID reads behind from the cleared event", () => {
+    it("leaves no queued RFID reads behind from the cleared event", () => {
       db.close();
       db = createTestDatabase();
 
