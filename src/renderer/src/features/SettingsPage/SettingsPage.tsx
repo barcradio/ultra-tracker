@@ -146,15 +146,9 @@ export function SettingsPage() {
           </div>
         </Stack>
 
-        {/* Integration Settings */}
+        {/* Integration Settings + App Settings */}
         <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
           <OpenSplitTimeLogin className="w-full" />
-        </Stack>
-
-        {/* RFID Configuration + Developer Tools + App Settings */}
-        <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
-          <RfidConfiguration />
-
           <div className="border-t border-component-strong pt-4">
             <VerticalButtonGroup label="App Settings">
               <Select
@@ -194,6 +188,11 @@ export function SettingsPage() {
               </div>
             </VerticalButtonGroup>
           </div>
+        </Stack>
+
+        {/* RFID Configuration + Developer Tools */}
+        <Stack direction="col" className="w-[22rem] gap-4" align="stretch">
+          <RfidConfiguration />
 
           <div className="border-t border-component-strong pt-4">
             <VerticalButtonGroup label="Developer Tools" className="border-2 border-danger/30">
