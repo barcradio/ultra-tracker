@@ -360,7 +360,7 @@ The settings overview also brings together drops imports, OpenSplitTime configur
 
 ### User Settings
 
-- **Grid Text Size**
+- **UI Scaling**
   Use the A-/A+ controls to adjust the size of text in data grids, buttons, and text inputs. The
   setting is saved and restored when Ultra-Tracker is restarted. The keyboard shortcuts are
   Ctrl/Cmd + `=` to increase, Ctrl/Cmd + `-` to decrease, and Ctrl/Cmd + `0` to reset.
