@@ -72,7 +72,11 @@ export async function parseAthletesContent(source: Readable, sourceLabel: string
       message.push(`${sourceLabel}\r\n${records} athletes imported`);
     });
   // TODO: Commit transaction
-  await finished(parser, { error: false });
+  try {
+    await finished(parser, { error: false });
+  } catch {
+    // parse errors are already reported to the operator and collected in `message`
+  }
 
   return message;
 }

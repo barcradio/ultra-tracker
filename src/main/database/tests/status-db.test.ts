@@ -332,12 +332,7 @@ describe("status-db", () => {
       expect(pushTimeRecordUpdate).not.toHaveBeenCalled();
     });
 
-    // KNOWN DEFECT - intended behaviour asserted below, currently failing.
-    // SetDrop reads the previous drop state before its try/catch, so a database failure escapes
-    // instead of being reported as DatabaseStatus.Error the way the guarded writes are.
-    // Marked `.fails` so CI stays green; it will start failing once the defect is fixed,
-    // at which point the marker should be removed.
-    it.fails("reports Error when the database is unavailable", () => {
+    it("reports Error when the database is unavailable", () => {
       seedStatus(101);
       db.exec(`DROP TABLE Status`);
 
