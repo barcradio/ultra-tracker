@@ -360,7 +360,7 @@ The settings overview also brings together drops imports, OpenSplitTime configur
 
 ### User Settings
 
-- **Grid Text Size**
+- **UI Scaling**
   Use the A-/A+ controls to adjust the size of text in data grids, buttons, and text inputs. The
   setting is saved and restored when Ultra-Tracker is restarted. The keyboard shortcuts are
   Ctrl/Cmd + `=` to increase, Ctrl/Cmd + `-` to decrease, and Ctrl/Cmd + `0` to reset.
@@ -401,6 +401,14 @@ While signed in, OpenSplitTime status takes precedence over CSV export status in
 
 #### Application Settings
 
+- **Update Channel**
+  **Stable** gets normal releases only. **Beta** also gets beta releases, which may be less stable. The default matches the installed version.
+- **Check for Updates**
+  Checks GitHub for a newer release now. Ultra-Tracker also checks each time it starts. No internet means no check, and nothing is shown.
+  - **Windows and AppImage:** The update downloads in the background. When it is ready, choose **Restart and update** to install now, **Install after exit** to install when you close the app, or **Install later** to be asked again next launch.
+  - **MacOS and `.deb`:** A notice shows the new version. Click **Open release page** to download and install it, or **Dismiss** to hide it until the next launch.
+- **Disable Auto Updates / Enable Auto Updates**
+  Turns the check at startup off or on. **Check for Updates** still works while it is off.
 - **Reset App Settings**
   This will reset the local application settings file to defaults. This can be useful for recovering from an unexpected error.
   The application settings file `config.json` is located at:

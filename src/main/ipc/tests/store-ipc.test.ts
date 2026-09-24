@@ -49,6 +49,19 @@ describe("store-ipc", () => {
     expect(appStore.set).toHaveBeenCalledWith("targetLanguage", "spa");
   });
 
+  it("sets a valid app update channel", () => {
+    invoke("set-store-value", { key: "display.updateChannel", value: "beta" });
+
+    expect(appStore.set).toHaveBeenCalledWith("display.updateChannel", "beta");
+  });
+
+  it("rejects an invalid app update channel", () => {
+    expect(() =>
+      invoke("set-store-value", { key: "display.updateChannel", value: "nightly" })
+    ).toThrow("Invalid app update channel");
+    expect(appStore.set).not.toHaveBeenCalled();
+  });
+
   it("has-store-value forwards the key", () => {
     appStore.has.mockReturnValue(true);
 
