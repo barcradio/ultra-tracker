@@ -4,6 +4,7 @@ out
 .DS_Store
 *.log*
 /Database/
+
 opensplittime.env
 rfid.env
 resources/ost-api-responses/
@@ -12,3 +13,10 @@ resources/config/mock-event-archive.zip
 coverage/
 reports/
 .stryker-tmp/
+
+# ignore lockfiles from npm
+yarn.lock
+pnpm-lock.yaml
+
+#DO NOT ignore pnpm's lockfile
+!pnpm-lock.yaml

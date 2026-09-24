@@ -40,6 +40,7 @@
     "dev:watch": "electron-vite dev --watch",
     "build": "pnpm run typecheck && electron-vite build",
     "rebuild": ".\\node_modules\\.bin\\electron-rebuild.cmd",
+    "preinstall": "npx only-allow pnpm",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "pnpm run build && electron-builder --dir",
     "build:win": "pnpm run build && electron-builder --win",
