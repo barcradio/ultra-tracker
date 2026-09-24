@@ -437,7 +437,7 @@ function persistOpenSplitTimeEventMetadata(eventMetadata: OpenSplitTimeEventMeta
   const serializedMetadata = JSON.stringify(eventMetadata);
   const updateResult = db
     .prepare(
-    `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
+      `UPDATE EventMeta SET openSplitTime = ? WHERE "index" = (SELECT "index" FROM EventMeta LIMIT 1)`
     )
     .run(serializedMetadata);
 
