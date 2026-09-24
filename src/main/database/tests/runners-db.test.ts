@@ -63,7 +63,9 @@ const sendToastToRenderer = vi.hoisted(() => vi.fn());
 vi.mock("../../ipc/toast-ipc", () => ({ sendToastToRenderer }));
 
 vi.mock("../../ipc/runner-data-emitter", () => ({ emitRunnersTableChanged: vi.fn() }));
+const getOpenSplitTimePushKindsForEntryMode = vi.hoisted(() => vi.fn(() => ["in"]));
 vi.mock("../../services/opensplittime", () => ({
+  getOpenSplitTimePushKindsForEntryMode,
   pushTimeRecordUpdate: vi.fn(async () => ({ pushed: false })),
   pushTimeRecord: vi.fn(async () => ({ pushed: false })),
   syncSplitEntryKinds: vi.fn()

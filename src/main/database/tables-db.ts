@@ -209,6 +209,9 @@ export function ClearTables(db: Database.Database) {
     clearOutputTable(db) &&
     clearStatusTable(db) &&
     clearOpenSplitTimePushStatusTable(db) &&
+    clearRFIDInboxTable(db) &&
+    clearRFIDPendingWritesTable(db) &&
+    clearRFIDProcessedEventsTable(db) &&
     clearWatchlistTable(db) &&
     clearEventMetaTable(db);
 
@@ -242,6 +245,12 @@ export const clearStatusTable = (db: Database.Database) =>
   clearTable(db, tableDefs.expectedTableNames.Status);
 export const clearOpenSplitTimePushStatusTable = (db: Database.Database) =>
   clearTable(db, tableDefs.expectedTableNames.OpenSplitTimePushStatus);
+export const clearRFIDInboxTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.RFIDInbox);
+export const clearRFIDPendingWritesTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.RFIDPendingWrites);
+export const clearRFIDProcessedEventsTable = (db: Database.Database) =>
+  clearTable(db, tableDefs.expectedTableNames.RFIDProcessedEvents);
 export const clearWatchlistTable = (db: Database.Database) =>
   clearTable(db, tableDefs.expectedTableNames.Watchlist);
 export const clearEventMetaTable = (db: Database.Database) =>
