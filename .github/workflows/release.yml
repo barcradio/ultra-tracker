@@ -83,7 +83,14 @@ jobs:
       - name: Verify update channel metadata
         shell: bash
         run: |
-          if ! find dist -maxdepth 1 -name "${UPDATE_CHANNEL}*.yml" -print -quit | grep -q .; then
+          metadata_file_found=
+          for metadata_file in dist/"${UPDATE_CHANNEL}"*.yml; do
+            if [ -f "$metadata_file" ]; then
+              metadata_file_found=true
+              break
+            fi
+          done
+          if [ -z "$metadata_file_found" ]; then
             echo "Missing ${UPDATE_CHANNEL} update metadata in dist"
             exit 1
           fi
