@@ -44,8 +44,8 @@ const defaults = {
     }
   },
   openSplitTime: {
-    email: "",
-    encryptedPassword: ""
+    production: { email: "", encryptedPassword: "" },
+    staging: { email: "", encryptedPassword: "" }
   },
   display: {
     gridFontScale: 1,
@@ -128,8 +128,20 @@ export const appStore = new Store({
     openSplitTime: {
       type: "object",
       properties: {
-        email: { type: "string", default: "" },
-        encryptedPassword: { type: "string", default: "" }
+        production: {
+          type: "object",
+          properties: {
+            email: { type: "string", default: "" },
+            encryptedPassword: { type: "string", default: "" }
+          }
+        },
+        staging: {
+          type: "object",
+          properties: {
+            email: { type: "string", default: "" },
+            encryptedPassword: { type: "string", default: "" }
+          }
+        }
       }
     },
     display: {
