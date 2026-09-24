@@ -286,12 +286,7 @@ describe("runners-db", () => {
       expect(message).toMatch(/no such table/);
     });
 
-    // KNOWN DEFECT - intended behaviour asserted below, currently failing.
-    // writeToCSV returns a promise that the export functions never await, so the operator is
-    // told the export succeeded before the file is on disk, and a write failure is never
-    // surfaced. Marked `.fails` so CI stays green; it will start failing once the defect is
-    // fixed, at which point the marker should be removed.
-    it.fails("has finished writing the file by the time it reports success", async () => {
+    it("has finished writing the file by the time it reports success", async () => {
       insertTiming(101);
       insertStatusRow(101);
       const target = path.join(workDir, "runners.csv");
@@ -368,18 +363,18 @@ describe("runners-db", () => {
       insertTiming(101);
       insertStatusRow(101);
 
-      const message = exportUnsentRunnersAsCSV();
+      const message = await exportUnsentRunnersAsCSV();
 
       expect(message).toContain("Incremental file export successful");
       expect(storeMock.data.get("incrementalFileIndex")).toBe(2);
       await readWhenWritten(path.join(workDir, "Aid03times_01i.csv"), 3);
     });
 
-    it("marks the exported records as sent", () => {
+    it("marks the exported records as sent", async () => {
       insertTiming(101);
       insertStatusRow(101);
 
-      exportUnsentRunnersAsCSV();
+      await exportUnsentRunnersAsCSV();
 
       const row = db.prepare(`SELECT sent FROM TimeRecords WHERE bibId = 101`).get() as {
         sent: number;
@@ -387,19 +382,19 @@ describe("runners-db", () => {
       expect(row.sent).toBe(1);
     });
 
-    it("names the previous file when there is nothing new to send", () => {
+    it("names the previous file when there is nothing new to send", async () => {
       insertTiming(101, { sent: 1 });
       insertStatusRow(101);
 
-      const message = exportUnsentRunnersAsCSV();
+      const message = await exportUnsentRunnersAsCSV();
 
       expect(message).toBe("No unsent records, previous file: Aid03times_00i.csv");
     });
 
-    it("reports that unsent runners could not be read when the query fails", () => {
+    it("reports that unsent runners could not be read when the query fails", async () => {
       db.exec(`DROP TABLE TimeRecords`);
 
-      const message = exportUnsentRunnersAsCSV();
+      const message = await exportUnsentRunnersAsCSV();
 
       expect(message).toBe("Failed to get unsent runners");
     });
