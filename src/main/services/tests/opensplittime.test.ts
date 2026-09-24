@@ -604,6 +604,30 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       expect(body.data).toHaveLength(2);
     });
 
+    it("sends only the requested raw time kind", async () => {
+      const service = await readyToPush();
+      fetchMock.mockResolvedValue(jsonResponse({ accepted: 1 }));
+
+      await service.pushTimeRecordUpdate(
+        runner({ timeOut: new Date("2026-09-01T09:00:00Z") }),
+        false,
+        { kinds: ["out"] }
+      );
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].attributes.sub_split_kind).toBe("out");
+    });
+
+    it("does not send a requested kind when its time is null", async () => {
+      const service = await readyToPush();
+
+      const outcome = await service.pushTimeRecordUpdate(runner(), false, { kinds: ["out"] });
+
+      expect(outcome).toEqual({ pushed: false });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it("floors a duplicate's fractional bib to the real bib number", async () => {
       const service = await readyToPush();
       fetchMock.mockResolvedValue(jsonResponse({ accepted: 1 }));

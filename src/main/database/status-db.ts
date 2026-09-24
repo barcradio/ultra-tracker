@@ -28,7 +28,10 @@ import { emitRunnersTableChanged } from "../ipc/runner-data-emitter";
 import { sendToastToRenderer } from "../ipc/toast-ipc";
 import * as dialogs from "../lib/file-dialogs";
 import { appStore } from "../lib/store";
-import { pushTimeRecordUpdate } from "../services/opensplittime";
+import {
+  getOpenSplitTimePushKindsForEntryMode,
+  pushTimeRecordUpdate
+} from "../services/opensplittime";
 
 const invalidResult = -999;
 const PENDING_DROPS_IMPORT_TTL_MS = 30 * 60 * 1000;
@@ -512,7 +515,9 @@ export function SetDrop(
     clearPushStatus(bibId);
     emitRunnersTableChanged();
 
-    void pushTimeRecordUpdate(timingRecord, droppedValue)
+    void pushTimeRecordUpdate(timingRecord, droppedValue, {
+      kinds: getOpenSplitTimePushKindsForEntryMode()
+    })
       .then((outcome) => {
         if (outcome.pushed) {
           db.prepare(`UPDATE TimeRecords SET sent = ? WHERE "bibId" = ?`).run(
