@@ -391,6 +391,21 @@ describe("timingRecords-db", () => {
       expect(rows[0].bibId).toBe(202);
     });
 
+    it("re-pushes present kinds when correcting a bib number", async () => {
+      insertOrUpdateTimeRecord(runner({ timeOut: OUT }));
+      const existing = storedRows()[0];
+      pushTimeRecordUpdate.mockClear();
+
+      insertOrUpdateTimeRecord(runner({ index: existing.index, bibId: 202, timeOut: OUT }));
+
+      await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
+      expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ bibId: 202 }),
+        expect.anything(),
+        { kinds: ["in", "out"] }
+      );
+    });
+
     it("marks an edited record unsent so it is pushed again", async () => {
       insertOrUpdateTimeRecord(runner());
       markTimeRecordAsSent(101, true);

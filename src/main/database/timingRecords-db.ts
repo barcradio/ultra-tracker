@@ -276,6 +276,13 @@ function updateTimeRecord(
   const changedKinds: OpenSplitTimeSubSplitKind[] = [];
   if (timeValue(existingRecord.timeIn) !== timeValue(record.timeIn)) changedKinds.push("in");
   if (timeValue(existingRecord.timeOut) !== timeValue(record.timeOut)) changedKinds.push("out");
+  const pushKinds =
+    existingRecord.bibId !== record.bibId
+      ? ([
+          record.timeIn ? "in" : null,
+          record.timeOut ? "out" : null
+        ].filter((kind): kind is OpenSplitTimeSubSplitKind => kind !== null))
+      : changedKinds;
 
   // Edited values invalidate whatever was already pushed, so force sent=false rather than
   // trusting the stale "sent" flag carried over from the renderer's original record.
@@ -359,7 +366,7 @@ function updateTimeRecord(
     emitRunnersTableChanged();
 
     void pushTimeRecordUpdate(record, dbStatus.getStoppedHereForBib(record.bibId), {
-      kinds: changedKinds
+      kinds: pushKinds
     }).catch((error: unknown) => {
       console.error("OpenSplitTime record update failed", error);
     });
