@@ -22,7 +22,10 @@ describe("shouldShowTrailingUtilityColumn", () => {
 });
 
 describe("shouldShowResetButton", () => {
-  const filterableColumns: ColumnDef<Row> = [{ field: "id", name: "ID" }, { field: "value", name: "Value" }];
+  const filterableColumns: ColumnDef<Row> = [
+    { field: "id", name: "ID" },
+    { field: "value", name: "Value" }
+  ];
 
   const nonFilterableColumns: ColumnDef<Row> = [
     { field: "id", name: "ID", filterable: false },

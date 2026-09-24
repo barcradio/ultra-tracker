@@ -16,9 +16,7 @@ let rfidController: IRfidController | null = null;
 /**
  * Initialize RFID reader with default or provided settings
  */
-export async function InitializeRFIDReader(
-  settings?: RfidConnectionSettings
-): Promise<string> {
+export async function InitializeRFIDReader(settings?: RfidConnectionSettings): Promise<string> {
   if (rfidController && rfidController.getStatus() === DeviceStatus.Connected) {
     return "RFID already connected";
   }

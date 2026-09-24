@@ -48,7 +48,10 @@ export function Headers<T extends object>(props: Props<T>) {
     <Section type={props.type}>
       <Row>
         {props.hasRowStatus && (
-          <th aria-label="OpenSplitTime upload status" className="w-4 text-center bg-component-strong">
+          <th
+            aria-label="OpenSplitTime upload status"
+            className="w-4 text-center bg-component-strong"
+          >
             ↑
           </th>
         )}
