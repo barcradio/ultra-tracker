@@ -401,9 +401,11 @@ While signed in, OpenSplitTime status takes precedence over CSV export status in
 
 #### Application Settings
 
+- **Update Channel**
+  **Stable** gets normal releases only. **Beta** also gets beta releases, which may be less stable. The default matches the installed version.
 - **Check for Updates**
   Checks GitHub for a newer release now. Ultra-Tracker also checks each time it starts. No internet means no check, and nothing is shown.
-  - **Windows and AppImage:** The update downloads in the background. When it is ready, choose **Restart and update**, or **Later** to install it the next time the app closes.
+  - **Windows and AppImage:** The update downloads in the background. When it is ready, choose **Restart and update** to install now, **Install after exit** to install when you close the app, or **Install later** to be asked again next launch.
   - **MacOS and `.deb`:** A notice shows the new version. Click **Open release page** to download and install it, or **Dismiss** to hide it until the next launch.
 - **Disable Auto Updates / Enable Auto Updates**
   Turns the check at startup off or on. **Check for Updates** still works while it is off.

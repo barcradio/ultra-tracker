@@ -45,7 +45,7 @@ If macOS warns that the app is from an unidentified developer, right-click the a
 
 Ultra-Tracker checks GitHub for a newer release each time it starts, and again when you click **Check for Updates** (Settings page or the **View** menu). No internet means no check, and nothing is shown.
 
-- **Windows and AppImage:** The update downloads in the background. When it is ready, choose **Restart and update**, or **Later** to install it the next time the app closes.
+- **Windows and AppImage:** The update downloads in the background. When it is ready, choose **Restart and update** to install now, **Install after exit** to install when you close the app, or **Install later** to be asked again next launch.
 - **MacOS and `.deb`:** A notice shows the new version. Click **Open release page** to download and install it the same way as above, or **Dismiss** to hide it until the next launch.
 
 ## Getting Started
@@ -339,6 +339,8 @@ The following is a description of each button's function. Each of these will ope
 
 #### Application Settings
 
+- **Update Channel**
+  **Stable** gets normal releases only. **Beta** also gets beta releases, which may be less stable. The default matches the installed version.
 - **Check for Updates**
   Checks GitHub for a newer release now. See [Updating](#updating) for what happens on each platform.
 - **Disable Auto Updates / Enable Auto Updates**
