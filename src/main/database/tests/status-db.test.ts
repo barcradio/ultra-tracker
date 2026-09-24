@@ -332,12 +332,7 @@ describe("status-db", () => {
       expect(pushTimeRecordUpdate).not.toHaveBeenCalled();
     });
 
-    // KNOWN DEFECT - intended behaviour asserted below, currently failing.
-    // SetDrop reads the previous drop state before its try/catch, so a database failure escapes
-    // instead of being reported as DatabaseStatus.Error the way the guarded writes are.
-    // Marked `.fails` so CI stays green; it will start failing once the defect is fixed,
-    // at which point the marker should be removed.
-    it.fails("reports Error when the database is unavailable", () => {
+    it("reports Error when the database is unavailable", () => {
       seedStatus(101);
       db.exec(`DROP TABLE Status`);
 
@@ -825,6 +820,22 @@ describe("status-db", () => {
           })
         ])
       );
+    });
+
+    it("treats a drop as a duplicate when only milliseconds differ, since drops files omit them", async () => {
+      seedStatus(101);
+      db.prepare(
+        `UPDATE Status SET dropped = 1, dropReason = ?, dropStation = ?, dropDateTime = ? WHERE bibId = 101`
+      ).run(DropReason.Medical, "3-hardware", "2026-09-25T15:36:00.123Z");
+
+      const csv = Readable.from(
+        ["title row", "header row", "3-hardware,101,medical,2026-09-25T15:36:00Z,"].join("\n")
+      );
+
+      const [preview] = await previewDropsContent(csv, "drops.csv");
+
+      expect(preview?.conflicts).toEqual([]);
+      expect(preview?.duplicateRecords).toEqual([expect.objectContaining({ bibId: 101 })]);
     });
 
     it("reports malformed station identifiers instead of treating them as future stations", async () => {

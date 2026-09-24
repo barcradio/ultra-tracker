@@ -348,7 +348,7 @@ function parseCSVDate(timingDate: string): Date {
   return event;
 }
 
-export function exportUnsentRunnersAsCSV() {
+export async function exportUnsentRunnersAsCSV() {
   let queryResult;
   const stationId = appStore.get("station.id") as number;
   let fileIndex = appStore.get("incrementalFileIndex") as number;
@@ -393,7 +393,7 @@ export function exportUnsentRunnersAsCSV() {
       markTimeRecordAsSent(queryResult[key].bibId, true); //set flag before export
     }
 
-    writeToCSV(filePath, queryResult, true);
+    await writeToCSV(filePath, queryResult, true);
     fileIndex++;
     appStore.set("incrementalFileIndex", fileIndex);
   } catch (e) {
@@ -426,7 +426,7 @@ export async function exportRunnersAsCSV() {
 
     if (filename == undefined) return "Invalid file name";
 
-    writeToCSV(filename, queryResult, false);
+    await writeToCSV(filename, queryResult, false);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);
@@ -459,7 +459,7 @@ export async function exportDropsAsCSV() {
 
     if (filename == undefined) return "Invalid file name";
 
-    writeDropsToCSV(filename, queryResult);
+    await writeDropsToCSV(filename, queryResult);
   } catch (e) {
     if (e instanceof Error) {
       console.error(e.message);

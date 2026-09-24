@@ -6,8 +6,8 @@ import { Handler } from "../types";
 
 function normalizeConnectionSettings(
   settings: Partial<RfidConnectionSettings> | undefined
-): Partial<RfidConnectionSettings> {
-  if (!settings) return {};
+): RfidConnectionSettings {
+  if (!settings) throw new Error("RFID connection settings are required.");
 
   const type = settings.type?.trim();
   const host = settings.restApiUrl?.trim();

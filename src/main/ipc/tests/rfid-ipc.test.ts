@@ -80,10 +80,10 @@ describe("rfid-ipc", () => {
       ).toThrow(/certificate serial contains unsupported characters/);
     });
 
-    it("passes empty settings through when the renderer sends nothing", async () => {
-      await handlerFor("rfid-initialize")(undefined, undefined);
-
-      expect(rfid.InitializeRFIDReader).toHaveBeenCalledWith({});
+    it("rejects missing connection settings", () => {
+      expect(() => handlerFor("rfid-initialize")(undefined, undefined)).toThrow(
+        /connection settings are required/
+      );
     });
   });
 

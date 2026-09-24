@@ -112,12 +112,11 @@ describe("rfid-processor", () => {
       expect(controller.initialize).toHaveBeenCalled();
     });
 
-    it("fills in the defaults for anything the caller omits", async () => {
-      await InitializeRFIDReader({ restApiUrl: "other.local" } as never);
+    it("does not initialize without explicit connection settings", async () => {
+      const result = await InitializeRFIDReader(undefined);
 
-      expect(create).toHaveBeenCalledWith(
-        expect.objectContaining({ type: "zebra-fxr90", websocketPort: 443 })
-      );
+      expect(result).toBe("RFID initialization failed: RFID connection settings are required");
+      expect(create).not.toHaveBeenCalled();
     });
 
     it("does nothing when a reader is already connected", async () => {
