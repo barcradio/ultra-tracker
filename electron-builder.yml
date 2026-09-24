@@ -69,5 +69,6 @@ publish:
   provider: github
   owner: barcradio
   repo: ultra-tracker
+  channel: ${env.UPDATE_CHANNEL}
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
