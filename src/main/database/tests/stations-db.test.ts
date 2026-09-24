@@ -144,6 +144,7 @@ describe("stations-db", () => {
       expect(status).toBe(DatabaseStatus.Success);
       expect(found).toMatchObject({ name: "Hardware Ranch", identifier: "3-hardware" });
       expect(found?.location.latitude).toBe(41.5);
+      expect(found?.location.longitude).toBe(-111.8);
       expect(found?.location.elevation).toBe(5600);
       expect(found?.operators.primary.callsign).toBe("K7ADA");
     });
