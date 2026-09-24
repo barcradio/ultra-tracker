@@ -392,17 +392,19 @@ describe("timingRecords-db", () => {
     });
 
     it("re-pushes present kinds when correcting a bib number", async () => {
-      insertOrUpdateTimeRecord(runner({ timeOut: OUT }));
+      insertOrUpdateTimeRecord(runner({ timeIn: null, timeOut: OUT }));
       const existing = storedRows()[0];
       pushTimeRecordUpdate.mockClear();
 
-      insertOrUpdateTimeRecord(runner({ index: existing.index, bibId: 202, timeOut: OUT }));
+      insertOrUpdateTimeRecord(
+        runner({ index: existing.index, bibId: 202, timeIn: null, timeOut: OUT })
+      );
 
       await vi.waitFor(() => expect(pushTimeRecordUpdate).toHaveBeenCalled(), WAIT_FOR_ASYNC_WORK);
       expect(pushTimeRecordUpdate).toHaveBeenCalledWith(
         expect.objectContaining({ bibId: 202 }),
         expect.anything(),
-        { kinds: ["in", "out"] }
+        { kinds: ["out"] }
       );
     });
 
