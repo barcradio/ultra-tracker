@@ -80,9 +80,6 @@ describe("rfid-ipc", () => {
       ).toThrow(/certificate serial contains unsupported characters/);
     });
 
-    // QUESTION FOR RUSS: the `if (!settings) return {}` early return skips every validation
-    // below it, so a renderer that sends nothing reaches the reader with empty settings rather
-    // than being rejected. Asserted as written; confirm whether that guard is intended.
     it("passes empty settings through when the renderer sends nothing", async () => {
       await handlerFor("rfid-initialize")(undefined, undefined);
 

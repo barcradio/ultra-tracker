@@ -77,16 +77,14 @@ function createWindow(): BrowserWindow {
     mainWindow.show();
     mainWindow.focus();
     mainWindow.setTitle(`${app.name} - v${app.getVersion()}`);
-    // Linux only: Windows and macOS take their icon from the packaged bundle,
-    // and this would replace it with the Linux PNG.
+    // Linux only: packaged Windows and macOS bundles carry their own icon.
     if (process.platform === "linux") mainWindow.setIcon(iconLinux);
   };
 
   mainWindow!.once("ready-to-show", () => revealMainWindow("ready-to-show"));
 
-  // On Wayland, ready-to-show can never fire (electron/electron#48859), leaving
-  // the hidden window hidden forever. Reveal it anyway; the guard in
-  // revealMainWindow makes this a no-op wherever the event does arrive.
+  // On Wayland, ready-to-show can never fire (electron/electron#48859); revealMainWindow
+  // is guarded, so this is a no-op wherever the event does arrive.
   const readyToShowFallback = setTimeout(() => revealMainWindow("fallback timer"), 5000);
   mainWindow!.once("show", () => clearTimeout(readyToShowFallback));
   mainWindow!.once("closed", () => clearTimeout(readyToShowFallback));
@@ -141,8 +139,7 @@ async function initializeApp(): Promise<void> {
 
   setApplicationMenu();
 
-  // Must finish before the first window: the desktop binds a window to its
-  // .desktop entry when it is mapped. No-op unless running as an AppImage.
+  // Must finish before the first window: the desktop binds a window when it is mapped.
   await integrateAppImageDesktopEntry();
 
   if (process.platform === "darwin" && is.dev) app.dock?.setIcon(iconLinux);
@@ -212,14 +209,12 @@ app.on("activate", () => {
   }
 });
 //Window Close Handler
-// Quit on every platform, macOS included: a docked instance with no window
-// only strands the RFID reader and holds the event database open.
+// Quit on macOS too: a docked instance strands the RFID reader and holds the database open.
 app.on("window-all-closed", () => {
   app.quit();
 });
 
-// Tear down once, however the quit was triggered. Closing the websocket is synchronous, so it
-// completes before the process goes; closing the connection checkpoints the WAL.
+// Synchronous on purpose: the websocket closes before the process goes and the WAL checkpoints.
 app.on("will-quit", () => {
   CloseRFIDWebSocket();
   closeDatabaseConnection();

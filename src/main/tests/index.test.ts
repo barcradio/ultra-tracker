@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type Handler = (...args: unknown[]) => unknown;
 
-// index.ts registers more than one listener for some events (notably "activate"), so keep every
-// registration rather than letting a later one overwrite an earlier one.
+// index.ts registers several listeners for the same event, so keep every registration.
 const appHandlers = vi.hoisted(() => [] as Array<[string, Handler]>);
 const powerHandlers = vi.hoisted(() => new Map<string, Handler>());
 
@@ -162,18 +161,15 @@ function setPlatform(platform: string) {
   Object.defineProperty(process, "platform", { value: platform, configurable: true });
 }
 
-/** Invokes every listener index.ts registered for an app event. */
 function emitApp(event: string, ...args: unknown[]) {
   for (const [name, handler] of appHandlers) {
     if (name === event) handler(...args);
   }
 }
 
-/** Boots the main process module fresh; everything it touches at import time is stubbed above. */
 async function bootMain() {
   vi.resetModules();
   await import("../index");
-  // app.whenReady().then(...) schedules initializeApp on the microtask queue.
   await vi.waitFor(() => expect(BrowserWindow).toHaveBeenCalled(), {
     timeout: 5000,
     interval: 5
@@ -284,8 +280,6 @@ describe("main process", () => {
       expect(connect.switchToDatabase).not.toHaveBeenCalled();
     });
 
-    // Statistics used to start only when an event was already open at launch, so an event
-    // created during the session reported nothing until the app was restarted.
     it("wires the stat engine to the event lifecycle", async () => {
       await bootMain();
 
@@ -336,8 +330,6 @@ describe("main process", () => {
       expect(window.setTitle).toHaveBeenCalledWith("ultra-tracker - v1.2.3");
     });
 
-    // ready-to-show and the Wayland fallback timer can both fire, and showing an already
-    // visible window steals focus back from whatever the operator moved to.
     it("leaves an already visible window alone", async () => {
       await bootMain();
       window.isVisible.mockReturnValueOnce(true);
@@ -452,8 +444,6 @@ describe("main process", () => {
       expect(app.quit).toHaveBeenCalled();
     });
 
-    // A docked macOS instance with no window strands the RFID reader and holds the event
-    // database open, so the app quits here too rather than staying resident.
     it("quits on macOS as well when the last window closes", async () => {
       setPlatform("darwin");
       await bootMain();

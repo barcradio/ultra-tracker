@@ -53,8 +53,7 @@ vi.mock("../../database/connect-db", () => ({ isDatabaseConnected }));
 const logEvent = vi.hoisted(() => vi.fn());
 vi.mock("../../database/eventLogger-db", () => ({ logEvent }));
 
-// initialize() attaches an error listener to the real process streams. Capture those handlers
-// instead of letting every test add another listener to stdout/stderr.
+// Capture the handlers instead of adding a listener to the real streams in every test.
 const streamErrorHandlers: Array<(error: NodeJS.ErrnoException) => void> = [];
 
 function captureStreamErrors(stream: NodeJS.WriteStream): void {
@@ -119,8 +118,6 @@ describe("logger", () => {
       expect(streamErrorHandlers).toHaveLength(2);
     });
 
-    // A closed stdout raises EPIPE, which the error handler logs, which writes again. Swallowing
-    // it is what stops logging from taking the app down mid-event.
     it("swallows EPIPE so a closed stream cannot kill the app", () => {
       initialize();
       const epipe = Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
