@@ -37,10 +37,12 @@ const sendToastToRenderer = vi.hoisted(() => vi.fn());
 vi.mock("../../ipc/toast-ipc", () => ({ sendToastToRenderer }));
 
 const eventMetaUpdateRun = vi.hoisted(() => vi.fn());
+const isDatabaseConnected = vi.hoisted(() => vi.fn(() => true));
 const databaseMock = vi.hoisted(() => ({
   prepare: vi.fn(() => ({ run: eventMetaUpdateRun }))
 }));
 vi.mock("../../database/connect-db", () => ({
+  isDatabaseConnected,
   getDatabaseConnection: () => databaseMock
 }));
 
@@ -78,6 +80,15 @@ function configureEventGroup(environment: "production" | "staging" = "staging") 
   });
 }
 
+function setSavedCredentials(
+  environment: "production" | "staging",
+  email: string,
+  encryptedPassword: string
+) {
+  storeMock.data.set(`openSplitTime.${environment}.email`, email);
+  storeMock.data.set(`openSplitTime.${environment}.encryptedPassword`, encryptedPassword);
+}
+
 function runner(overrides: Partial<RunnerDB> = {}): RunnerDB {
   return {
     index: 1,
@@ -101,10 +112,12 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     storeMock.data.set("station.identifier", "3-hardware");
     storeMock.data.set("station.name", "Hardware Ranch");
     storeMock.data.set("station.openSplitTimeSplitName", "Hardware Ranch");
-    storeMock.data.set("openSplitTime.email", "");
-    storeMock.data.set("openSplitTime.encryptedPassword", "");
+    configureEventGroup();
+    setSavedCredentials("production", "", "");
+    setSavedCredentials("staging", "", "");
     vi.clearAllMocks();
     safeStorage.isEncryptionAvailable.mockReturnValue(true);
+    isDatabaseConnected.mockReturnValue(true);
     eventMetaUpdateRun.mockReset();
     eventMetaUpdateRun.mockReturnValue({ changes: 1 });
     databaseMock.prepare.mockClear();
@@ -116,6 +129,28 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
   });
 
   describe("authenticate", () => {
+    it("requires an event database before signing in", async () => {
+      isDatabaseConnected.mockReturnValue(false);
+      const service = await loadService();
+
+      await expect(service.authenticate("ada@example.com", "secret", false)).rejects.toThrow(
+        "Load an event before signing in to OpenSplitTime"
+      );
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("requires the event to configure an OpenSplitTime site before signing in", async () => {
+      storeMock.data.delete("event.openSplitTime");
+      const service = await loadService();
+
+      await expect(service.authenticate("ada@example.com", "secret", false)).rejects.toThrow(
+        "OpenSplitTime is not configured for this event"
+      );
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it("stores the token and reports the expiration", async () => {
       const service = await loadService();
       fetchMock.mockResolvedValue(
@@ -161,15 +196,6 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       );
     });
 
-    it("leaves pushing paused until an event group is configured", async () => {
-      const service = await loadService();
-      fetchMock.mockResolvedValue(jsonResponse({ token: "t", expiration: "e" }));
-
-      await service.authenticate("ada@example.com", "secret", false);
-
-      expect(service.isOpenSplitTimePushPaused()).toBe(true);
-    });
-
     it("saves the password encrypted when asked to remember it", async () => {
       configureEventGroup();
       const service = await loadService();
@@ -179,20 +205,20 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
 
       expect(result.credentialsSaved).toBe(true);
       expect(safeStorage.encryptString).toHaveBeenCalledWith("secret");
-      expect(storeMock.data.get("openSplitTime.email")).toBe("ada@example.com");
-      expect(storeMock.data.get("openSplitTime.encryptedPassword")).not.toContain("secret");
+      expect(storeMock.data.get("openSplitTime.staging.email")).toBe("ada@example.com");
+      expect(storeMock.data.get("openSplitTime.staging.encryptedPassword")).not.toContain("secret");
     });
 
     it("clears any previously saved password when asked not to remember", async () => {
-      storeMock.data.set("openSplitTime.email", "old@example.com");
-      storeMock.data.set("openSplitTime.encryptedPassword", "cached");
+      configureEventGroup();
+      setSavedCredentials("staging", "old@example.com", "cached");
       const service = await loadService();
       fetchMock.mockResolvedValue(jsonResponse({ token: "t", expiration: "e" }));
 
       await service.authenticate("ada@example.com", "secret", false);
 
-      expect(storeMock.data.get("openSplitTime.email")).toBe("");
-      expect(storeMock.data.get("openSplitTime.encryptedPassword")).toBe("");
+      expect(storeMock.data.get("openSplitTime.staging.email")).toBe("");
+      expect(storeMock.data.get("openSplitTime.staging.encryptedPassword")).toBe("");
     });
 
     it("does not save the password when the OS cannot encrypt it", async () => {
@@ -227,8 +253,8 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     });
 
     it("reports the stored email when a password is saved", async () => {
-      storeMock.data.set("openSplitTime.email", "ada@example.com");
-      storeMock.data.set("openSplitTime.encryptedPassword", "cipher");
+      configureEventGroup();
+      setSavedCredentials("staging", "ada@example.com", "cipher");
       const service = await loadService();
 
       expect(service.getSavedCredentials()).toEqual({
@@ -238,9 +264,10 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     });
 
     it("signs in with the decrypted saved password", async () => {
-      storeMock.data.set("openSplitTime.email", "ada@example.com");
-      storeMock.data.set(
-        "openSplitTime.encryptedPassword",
+      configureEventGroup();
+      setSavedCredentials(
+        "staging",
+        "ada@example.com",
         Buffer.from("enc:secret").toString("base64")
       );
       const service = await loadService();
@@ -252,16 +279,16 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     });
 
     it("reports none available when only an email is stored", async () => {
-      storeMock.data.set("openSplitTime.email", "ada@example.com");
-      storeMock.data.set("openSplitTime.encryptedPassword", "");
+      configureEventGroup();
+      setSavedCredentials("staging", "ada@example.com", "");
       const service = await loadService();
 
       expect(service.getSavedCredentials().available).toBe(false);
     });
 
     it("reports none available when only a password is stored", async () => {
-      storeMock.data.set("openSplitTime.email", "");
-      storeMock.data.set("openSplitTime.encryptedPassword", "cipher");
+      configureEventGroup();
+      setSavedCredentials("staging", "", "cipher");
       const service = await loadService();
 
       expect(service.getSavedCredentials().available).toBe(false);
@@ -281,16 +308,32 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     });
 
     it("clears the saved credentials on request", async () => {
-      storeMock.data.set("openSplitTime.email", "ada@example.com");
+      configureEventGroup();
+      setSavedCredentials("staging", "ada@example.com", "cipher");
       const service = await loadService();
 
       service.clearSavedCredentials();
 
-      expect(storeMock.data.get("openSplitTime.email")).toBe("");
+      expect(storeMock.data.get("openSplitTime.staging.email")).toBe("");
+    });
+
+    it("does not expose production credentials for a staging event", async () => {
+      configureEventGroup("staging");
+      setSavedCredentials("production", "production@example.com", "cipher");
+      const service = await loadService();
+
+      expect(service.getSavedCredentials()).toEqual({ email: "", available: false });
     });
   });
 
   describe("clearAuthentication", () => {
+    it("signs the operator out when the active event has no OpenSplitTime site", async () => {
+      const service = await signedIn();
+      storeMock.data.delete("event.openSplitTime");
+
+      expect(service.getAuthStatus().authenticated).toBe(false);
+    });
+
     it("signs the operator out and pauses pushing", async () => {
       const service = await signedIn();
 
@@ -322,6 +365,7 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     });
 
     it("defaults to production when only production is configured", async () => {
+      storeMock.data.delete("event.openSplitTime");
       configureEventGroup("production");
       const service = await loadService();
 
@@ -329,6 +373,10 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
     });
 
     it("signs the operator out when the environment changes", async () => {
+      storeMock.data.set("event.openSplitTime", {
+        staging: { name: "bear-100-staging", id: 1 },
+        production: { name: "bear-100", id: 2 }
+      });
       const service = await signedIn();
 
       service.setOpenSplitTimeEnvironment("production");
@@ -349,6 +397,7 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
 
   describe("isOpenSplitTimeEventGroupConfigured", () => {
     it("is false when the stations file names no event group", async () => {
+      storeMock.data.delete("event.openSplitTime");
       const service = await loadService();
 
       expect(service.isOpenSplitTimeEventGroupConfigured()).toBe(false);
@@ -367,12 +416,6 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
       const service = await loadService();
 
       expect(() => service.setOpenSplitTimePushPaused(false)).toThrow(/authentication is required/);
-    });
-
-    it("refuses to start pushing without a configured event group", async () => {
-      const service = await signedIn();
-
-      expect(() => service.setOpenSplitTimePushPaused(false)).toThrow(/not configured/);
     });
 
     it("starts pushing once an event group is configured", async () => {
@@ -752,6 +795,7 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
 
     it("refuses to push when no event group is configured", async () => {
       const service = await signedIn();
+      storeMock.data.delete("event.openSplitTime");
 
       await expect(service.pushTimeRecordUpdate(runner(), false, { force: true })).rejects.toThrow(
         /event group is not configured/
@@ -798,6 +842,7 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
 
     it("does nothing when no event group is configured", async () => {
       const service = await signedIn();
+      storeMock.data.delete("event.openSplitTime");
 
       await service.syncEventGroupId();
 
