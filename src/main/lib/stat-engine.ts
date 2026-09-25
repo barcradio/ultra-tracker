@@ -44,14 +44,21 @@ export function initStatEngine() {
   stats.addStat("totalRunners", () => dbRunners.GetTotalRunners());
   stats.addStat("totalDidNotStart", () => dbStatus.GetTotalDidNotStart());
   stats.addStat("previousDrops", () => dbStatus.GetPreviousDropped());
+  stats.addStat("unknownAthletes", () => dbRunners.GetUnknownRunners());
   stats.addStat("pendingArrivals", (input) => {
     if (
-      input.registeredAthletes != invalidResult ||
-      input.totalDidNotStart != invalidResult ||
-      input.totalRunners != invalidResult
+      input.registeredAthletes != invalidResult &&
+      input.totalDidNotStart != invalidResult &&
+      input.previousDrops != invalidResult &&
+      input.totalRunners != invalidResult &&
+      input.unknownAthletes != invalidResult
     ) {
       return (
-        input.registeredAthletes - input.totalDidNotStart - input.previousDrops - input.totalRunners
+        input.registeredAthletes -
+        input.totalDidNotStart -
+        input.previousDrops -
+        input.totalRunners +
+        input.unknownAthletes // don't count unknown athletes against pending arrivals
       );
     } else {
       return invalidResult;
@@ -66,7 +73,6 @@ export function initStatEngine() {
 
   stats.addStat("warnings", () => invalidResult);
   stats.addStat("inStationDidNotStart", () => dbRunners.GetDidNotStartRunnersInStation());
-  stats.addStat("unknownAthletes", () => dbRunners.GetUnknownRunners());
 
   stats.addStat("errors", () => invalidResult);
   stats.addStat("duplicates", () => dbRunners.GetRunnersWithDuplicateStatus());

@@ -51,6 +51,7 @@ export function GetUnknownRunners(): number {
   return count[0] == null ? invalidResult : count[0];
 }
 
+// Currently including Unknown runners in the total count, should they be excluded?
 function getTotalRunners(): DatabaseResponse<number> {
   const db = getDatabaseConnection();
   let queryResult;
