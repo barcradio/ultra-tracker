@@ -186,6 +186,42 @@ describe("connect-db lifecycle", () => {
       expect(storeMock.data.get("event.openSplitTime")).toEqual(raceOneMetadata);
     });
 
+    it("restores production-only openSplitTime metadata from the event database", () => {
+      createDatabaseFile("race-one");
+      const metadata = {
+        production: { name: "race-one-ost", id: 33, splitEntryKinds: {} },
+        splitNames: { "1-start": "Start" }
+      };
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", JSON.stringify(metadata));
+
+      switchToDatabase("race-one");
+
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        ...metadata,
+        staging: { name: "", id: 0 }
+      });
+    });
+
+    it("restores staging-only openSplitTime metadata from the event database", () => {
+      createDatabaseFile("race-one");
+      const metadata = {
+        staging: { name: "race-one-staging", id: 22, splitEntryKinds: {} },
+        splitNames: { "1-start": "Start" }
+      };
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", JSON.stringify(metadata));
+
+      switchToDatabase("race-one");
+
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        ...metadata,
+        production: { name: "", id: 0 }
+      });
+    });
+
     it("falls back to default openSplitTime metadata when persisted JSON is malformed", () => {
       createDatabaseFile("race-one");
       getDatabaseConnection()
@@ -206,7 +242,7 @@ describe("connect-db lifecycle", () => {
       createDatabaseFile("race-one");
       getDatabaseConnection()
         .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
-        .run("Race One", JSON.stringify({ production: { name: "race-one", id: 1 } }));
+        .run("Race One", JSON.stringify({ production: { name: "race-one", id: "invalid" } }));
 
       switchToDatabase("race-one");
 
