@@ -204,6 +204,24 @@ describe("connect-db lifecycle", () => {
       });
     });
 
+    it("restores staging-only openSplitTime metadata from the event database", () => {
+      createDatabaseFile("race-one");
+      const metadata = {
+        staging: { name: "race-one-staging", id: 22, splitEntryKinds: {} },
+        splitNames: { "1-start": "Start" }
+      };
+      getDatabaseConnection()
+        .prepare(`INSERT INTO EventMeta (name, openSplitTime) VALUES (?, ?)`)
+        .run("Race One", JSON.stringify(metadata));
+
+      switchToDatabase("race-one");
+
+      expect(storeMock.data.get("event.openSplitTime")).toEqual({
+        ...metadata,
+        production: { name: "", id: 0 }
+      });
+    });
+
     it("falls back to default openSplitTime metadata when persisted JSON is malformed", () => {
       createDatabaseFile("race-one");
       getDatabaseConnection()

@@ -897,6 +897,16 @@ describe("opensplittime service", { timeout: 30_000 }, () => {
   });
 
   describe("syncSplitEntryKinds", () => {
+    it("does not sync a new event with a token from another environment", async () => {
+      const service = await signedIn();
+      configureEventGroup("production");
+
+      await service.syncSplitEntryKinds();
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(service.getAuthStatus().authenticated).toBe(false);
+    });
+
     it("stores the entry kinds the event group reports for each split", async () => {
       configureEventGroup();
       const service = await signedIn();
