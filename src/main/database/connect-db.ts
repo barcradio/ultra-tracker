@@ -79,13 +79,14 @@ function isOpenSplitTimeEnvironment(value: unknown): value is { name: string; id
 }
 
 function isOpenSplitTimeMetadata(value: unknown): value is {
-  production: { name: string; id: number };
-  staging: { name: string; id: number };
+  production?: { name: string; id: number };
+  staging?: { name: string; id: number };
 } {
   return (
     isObject(value) &&
-    isOpenSplitTimeEnvironment(value.production) &&
-    isOpenSplitTimeEnvironment(value.staging)
+    (value.production !== undefined || value.staging !== undefined) &&
+    (value.production === undefined || isOpenSplitTimeEnvironment(value.production)) &&
+    (value.staging === undefined || isOpenSplitTimeEnvironment(value.staging))
   );
 }
 
@@ -123,7 +124,11 @@ function openDatabaseConnection(slug: string): void {
     try {
       const parsed = JSON.parse(eventMeta.openSplitTime) as unknown;
       if (isOpenSplitTimeMetadata(parsed)) {
-        openSplitTime = parsed;
+        openSplitTime = {
+          ...parsed,
+          production: parsed.production ?? defaultOpenSplitTime.production,
+          staging: parsed.staging ?? defaultOpenSplitTime.staging
+        };
       }
     } catch (e: unknown) {
       if (e instanceof Error) {
