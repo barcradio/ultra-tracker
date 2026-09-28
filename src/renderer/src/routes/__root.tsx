@@ -1,4 +1,4 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { Outlet, createRootRoute, useRouterState } from "@tanstack/react-router";
 import { AppErrorBoundary } from "~/features/AppErrorBoundary";
 import { BackdropProvider } from "~/features/Backdrop";
 import { Footer } from "~/features/Footer/Footer";
@@ -9,6 +9,7 @@ import { useGridFontScaleShortcuts } from "~/hooks/dom/useGridFontScaleShortcuts
 
 function Root() {
   useGridFontScaleShortcuts();
+  const isEntryPage = useRouterState({ select: (state) => state.location.pathname === "/" });
 
   return (
     <AppErrorBoundary>
@@ -20,7 +21,11 @@ function Root() {
             <div className="overflow-hidden mx-4 min-h-0 grow">
               <Outlet />
             </div>
-            <Footer />
+            {!isEntryPage && (
+              <div className="mx-4 mt-2 mb-2 shrink-0">
+                <Footer />
+              </div>
+            )}
           </div>
         </ToastProvider>
       </BackdropProvider>

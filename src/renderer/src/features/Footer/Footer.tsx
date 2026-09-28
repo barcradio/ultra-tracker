@@ -49,52 +49,46 @@ export function Footer() {
   };
 
   return (
-    <Stack
-      justify="between"
-      align="center"
-      className="py-[24px] pl-[16px] m-[16px] text-[18px] shrink-0 bg-component font-display"
-    >
-      <Stack direction="row" align="center" className="gap-[16px]">
-        <Stack direction="col">
-          {eventName && (
-            <p className="text-on-component">
-              <span className="font-bold">Event</span> - {eventName}
-            </p>
-          )}
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-[16px] py-[8px] pl-[16px] text-[16px] leading-snug shrink-0 bg-component font-display">
+      <Stack direction="col">
+        {eventName && (
           <p className="text-on-component">
-            <span className="font-bold">Aid Station</span> - {title}
+            <span className="font-bold">Event</span> - {eventName}
           </p>
-          <p className="text-on-component">
-            <span className="font-bold">Operator Call Sign</span> - {callsign}
-          </p>
-        </Stack>
+        )}
+        <p className="text-on-component">
+          <span className="font-bold">Aid Station</span> - {title}
+        </p>
+        <p className="text-on-component">
+          <span className="font-bold">Operator Call Sign</span> - {callsign}
+        </p>
+      </Stack>
 
-        <Stack
-          direction="col"
-          className="gap-[8px] px-[16px] py-[8px] text-[14px] border rounded-md border-component-strong bg-surface-low"
-        >
-          <Stack id={internetTooltipId} direction="row" align="center" className="gap-[8px]">
-            <span className="text-on-surface">Internet:</span>
-            {statusIcon(connectionStatus.checking, connectionStatus.internet)}
-            <Tooltip position="top" target={`#${internetTooltipId}`}>
-              {statusText(connectionStatus.checking, connectionStatus.internet)}
-            </Tooltip>
-          </Stack>
-          <Stack id={openSplitTimeTooltipId} direction="row" align="center" className="gap-[8px]">
-            <span className="text-on-surface">OpenSplitTime:</span>
-            {statusIcon(connectionStatus.checking, connectionStatus.openSplitTime)}
-            <Tooltip position="top" target={`#${openSplitTimeTooltipId}`}>
-              {statusText(connectionStatus.checking, connectionStatus.openSplitTime)}
-            </Tooltip>
-          </Stack>
+      <Stack
+        direction="col"
+        className="gap-[4px] px-[16px] py-[4px] text-[14px] border rounded-md border-component-strong bg-surface-low"
+      >
+        <Stack id={internetTooltipId} direction="row" align="center" className="gap-[8px]">
+          <span className="text-on-surface">Internet:</span>
+          {statusIcon(connectionStatus.checking, connectionStatus.internet)}
+          <Tooltip position="top" target={`#${internetTooltipId}`}>
+            {statusText(connectionStatus.checking, connectionStatus.internet)}
+          </Tooltip>
+        </Stack>
+        <Stack id={openSplitTimeTooltipId} direction="row" align="center" className="gap-[8px]">
+          <span className="text-on-surface">OpenSplitTime:</span>
+          {statusIcon(connectionStatus.checking, connectionStatus.openSplitTime)}
+          <Tooltip position="top" target={`#${openSplitTimeTooltipId}`}>
+            {statusText(connectionStatus.checking, connectionStatus.openSplitTime)}
+          </Tooltip>
         </Stack>
       </Stack>
 
       {theme === "dark" ? (
-        <BarcLogoDark className="pr-4" width="180px" />
+        <BarcLogoDark className="justify-self-end pr-4" width="140px" />
       ) : (
-        <BarcLogoLight className="pr-4" width="180px" />
+        <BarcLogoLight className="justify-self-end pr-4" width="140px" />
       )}
-    </Stack>
+    </div>
   );
 }
