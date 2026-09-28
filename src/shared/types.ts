@@ -123,6 +123,7 @@ export interface Toast {
   type: "info" | "success" | "danger" | "warning";
   timeoutMs?: number;
   noIcon?: boolean;
+  key?: string;
   action?: {
     type: "remove-watchlist";
     bibId: number;

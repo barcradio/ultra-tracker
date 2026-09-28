@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { useIpcRenderer } from "~/hooks/useIpcRenderer";
 import { Toast } from "$shared/types";
+import { dismissOldestToast } from "./dismissOldestToast";
 import { ToastComponent } from "./ToastComponent";
 import { InternalToast, ToastsContext } from "./ToastsContext";
 
@@ -39,6 +40,10 @@ export function ToastProvider(props: { children: ReactNode }) {
     ]);
   }, []);
 
+  const dismissToast = useCallback((key: string) => {
+    setToasts((prev) => dismissOldestToast(prev, key));
+  }, []);
+
   useMainToastListener(createToast);
 
   const removeToast = (id: string) => {
@@ -46,7 +51,7 @@ export function ToastProvider(props: { children: ReactNode }) {
   };
 
   return (
-    <ToastsContext.Provider value={{ createToast }}>
+    <ToastsContext.Provider value={{ createToast, dismissToast }}>
       {props.children}
       {toasts.length > 0 &&
         createPortal(

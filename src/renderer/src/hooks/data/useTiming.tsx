@@ -38,6 +38,7 @@ function useTimingMutation(channel: string, options: TimingMutationOptions = {})
       const [status, message] = response;
       handleError(status, message, timeRecord);
       options.callback?.(timeRecord, status);
+      return status as DatabaseStatus;
     },
     onSuccess: () => {
       // Invalidate the queries to refetch the data,
@@ -50,6 +51,9 @@ function useTimingMutation(channel: string, options: TimingMutationOptions = {})
 
 // export const useCreateTiming = () => useTimingMutation("add-timing-record");
 
+export const duplicateToastKey = (bibId: number) => `duplicate:${Math.floor(bibId)}`;
+export const unknownAthleteToastKey = (bibId: number) => `unknown-athlete:${Math.floor(bibId)}`;
+
 export const useCreateTiming = () => {
   const ipcRenderer = useIpcRenderer();
   const { createToast } = useToasts();
@@ -59,7 +63,8 @@ export const useCreateTiming = () => {
       [DatabaseStatus.Duplicate]: (runner) => ({
         message: `Runner #${runner?.bibId} already has a timing record!`,
         type: "warning",
-        timeoutMs: -1
+        timeoutMs: -1,
+        key: runner ? duplicateToastKey(runner.bibId) : undefined
       })
     },
     callback: async (timeRecord) => {
@@ -71,7 +76,8 @@ export const useCreateTiming = () => {
         createToast({
           message: `athletes: No athlete found with bibId: ${timeRecord.bibId}`,
           type: "warning",
-          timeoutMs: -1
+          timeoutMs: -1,
+          key: unknownAthleteToastKey(timeRecord.bibId)
         });
     }
   });
@@ -83,7 +89,8 @@ export const useEditTiming = () => {
       [DatabaseStatus.Updated]: (runner) => ({
         message: `Runner #${runner?.bibId} updated!`,
         type: "success"
-      })
+      }),
+      [DatabaseStatus.Duplicate]: () => null
     }
   });
 };
