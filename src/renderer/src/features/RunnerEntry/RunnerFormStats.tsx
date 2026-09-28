@@ -1,11 +1,13 @@
 import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Tooltip } from "primereact/tooltip";
 import { Button, Stack, TextInput } from "~/components";
+import { useBackdropContext } from "~/features/Backdrop";
 import { useCreateTiming } from "~/hooks/data/useTiming";
 import { usePortalRoot } from "~/hooks/dom/usePortalRoot";
 import { useId } from "~/hooks/useId";
 import { useInOutButton } from "~/hooks/useInOutButton";
 import { EntryMode, RecordType } from "$shared/enums";
+import { shouldFocusBibOnKey } from "./bibAutoFocus";
 import { useEntryMode } from "./hooks/useEntryMode";
 import { Stats } from "./Stats";
 import { useInvalidateRunnersOnRFID } from "../../hooks/ipc/useInvalidateRunnersOnRFID";
@@ -23,6 +25,7 @@ export function RunnerFormStats() {
   const isFastMode = entryMode === EntryMode.Fast;
   const hasActiveDatabase = isEventDatabaseLoaded === true;
   const { enabled: showInOutButton } = useInOutButton();
+  const { showBackdrop } = useBackdropContext();
 
   useInvalidateRunnersOnRFID();
 
@@ -30,6 +33,24 @@ export function RunnerFormStats() {
   useEffect(() => {
     if (hasActiveDatabase) inputRef.current?.focus();
   }, [hasActiveDatabase]);
+
+  useEffect(() => {
+    if (!hasActiveDatabase || showBackdrop) return;
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      const active = document.activeElement;
+      const isTypingElsewhere =
+        (active instanceof HTMLElement &&
+          active.matches("input, textarea, select, [contenteditable]")) ||
+        document.querySelector(".p-overlaypanel") !== null;
+      if (!shouldFocusBibOnKey(event, isTypingElsewhere)) return;
+
+      inputRef.current?.focus();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [hasActiveDatabase, showBackdrop]);
 
   const createRecord = (type: RecordType) => {
     if (!hasActiveDatabase || bibNumber.length === 0) return;

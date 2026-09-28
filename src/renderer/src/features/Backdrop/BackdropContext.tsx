@@ -10,11 +10,13 @@ export interface BackdropContext {
     handleClick?: MouseEventHandler<HTMLButtonElement>
   ) => void;
   removeBackdrop: (backdropId: string | number) => void;
+  showBackdrop: boolean;
 }
 
 export const BackdropContext = createContext<BackdropContext>({
   addBackdrop: () => {},
-  removeBackdrop: () => {}
+  removeBackdrop: () => {},
+  showBackdrop: false
 });
 
 export const Backdrop = classed.button(
@@ -34,7 +36,7 @@ export function BackdropProvider({ children }: { children: ReactNode }) {
   const { addBackdrop, removeBackdrop, showBackdrop, handleBackdropClick } = useBackdrops();
 
   return (
-    <BackdropContext.Provider value={{ addBackdrop, removeBackdrop }}>
+    <BackdropContext.Provider value={{ addBackdrop, removeBackdrop, showBackdrop }}>
       {children}
       {createPortal(
         <Backdrop open={showBackdrop} onClick={handleBackdropClick} />,

@@ -68,7 +68,7 @@ The left side bar is used to select different pages. Select from Stats, Roster, 
   </tr>
 </table>
 
-The **BIB#** box is the main starting point for using this page. This input control accepts numerical input from either the 10-key pad or the top-row keys of standard keyboards. See the keyboard shortcuts below.
+The **BIB#** box is the main starting point for using this page. This input control accepts numerical input from either the 10-key pad or the top-row keys of standard keyboards. Typing a number anywhere on this page jumps to the **BIB#** box, unless another text field, a column filter, or the edit panel is in use. See the keyboard shortcuts below.
 
 Clicking the **In** and **Out** buttons records the corresponding time entry.
 
