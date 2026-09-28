@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestDatabase } from "./dbTestHelper";
-import { DatabaseStatus, EntryMode, RecordStatus } from "../../../shared/enums";
+import { AthleteProgress, DatabaseStatus, EntryMode, RecordStatus } from "../../../shared/enums";
 import { RunnerDB } from "../../../shared/models";
 import {
   countTimingRecordsAtOtherStations,
@@ -75,6 +75,20 @@ function runner(overrides: Partial<RunnerDB> = {}): RunnerDB {
     status: RecordStatus.OK,
     ...overrides
   } as RunnerDB;
+}
+
+function seedStatus(bibId: number) {
+  db.prepare(`INSERT INTO Status (bibId, progress) VALUES (?, ?)`).run(
+    bibId,
+    AthleteProgress.Incoming
+  );
+}
+
+function storedProgress(bibId: number) {
+  const row = db.prepare(`SELECT progress FROM Status WHERE bibId = ?`).get(bibId) as {
+    progress: AthleteProgress;
+  };
+  return row.progress;
 }
 
 function storedRows() {
@@ -391,6 +405,21 @@ describe("timingRecords-db", () => {
       expect(rows[0].bibId).toBe(202);
     });
 
+    it("resets the wrong bib's progress when its record moves to a corrected bib", () => {
+      seedStatus(101);
+      seedStatus(202);
+      insertOrUpdateTimeRecord(runner({ timeIn: null, timeOut: OUT }));
+      const existing = storedRows()[0];
+      expect(storedProgress(101)).toBe(AthleteProgress.Outgoing);
+
+      insertOrUpdateTimeRecord(
+        runner({ index: existing.index, bibId: 202, timeIn: null, timeOut: OUT })
+      );
+
+      expect(storedProgress(101)).toBe(AthleteProgress.Incoming);
+      expect(storedProgress(202)).toBe(AthleteProgress.Outgoing);
+    });
+
     it("re-pushes present kinds when correcting a bib number on an out-only record", async () => {
       insertOrUpdateTimeRecord(runner({ timeIn: null, timeOut: OUT }));
       const existing = storedRows()[0];
@@ -653,6 +682,17 @@ describe("timingRecords-db", () => {
 
       expect(status).toBe(DatabaseStatus.Deleted);
       expect(storedRows()).toHaveLength(0);
+    });
+
+    it("resets the athlete's progress once their only record is gone", () => {
+      seedStatus(101);
+      insertOrUpdateTimeRecord(runner({ timeIn: null, timeOut: OUT }));
+      const existing = storedRows()[0];
+      expect(storedProgress(101)).toBe(AthleteProgress.Outgoing);
+
+      deleteTimeRecord(runner({ index: existing.index }));
+
+      expect(storedProgress(101)).toBe(AthleteProgress.Incoming);
     });
 
     it("clears any lingering OpenSplitTime push status", () => {
