@@ -3,7 +3,7 @@ import { useToasts } from "~/features/Toasts/useToasts";
 import { DatabaseStatus } from "$shared/enums";
 import { Toast } from "$shared/types";
 
-type StatusToast<T> = Toast | ((data?: T) => Toast);
+type StatusToast<T> = Toast | ((data?: T) => Toast | null);
 export type ToastOnStatus<T> = { [key in DatabaseStatus]?: StatusToast<T> };
 
 export function useHandleStatusToasts<T>(specialToasts: ToastOnStatus<T> = {}) {
@@ -13,7 +13,8 @@ export function useHandleStatusToasts<T>(specialToasts: ToastOnStatus<T> = {}) {
     (status: DatabaseStatus, data?: T) => {
       const toast = specialToasts[status];
       if (typeof toast === "function") {
-        createToast(toast(data));
+        const created = toast(data);
+        if (created) createToast(created);
       } else if (toast) {
         createToast(toast);
       }

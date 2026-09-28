@@ -17,6 +17,8 @@ import { useAthlete } from "~/hooks/data/useAthlete";
 import { RunnerEx } from "~/hooks/data/useRunnerData";
 import { useSetAthleteProgress } from "~/hooks/data/useStatus";
 import {
+  duplicateToastKey,
+  unknownAthleteToastKey,
   useDeleteTiming,
   useEditTiming,
   useOpenSplitTimeAuthStatus,
@@ -24,8 +26,9 @@ import {
   usePushOpenSplitTimeRecord
 } from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
-import { DropReason, RecordStatus } from "$shared/enums";
+import { DatabaseStatus, DropReason, RecordStatus } from "$shared/enums";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
+import { toastChangesOnEdit } from "./toastChangesOnEdit";
 import { useToasts } from "../Toasts/useToasts";
 
 interface Props {
@@ -50,7 +53,7 @@ const getUploadStatusText = (runner: RunnerEx): string => {
 };
 
 export function EditRunner(props: Props) {
-  const { createToast } = useToasts();
+  const { createToast, dismissToast } = useToasts();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [didReplaceComma, setDidReplaceComma] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -81,7 +84,21 @@ export function EditRunner(props: Props) {
       setDidReplaceComma(false);
 
       try {
-        await editTiming.mutateAsync(formattedData);
+        const status = await editTiming.mutateAsync(formattedData);
+        const toastChange = toastChangesOnEdit({
+          wasDuplicate: data.status === RecordStatus.Duplicate,
+          previousBib: selectedRunner.state.bibId,
+          bib: formattedData.bibId,
+          status
+        });
+        toastChange.dismiss.forEach(dismissToast);
+        if (toastChange.createDuplicate)
+          createToast({
+            message: `Runner #${Math.floor(formattedData.bibId)} already has a timing record!`,
+            type: "warning",
+            timeoutMs: -1,
+            key: toastChange.createDuplicate
+          });
         await setAthlete.mutateAsync(formattedData);
       } catch (error) {
         console.error("Failed to save runner record:", error);
@@ -106,7 +123,14 @@ export function EditRunner(props: Props) {
   );
 
   const handleDeleteRunner = () => {
-    deleteTiming.mutate(selectedRunner.state);
+    const runner = selectedRunner.state;
+    deleteTiming.mutate(runner, {
+      onSuccess: (status) => {
+        if (status !== DatabaseStatus.Deleted) return;
+        if (runner.status === RecordStatus.Duplicate) dismissToast(duplicateToastKey(runner.bibId));
+        dismissToast(unknownAthleteToastKey(runner.bibId));
+      }
+    });
     setIsConfirmOpen(true);
     setIsOpen(false);
   };
