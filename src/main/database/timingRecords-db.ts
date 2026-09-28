@@ -191,6 +191,7 @@ export function deleteTimeRecord(record: RunnerDB): DatabaseResponse {
     try {
       const query = db.prepare(queryString);
       query.run(existingRecord.index);
+      dbStatus.SetProgress(existingRecord.bibId);
 
       const stationIdentifier = appStore.get("station.identifier") as string;
       const timeInISO = toISOString(existingRecord.timeIn);
@@ -338,6 +339,7 @@ function updateTimeRecord(
   record.index = existingRecord.index;
   processNote(record, dbStatus.SyncDirection.Incoming);
   dbStatus.SetProgress(record.bibId);
+  if (existingRecord.bibId !== record.bibId) dbStatus.SetProgress(existingRecord.bibId);
   const eventLogMessage = `[Update](Time): bibId: (${existingRecord.bibId})->(${record.bibId}), ${RecordStatus[record.status]}, merge:${merge}`;
   logEvent(
     record.bibId,
