@@ -9,6 +9,7 @@ import {
   ConfirmationModal,
   DatePicker,
   Drawer,
+  Modal,
   Select,
   Stack,
   TextInput
@@ -25,6 +26,7 @@ import {
 } from "~/hooks/data/useTiming";
 import { useId } from "~/hooks/useId";
 import { DropReason, RecordStatus } from "$shared/enums";
+import { getFutureTimeLabels } from "./futureTimes";
 import { useSelectRunnerForm } from "./hooks/useSelectRunnerForm";
 import { useToasts } from "../Toasts/useToasts";
 
@@ -54,6 +56,7 @@ export function EditRunner(props: Props) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [didReplaceComma, setDidReplaceComma] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [pendingSave, setPendingSave] = useState<RunnerEx | null>(null);
 
   const editTiming = useEditTiming();
   const deleteTiming = useDeleteTiming();
@@ -64,39 +67,47 @@ export function EditRunner(props: Props) {
 
   const { form, ...selectedRunner } = useSelectRunnerForm(props.runner, props.runners);
 
+  const saveRunner = async (data: RunnerEx) => {
+    const updatedBibId = Number(data.bibId);
+    const isIntegerBib = Number.isInteger(updatedBibId);
+    const formattedData = {
+      ...data,
+      bibId: updatedBibId,
+      status:
+        isIntegerBib && data.status === RecordStatus.Duplicate ? RecordStatus.OK : data.status,
+      dropped: (data.dropReason as DropReason) !== DropReason.None
+    };
+
+    form.reset({ ...formattedData });
+    setIsOpen(false);
+    setDidReplaceComma(false);
+
+    try {
+      await editTiming.mutateAsync(formattedData);
+      await setAthlete.mutateAsync(formattedData);
+    } catch (error) {
+      console.error("Failed to save runner record:", error);
+      createToast({
+        message: `Failed to save runner #${formattedData.bibId}: ${error instanceof Error ? error.message : String(error)}`,
+        type: "danger",
+        timeoutMs: -1
+      });
+    }
+
+    if (didReplaceComma)
+      createToast({
+        message: "Commas in note have been replaced with semicolons",
+        type: "warning"
+      });
+  };
+
   const handleSaveRunner = form.handleSubmit(
-    async (data) => {
-      const updatedBibId = Number(data.bibId);
-      const isIntegerBib = Number.isInteger(updatedBibId);
-      const formattedData = {
-        ...data,
-        bibId: updatedBibId,
-        status:
-          isIntegerBib && data.status === RecordStatus.Duplicate ? RecordStatus.OK : data.status,
-        dropped: (data.dropReason as DropReason) !== DropReason.None
-      };
-
-      form.reset({ ...formattedData });
-      setIsOpen(false);
-      setDidReplaceComma(false);
-
-      try {
-        await editTiming.mutateAsync(formattedData);
-        await setAthlete.mutateAsync(formattedData);
-      } catch (error) {
-        console.error("Failed to save runner record:", error);
-        createToast({
-          message: `Failed to save runner #${formattedData.bibId}: ${error instanceof Error ? error.message : String(error)}`,
-          type: "danger",
-          timeoutMs: -1
-        });
+    (data) => {
+      if (getFutureTimeLabels(data, new Date()).length > 0) {
+        setPendingSave(data);
+        return;
       }
-
-      if (didReplaceComma)
-        createToast({
-          message: "Commas in note have been replaced with semicolons",
-          type: "warning"
-        });
+      saveRunner(data);
     },
     (errors) => {
       Object.values(errors).forEach((error) => {
@@ -347,6 +358,25 @@ export function EditRunner(props: Props) {
       >
         Are you sure you want to delete the timing record for Runner #{selectedRunner.state.bibId}?
       </ConfirmationModal>
+      <Modal
+        open={pendingSave !== null}
+        setOpen={(open) => {
+          if (!open) setPendingSave(null);
+        }}
+        title="Future Time"
+        showNegativeButton
+        negativeText="Go Back"
+        affirmativeText="Save Anyway"
+        onAffirmative={() => {
+          if (pendingSave) saveRunner(pendingSave);
+          setPendingSave(null);
+        }}
+      >
+        <p className="text-center">
+          The {pendingSave ? getFutureTimeLabels(pendingSave, new Date()).join(" and ") : ""} time
+          for Runner #{pendingSave?.bibId} is later than the current time. Save anyway?
+        </p>
+      </Modal>
     </>
   );
 }

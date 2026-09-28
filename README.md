@@ -118,7 +118,7 @@ A second time recorded against a bib already logged at this station is kept as a
 
 To edit a timing record, click the icon at the far-right side of the record row.
 
-The Edit pane allows modification or deletion of a timing record. The In and Out times, Drop Reason, and any notes that have been entered will be displayed. Changes to these fields must be applied to take effect, or cancelled to return to the Stats page.
+The Edit pane allows modification or deletion of a timing record. The In and Out times, Drop Reason, and any notes that have been entered will be displayed. Changes to these fields must be applied to take effect, or cancelled to return to the Stats page. Applying an In or Out time later than the current time asks for confirmation first, so a mistyped time is not saved by accident.
 
 If the Bib# can be matched with a known athlete, the athlete's name will be displayed. The button above the name will jump to that athlete in the Roster page. A timing record for an unknown athlete is considered a warning condition, as all athletes should be known and checked in at the start of the event and included in the Athletes file. For a timing record not matched to athlete, limited changes can be performed; resolve the Bib# to a known athlete to modify all values.
 
