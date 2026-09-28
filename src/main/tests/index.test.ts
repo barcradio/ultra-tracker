@@ -85,6 +85,9 @@ const powerMonitor = vi.hoisted(() => ({
 
 vi.mock("electron", () => ({ app, BrowserWindow, dialog, shell, Menu, powerMonitor }));
 
+const confirmClose = vi.hoisted(() => ({ confirmBeforeClosing: vi.fn() }));
+vi.mock("../lib/confirm-close", () => confirmClose);
+
 const utils = vi.hoisted(() => ({
   electronApp: { setAppUserModelId: vi.fn() },
   is: { dev: false },
@@ -328,6 +331,12 @@ describe("main process", () => {
 
       expect(window.show).toHaveBeenCalled();
       expect(window.setTitle).toHaveBeenCalledWith("ultra-tracker - v1.2.3");
+    });
+
+    it("asks before the main window is closed", async () => {
+      await bootMain();
+
+      expect(confirmClose.confirmBeforeClosing).toHaveBeenCalledWith(window);
     });
 
     it("leaves an already visible window alone", async () => {

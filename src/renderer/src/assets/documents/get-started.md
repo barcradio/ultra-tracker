@@ -51,6 +51,8 @@ _Note: Callsign selection is for future ham radio integration and does not impac
 
 The left side bar is used to select different pages. Select from Stats, Roster, Logs, Export, Theme, Database, Settings and Help. Hovering over the sidebar area will expand it to show the names.
 
+Closing the Ultra Tracker window asks for confirmation first, so a stray click on the close button does not shut the station down.
+
 <a href="#ultra-tracker-help" style="color:steelblue;"><small>back to top</small></a>
 
 ---

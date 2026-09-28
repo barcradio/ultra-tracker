@@ -80,6 +80,8 @@ The wizard carries the operator through the minimum setup needed to start tracki
   </tr>
 </table>
 
+Closing the Ultra Tracker window asks for confirmation first, so a stray click on the close button does not shut the station down.
+
 ## Stats Page
 
 <img height="48" alt="Stats page overview" src="src/renderer/public/img/sidebar/stats-page.png" />
