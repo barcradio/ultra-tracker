@@ -16,6 +16,7 @@ import {
 import { validateDatabaseTables } from "./database/tables-db";
 import { initializeIpcHandlers } from "./ipc/init-ipc";
 import { integrateAppImageDesktopEntry } from "./lib/appimage-desktop-integration";
+import { confirmBeforeClosing } from "./lib/confirm-close";
 import { installDevTools, openDevToolsOnDomReady } from "./lib/devtools";
 import { initUserDirectories } from "./lib/file-dialogs";
 import { LogLevel, initialize, shutdown, uberLog } from "./lib/logger";
@@ -69,6 +70,7 @@ function createWindow(): BrowserWindow {
       sandbox: false
     }
   });
+  confirmBeforeClosing(mainWindow);
   let rendererCrashDialogOpen = false;
 
   const revealMainWindow = (trigger: string): void => {
