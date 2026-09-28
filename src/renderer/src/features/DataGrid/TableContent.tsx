@@ -120,7 +120,7 @@ export function TableContent<T extends object>(props: Props<T>) {
               align="right"
               className={
                 props.actionButtons
-                  ? "p-0 pr-4 opacity-0 h-inherit group-hover/row:opacity-100"
+                  ? "sticky right-0 p-0 pr-4 h-inherit [&>*]:rounded [&>*]:opacity-0 group-hover/row:[&>*]:bg-component-hover group-hover/row:[&>*]:opacity-100"
                   : undefined
               }
             >
