@@ -115,7 +115,7 @@ export function GetAthletes(): DatabaseResponse<AthleteStatusDB[]> {
   try {
     queryResult = db
       .prepare(
-        `SELECT Athletes.*, Status.dropped, Status.dropReason, Status.note, Status.progress,
+        `SELECT Athletes.*, Status.dropped, Status.dropReason, Status.dropStation, Status.note, Status.progress,
           Watchlist.bibId IS NOT NULL AS watchlisted
          FROM Athletes
          LEFT JOIN Status ON Athletes.bibId == Status.bibId

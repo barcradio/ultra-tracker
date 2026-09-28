@@ -172,7 +172,7 @@ _10-key entry is recommended for all stations; for laptops without one, use a US
   <div style="flex:1 1 360px; min-width:220px;">
     This page provides the list of all athletes and enables the operator to search for an athlete using different search keys, such as name, bib number, city, start time, station TimeIn, station TimeOut, and note entries.
 
-    The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS (Not Started), In, Out, Medical, Timeout, Withdrew`
+    The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS (Not Started), In, Out, Medical, Timeout, Withdrew`. Hovering a drop tag shows the station where the athlete dropped.
 
     Use the bookmark button at the left edge of an athlete row to add or remove that athlete from the **Watchlist**. The button appears when the row is hovered; an enabled watchlist button remains visible in red. When a watchlisted athlete arrives at the current station or is included in an imported Drops file, Ultra-Tracker displays an alert. Select **Remove from Watchlist** in the alert to remove the athlete from the Watchlist.
   </div>

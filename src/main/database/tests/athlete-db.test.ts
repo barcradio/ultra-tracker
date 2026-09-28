@@ -143,6 +143,17 @@ describe("athlete-db", () => {
       expect(rows?.[0].watchlisted).toBeTruthy();
     });
 
+    it("includes the station an athlete dropped at", () => {
+      insertAthlete(athlete({ bibId: 505 }));
+      db.prepare(
+        `UPDATE Status SET dropped = 1, dropReason = ?, dropStation = ? WHERE bibId = ?`
+      ).run("medical", "1-logan-peak", 505);
+
+      const [rows] = GetAthletes();
+
+      expect(rows?.[0].dropStation).toBe("1-logan-peak");
+    });
+
     it("reports Error when the join fails", () => {
       db.exec(`DROP TABLE Watchlist`);
 
