@@ -93,7 +93,7 @@ A second time recorded against a bib already logged at this station is kept as a
   </tr>
 </table>
 
-To edit a timing record, click the icon at the far-right side of the record row.
+To edit a timing record, hover over the record row and click the edit icon at the right edge of the grid. It stays in view even when the grid is scrolled sideways.
 
 The Edit pane allows modification or deletion of a timing record. The In and Out times, Drop Reason, and any notes that have been entered will be displayed. Changes to these fields must be applied to take effect, or cancelled to return to the Stats page.
 
