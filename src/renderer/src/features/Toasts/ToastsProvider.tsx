@@ -50,7 +50,7 @@ export function ToastProvider(props: { children: ReactNode }) {
       {props.children}
       {toasts.length > 0 &&
         createPortal(
-          <div className="fixed right-0 bottom-0 z-50 pointer-events-none">
+          <div className="fixed right-0 bottom-0 z-50 pointer-events-none transition-[right] duration-200 group-has-[[data-right-drawer-open]]/portal:right-[26rem]">
             {toasts
               .sort((a, b) => compareAsc(a.epoch, b.epoch))
               .map((toast) => (

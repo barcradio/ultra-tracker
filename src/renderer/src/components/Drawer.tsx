@@ -92,6 +92,7 @@ export function Drawer(props: Props) {
         position={position ?? "left"}
         role="dialog"
         open={open}
+        data-right-drawer-open={open && position === "right" ? "" : undefined}
         className={props.className}
       >
         {props.showCloseIcon !== false && (

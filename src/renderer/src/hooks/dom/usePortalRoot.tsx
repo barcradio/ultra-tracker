@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 function createPortalRoot() {
   const portalRoot = document.createElement("div");
   portalRoot.setAttribute("id", "portal-root");
+  portalRoot.className = "group/portal";
   document.body.appendChild(portalRoot);
   return portalRoot;
 }
