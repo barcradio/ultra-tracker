@@ -9,7 +9,7 @@ export function useAthlete(bibNumber: number, enabled: boolean = true) {
   const handleErrors = useHandleStatusToasts();
 
   return useQuery({
-    enabled,
+    enabled: enabled && Number.isFinite(bibNumber),
     queryKey: ["athletes-table", "athletes", bibNumber],
     queryFn: async (): Promise<AthleteStatusDB | null> => {
       const roundedBib = Math.floor(bibNumber); // HACK: Temporary handling of duplicate bib numbers
