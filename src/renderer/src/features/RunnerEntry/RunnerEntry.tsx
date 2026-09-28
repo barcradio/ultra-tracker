@@ -2,6 +2,7 @@ import { Stack } from "~/components";
 import { StatusTag } from "~/components/StatusTag";
 import { ColumnDef, DataGrid } from "~/features/DataGrid";
 import { RowStatus } from "~/features/DataGrid/types";
+import { Footer } from "~/features/Footer/Footer";
 import { formatDate } from "~/lib/datetimes";
 import { findOriginalSequence } from "~/lib/duplicates";
 import { DropReason, RecordStatus } from "$shared/enums";
@@ -89,25 +90,28 @@ export function RunnerEntry() {
   ];
 
   return (
-    <Stack className="gap-4 mt-0 h-full min-h-0" justify="stretch" align="stretch">
+    <Stack className="gap-4 pb-2 mt-0 h-full min-h-0" justify="stretch" align="stretch">
       <RunnerFormStats />
-      <div className="h-full min-h-0 min-w-0 bg-component grow">
-        <DataGrid
-          data={runnerData ?? []}
-          columns={columns}
-          actionButtons={(row) => <EditRunner runner={row} runners={runnerData ?? []} />}
-          initialSort={{
-            field: "sequence",
-            ascending: false
-          }}
-          filterSortRule={{
-            field: "dropReason",
-            match: "duplicate",
-            sort: { field: "bibId", ascending: false }
-          }}
-          rowStatus={getRowStatus}
-        />
-      </div>
+      <Stack direction="col" align="stretch" className="gap-2 min-h-0 min-w-0 grow">
+        <div className="min-h-0 bg-component grow">
+          <DataGrid
+            data={runnerData ?? []}
+            columns={columns}
+            actionButtons={(row) => <EditRunner runner={row} runners={runnerData ?? []} />}
+            initialSort={{
+              field: "sequence",
+              ascending: false
+            }}
+            filterSortRule={{
+              field: "dropReason",
+              match: "duplicate",
+              sort: { field: "bibId", ascending: false }
+            }}
+            rowStatus={getRowStatus}
+          />
+        </div>
+        <Footer />
+      </Stack>
     </Stack>
   );
 }

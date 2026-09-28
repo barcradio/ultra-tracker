@@ -6,7 +6,7 @@ export function Clock() {
   const formatted = formatDate(currentTime);
 
   return (
-    <h1 className="p-2 font-bold whitespace-nowrap text-primary font-display text-[clamp(2.25rem,5vw,4.5rem)]">
+    <h1 className="px-2 font-bold leading-tight whitespace-nowrap text-primary font-display text-[clamp(2rem,min(5vw,8vh),4.5rem)]">
       {formatted}
     </h1>
   );
