@@ -1,6 +1,7 @@
 import { getRouteApi } from "@tanstack/react-router";
 import { StatusTag } from "~/components/StatusTag";
 import { useAthletes } from "~/hooks/data/useAthletes";
+import { useStations } from "~/hooks/data/useStations";
 import { AthleteProgress, DropReason } from "$shared/enums";
 import { AthleteStatusDB } from "$shared/models";
 import { EmergencyContact } from "./EmergencyContact";
@@ -11,6 +12,16 @@ const routeApi = getRouteApi(`/roster`);
 
 export function RosterPage() {
   const { data } = useAthletes();
+  const { data: stations } = useStations();
+
+  const dropStationTitle = (athlete: AthleteStatusDB) => {
+    if (!athlete.dropStation || athlete.dropReason === DropReason.None) return undefined;
+    const station = stations?.find((station) => station.identifier === athlete.dropStation);
+    const label = station
+      ? `${station.identifier.split("-", 1)[0]} ${station.name}`
+      : athlete.dropStation;
+    return `Dropped at ${label}`;
+  };
 
   const { firstName, lastName } = routeApi.useSearch();
   const navigate = routeApi.useNavigate();
@@ -25,8 +36,12 @@ export function RosterPage() {
     {
       field: "dropReason",
       name: "Status",
-      render: (dropReason, { progress }) => (
-        <StatusTag dropReason={dropReason} AthleteProgress={progress} />
+      render: (dropReason, athlete) => (
+        <StatusTag
+          dropReason={dropReason}
+          AthleteProgress={athlete.progress}
+          title={dropStationTitle(athlete)}
+        />
       ),
       valueFn: (athlete) =>
         `${athlete.dropReason! === DropReason.None ? "" : athlete.dropReason! === DropReason.DidNotStart ? "DNS" : athlete.dropReason}

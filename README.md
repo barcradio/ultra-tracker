@@ -180,7 +180,7 @@ _10-key entry is recommended for all stations, for laptops without, use a USB 10
 
 This page provides the list of all athletes and enables the operator to search for an athlete using different search keys, such as name, bib number, city, start time, station TimeIn, station TimeOut, and note entries.
 
-The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS (Not Started), In, Out, Medical, Timeout, Withdrew`
+The Status column helps station operators determine which athletes are pertinent to the station. Valid filter options for the Status column are: `Incoming, DNS (Not Started), In, Out, Medical, Timeout, Withdrew`. Hovering a drop tag shows the station where the athlete dropped.
 
 <img alt="Roster watchlist control" src="src/renderer/public/img/UI/roster-watchlist.png" />     <img alt="Stats watchlist alert" src="src/renderer/public/img/UI/stats-watchlist.png" />
 <p><em>Watchlist controls in the Roster and Stats pages</em></p>
