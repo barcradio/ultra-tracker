@@ -49,7 +49,7 @@ function isRFIDMessage(value: unknown): value is ZebraFxr90Message {
     typeof data === "object" &&
     typeof data.eventNum === "number" &&
     Number.isFinite(data.eventNum) &&
-    data.format === "epc" &&
+    typeof data.format === "string" &&
     typeof data.idHex === "string" &&
     typeof message.timestamp === "string" &&
     !Number.isNaN(Date.parse(message.timestamp)) &&
@@ -193,7 +193,9 @@ export class ZebraWebSocketProcessor {
     webSocket.on("error", (error) => {
       logRFID(LogLevel.error, "WebSocket error:", error);
       this.rejectPendingConnection(error);
-      this.eventEmitter.emit("error", error);
+      if (this.eventEmitter.listenerCount("error") > 0) {
+        this.eventEmitter.emit("error", error);
+      }
     });
   }
 
@@ -257,6 +259,9 @@ export class ZebraWebSocketProcessor {
           this.pendingProcessingRequested = false;
         }
       }
+    } catch (error) {
+      logRFID(LogLevel.error, "Failed to process pending RFID messages:", error);
+      this.schedulePendingRetry();
     } finally {
       this.processingPendingMessages = false;
     }
@@ -301,32 +306,44 @@ export class ZebraWebSocketProcessor {
     let retryable = false;
 
     for (const frame of frames) {
+      let obj: unknown;
       try {
-        const obj = JSON.parse(frame.payload) as unknown;
+        obj = JSON.parse(frame.payload) as unknown;
+      } catch (error) {
+        logRFID(LogLevel.error, "Failed to parse RFID JSON:", error, "Raw:", frame.payload);
+        processedLength = frame.end;
+        continue;
+      }
 
-        if (!isRFIDMessage(obj)) {
-          logRFID(LogLevel.error, "Invalid RFID message structure:", frame.payload);
-          this.eventEmitter.emit("error", new Error("Invalid RFID message structure"));
-          processedLength = frame.end;
-          continue;
-        }
+      if (!isRFIDMessage(obj)) {
+        logRFID(LogLevel.error, "Invalid RFID message structure:", frame.payload);
+        processedLength = frame.end;
+        continue;
+      }
 
-        if (!zebraBibIdPattern.test(obj.data.idHex)) {
-          // Test/junk tags can report hex ids; ignore quietly instead of surfacing a reader error.
-          logRFID(LogLevel.warn, `Ignoring non-decimal RFID tag id "${obj.data.idHex}"`);
-          processedLength = frame.end;
-          continue;
-        }
+      if (obj.data.format !== "epc") {
+        logRFID(LogLevel.warn, `Ignoring unsupported RFID tag format "${obj.data.format}"`);
+        processedLength = frame.end;
+        continue;
+      }
 
+      if (!zebraBibIdPattern.test(obj.data.idHex)) {
+        // Test/junk tags can report hex ids; ignore quietly instead of surfacing a reader error.
+        logRFID(LogLevel.warn, `Ignoring non-decimal RFID tag id "${obj.data.idHex}"`);
+        processedLength = frame.end;
+        continue;
+      }
+
+      try {
         this.eventEmitter.emit("tag-read", {
           bibId: Number.parseInt(obj.data.idHex, 10),
           timestamp: new Date(obj.timestamp)
         } satisfies RfidTagRead);
         processedLength = frame.end;
       } catch (error) {
-        logRFID(LogLevel.error, "Failed to parse RFID JSON:", error, "Raw:", frame.payload);
-        this.eventEmitter.emit("error", error as Error);
+        logRFID(LogLevel.error, "Failed to process RFID tag read:", error, "Raw:", frame.payload);
         retryable = true;
+        break;
       }
     }
 

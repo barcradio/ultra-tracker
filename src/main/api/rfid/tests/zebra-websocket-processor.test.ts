@@ -171,6 +171,28 @@ describe("zebra-websocket-processor", () => {
 
       await expect(connecting).rejects.toThrow("closed before connecting");
     });
+
+    it("logs socket errors without throwing when there is no error subscriber", async () => {
+      await connect();
+
+      expect(() => socket.emit("error", new Error("connection lost"))).not.toThrow();
+      expect(logRFID).toHaveBeenCalledWith(
+        0,
+        "WebSocket error:",
+        expect.objectContaining({ message: "connection lost" })
+      );
+    });
+
+    it("forwards socket errors to the reader's error subscriber", async () => {
+      await connect();
+      const errored = vi.fn();
+      processor.on("error", errored);
+      const error = new Error("connection lost");
+
+      socket.emit("error", error);
+
+      expect(errored).toHaveBeenCalledExactlyOnceWith(error);
+    });
   });
 
   describe("disconnect", () => {
@@ -298,15 +320,19 @@ describe("zebra-websocket-processor", () => {
       expect(inbox.rows()).toHaveLength(0);
     });
 
-    it("reports a message whose shape it does not recognise", () => {
+    it("logs and discards a message whose shape it does not recognise", () => {
       const errored = vi.fn();
       processor.on("error", errored);
 
       socket.emit("message", Buffer.from(JSON.stringify({ data: { nope: true } })));
 
-      expect(errored).toHaveBeenCalledWith(
-        expect.objectContaining({ message: "Invalid RFID message structure" })
+      expect(errored).not.toHaveBeenCalled();
+      expect(logRFID).toHaveBeenCalledWith(
+        0,
+        "Invalid RFID message structure:",
+        expect.any(String)
       );
+      expect(inbox.rows()).toHaveLength(0);
     });
 
     it("rejects a message carrying an unparseable timestamp", () => {
@@ -315,7 +341,122 @@ describe("zebra-websocket-processor", () => {
 
       socket.emit("message", Buffer.from(tagMessage(BIB_101, "not a date")));
 
-      expect(errored).toHaveBeenCalled();
+      expect(errored).not.toHaveBeenCalled();
+      expect(inbox.rows()).toHaveLength(0);
+    });
+
+    it("ignores the UII noise tag from issue 423 and reads the next bib", () => {
+      const tagRead = vi.fn();
+      const errored = vi.fn();
+      processor.on("tag-read", tagRead);
+      processor.on("error", errored);
+      const noise = JSON.stringify({
+        data: { eventNum: 76, format: "uii", idHex: "0c210530067057182202117f" },
+        timestamp: "2026-09-25T10:07:30.715-0600",
+        type: "CUSTOM"
+      });
+
+      socket.emit("message", Buffer.from(noise + tagMessage(BIB_101)));
+
+      expect(errored).not.toHaveBeenCalled();
+      expect(tagRead).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ bibId: 101 }));
+      expect(logRFID).toHaveBeenCalledWith(1, 'Ignoring unsupported RFID tag format "uii"');
+      expect(inbox.rows()).toHaveLength(0);
+    });
+
+    it("discards malformed JSON without retrying or blocking the next bib", () => {
+      const tagRead = vi.fn();
+      processor.on("tag-read", tagRead);
+
+      expect(() =>
+        socket.emit("message", Buffer.from('{"data":}' + tagMessage(BIB_101)))
+      ).not.toThrow();
+
+      expect(tagRead).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ bibId: 101 }));
+      expect(logRFID).toHaveBeenCalledWith(
+        0,
+        "Failed to parse RFID JSON:",
+        expect.any(SyntaxError),
+        "Raw:",
+        '{"data":}'
+      );
+      expect(inbox.rows()).toHaveLength(0);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("retains a failed tag and subsequent frames until its listener succeeds", () => {
+      const tagRead = vi.fn().mockImplementationOnce(() => {
+        throw new Error("write failed");
+      });
+      processor.on("tag-read", tagRead);
+      const payload = tagMessage(BIB_101) + tagMessage("00000000000000000000102");
+
+      socket.emit("message", Buffer.from(payload));
+
+      expect(inbox.rows()[0].payload).toBe(payload);
+      expect(tagRead).toHaveBeenCalledTimes(1);
+      vi.advanceTimersByTime(1000);
+      expect(tagRead.mock.calls.map(([tag]) => tag.bibId)).toEqual([101, 101, 102]);
+      expect(inbox.rows()).toHaveLength(0);
+    });
+
+    it("contains repeated inbox failures in retry callbacks and recovers", () => {
+      const tagRead = vi.fn();
+      processor.on("tag-read", tagRead);
+      inbox.getPending
+        .mockImplementationOnce(() => {
+          throw new Error("database locked");
+        })
+        .mockImplementationOnce(() => {
+          throw new Error("database locked");
+        });
+
+      socket.emit("message", Buffer.from(tagMessage(BIB_101)));
+
+      expect(() => vi.advanceTimersByTime(1000)).not.toThrow();
+      expect(inbox.rows()).toHaveLength(1);
+      vi.advanceTimersByTime(2000);
+      expect(tagRead).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ bibId: 101 }));
+      expect(inbox.rows()).toHaveLength(0);
+    });
+
+    it("acknowledges earlier frames without discarding a later failed tag", () => {
+      const first = tagMessage(BIB_101);
+      const second = tagMessage("00000000000000000000102");
+      const tagRead = vi
+        .fn()
+        .mockImplementationOnce(() => {})
+        .mockImplementationOnce(() => {
+          throw new Error("write failed");
+        });
+      processor.on("tag-read", tagRead);
+
+      socket.emit("message", Buffer.from(first + second));
+
+      expect(inbox.rows()[0].payload).toBe(second);
+      vi.advanceTimersByTime(1000);
+      expect(tagRead.mock.calls.map(([tag]) => tag.bibId)).toEqual([101, 102, 102]);
+      expect(inbox.rows()).toHaveLength(0);
+    });
+
+    it("retries when a processed frame cannot be acknowledged in the inbox", () => {
+      const tagRead = vi.fn();
+      processor.on("tag-read", tagRead);
+      inbox.markProcessed.mockImplementationOnce(() => {
+        throw new Error("database locked");
+      });
+
+      socket.emit("message", Buffer.from(tagMessage(BIB_101)));
+
+      expect(inbox.rows()).toHaveLength(1);
+      expect(logRFID).toHaveBeenCalledWith(
+        0,
+        "Failed to process pending RFID messages:",
+        expect.any(Error)
+      );
+      vi.advanceTimersByTime(1000);
+      expect(inbox.rows()).toHaveLength(0);
+      expect(tagRead).toHaveBeenCalledTimes(2);
     });
 
     it("discards a payload with no JSON at all rather than retrying forever", () => {
@@ -335,6 +476,38 @@ describe("zebra-websocket-processor", () => {
   });
 
   describe("recovering messages stored earlier", () => {
+    it("discards stored malformed frames without throwing during connection", async () => {
+      inbox.enqueue('{"data":}{"data":{"nope":true}}' + tagMessage(BIB_101));
+      const tagRead = vi.fn();
+      processor.on("tag-read", tagRead);
+
+      await expect(connect()).resolves.toBeUndefined();
+
+      expect(tagRead).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ bibId: 101 }));
+      expect(inbox.rows()).toHaveLength(0);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("contains inbox failures during connection and retries pending reads", async () => {
+      inbox.enqueue(tagMessage(BIB_101));
+      inbox.getPending.mockImplementationOnce(() => {
+        throw new Error("database locked");
+      });
+      const tagRead = vi.fn();
+      processor.on("tag-read", tagRead);
+
+      await expect(connect()).resolves.toBeUndefined();
+
+      expect(logRFID).toHaveBeenCalledWith(
+        0,
+        "Failed to process pending RFID messages:",
+        expect.any(Error)
+      );
+      vi.advanceTimersByTime(1000);
+      expect(tagRead).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ bibId: 101 }));
+      expect(inbox.rows()).toHaveLength(0);
+    });
+
     it("processes anything left in the inbox as soon as it connects", async () => {
       inbox.enqueue(tagMessage(BIB_101));
       const tagRead = vi.fn();
